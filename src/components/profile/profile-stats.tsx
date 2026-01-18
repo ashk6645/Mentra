@@ -18,7 +18,7 @@ export async function ProfileStats() {
   // Get task statistics
   const [totalTasks, completedTasks, todayTasks] = await Promise.all([
     prisma.task.count({ where: { userId: user.id } }),
-    prisma.task.count({ where: { userId: user.id, isCompleted: true } }),
+    prisma.task.count({ where: { userId: user.id, completed: true } }),
     prisma.task.count({ 
       where: { 
         userId: user.id, 

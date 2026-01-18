@@ -4,11 +4,10 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Loader2, Plus, CalendarIcon, Sparkles, Wand2 } from 'lucide-react'
+import { Loader2, CalendarIcon, Pencil } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { TagManager } from '@/components/tags/tag-manager'
-import { RecurrenceSelector } from './recurrence-selector'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -41,227 +40,134 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
-import { createTask } from '@/lib/actions/tasks'
+import { updateTask } from '@/lib/actions/tasks'
 import { getProjects } from '@/lib/actions/projects'
-import { parseTaskInput, getTaskSuggestions } from '@/lib/actions/ai'
 import { getTags } from '@/lib/actions/tags'
 import { useRouter } from 'next/navigation'
-import { Project, Tag } from '@prisma/client'
+import { Project, Tag, Task } from '@prisma/client'
 
 const formSchema = z.object({
     title: z.string().min(1, 'Title is required'),
     description: z.string().optional(),
     priority: z.enum(['low', 'medium', 'high', 'urgent']).optional().nullable(),
-    dueDate: z.date().optional(),
-    scheduledTime: z.string().optional(), // Time in HH:MM format
+    dueDate: z.date().optional().nullable(),
+    scheduledTime: z.string().optional(),
     durationMinutes: z.number().optional(),
-    projectId: z.string().optional(),
+    projectId: z.string().optional().nullable(),
     tagIds: z.array(z.string()).optional(),
 })
 
-export function CreateTaskDialog({ projectId }: { projectId?: string }) {
+interface EditTaskDialogProps {
+    task: Task & { tags?: { tag: { id: string } }[] }
+    trigger?: React.ReactNode
+}
+
+export function EditTaskDialog({ task, trigger }: EditTaskDialogProps) {
     const [open, setOpen] = useState(false)
     const [projects, setProjects] = useState<Project[]>([])
     const [tags, setTags] = useState<Tag[]>([])
-
-    // AI State
-    const [aiInput, setAiInput] = useState('')
-    const [isAIThinking, setIsAIThinking] = useState(false)
-    const [isSuggesting, setIsSuggesting] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
 
     const router = useRouter()
+
+    // Extract time from scheduledStart if it exists
+    const getScheduledTime = () => {
+        if (!task.scheduledStart) return ''
+        const date = new Date(task.scheduledStart)
+        return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+    }
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            title: '',
-            description: '',
-            priority: null,
-            projectId: projectId || '',
-            tagIds: [],
-            scheduledTime: '',
-            durationMinutes: 30,
+            title: task.title,
+            description: task.description || '',
+            priority: task.priority as any,
+            dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+            projectId: task.projectId || undefined,
+            tagIds: task.tags?.map(t => t.tag.id) || [],
+            scheduledTime: getScheduledTime(),
+            durationMinutes: task.durationMinutes || 30,
         },
     })
 
-    // Fetch projects and tags
     useEffect(() => {
         if (open) {
-            getProjects().then(setProjects)
-            getTags().then(setTags)
+            Promise.all([getProjects(), getTags()]).then(([p, t]) => {
+                setProjects(p)
+                setTags(t)
+            })
         }
     }, [open])
 
-    // Update default projectId if prop changes
-    useEffect(() => {
-        if (projectId) {
-            form.setValue('projectId', projectId)
-        }
-    }, [projectId, form])
-
-    const isLoading = form.formState.isSubmitting
-
-    async function handleAIParse() {
-        if (!aiInput.trim()) return
-
-        setIsAIThinking(true)
-        try {
-            const result = await parseTaskInput(aiInput)
-            if (result) {
-                form.setValue('title', result.title)
-                if (result.description) form.setValue('description', result.description)
-                if (result.priority) form.setValue('priority', result.priority)
-                if (result.dueDate) form.setValue('dueDate', new Date(result.dueDate))
-
-                // Clear AI input after successful parsing
-                setAiInput('')
-            }
-        } catch (error) {
-            console.error("AI Parse failed", error)
-        } finally {
-            setIsAIThinking(false)
-        }
-    }
-
-    async function handleMagicSuggest() {
-        const title = form.getValues('title')
-        const description = form.getValues('description')
-
-        if (!title.trim()) return
-
-        setIsSuggesting(true)
-        try {
-            const suggestions = await getTaskSuggestions(
-                title,
-                description,
-                projects.map(p => ({ id: p.id, name: p.name })),
-                tags.map(t => ({ id: t.id, name: t.name }))
-            )
-
-            if (suggestions.priority) form.setValue('priority', suggestions.priority)
-            if (suggestions.projectId) form.setValue('projectId', suggestions.projectId)
-            if (suggestions.tagIds && suggestions.tagIds.length > 0) {
-                const currentTags = form.getValues('tagIds') || []
-                // Merge unique tags
-                const newTags = Array.from(new Set([...currentTags, ...suggestions.tagIds]))
-                form.setValue('tagIds', newTags)
-            }
-        } catch (error) {
-            console.error("Magic Suggest failed", error)
-        } finally {
-            setIsSuggesting(false)
-        }
-    }
-
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        console.log('Submitting task:', values)
+        setIsLoading(true)
         try {
             // Calculate scheduledStart and scheduledEnd if date and time are provided
             let scheduledStart: string | undefined
             let scheduledEnd: string | undefined
-            
+
             if (values.dueDate && values.scheduledTime) {
                 const [hours, minutes] = values.scheduledTime.split(':').map(Number)
                 const startDate = new Date(values.dueDate)
                 startDate.setHours(hours, minutes, 0, 0)
                 scheduledStart = startDate.toISOString()
-                
+
                 if (values.durationMinutes) {
                     const endDate = new Date(startDate.getTime() + values.durationMinutes * 60000)
                     scheduledEnd = endDate.toISOString()
                 }
             }
 
-            const result = await createTask({
+            const result = await updateTask({
+                id: task.id,
                 ...values,
-                dueDate: values.dueDate ? values.dueDate.toISOString() : undefined,
-                projectId: values.projectId === 'none' ? undefined : values.projectId,
+                dueDate: values.dueDate ? values.dueDate.toISOString() : null,
+                projectId: values.projectId === 'none' ? null : values.projectId,
                 scheduledStart,
                 scheduledEnd,
             })
-            console.log('Task creation result:', result)
 
             if (result.success) {
                 setOpen(false)
-                form.reset()
                 router.refresh()
-            } else {
-                console.error('Task creation failed:', result.error)
             }
         } catch (e) {
-            console.error('Task creation exception:', e)
+            console.error('Task update exception:', e)
+        } finally {
+            setIsLoading(false)
         }
     }
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Task
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                    <DialogTitle>Add New Task</DialogTitle>
-                </DialogHeader>
-
-                <div className="flex gap-2">
-                    <div className="relative flex-1">
-                        <Sparkles className="absolute left-3 top-2.5 h-4 w-4 text-purple-500" />
-                        <Input
-                            placeholder="Magic Add: 'Buy milk tomorrow at 5pm priority high'"
-                            className="pl-9 border-purple-200 focus-visible:ring-purple-500"
-                            value={aiInput}
-                            onChange={(e) => setAiInput(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    e.preventDefault()
-                                    handleAIParse()
-                                }
-                            }}
-                            disabled={isAIThinking}
-                        />
-                    </div>
-                    <Button
-                        type="button"
-                        size="sm"
-                        variant="secondary"
-                        onClick={handleAIParse}
-                        disabled={isAIThinking || !aiInput.trim()}
-                    >
-                        {isAIThinking ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Auto-Fill'}
+                {trigger || (
+                    <Button variant="ghost" size="sm">
+                        <Pencil className="h-4 w-4" />
                     </Button>
-                </div>
+                )}
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                    <DialogTitle>Edit Task</DialogTitle>
+                </DialogHeader>
 
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <div className="flex gap-2 items-start">
-                            <FormField
-                                control={form.control}
-                                name="title"
-                                render={({ field }) => (
-                                    <FormItem className="flex-1">
-                                        <FormLabel>Title</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="What needs to be done?" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <Button
-                                type="button"
-                                size="icon"
-                                variant="outline"
-                                className="mt-8 text-purple-500 border-purple-200 hover:bg-purple-50"
-                                onClick={handleMagicSuggest}
-                                disabled={isSuggesting || !form.watch('title')}
-                                title="Magic Suggest (Predict details)"
-                            >
-                                {isSuggesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
-                            </Button>
-                        </div>
+                        <FormField
+                            control={form.control}
+                            name="title"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Title</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="What needs to be done?" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
 
                         <FormField
                             control={form.control}
@@ -312,7 +218,7 @@ export function CreateTaskDialog({ projectId }: { projectId?: string }) {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Project</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value || (projectId ? projectId : 'none')}>
+                                        <Select onValueChange={field.onChange} value={field.value || 'none'}>
                                             <FormControl>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Select project" />
@@ -351,6 +257,7 @@ export function CreateTaskDialog({ projectId }: { projectId?: string }) {
                                                         field.onChange([...current, tagId])
                                                     }
                                                 }}
+                                                availableTags={tags}
                                             />
                                         </div>
                                     </FormControl>
@@ -388,7 +295,7 @@ export function CreateTaskDialog({ projectId }: { projectId?: string }) {
                                             <PopoverContent className="w-auto p-0" align="start">
                                                 <Calendar
                                                     mode="single"
-                                                    selected={field.value}
+                                                    selected={field.value || undefined}
                                                     onSelect={field.onChange}
                                                     disabled={(date) =>
                                                         date < new Date("1900-01-01")
@@ -409,9 +316,9 @@ export function CreateTaskDialog({ projectId }: { projectId?: string }) {
                                     <FormItem>
                                         <FormLabel>Time (Optional)</FormLabel>
                                         <FormControl>
-                                            <Input 
-                                                type="time" 
-                                                {...field} 
+                                            <Input
+                                                type="time"
+                                                {...field}
                                                 placeholder="HH:MM"
                                             />
                                         </FormControl>
@@ -428,29 +335,12 @@ export function CreateTaskDialog({ projectId }: { projectId?: string }) {
                                 <FormItem>
                                     <FormLabel>Duration (Minutes)</FormLabel>
                                     <FormControl>
-                                        <Input 
-                                            type="number" 
+                                        <Input
+                                            type="number"
                                             min="5"
                                             step="5"
                                             {...field}
                                             onChange={(e) => field.onChange(parseInt(e.target.value) || 30)}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="recurrenceRule"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                    <FormLabel>Repeat</FormLabel>
-                                    <FormControl>
-                                        <RecurrenceSelector
-                                            value={field.value || ''}
-                                            onChange={field.onChange}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -464,7 +354,7 @@ export function CreateTaskDialog({ projectId }: { projectId?: string }) {
                             </Button>
                             <Button type="submit" disabled={isLoading}>
                                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Create Task
+                                Save Changes
                             </Button>
                         </div>
                     </form>

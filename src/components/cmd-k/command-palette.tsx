@@ -132,7 +132,7 @@ export function CommandPalette({ projects, onOpenChange }: { projects: Project[]
                         <CommandGroup heading="Tasks">
                             {tasks.map(task => (
                                 <CommandItem key={task.id} onSelect={() => runCommand(() => router.push(`/projects/${task.projectId || 'inbox'}?taskId=${task.id}`))}>
-                                    <div className={cn("mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary", task.isCompleted ? "bg-primary text-primary-foreground" : "opacity-50")} />
+                                    <div className={cn("mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary", task.completed ? "bg-primary text-primary-foreground" : "opacity-50")} />
                                     <span className="truncate flex-1">{task.title}</span>
                                     {task.project && (
                                         <span className="ml-2 text-xs text-muted-foreground">{task.project.name}</span>

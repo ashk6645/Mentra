@@ -19,7 +19,7 @@ export async function getBalanceData() {
                         tasks: {
                             select: {
                                 id: true,
-                                isCompleted: true
+                                completed: true
                             }
                         }
                     }
@@ -34,7 +34,7 @@ export async function getBalanceData() {
 
             area.projects.forEach(project => {
                 taskCount += project.tasks.length
-                completedCount += project.tasks.filter(t => t.isCompleted).length
+                completedCount += project.tasks.filter(t => t.completed).length
             })
 
             return {

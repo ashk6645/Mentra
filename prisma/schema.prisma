@@ -8,52 +8,30 @@ datasource db {
   url       = env("DATABASE_URL")
 }
 
-// Enums
-enum Priority {
-  NONE
-  LOW
-  MEDIUM
-  HIGH
-}
-
-enum PermissionLevel {
-  VIEWER
-  EDITOR
-  OWNER
-}
-
-enum RecurrenceFrequency {
-  DAILY
-  WEEKLY
-  MONTHLY
-  YEARLY
-  CUSTOM
-}
-
 // 1. Profiles
 model Profile {
-  id             String    @id @default(uuid()) // Links to auth.users.id
+  id             String    @id // Links to auth.users.id
   email          String    @unique
   displayName    String?   @map("display_name")
   avatarUrl      String?   @map("avatar_url")
-  preferences    Json?     @default("{}")
-  xp             Int       @default(0)
   level          Int       @default(1)
-  streakCount    Int       @default(0) @map("streak_count")
-  lastActiveAt   DateTime? @map("last_active_at")
+  totalXp        Int       @default(0) @map("total_xp")
+  currentStreak  Int       @default(0) @map("current_streak")
+  longestStreak  Int       @default(0) @map("longest_streak")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  projects       Project[]
-  tasks          Task[]
-  tags           Tag[]
-  habits         Habit[]
-  focusSessions  FocusSession[]
-  xpLogs         XPLog[]
-  aiLogs         AIActivityLog[]
-  areas          AreaOfLife[]
-  sharedProjects SharedProject[]
+  projects             Project[]
+  tasks                Task[]
+  tags                 Tag[]
+  habits               Habit[]
+  focusSessions        FocusSession[]
+  xpLogs               XPLog[]
+  aiLogs               AIActivityLog[]
+  areas                AreaOfLife[]
+  sharedProjectsOwned  SharedProject[] @relation("SharedByUser")
+  sharedProjectsAccess SharedProject[] @relation("SharedWithUser")
 
   @@map("profiles")
 }
@@ -64,7 +42,7 @@ model Project {
   userId      String   @map("user_id")
   name        String
   description String?
-  color       String?  @default("neutral")
+  color       String?
   icon        String?
   isArchived  Boolean  @default(false) @map("is_archived")
   sortOrder   Int      @default(0) @map("sort_order")
@@ -72,13 +50,13 @@ model Project {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   // Relations
-  owner       Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sections    Section[]
-  tasks       Task[]
-  sharedWith  SharedProject[]
-  
-  areaId      String?         @map("area_id")
-  area        AreaOfLife?     @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  owner      Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sections   Section[]
+  tasks      Task[]
+  sharedWith SharedProject[]
+
+  areaId String?      @map("area_id")
+  area   AreaOfLife? @relation(fields: [areaId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([areaId])
@@ -92,10 +70,11 @@ model Section {
   name      String
   sortOrder Int      @default(0) @map("sort_order")
   createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  tasks     Task[]
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks   Task[]
 
   @@index([projectId])
   @@map("sections")
@@ -103,43 +82,42 @@ model Section {
 
 // 4. Tasks
 model Task {
-  id             String    @id @default(uuid())
-  userId         String    @map("user_id")
-  projectId      String?   @map("project_id")
-  sectionId      String?   @map("section_id")
-  parentTaskId   String?   @map("parent_task_id")
-  
-  title          String
-  description    String?   @db.Text
-  priority       Priority  @default(NONE)
-  
-  dueDate        DateTime? @map("due_date") @db.Date // Store date only
-  dueTime        DateTime? @map("due_time") @db.Time // Store time only? Or use full DateTime in DB
-  
-  isCompleted    Boolean   @default(false) @map("is_completed")
-  completedAt    DateTime? @map("completed_at")
-  
-  isRecurring    Boolean   @default(false) @map("is_recurring")
-  recurrenceRule String?   @map("recurrence_rule") // RRule string
-  
-  sortOrder      Int       @default(0) @map("sort_order")
-  
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
+  id              String    @id @default(uuid())
+  userId          String    @map("user_id")
+  projectId       String?   @map("project_id")
+  sectionId       String?   @map("section_id")
+
+  title       String
+  description String?
+  priority    String? // 'low', 'medium', 'high', 'urgent' or null
+
+  dueDate DateTime? @map("due_date") @db.Timestamptz
+
+  // Calendar & Time Blocking Fields
+  scheduledStart  DateTime? @map("scheduled_start") @db.Timestamptz
+  scheduledEnd    DateTime? @map("scheduled_end") @db.Timestamptz
+  durationMinutes Int?      @map("duration_minutes")
+
+  completed   Boolean   @default(false)
+  completedAt DateTime? @map("completed_at") @db.Timestamptz
+
+  xpEarned  Int @default(0) @map("xp_earned")
+  sortOrder Int @default(0) @map("sort_order")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  user           Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  project        Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  section        Section?  @relation(fields: [sectionId], references: [id], onDelete: SetNull)
-  parentTask     Task?     @relation("SubTasks", fields: [parentTaskId], references: [id], onDelete: Cascade)
-  subTasks       Task[]    @relation("SubTasks")
-  tags           TaskTag[]
-  reminders      Reminder[]
-  focusSessions  FocusSession[]
+  user          Profile        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project       Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  section       Section?       @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+  tags          TaskTag[]
+  reminders     Reminder[]
+  focusSessions FocusSession[]
 
   @@index([userId])
   @@index([projectId])
-  @@index([dueDate])
+  @@index([sectionId])
   @@map("tasks")
 }
 
@@ -152,8 +130,8 @@ model Tag {
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  user      Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tasks     TaskTag[]
+  user  Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks TaskTag[]
 
   @@unique([userId, name])
   @@map("tags")
@@ -161,12 +139,13 @@ model Tag {
 
 // 6. Task Tags (Many-to-Many)
 model TaskTag {
-  taskId String @map("task_id")
-  tagId  String @map("tag_id")
+  taskId    String   @map("task_id")
+  tagId     String   @map("tag_id")
+  createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([taskId, tagId])
   @@map("task_tags")
@@ -176,30 +155,37 @@ model TaskTag {
 model Reminder {
   id        String   @id @default(uuid())
   taskId    String   @map("task_id")
-  remindAt  DateTime @map("remind_at")
+  remindAt  DateTime @map("remind_at") @db.Timestamptz
   isSent    Boolean  @default(false) @map("is_sent")
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@index([remindAt])
   @@map("reminders")
 }
 
-// 8. Habits (Hybrid)
+// 8. Habits
 model Habit {
   id              String    @id @default(uuid())
   userId          String    @map("user_id")
   name            String
-  frequency       RecurrenceFrequency @default(DAILY)
-  streakCount     Int       @default(0) @map("streak_count")
-  lastCompletedAt DateTime? @map("last_completed_at")
+  description     String?
+  frequency       String    // 'daily', 'weekly', 'custom'
+  targetDays      Int[]     @map("target_days")
+  icon            String?
+  color           String?
+  xpPerCompletion Int       @default(10) @map("xp_per_completion")
+  currentStreak   Int       @default(0) @map("current_streak")
+  bestStreak      Int       @default(0) @map("best_streak")
+  isActive        Boolean   @default(true) @map("is_active")
   createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  user            Profile           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  completions     HabitCompletion[]
+  user        Profile           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  completions HabitCompletion[]
 
   @@map("habits")
 }
@@ -208,10 +194,12 @@ model Habit {
 model HabitCompletion {
   id          String   @id @default(uuid())
   habitId     String   @map("habit_id")
-  completedAt DateTime @default(now()) @map("completed_at")
+  completedAt DateTime @default(now()) @map("completed_at") @db.Timestamptz
+  xpEarned    Int      @default(0) @map("xp_earned")
+  notes       String?
 
   // Relations
-  habit       Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
 
   @@index([habitId])
   @@map("habit_completions")
@@ -222,43 +210,50 @@ model FocusSession {
   id              String    @id @default(uuid())
   userId          String    @map("user_id")
   taskId          String?   @map("task_id")
-  startedAt       DateTime  @default(now()) @map("started_at")
-  endedAt         DateTime? @map("ended_at")
-  durationMinutes Int?      @map("duration_minutes")
-  interruptions   Int       @default(0)
+  durationMinutes Int       @map("duration_minutes")
+  startedAt       DateTime  @map("started_at") @db.Timestamptz
+  endedAt         DateTime? @map("ended_at") @db.Timestamptz
+  completed       Boolean   @default(false)
+  xpEarned        Int       @default(0) @map("xp_earned")
+  notes           String?
+  createdAt       DateTime  @default(now()) @map("created_at")
 
   // Relations
-  user            Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  task            Task?     @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
 
   @@map("focus_sessions")
 }
 
 // 11. XP Logs
 model XPLog {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  action    String   // e.g., "TASK_COMPLETION", "STREAK_BONUS"
-  points    Int
-  createdAt DateTime @default(now()) @map("created_at")
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  amount      Int
+  source      String   // 'task', 'habit', 'focus_session', 'streak', 'achievement', 'daily_login', 'other'
+  sourceId    String?  @map("source_id")
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
 
   // Relations
-  user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("xp_logs")
 }
 
 // 12. AI Activity Logs
 model AIActivityLog {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id")
-  prompt      String   @db.Text
-  response    String   @db.Text
-  actionTaken String?  @map("action_taken")
-  createdAt   DateTime @default(now()) @map("created_at")
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  actionType   String   @map("action_type") // 'task_generation', 'schedule_optimization', 'priority_suggestion', 'habit_recommendation', 'other'
+  inputData    Json?    @map("input_data")
+  outputData   Json?    @map("output_data")
+  success      Boolean  @default(true)
+  errorMessage String?  @map("error_message")
+  createdAt    DateTime @default(now()) @map("created_at")
 
   // Relations
-  user        Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("ai_activity_logs")
 }
@@ -271,25 +266,29 @@ model AreaOfLife {
   icon      String?
   color     String?
   sortOrder Int      @default(0) @map("sort_order")
-  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   // Relations
-  user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  projects  Project[]
+  user     Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projects Project[]
 
   @@map("areas_of_life")
 }
 
 // 14. Shared Projects
 model SharedProject {
-  id                String          @id @default(uuid())
-  projectId         String          @map("project_id")
-  sharedWithUserId  String         @map("shared_with_user_id")
-  permissionLevel   PermissionLevel @default(VIEWER) @map("permission_level")
-  createdAt         DateTime        @default(now()) @map("created_at")
+  id               String   @id @default(uuid())
+  projectId        String   @map("project_id")
+  sharedByUserId   String   @map("shared_by_user_id")
+  sharedWithUserId String   @map("shared_with_user_id")
+  permission       String   @default("view") // 'view', 'edit', 'admin'
+  createdAt        DateTime @default(now()) @map("created_at")
 
   // Relations
-  project           Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  sharedWith        Profile         @relation(fields: [sharedWithUserId], references: [id], onDelete: Cascade)
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sharedBy   Profile @relation("SharedByUser", fields: [sharedByUserId], references: [id], onDelete: Cascade)
+  sharedWith Profile @relation("SharedWithUser", fields: [sharedWithUserId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, sharedWithUserId])
   @@map("shared_projects")

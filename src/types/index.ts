@@ -3,17 +3,24 @@
  * This file defines all the types used across the application
  */
 
-import { Priority, Task, Project, Tag, Profile, Habit, FocusSession, AreaOfLife, RecurrenceFrequency, PermissionLevel } from '@prisma/client'
+import { Task, Project, Tag, Profile, Habit, FocusSession, AreaOfLife, Section } from '@prisma/client'
+
+// ========================================
+// TYPE DEFINITIONS
+// ========================================
+
+export type Priority = 'low' | 'medium' | 'high' | 'urgent'
+export type Frequency = 'daily' | 'weekly' | 'custom'
+export type PermissionLevel = 'view' | 'edit' | 'admin'
 
 // ========================================
 // EXTENDED TYPES (with relations)
 // ========================================
 
 /**
- * Task with all its relations (subtasks, tags, etc.)
+ * Task with all its relations (tags, etc.)
  */
 export type TaskWithRelations = Task & {
-  subTasks?: TaskWithRelations[]
   tags?: TaskTagWithTag[]
   project?: Project | null
   reminders?: Reminder[]
@@ -62,15 +69,11 @@ export type HabitWithCompletions = Habit & {
 export interface CreateTaskInput {
   title: string
   description?: string
-  priority?: Priority
+  priority?: Priority | null
   dueDate?: string | null // ISO string
-  dueTime?: string | null // Time string
   projectId?: string
   sectionId?: string
-  parentId?: string
   tagIds?: string[]
-  isRecurring?: boolean
-  recurrenceRule?: string // RRule string
 }
 
 /**
@@ -78,7 +81,7 @@ export interface CreateTaskInput {
  */
 export interface UpdateTaskInput extends Partial<CreateTaskInput> {
   id: string
-  isCompleted?: boolean
+  completed?: boolean
   completedAt?: Date | null
 }
 
@@ -107,7 +110,7 @@ export interface UpdateProjectInput extends Partial<CreateProjectInput> {
  */
 export interface CreateHabitInput {
   name: string
-  frequency: RecurrenceFrequency
+  frequency: Frequency
 }
 
 /**
@@ -129,7 +132,7 @@ export interface CreateAreaInput {
 export interface ParsedTask {
   title: string
   description?: string
-  priority?: Priority
+  priority?: Priority | null
   dueDate?: string // ISO string
   projectId?: string
 }
@@ -138,7 +141,7 @@ export interface ParsedTask {
  * AI-generated task suggestions
  */
 export interface TaskSuggestions {
-  priority?: Priority
+  priority?: Priority | null
   projectId?: string
   tagIds?: string[]
   estimatedDuration?: number // in minutes
@@ -499,20 +502,20 @@ export function isErrorResponse(response: ApiResponse): response is ErrorRespons
  * Priority levels for display
  */
 export const PRIORITY_LABELS: Record<Priority, string> = {
-  NONE: 'None',
-  LOW: 'Low',
-  MEDIUM: 'Medium',
-  HIGH: 'High',
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
+  urgent: 'Urgent',
 }
 
 /**
  * Priority colors
  */
 export const PRIORITY_COLORS: Record<Priority, string> = {
-  NONE: 'gray',
-  LOW: 'blue',
-  MEDIUM: 'yellow',
-  HIGH: 'red',
+  low: 'blue',
+  medium: 'yellow',
+  high: 'orange',
+  urgent: 'red',
 }
 
 /**
@@ -537,13 +540,12 @@ export type {
   Tag,
   Profile,
   Habit,
-  Section,
   FocusSession,
   AreaOfLife,
-  Priority,
-  RecurrenceFrequency,
-  PermissionLevel,
 } from '@prisma/client'
+
+// Section is imported at the top and used in types
+export type { Section } from '@prisma/client'
 
 // Additional types that might be missing
 export interface Reminder {

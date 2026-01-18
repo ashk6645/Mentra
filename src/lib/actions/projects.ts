@@ -125,21 +125,18 @@ export async function getProject(id: string) {
                     tasks: {
                         orderBy: { sortOrder: 'asc' },
                         include: {
-                            tags: { include: { tag: true } },
-                            subTasks: true
+                            tags: { include: { tag: true } }
                         }
                     }
                 }
             },
             tasks: {
                 where: {
-                    sectionId: null, // Get tasks without section
-                    parentTaskId: null
+                    sectionId: null // Get tasks without section
                 },
                 orderBy: { sortOrder: 'asc' },
                 include: {
-                    tags: { include: { tag: true } },
-                    subTasks: true
+                    tags: { include: { tag: true } }
                 }
             }
         }

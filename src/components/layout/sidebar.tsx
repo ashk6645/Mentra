@@ -109,6 +109,12 @@ export function Sidebar({ className, projects, user, onOpenCommand }: SidebarPro
             variant: 'ghost'
         },
         {
+            label: 'Calendar',
+            icon: Calendar,
+            href: '/calendar',
+            variant: 'ghost'
+        },
+        {
             label: 'My Tasks',
             icon: CheckSquare,
             href: '/tasks',
@@ -172,29 +178,24 @@ export function Sidebar({ className, projects, user, onOpenCommand }: SidebarPro
             </div>
 
             <div className="px-3 py-2 flex-1 overflow-y-auto">
-                <div className="mb-2 px-2">
+                <div className="mb-2 px-2 flex items-center justify-between text-xs font-semibold tracking-tight text-muted-foreground py-1">
                     <button
                         onClick={() => setProjectsExpanded(!projectsExpanded)}
-                        className="flex items-center justify-between w-full text-xs font-semibold tracking-tight text-muted-foreground hover:text-foreground transition-colors py-1"
+                        className="flex items-center gap-2 hover:text-foreground transition-colors"
                     >
-                        <div className="flex items-center gap-2">
-                            <motion.div
-                                animate={{ rotate: projectsExpanded ? 90 : 0 }}
-                                transition={{ duration: 0.2, ease: "easeInOut" }}
-                            >
-                                <ChevronRight className="h-3 w-3" />
-                            </motion.div>
-                            <span>PROJECTS</span>
-                        </div>
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                setShowCreateDialog(true)
-                            }}
-                            className="p-1 hover:bg-accent rounded transition-colors"
+                        <motion.div
+                            animate={{ rotate: projectsExpanded ? 90 : 0 }}
+                            transition={{ duration: 0.2, ease: "easeInOut" }}
                         >
-                            <Plus className="h-3 w-3" />
-                        </button>
+                            <ChevronRight className="h-3 w-3" />
+                        </motion.div>
+                        <span>PROJECTS</span>
+                    </button>
+                    <button
+                        onClick={() => setShowCreateDialog(true)}
+                        className="p-1 hover:bg-accent hover:text-foreground rounded transition-colors"
+                    >
+                        <Plus className="h-3 w-3" />
                     </button>
                 </div>
                 

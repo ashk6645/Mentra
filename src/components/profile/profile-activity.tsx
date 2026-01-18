@@ -23,7 +23,7 @@ export async function ProfileActivity() {
   const recentTasks = await prisma.task.findMany({
     where: {
       userId: user.id,
-      isCompleted: true,
+      completed: true,
       completedAt: { not: null }
     },
     orderBy: { completedAt: 'desc' },

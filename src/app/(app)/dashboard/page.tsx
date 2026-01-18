@@ -27,10 +27,10 @@ export default async function DashboardPage() {
         where: { id: user?.id },
         select: {
             displayName: true,
-            xp: true,
+            totalXp: true,
             level: true,
-            streakCount: true,
-            lastActiveAt: true,
+            currentStreak: true,
+            updatedAt: true,
         }
     })
 
@@ -39,7 +39,7 @@ export default async function DashboardPage() {
     today.setHours(0, 0, 0, 0)
     
     const completedThisWeek = tasks.filter(t => {
-        if (!t.isCompleted || !t.completedAt) return false
+        if (!t.completed || !t.completedAt) return false
         const completed = new Date(t.completedAt)
         const weekAgo = new Date(today)
         weekAgo.setDate(weekAgo.getDate() - 7)
@@ -50,11 +50,11 @@ export default async function DashboardPage() {
         if (!t.dueDate) return false
         const due = new Date(t.dueDate)
         due.setHours(0, 0, 0, 0)
-        return due.getTime() === today.getTime() && !t.isCompleted
+        return due.getTime() === today.getTime() && !t.completed
     })
 
     const overdueTasks = tasks.filter(t => {
-        if (!t.dueDate || t.isCompleted) return false
+        if (!t.dueDate || t.completed) return false
         const due = new Date(t.dueDate)
         return due < today
     })
@@ -130,9 +130,9 @@ export default async function DashboardPage() {
                         <Flame className="h-4 w-4 text-orange-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-3xl font-semibold">{profile?.streakCount || 0} days</div>
+                        <div className="text-3xl font-semibold">{profile?.currentStreak || 0} days</div>
                         <p className="text-xs text-muted-foreground mt-1">
-                            {profile?.streakCount === 0 ? 'Start your streak today' : 'Keep it going!'}
+                            {profile?.currentStreak === 0 ? 'Start your streak today' : 'Keep it going!'}
                         </p>
                     </CardContent>
                 </Card>
@@ -164,7 +164,7 @@ export default async function DashboardPage() {
                     <CardContent>
                         <div className="text-3xl font-semibold">Level {profile?.level || 1}</div>
                         <p className="text-xs text-muted-foreground mt-1">
-                            {profile?.xp || 0} XP earned
+                            {profile?.totalXp || 0} XP earned
                         </p>
                     </CardContent>
                 </Card>

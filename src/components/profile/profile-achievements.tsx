@@ -28,7 +28,7 @@ export async function ProfileAchievements() {
   })
 
   const completedTasks = await prisma.task.count({
-    where: { userId: user.id, isCompleted: true }
+    where: { userId: user.id, completed: true }
   })
 
   const focusSessions = await prisma.focusSession.count({

@@ -16,8 +16,8 @@ export async function awardXP(action: string, points: number) {
         await prisma.xPLog.create({
             data: {
                 userId: user.id,
-                action,
-                points
+                source: 'task',
+                amount: points
             }
         })
 
@@ -25,12 +25,12 @@ export async function awardXP(action: string, points: number) {
         const profile = await prisma.profile.update({
             where: { id: user.id },
             data: {
-                xp: { increment: points }
+                totalXp: { increment: points }
             }
         })
 
         // Calculate and update level if changed
-        const newLevel = calculateLevel(profile.xp)
+        const newLevel = calculateLevel(profile.totalXp)
         if (newLevel !== profile.level) {
             await prisma.profile.update({
                 where: { id: user.id },
@@ -38,7 +38,7 @@ export async function awardXP(action: string, points: number) {
             })
         }
 
-        return { xp: profile.xp, level: newLevel }
+        return { xp: profile.totalXp, level: newLevel }
     } catch (error) {
         console.error('Failed to award XP:', error)
         return null
@@ -55,22 +55,22 @@ export async function getUserStats() {
         const profile = await prisma.profile.findUnique({
             where: { id: user.id },
             select: {
-                xp: true,
+                totalXp: true,
                 level: true,
-                streakCount: true,
-                lastActiveAt: true
+                currentStreak: true,
+                updatedAt: true
             }
         })
 
         if (!profile) return null
 
-        const progress = xpProgressInCurrentLevel(profile.xp)
+        const progress = xpProgressInCurrentLevel(profile.totalXp)
 
         return {
-            xp: profile.xp,
+            xp: profile.totalXp,
             level: profile.level,
-            streakCount: profile.streakCount,
-            lastActiveAt: profile.lastActiveAt,
+            streakCount: profile.currentStreak,
+            lastActiveAt: profile.updatedAt,
             xpProgress: progress
         }
     } catch (error) {
@@ -88,18 +88,18 @@ export async function updateStreak() {
     try {
         const profile = await prisma.profile.findUnique({
             where: { id: user.id },
-            select: { streakCount: true, lastActiveAt: true }
+            select: { currentStreak: true, longestStreak: true, updatedAt: true }
         })
 
         if (!profile) return null
 
         const now = new Date()
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-        const lastActive = profile.lastActiveAt
-            ? new Date(profile.lastActiveAt.getFullYear(), profile.lastActiveAt.getMonth(), profile.lastActiveAt.getDate())
+        const lastActive = profile.updatedAt
+            ? new Date(profile.updatedAt.getFullYear(), profile.updatedAt.getMonth(), profile.updatedAt.getDate())
             : null
 
-        let newStreakCount = profile.streakCount
+        let newStreakCount = profile.currentStreak
         let streakBonus = false
 
         if (!lastActive) {
@@ -112,7 +112,7 @@ export async function updateStreak() {
                 // Same day, no change
             } else if (diffDays === 1) {
                 // Consecutive day - increment streak
-                newStreakCount = profile.streakCount + 1
+                newStreakCount = profile.currentStreak + 1
                 streakBonus = true
             } else {
                 // Streak broken - reset to 1
@@ -124,8 +124,9 @@ export async function updateStreak() {
         await prisma.profile.update({
             where: { id: user.id },
             data: {
-                streakCount: newStreakCount,
-                lastActiveAt: now
+                currentStreak: newStreakCount,
+                longestStreak: Math.max(newStreakCount, profile.longestStreak),
+                updatedAt: now
             }
         })
 
