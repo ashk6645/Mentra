@@ -4,10 +4,11 @@ import { CreateTaskDialog } from '@/components/tasks/create-task-dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 export default async function InboxPage() {
-    const allTasks = await getTasks()
+    const tasksResult = await getTasks()
+    const allTasks = tasksResult.success ? tasksResult.data : []
 
     // Inbox: Tasks with no project assigned
-    const inboxTasks = allTasks.filter(task => !task.projectId)
+    const inboxTasks = allTasks.filter((task: any) => !task.projectId)
 
     return (
         <div className="flex-1 space-y-4 p-8 pt-6 h-full flex flex-col">

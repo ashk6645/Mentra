@@ -36,21 +36,6 @@ export function PomodoroTimer({ onSessionComplete, taskTitle }: PomodoroTimerPro
         }
     }, [])
 
-    // Timer logic
-    useEffect(() => {
-        if (isRunning && timeLeft > 0) {
-            intervalRef.current = setInterval(() => {
-                setTimeLeft((prev) => prev - 1)
-            }, 1000)
-        } else if (timeLeft === 0) {
-            handleTimerComplete()
-        }
-
-        return () => {
-            if (intervalRef.current) clearInterval(intervalRef.current)
-        }
-    }, [isRunning, timeLeft])
-
     const handleTimerComplete = useCallback(() => {
         setIsRunning(false)
 
@@ -82,6 +67,30 @@ export function PomodoroTimer({ onSessionComplete, taskTitle }: PomodoroTimerPro
             setTimeLeft(TIMER_PRESETS.focus)
         }
     }, [mode, completedPomodoros, soundEnabled, onSessionComplete])
+
+    // Timer logic
+    useEffect(() => {
+        if (isRunning && timeLeft > 0) {
+            intervalRef.current = setInterval(() => {
+                setTimeLeft((prev) => {
+                    if (prev <= 1) {
+                        return 0
+                    }
+                    return prev - 1
+                })
+            }, 1000)
+        } else if (timeLeft === 0 && isRunning) {
+            handleTimerComplete()
+        }
+
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current)
+                intervalRef.current = null
+            }
+        }
+    }, [isRunning, timeLeft, handleTimerComplete])
+
 
     const toggleTimer = () => setIsRunning(!isRunning)
 

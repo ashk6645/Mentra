@@ -34,7 +34,7 @@ export async function getProjects() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      return { error: 'Unauthorized' }
+      return { success: false, error: 'Unauthorized', projects: [] }
     }
 
     const projects = await prisma.project.findMany({
@@ -42,17 +42,32 @@ export async function getProjects() {
         userId: user.id,
         isArchived: false,
       },
-      include: {
-        area: true,
+      select: {
+        id: true,
+        userId: true,
+        name: true,
+        description: true,
+        color: true,
+        icon: true,
+        status: true,
+        priority: true,
+        startDate: true,
+        targetDate: true,
+        isArchived: true,
+        createdAt: true,
+        updatedAt: true,
+        areaId: true,
+        area: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          }
+        },
         tasks: {
           select: {
             id: true,
             completed: true,
-          },
-        },
-        _count: {
-          select: {
-            tasks: true,
           },
         },
       },
@@ -75,10 +90,10 @@ export async function getProjects() {
       }
     })
 
-    return { projects: projectsWithProgress }
+    return { success: true, projects: projectsWithProgress }
   } catch (error) {
     console.error('Error fetching projects:', error)
-    return { error: 'Failed to fetch projects' }
+    return { success: false, error: 'Failed to fetch projects', projects: [] }
   }
 }
 
@@ -91,7 +106,11 @@ export async function getProjectById(id: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      return { error: 'Unauthorized' }
+      return { success: false, error: 'Unauthorized', project: null }
+    }
+
+    if (!id || typeof id !== 'string') {
+      return { success: false, error: 'Invalid project ID', project: null }
     }
 
     const project = await prisma.project.findFirst({
@@ -99,8 +118,28 @@ export async function getProjectById(id: string) {
         id,
         userId: user.id,
       },
-      include: {
-        area: true,
+      select: {
+        id: true,
+        userId: true,
+        name: true,
+        description: true,
+        color: true,
+        icon: true,
+        status: true,
+        priority: true,
+        startDate: true,
+        targetDate: true,
+        isArchived: true,
+        createdAt: true,
+        updatedAt: true,
+        areaId: true,
+        area: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          }
+        },
         tasks: {
           select: {
             id: true,
@@ -117,7 +156,7 @@ export async function getProjectById(id: string) {
     })
 
     if (!project) {
-      return { error: 'Project not found' }
+      return { success: false, error: 'Project not found', project: null }
     }
 
     // Calculate progress
@@ -126,6 +165,7 @@ export async function getProjectById(id: string) {
     const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
     return {
+      success: true,
       project: {
         ...project,
         progress,
@@ -135,7 +175,7 @@ export async function getProjectById(id: string) {
     }
   } catch (error) {
     console.error('Error fetching project:', error)
-    return { error: 'Failed to fetch project' }
+    return { success: false, error: 'Failed to fetch project', project: null }
   }
 }
 
@@ -148,31 +188,60 @@ export async function createProject(data: CreateProjectInput) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      return { error: 'Unauthorized' }
+      return { success: false, error: 'Unauthorized', project: null }
+    }
+
+    // Validate required fields
+    if (!data.name || data.name.trim().length === 0) {
+      return { success: false, error: 'Project name is required', project: null }
+    }
+
+    if (data.name.length > 100) {
+      return { success: false, error: 'Project name must be less than 100 characters', project: null }
     }
 
     const project = await prisma.project.create({
       data: {
         userId: user.id,
-        name: data.name,
-        description: data.description,
+        name: data.name.trim(),
+        description: data.description || null,
         status: data.status || 'ACTIVE',
         priority: data.priority || 'MEDIUM',
-        areaId: data.areaId,
-        startDate: data.startDate,
-        targetDate: data.targetDate,
-        color: data.color,
-        icon: data.icon,
+        areaId: data.areaId || null,
+        startDate: data.startDate || null,
+        targetDate: data.targetDate || null,
+        color: data.color || null,
+        icon: data.icon || null,
       },
-      include: {
-        area: true,
+      select: {
+        id: true,
+        userId: true,
+        name: true,
+        description: true,
+        color: true,
+        icon: true,
+        status: true,
+        priority: true,
+        startDate: true,
+        targetDate: true,
+        isArchived: true,
+        createdAt: true,
+        updatedAt: true,
+        areaId: true,
+        area: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          }
+        },
       },
     })
 
-    revalidatePath('/projects')
-    revalidatePath('/dashboard')
+    revalidatePath('/', 'layout')
 
     return {
+      success: true,
       project: {
         ...project,
         progress: 0,
@@ -180,9 +249,14 @@ export async function createProject(data: CreateProjectInput) {
         completedTaskCount: 0,
       },
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating project:', error)
-    return { error: 'Failed to create project' }
+    
+    if (error.code === 'P2003') {
+      return { success: false, error: 'Invalid area selected', project: null }
+    }
+    
+    return { success: false, error: 'Failed to create project', project: null }
   }
 }
 
@@ -195,34 +269,71 @@ export async function updateProject(id: string, data: UpdateProjectInput) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      return { error: 'Unauthorized' }
+      return { success: false, error: 'Unauthorized', project: null }
+    }
+
+    if (!id || typeof id !== 'string') {
+      return { success: false, error: 'Invalid project ID', project: null }
+    }
+
+    // Validate name if provided
+    if (data.name !== undefined) {
+      if (!data.name || data.name.trim().length === 0) {
+        return { success: false, error: 'Project name cannot be empty', project: null }
+      }
+      if (data.name.length > 100) {
+        return { success: false, error: 'Project name must be less than 100 characters', project: null }
+      }
     }
 
     // Verify ownership
     const existing = await prisma.project.findFirst({
       where: { id, userId: user.id },
+      select: { id: true },
     })
 
     if (!existing) {
-      return { error: 'Project not found' }
+      return { success: false, error: 'Project not found or access denied', project: null }
     }
+
+    // Build update data with proper null handling
+    const updateData: any = {}
+    if (data.name !== undefined) updateData.name = data.name.trim()
+    if (data.description !== undefined) updateData.description = data.description
+    if (data.status !== undefined) updateData.status = data.status
+    if (data.priority !== undefined) updateData.priority = data.priority
+    if (data.areaId !== undefined) updateData.areaId = data.areaId
+    if (data.startDate !== undefined) updateData.startDate = data.startDate
+    if (data.targetDate !== undefined) updateData.targetDate = data.targetDate
+    if (data.color !== undefined) updateData.color = data.color
+    if (data.icon !== undefined) updateData.icon = data.icon
+    if (data.isArchived !== undefined) updateData.isArchived = data.isArchived
 
     const project = await prisma.project.update({
       where: { id },
-      data: {
-        name: data.name,
-        description: data.description,
-        status: data.status,
-        priority: data.priority,
-        areaId: data.areaId,
-        startDate: data.startDate,
-        targetDate: data.targetDate,
-        color: data.color,
-        icon: data.icon,
-        isArchived: data.isArchived,
-      },
-      include: {
-        area: true,
+      data: updateData,
+      select: {
+        id: true,
+        userId: true,
+        name: true,
+        description: true,
+        color: true,
+        icon: true,
+        status: true,
+        priority: true,
+        startDate: true,
+        targetDate: true,
+        isArchived: true,
+        createdAt: true,
+        updatedAt: true,
+        areaId: true,
+        area: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          }
+        },
         tasks: {
           select: {
             id: true,
@@ -237,10 +348,10 @@ export async function updateProject(id: string, data: UpdateProjectInput) {
     const completedTasks = project.tasks.filter((t) => t.completed).length
     const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
-    revalidatePath('/projects')
-    revalidatePath('/dashboard')
+    revalidatePath('/', 'layout')
 
     return {
+      success: true,
       project: {
         ...project,
         progress,
@@ -248,9 +359,17 @@ export async function updateProject(id: string, data: UpdateProjectInput) {
         completedTaskCount: completedTasks,
       },
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating project:', error)
-    return { error: 'Failed to update project' }
+    
+    if (error.code === 'P2003') {
+      return { success: false, error: 'Invalid area selected', project: null }
+    }
+    if (error.code === 'P2025') {
+      return { success: false, error: 'Project not found', project: null }
+    }
+    
+    return { success: false, error: 'Failed to update project', project: null }
   }
 }
 
@@ -263,29 +382,39 @@ export async function deleteProject(id: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      return { error: 'Unauthorized' }
+      return { success: false, error: 'Unauthorized' }
+    }
+
+    if (!id || typeof id !== 'string') {
+      return { success: false, error: 'Invalid project ID' }
     }
 
     // Verify ownership
     const existing = await prisma.project.findFirst({
       where: { id, userId: user.id },
+      select: { id: true },
     })
 
     if (!existing) {
-      return { error: 'Project not found' }
+      return { success: false, error: 'Project not found or access denied' }
     }
 
+    // Delete project (cascade deletes sections and tasks)
     await prisma.project.delete({
       where: { id },
     })
 
-    revalidatePath('/projects')
-    revalidatePath('/dashboard')
+    revalidatePath('/', 'layout')
 
     return { success: true }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting project:', error)
-    return { error: 'Failed to delete project' }
+    
+    if (error.code === 'P2025') {
+      return { success: false, error: 'Project not found' }
+    }
+    
+    return { success: false, error: 'Failed to delete project' }
   }
 }
 
@@ -314,23 +443,30 @@ export async function bulkDeleteProjects(ids: string[]) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      return { error: 'Unauthorized' }
+      return { success: false, error: 'Unauthorized' }
     }
 
-    await prisma.project.deleteMany({
+    if (!ids || ids.length === 0) {
+      return { success: false, error: 'No project IDs provided' }
+    }
+
+    if (ids.some(id => !id || typeof id !== 'string')) {
+      return { success: false, error: 'Invalid project IDs' }
+    }
+
+    const result = await prisma.project.deleteMany({
       where: {
         id: { in: ids },
         userId: user.id,
       },
     })
 
-    revalidatePath('/projects')
-    revalidatePath('/dashboard')
+    revalidatePath('/', 'layout')
 
-    return { success: true }
+    return { success: true, deletedCount: result.count }
   } catch (error) {
     console.error('Error bulk deleting projects:', error)
-    return { error: 'Failed to delete projects' }
+    return { success: false, error: 'Failed to delete projects' }
   }
 }
 
@@ -343,10 +479,18 @@ export async function bulkUpdateProjectStatus(ids: string[], status: ProjectStat
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      return { error: 'Unauthorized' }
+      return { success: false, error: 'Unauthorized' }
     }
 
-    await prisma.project.updateMany({
+    if (!ids || ids.length === 0) {
+      return { success: false, error: 'No project IDs provided' }
+    }
+
+    if (!status || !['PLANNING', 'ACTIVE', 'ON_HOLD', 'COMPLETED'].includes(status)) {
+      return { success: false, error: 'Invalid status' }
+    }
+
+    const result = await prisma.project.updateMany({
       where: {
         id: { in: ids },
         userId: user.id,
@@ -356,12 +500,11 @@ export async function bulkUpdateProjectStatus(ids: string[], status: ProjectStat
       },
     })
 
-    revalidatePath('/projects')
-    revalidatePath('/dashboard')
+    revalidatePath('/', 'layout')
 
-    return { success: true }
+    return { success: true, updatedCount: result.count }
   } catch (error) {
     console.error('Error bulk updating project status:', error)
-    return { error: 'Failed to update project status' }
+    return { success: false, error: 'Failed to update project status' }
   }
 }

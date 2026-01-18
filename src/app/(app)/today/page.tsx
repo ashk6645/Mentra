@@ -5,12 +5,19 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { isToday, isPast, isSameDay } from 'date-fns'
 
 export default async function TodayPage() {
-    const allTasks = await getTasks()
+    const tasksResult = await getTasks()
+    const allTasks = tasksResult.success ? tasksResult.data : []
 
-    const todayTasks = allTasks.filter(task => {
+    const todayTasks = allTasks.filter((task: any) => {
         if (!task.dueDate) return false
         const date = new Date(task.dueDate)
-        return isSameDay(date, new Date()) || (isPast(date) && !task.isCompleted)
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+
+        const taskDate = new Date(date)
+        taskDate.setHours(0, 0, 0, 0)
+
+        return taskDate.getTime() === today.getTime() || (taskDate < today && !task.completed)
     })
 
     return (

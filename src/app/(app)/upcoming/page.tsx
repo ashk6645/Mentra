@@ -5,15 +5,16 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { isAfter, startOfDay, addDays, isSameDay, format } from 'date-fns'
 
 export default async function UpcomingPage() {
-    const allTasks = await getTasks()
+    const tasksResult = await getTasks()
+    const allTasks = tasksResult.success ? tasksResult.data : []
     const today = startOfDay(new Date())
 
     // Filter tasks for the next 7 days
-    const upcomingTasks = allTasks.filter(task => {
+    const upcomingTasks = allTasks.filter((task: any) => {
         if (!task.dueDate) return false
         const date = new Date(task.dueDate)
         return isAfter(date, today)
-    }).sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime())
+    }).sort((a: any, b: any) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime())
 
     // Group by date
     const groupedTasks: Record<string, typeof upcomingTasks> = {}

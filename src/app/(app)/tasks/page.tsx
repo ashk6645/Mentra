@@ -5,7 +5,8 @@ import { TaskCard } from '@/components/tasks/task-card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 async function TaskList() {
-    const tasks = await getTasks()
+    const tasksResult = await getTasks()
+    const tasks = tasksResult.success ? tasksResult.data : []
 
     if (tasks.length === 0) {
         return (

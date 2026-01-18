@@ -15,69 +15,102 @@ const createSubTaskSchema = z.object({
 })
 
 export async function createSubTask(data: z.infer<typeof createSubTaskSchema>) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-        return { error: 'Unauthorized' }
-    }
-
-    const result = createSubTaskSchema.safeParse(data)
-
-    if (!result.success) {
-        return { error: result.error.flatten() }
-    }
-
     try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            return { success: false, error: 'Unauthorized' }
+        }
+
+        const result = createSubTaskSchema.safeParse(data)
+
+        if (!result.success) {
+            return { success: false, error: result.error.flatten().fieldErrors }
+        }
+
+        const trimmedTitle = result.data.title.trim()
+        if (trimmedTitle.length === 0) {
+            return { success: false, error: 'Subtask title cannot be empty' }
+        }
+
+        if (trimmedTitle.length > 200) {
+            return { success: false, error: 'Subtask title must be less than 200 characters' }
+        }
+
         // Verify parent task belongs to user
         const parentTask = await prisma.task.findUnique({
-            where: { id: result.data.parentTaskId, userId: user.id }
+            where: { id: result.data.parentTaskId, userId: user.id },
+            select: { id: true, projectId: true }
         })
 
         if (!parentTask) {
-            return { error: 'Parent task not found' }
+            return { success: false, error: 'Parent task not found or access denied' }
         }
 
         const subTask = await prisma.task.create({
             data: {
                 userId: user.id,
                 parentTaskId: result.data.parentTaskId,
-                title: result.data.title,
-                description: result.data.description,
+                title: trimmedTitle,
+                description: result.data.description || null,
                 priority: result.data.priority,
-                dueDate: result.data.dueDate ? new Date(result.data.dueDate) : undefined,
+                dueDate: result.data.dueDate ? new Date(result.data.dueDate) : null,
                 projectId: parentTask.projectId, // Inherit project
-                isCompleted: false
+                completed: false
             },
         })
 
-        revalidatePath('/tasks')
-        revalidatePath('/projects')
-        revalidatePath('/dashboard')
-        revalidatePath('/today')
-        revalidatePath('/upcoming')
+        revalidatePath('/', 'layout')
 
         return { success: true, data: subTask }
-    } catch (error) {
-        return { error: 'Failed to create subtask' }
+    } catch (error: any) {
+        console.error('Failed to create subtask:', error)
+        
+        if (error.code === 'P2003') {
+            return { success: false, error: 'Invalid parent task' }
+        }
+        
+        return { success: false, error: 'Failed to create subtask' }
     }
 }
 
 export async function getSubTasks(parentTaskId: string) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) return []
-
-    const subTasks = await prisma.task.findMany({
-        where: {
-            userId: user.id,
-            parentTaskId: parentTaskId
-        },
-        orderBy: {
-            createdAt: 'asc'
+        if (!user) {
+            return { success: false, error: 'Unauthorized', data: [] }
         }
-    })
 
-    return subTasks
+        if (!parentTaskId || typeof parentTaskId !== 'string') {
+            return { success: false, error: 'Invalid parent task ID', data: [] }
+        }
+
+        const subTasks = await prisma.task.findMany({
+            where: {
+                userId: user.id,
+                parentTaskId: parentTaskId
+            },
+            select: {
+                id: true,
+                title: true,
+                description: true,
+                completed: true,
+                priority: true,
+                dueDate: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+            orderBy: {
+                createdAt: 'asc'
+            }
+        })
+
+        return { success: true, data: subTasks }
+    } catch (error) {
+        console.error('Failed to fetch subtasks:', error)
+        return { success: false, error: 'Failed to fetch subtasks', data: [] }
+    }
 }

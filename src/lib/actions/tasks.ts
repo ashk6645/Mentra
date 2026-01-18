@@ -31,29 +31,64 @@ export type UpdateTaskInput = z.infer<typeof updateTaskSchema>
 // Actions
 
 export async function getTasks() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Unauthorized')
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+            return { success: false, error: 'Unauthorized', data: [] }
+        }
 
-    const tasks = await prisma.task.findMany({
-        where: {
-            userId: user.id,
-        },
-        include: {
-            tags: {
-                include: {
-                    tag: true
+        const tasks = await prisma.task.findMany({
+            where: {
+                userId: user.id,
+            },
+            select: {
+                id: true,
+                title: true,
+                description: true,
+                priority: true,
+                dueDate: true,
+                completed: true,
+                completedAt: true,
+                projectId: true,
+                sectionId: true,
+                scheduledStart: true,
+                scheduledEnd: true,
+                durationMinutes: true,
+                sortOrder: true,
+                createdAt: true,
+                updatedAt: true,
+                tags: {
+                    select: {
+                        tag: {
+                            select: {
+                                id: true,
+                                name: true,
+                                color: true,
+                            }
+                        }
+                    }
+                },
+                project: {
+                    select: {
+                        id: true,
+                        name: true,
+                        color: true,
+                    }
                 }
-            }
-        },
-        orderBy: [
-            { completed: 'asc' },
-            { sortOrder: 'asc' },
-            { createdAt: 'desc' }
-        ]
-    })
+            },
+            orderBy: [
+                { completed: 'asc' },
+                { sortOrder: 'asc' },
+                { createdAt: 'desc' }
+            ]
+        })
 
-    return tasks
+        return { success: true, data: tasks }
+    } catch (error) {
+        console.error('getTasks: Database error', error)
+        return { success: false, error: 'Failed to fetch tasks', data: [] }
+    }
 }
 
 export async function createTask(data: CreateTaskInput) {
@@ -101,11 +136,7 @@ export async function createTask(data: CreateTaskInput) {
         })
 
         console.log('createTask: Success', task)
-        revalidatePath('/')
-        revalidatePath('/tasks')
-        revalidatePath('/dashboard')
-        revalidatePath('/projects')
-        revalidatePath('/calendar')
+        revalidatePath('/', 'layout')
         return { success: true, data: task }
     } catch (error) {
         console.error('createTask: Database error', error)
@@ -114,61 +145,88 @@ export async function createTask(data: CreateTaskInput) {
 }
 
 export async function updateTask(data: UpdateTaskInput) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-        return { error: 'Unauthorized' }
-    }
-
-    const result = updateTaskSchema.safeParse(data)
-
-    if (!result.success) {
-        return { error: result.error.flatten() }
-    }
-
     try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            return { success: false, error: 'Unauthorized' }
+        }
+
+        const result = updateTaskSchema.safeParse(data)
+
+        if (!result.success) {
+            return { success: false, error: result.error.flatten().fieldErrors as any }
+        }
+
+        // Build update data with proper null handling
+        const updateData: any = {}
+        if (result.data.title !== undefined) updateData.title = result.data.title
+        if (result.data.description !== undefined) updateData.description = result.data.description
+        if (result.data.priority !== undefined) updateData.priority = result.data.priority
+        if (result.data.dueDate !== undefined) {
+            updateData.dueDate = result.data.dueDate ? new Date(result.data.dueDate) : null
+        }
+        if (result.data.completed !== undefined) {
+            updateData.completed = result.data.completed
+            updateData.completedAt = result.data.completed ? new Date() : null
+        }
+        if (result.data.projectId !== undefined) updateData.projectId = result.data.projectId
+        if (result.data.sectionId !== undefined) updateData.sectionId = result.data.sectionId
+        if (result.data.scheduledStart !== undefined) {
+            updateData.scheduledStart = result.data.scheduledStart ? new Date(result.data.scheduledStart) : null
+        }
+        if (result.data.scheduledEnd !== undefined) {
+            updateData.scheduledEnd = result.data.scheduledEnd ? new Date(result.data.scheduledEnd) : null
+        }
+        if (result.data.durationMinutes !== undefined) updateData.durationMinutes = result.data.durationMinutes
+
         const task = await prisma.task.update({
             where: {
                 id: result.data.id,
                 userId: user.id // Ensure ownership
             },
-            data: {
-                title: result.data.title,
-                description: result.data.description,
-                priority: result.data.priority,
-                dueDate: result.data.dueDate ? new Date(result.data.dueDate) : undefined,
-                completed: result.data.completed,
-                projectId: result.data.projectId,
-                sectionId: result.data.sectionId,
-                scheduledStart: result.data.scheduledStart ? new Date(result.data.scheduledStart) : undefined,
-                scheduledEnd: result.data.scheduledEnd ? new Date(result.data.scheduledEnd) : undefined,
-                durationMinutes: result.data.durationMinutes,
-            },
+            data: updateData,
         })
 
         // Award XP if task was just completed
         if (result.data.completed === true) {
-            await awardXP('TASK_COMPLETION', 10)
-            await updateStreak()
+            await Promise.all([
+                awardXP('TASK_COMPLETION', 10),
+                updateStreak()
+            ])
         }
 
-        revalidatePath('/tasks')
-        revalidatePath('/dashboard')
-        revalidatePath('/calendar')
+        revalidatePath('/', 'layout')
         return { success: true, data: task }
-    } catch (error) {
-        return { error: 'Failed to update task' }
+    } catch (error: any) {
+        console.error('updateTask: Database error', error)
+
+        // Handle Prisma specific errors
+        if (error.code === 'P2025') {
+            return { success: false, error: 'Task not found or you do not have permission to update it' }
+        }
+        if (error.code === 'P2003') {
+            return { success: false, error: 'Invalid project or section ID' }
+        }
+
+        return { success: false, error: 'Failed to update task' }
     }
 }
 
 export async function updateTaskOrder(tasks: { id: string; sortOrder: number; sectionId?: string | null }[]) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) return { error: 'Unauthorized' }
-
     try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            return { success: false, error: 'Unauthorized' }
+        }
+
+        if (!tasks || tasks.length === 0) {
+            return { success: true }
+        }
+
         await prisma.$transaction(
             tasks.map(task =>
                 prisma.task.update({
@@ -180,22 +238,25 @@ export async function updateTaskOrder(tasks: { id: string; sortOrder: number; se
                 })
             )
         )
-        revalidatePath('/tasks')
-        revalidatePath('/projects/[id]', 'page')
+
+        revalidatePath('/', 'layout')
         return { success: true }
-    } catch (error) {
-        return { error: 'Failed to update task order' }
+    } catch (error: any) {
+        console.error('updateTaskOrder: Database error', error)
+        return { success: false, error: 'Failed to update task order' }
     }
 }
 
 export async function toggleTaskCompletion(id: string, completed: boolean) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) return { error: 'Unauthorized' }
-
     try {
-        await prisma.task.update({
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            return { success: false, error: 'Unauthorized' }
+        }
+
+        const task = await prisma.task.update({
             where: { id, userId: user.id },
             data: {
                 completed,
@@ -205,62 +266,96 @@ export async function toggleTaskCompletion(id: string, completed: boolean) {
 
         // Award XP and update streak if task was just completed
         if (completed) {
-            await awardXP('TASK_COMPLETION', 10)
-            await updateStreak()
+            await Promise.all([
+                awardXP('TASK_COMPLETION', 10),
+                updateStreak()
+            ])
         }
 
-        revalidatePath('/tasks')
-        revalidatePath('/dashboard')
-        return { success: true }
-    } catch (error) {
-        return { error: 'Failed to toggle task' }
+        revalidatePath('/', 'layout')
+        return { success: true, data: task }
+    } catch (error: any) {
+        console.error('toggleTaskCompletion: Database error', error)
+
+        if (error.code === 'P2025') {
+            return { success: false, error: 'Task not found or you do not have permission to modify it' }
+        }
+
+        return { success: false, error: 'Failed to toggle task completion' }
     }
 }
 
 export async function deleteTask(id: string) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) return { error: 'Unauthorized' }
-
     try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            return { success: false, error: 'Unauthorized' }
+        }
+
+        // Delete task. Subtasks aren't implemented in the schema yet, 
+        // but if they were, they'd be handled here.
         await prisma.task.delete({
             where: { id, userId: user.id }
         })
-        revalidatePath('/tasks')
-        revalidatePath('/dashboard')
+
+        revalidatePath('/', 'layout')
         return { success: true }
-    } catch (error) {
-        return { error: 'Failed to delete task' }
+    } catch (error: any) {
+        console.error('deleteTask: Database error', error)
+
+        if (error.code === 'P2025') {
+            return { success: false, error: 'Task not found or you do not have permission to delete it' }
+        }
+
+        return { success: false, error: 'Failed to delete task' }
     }
 }
 
 export async function searchTasks(query: string) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) return []
-
-    if (!query || query.length < 2) return []
-
     try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            return { success: false, error: 'Unauthorized', data: [] }
+        }
+
+        if (!query || query.trim().length < 2) {
+            return { success: true, data: [] }
+        }
+
         const tasks = await prisma.task.findMany({
             where: {
                 userId: user.id,
                 OR: [
-                    { title: { contains: query, mode: 'insensitive' } },
-                    { description: { contains: query, mode: 'insensitive' } }
+                    { title: { contains: query.trim(), mode: 'insensitive' } },
+                    { description: { contains: query.trim(), mode: 'insensitive' } }
                 ]
             },
-            take: 5,
-            orderBy: { createdAt: 'desc' },
-            include: {
-                project: true // Include project info for context
+            take: 10,
+            orderBy: { updatedAt: 'desc' },
+            select: {
+                id: true,
+                title: true,
+                description: true,
+                completed: true,
+                dueDate: true,
+                priority: true,
+                project: {
+                    select: {
+                        id: true,
+                        name: true,
+                        color: true,
+                    }
+                }
             }
         })
-        return tasks
+
+        return { success: true, data: tasks }
     } catch (error) {
-        console.error("Search failed", error)
-        return []
+        console.error('searchTasks: Database error', error)
+        return { success: false, error: 'Failed to search tasks', data: [] }
     }
 }
