@@ -44,6 +44,13 @@ model Project {
   description String?
   color       String?
   icon        String?
+  
+  // Project Database Fields
+  status      ProjectStatus    @default(ACTIVE)
+  priority    ProjectPriority  @default(MEDIUM)
+  startDate   DateTime?        @map("start_date") @db.Timestamptz
+  targetDate  DateTime?        @map("target_date") @db.Timestamptz
+  
   isArchived  Boolean  @default(false) @map("is_archived")
   sortOrder   Int      @default(0) @map("sort_order")
   createdAt   DateTime @default(now()) @map("created_at")
@@ -60,7 +67,21 @@ model Project {
 
   @@index([userId])
   @@index([areaId])
+  @@index([status])
   @@map("projects")
+}
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+}
+
+enum ProjectPriority {
+  HIGH
+  MEDIUM
+  LOW
 }
 
 // 3. Sections
