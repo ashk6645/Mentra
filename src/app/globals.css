@@ -1,26 +1,344 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* Extended color tokens for design system */
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-secondary: var(--secondary);
+  --color-tertiary: var(--text-tertiary);
+  --color-border-strong: var(--border-strong);
+  
+  /* Sidebar colors */
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  
+  /* Chart colors */
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  
+  /* Standard UI tokens */
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  
+  /* Border radius scale */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  /* Border Radius - Soft, approachable corners */
+  --radius: 0.5rem; /* 8px - friendly, not childish */
+  
+  /* ==================== LIGHT MODE COLORS ==================== */
+  /* Foundation - Pure white for clarity */
+  --background: #FFFFFF;
+  --foreground: #1A1A1A; /* Not pure black - softer on eyes */
+  
+  /* Surfaces - Subtle layering */
+  --card: #FAFAFA; /* Slight distinction for cards */
+  --card-foreground: #1A1A1A;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1A1A;
+  
+  /* Primary - Calm, trustworthy blue */
+  --primary: #2563EB; /* Blue = trust, calm action */
+  --primary-foreground: #FFFFFF;
+  --primary-hover: #1D4ED8;
+  --primary-active: #1E40AF;
+  
+  /* Secondary - Subtle backgrounds */
+  --secondary: #F5F5F5;
+  --secondary-foreground: #1A1A1A;
+  
+  /* Muted - De-emphasized content */
+  --muted: #F5F5F5;
+  --muted-foreground: #6B6B6B; /* Readable but secondary */
+  
+  /* Accent - Highlight states */
+  --accent: #F5F5F5;
+  --accent-foreground: #1A1A1A;
+  
+  /* Semantic Colors */
+  --success: #059669; /* Green = completion dopamine */
+  --success-foreground: #FFFFFF;
+  --warning: #D97706; /* Amber = gentle urgency, not panic */
+  --warning-foreground: #FFFFFF;
+  --destructive: #DC2626; /* Red = reserved for danger only */
+  --destructive-foreground: #FFFFFF;
+  
+  /* Borders - Layered subtlety */
+  --border: #E5E5E5; /* Barely visible = clean */
+  --border-strong: #D4D4D4; /* Defines sections */
+  --border-focus: #A3A3A3; /* Focus states */
+  --input: #E5E5E5;
+  --ring: #2563EB;
+  
+  /* Text Hierarchy */
+  --text-primary: #1A1A1A;
+  --text-secondary: #6B6B6B;
+  --text-tertiary: #9E9E9E; /* Timestamps, metadata */
+  
+  /* Charts - Balanced, distinct */
+  --chart-1: #2563EB;
+  --chart-2: #059669;
+  --chart-3: #D97706;
+  --chart-4: #DC2626;
+  --chart-5: #8B5CF6;
+  
+  /* Sidebar - Integrated with main UI */
+  --sidebar: #FAFAFA;
+  --sidebar-foreground: #1A1A1A;
+  --sidebar-primary: #2563EB;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F5F5F5;
+  --sidebar-accent-foreground: #1A1A1A;
+  --sidebar-border: #E5E5E5;
+  --sidebar-ring: #2563EB;
+  
+  /* ==================== SPACING SYSTEM (8px grid) ==================== */
+  --spacing-xs: 0.25rem;   /* 4px - tight grouping */
+  --spacing-sm: 0.5rem;    /* 8px - list item spacing */
+  --spacing-md: 1rem;      /* 16px - card padding */
+  --spacing-lg: 1.5rem;    /* 24px - section gaps */
+  --spacing-xl: 2rem;      /* 32px - page margins */
+  --spacing-2xl: 3rem;     /* 48px - major sections */
+  --spacing-3xl: 4rem;     /* 64px - page-level spacing */
+  
+  /* ==================== ANIMATION TIMINGS ==================== */
+  --duration-instant: 0ms;
+  --duration-snappy: 100ms;
+  --duration-quick: 200ms;
+  --duration-moderate: 300ms;
+  --duration-slow: 500ms;
+  
+  /* Easing functions */
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark {
+  /* ==================== DARK MODE COLORS ==================== */
+  /* Foundation - Not pure black, easier on OLED */
+  --background: #0A0A0A;
+  --foreground: #FAFAFA; /* Not pure white - softer */
+  
+  /* Surfaces - Layered elevation */
+  --card: #151515;
+  --card-foreground: #FAFAFA;
+  --popover: #1F1F1F; /* Elevated surfaces */
+  --popover-foreground: #FAFAFA;
+  
+  /* Primary - Slightly brighter for dark background */
+  --primary: #3B82F6;
+  --primary-foreground: #FFFFFF;
+  --primary-hover: #2563EB;
+  --primary-active: #1D4ED8;
+  
+  /* Secondary - Subtle contrast */
+  --secondary: #1F1F1F;
+  --secondary-foreground: #FAFAFA;
+  
+  /* Muted - De-emphasized in dark mode */
+  --muted: #1F1F1F;
+  --muted-foreground: #A3A3A3;
+  
+  /* Accent - Highlight states */
+  --accent: #1F1F1F;
+  --accent-foreground: #FAFAFA;
+  
+  /* Semantic Colors - Brighter for dark backgrounds */
+  --success: #10B981;
+  --success-foreground: #FFFFFF;
+  --warning: #F59E0B;
+  --warning-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  
+  /* Borders - Subtle in dark mode */
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --border-focus: rgba(255, 255, 255, 0.3);
+  --input: rgba(255, 255, 255, 0.1);
+  --ring: #3B82F6;
+  
+  /* Text Hierarchy */
+  --text-primary: #FAFAFA;
+  --text-secondary: #A3A3A3;
+  --text-tertiary: #6B6B6B;
+  
+  /* Charts - Vibrant for dark mode */
+  --chart-1: #3B82F6;
+  --chart-2: #10B981;
+  --chart-3: #F59E0B;
+  --chart-4: #EF4444;
+  --chart-5: #A78BFA;
+  
+  /* Sidebar - Distinct in dark mode */
+  --sidebar: #151515;
+  --sidebar-foreground: #FAFAFA;
+  --sidebar-primary: #3B82F6;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #1F1F1F;
+  --sidebar-accent-foreground: #FAFAFA;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #3B82F6;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* ==================== TYPOGRAPHY SCALE ==================== */
+  h1, .text-display {
+    font-size: 2rem;        /* 32px */
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  
+  h2, .text-heading {
+    font-size: 1.25rem;     /* 20px */
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+  }
+  
+  h3, .text-subheading {
+    font-size: 1rem;        /* 16px */
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  
+  p, .text-body {
+    font-size: 0.875rem;    /* 14px */
+    font-weight: 400;
+    line-height: 1.6;
+  }
+  
+  .text-small {
+    font-size: 0.75rem;     /* 12px */
+    font-weight: 400;
+    line-height: 1.5;
+  }
+  
+  .text-mono {
+    font-family: 'Fira Code', 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+    font-size: 0.875rem;
+    letter-spacing: -0.01em;
+  }
+  
+  /* ==================== FOCUS STYLES (ACCESSIBILITY) ==================== */
+  *:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: calc(var(--radius) + 2px);
+  }
+  
+  /* ==================== ANIMATION UTILITIES ==================== */
+  .transition-snappy {
+    transition-duration: var(--duration-snappy);
+    transition-timing-function: var(--ease-out);
+  }
+  
+  .transition-quick {
+    transition-duration: var(--duration-quick);
+    transition-timing-function: var(--ease-out);
+  }
+  
+  .transition-moderate {
+    transition-duration: var(--duration-moderate);
+    transition-timing-function: var(--ease-out);
+  }
+  
+  /* ==================== INTERACTION STATES ==================== */
+  .hover-subtle:hover {
+    background-color: color-mix(in srgb, var(--background) 97%, var(--foreground));
+    transition: background-color var(--duration-quick) var(--ease-out);
+  }
+  
+  .active-press:active {
+    transform: scale(0.98);
+    transition: transform var(--duration-snappy) var(--ease-in);
+  }
+  
+  /* ==================== TASK COMPLETION ANIMATION ==================== */
+  .task-completed {
+    text-decoration: line-through;
+    opacity: 0.5;
+    transition: all var(--duration-quick) var(--ease-out);
+  }
+  
+  /* ==================== REDUCED MOTION (ACCESSIBILITY) ==================== */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  
+  /* ==================== SMOOTH SCROLLING ==================== */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
 }
