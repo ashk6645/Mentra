@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Loader2, Plus, CalendarIcon, Sparkles, Wand2 } from 'lucide-react'
+import { Loader2, Plus, CalendarIcon, Sparkles, Wand2, Clock } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { TagManager } from '@/components/tags/tag-manager'
@@ -53,7 +53,7 @@ const formSchema = z.object({
     description: z.string().optional(),
     priority: z.enum(['low', 'medium', 'high', 'urgent']).optional().nullable(),
     dueDate: z.date().optional(),
-    scheduledTime: z.string().optional(), // Time in HH:MM format
+    scheduledTime: z.string().optional(),
     durationMinutes: z.number().optional(),
     projectId: z.string().optional(),
     tagIds: z.array(z.string()).optional(),
@@ -112,8 +112,6 @@ export function CreateTaskDialog({ projectId }: { projectId?: string }) {
                 if (result.description) form.setValue('description', result.description)
                 if (result.priority) form.setValue('priority', result.priority)
                 if (result.dueDate) form.setValue('dueDate', new Date(result.dueDate))
-
-                // Clear AI input after successful parsing
                 setAiInput('')
             }
         } catch (error) {
@@ -142,7 +140,6 @@ export function CreateTaskDialog({ projectId }: { projectId?: string }) {
             if (suggestions.projectId) form.setValue('projectId', suggestions.projectId)
             if (suggestions.tagIds && suggestions.tagIds.length > 0) {
                 const currentTags = form.getValues('tagIds') || []
-                // Merge unique tags
                 const newTags = Array.from(new Set([...currentTags, ...suggestions.tagIds]))
                 form.setValue('tagIds', newTags)
             }
@@ -154,18 +151,16 @@ export function CreateTaskDialog({ projectId }: { projectId?: string }) {
     }
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        console.log('Submitting task:', values)
         try {
-            // Calculate scheduledStart and scheduledEnd if date and time are provided
             let scheduledStart: string | undefined
             let scheduledEnd: string | undefined
-            
+
             if (values.dueDate && values.scheduledTime) {
                 const [hours, minutes] = values.scheduledTime.split(':').map(Number)
                 const startDate = new Date(values.dueDate)
                 startDate.setHours(hours, minutes, 0, 0)
                 scheduledStart = startDate.toISOString()
-                
+
                 if (values.durationMinutes) {
                     const endDate = new Date(startDate.getTime() + values.durationMinutes * 60000)
                     scheduledEnd = endDate.toISOString()
@@ -179,14 +174,11 @@ export function CreateTaskDialog({ projectId }: { projectId?: string }) {
                 scheduledStart,
                 scheduledEnd,
             })
-            console.log('Task creation result:', result)
 
             if (result.success) {
                 setOpen(false)
                 form.reset()
                 router.refresh()
-            } else {
-                console.error('Task creation failed:', result.error)
             }
         } catch (e) {
             console.error('Task creation exception:', e)
@@ -196,102 +188,120 @@ export function CreateTaskDialog({ projectId }: { projectId?: string }) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button>
+                <Button className="shadow-sm">
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Task
+                    New Task
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[550px] gap-6">
                 <DialogHeader>
-                    <DialogTitle>Add New Task</DialogTitle>
+                    <DialogTitle className="text-xl">Create Task</DialogTitle>
                 </DialogHeader>
 
-                <div className="flex gap-2">
-                    <div className="relative flex-1">
-                        <Sparkles className="absolute left-3 top-2.5 h-4 w-4 text-purple-500" />
-                        <Input
-                            placeholder="Magic Add: 'Buy milk tomorrow at 5pm priority high'"
-                            className="pl-9 border-purple-200 focus-visible:ring-purple-500"
-                            value={aiInput}
-                            onChange={(e) => setAiInput(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    e.preventDefault()
-                                    handleAIParse()
-                                }
-                            }}
-                            disabled={isAIThinking}
-                        />
+                {/* AI Input Section - Highlighting the "Magic" feel */}
+                <div className="relative group">
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                        <Sparkles className={cn("h-4 w-4 transition-colors", isAIThinking ? "text-purple-500 animate-pulse" : "text-muted-foreground")} />
                     </div>
+                    <Input
+                        placeholder="Magic Add (e.g., 'Meeting with John tomorrow at 2pm')"
+                        className="pl-9 pr-24 bg-muted/30 border-dashed focus:border-solid focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                        value={aiInput}
+                        onChange={(e) => setAiInput(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault()
+                                handleAIParse()
+                            }
+                        }}
+                        disabled={isAIThinking}
+                    />
                     <Button
                         type="button"
                         size="sm"
-                        variant="secondary"
+                        variant="ghost"
+                        className="absolute right-1 top-1 h-8 text-xs text-purple-600 hover:text-purple-700 hover:bg-purple-50"
                         onClick={handleAIParse}
                         disabled={isAIThinking || !aiInput.trim()}
                     >
-                        {isAIThinking ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Auto-Fill'}
+                        {isAIThinking ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : 'Auto-Fill'}
                     </Button>
                 </div>
 
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <div className="flex gap-2 items-start">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                        <div className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name="title"
                                 render={({ field }) => (
-                                    <FormItem className="flex-1">
-                                        <FormLabel>Title</FormLabel>
+                                    <FormItem>
                                         <FormControl>
-                                            <Input placeholder="What needs to be done?" {...field} />
+                                            <Input
+                                                placeholder="Task title"
+                                                className="text-lg font-medium border-none px-0 shadow-none rounded-none border-b focus-visible:ring-0 focus-visible:border-primary placeholder:text-muted-foreground/50"
+                                                {...field}
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                            <Button
-                                type="button"
-                                size="icon"
-                                variant="outline"
-                                className="mt-8 text-purple-500 border-purple-200 hover:bg-purple-50"
-                                onClick={handleMagicSuggest}
-                                disabled={isSuggesting || !form.watch('title')}
-                                title="Magic Suggest (Predict details)"
-                            >
-                                {isSuggesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
-                            </Button>
+
+                            <FormField
+                                control={form.control}
+                                name="description"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <Textarea
+                                                placeholder="Add description..."
+                                                className="resize-none min-h-[80px] border-none px-0 shadow-none focus-visible:ring-0 placeholder:text-muted-foreground/50"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         </div>
 
-                        <FormField
-                            control={form.control}
-                            name="description"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Description</FormLabel>
-                                    <FormControl>
-                                        <Textarea
-                                            placeholder="Add details..."
-                                            className="resize-none"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
                         <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="projectId"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-xs text-muted-foreground">Project</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value || (projectId ? projectId : 'none')}>
+                                            <FormControl>
+                                                <SelectTrigger className="h-9">
+                                                    <SelectValue placeholder="Inbox" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="none">Inbox</SelectItem>
+                                                {projects.map(project => (
+                                                    <SelectItem key={project.id} value={project.id}>
+                                                        {project.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </FormItem>
+                                )}
+                            />
+
                             <FormField
                                 control={form.control}
                                 name="priority"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Priority</FormLabel>
+                                        <FormLabel className="text-xs text-muted-foreground">Priority</FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value || undefined}>
                                             <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select priority" />
+                                                <SelectTrigger className="h-9">
+                                                    <SelectValue placeholder="None" />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -301,85 +311,32 @@ export function CreateTaskDialog({ projectId }: { projectId?: string }) {
                                                 <SelectItem value="urgent">Urgent</SelectItem>
                                             </SelectContent>
                                         </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="projectId"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Project</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value || (projectId ? projectId : 'none')}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select project" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="none">No Project</SelectItem>
-                                                {projects.map(project => (
-                                                    <SelectItem key={project.id} value={project.id}>
-                                                        {project.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
                         </div>
-
-                        <FormField
-                            control={form.control}
-                            name="tagIds"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Tags</FormLabel>
-                                    <FormControl>
-                                        <div className="block">
-                                            <TagManager
-                                                selectedTagIds={field.value || []}
-                                                onToggleTag={(tagId) => {
-                                                    const current = field.value || []
-                                                    if (current.includes(tagId)) {
-                                                        field.onChange(current.filter((id: string) => id !== tagId))
-                                                    } else {
-                                                        field.onChange([...current, tagId])
-                                                    }
-                                                }}
-                                            />
-                                        </div>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
 
                         <div className="grid grid-cols-2 gap-4">
                             <FormField
                                 control={form.control}
                                 name="dueDate"
                                 render={({ field }) => (
-                                    <FormItem className="flex flex-col">
-                                        <FormLabel>Due Date</FormLabel>
+                                    <FormItem>
+                                        <FormLabel className="text-xs text-muted-foreground">Due Date</FormLabel>
                                         <Popover>
                                             <PopoverTrigger asChild>
                                                 <FormControl>
                                                     <Button
                                                         variant={"outline"}
                                                         className={cn(
-                                                            "w-full pl-3 text-left font-normal",
+                                                            "w-full pl-3 text-left font-normal h-9",
                                                             !field.value && "text-muted-foreground"
                                                         )}
                                                     >
                                                         {field.value ? (
-                                                            format(field.value, "PPP")
+                                                            format(field.value, "PP")
                                                         ) : (
-                                                            <span>Pick a date</span>
+                                                            <span>Pick date</span>
                                                         )}
                                                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                                     </Button>
@@ -390,14 +347,11 @@ export function CreateTaskDialog({ projectId }: { projectId?: string }) {
                                                     mode="single"
                                                     selected={field.value}
                                                     onSelect={field.onChange}
-                                                    disabled={(date) =>
-                                                        date < new Date("1900-01-01")
-                                                    }
+                                                    disabled={(date) => date < new Date("1900-01-01")}
                                                     initialFocus
                                                 />
                                             </PopoverContent>
                                         </Popover>
-                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -407,15 +361,16 @@ export function CreateTaskDialog({ projectId }: { projectId?: string }) {
                                 name="scheduledTime"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Time (Optional)</FormLabel>
+                                        <FormLabel className="text-xs text-muted-foreground">Time</FormLabel>
                                         <FormControl>
-                                            <Input 
-                                                type="time" 
-                                                {...field} 
-                                                placeholder="HH:MM"
-                                            />
+                                            <div className="relative">
+                                                <Input
+                                                    type="time"
+                                                    className="h-9"
+                                                    {...field}
+                                                />
+                                            </div>
                                         </FormControl>
-                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -423,49 +378,51 @@ export function CreateTaskDialog({ projectId }: { projectId?: string }) {
 
                         <FormField
                             control={form.control}
-                            name="durationMinutes"
+                            name="tagIds"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Duration (Minutes)</FormLabel>
+                                    <FormLabel className="text-xs text-muted-foreground">Tags</FormLabel>
                                     <FormControl>
-                                        <Input 
-                                            type="number" 
-                                            min="5"
-                                            step="5"
-                                            {...field}
-                                            onChange={(e) => field.onChange(parseInt(e.target.value) || 30)}
+                                        <TagManager
+                                            selectedTagIds={field.value || []}
+                                            onToggleTag={(tagId) => {
+                                                const current = field.value || []
+                                                if (current.includes(tagId)) {
+                                                    field.onChange(current.filter((id: string) => id !== tagId))
+                                                } else {
+                                                    field.onChange([...current, tagId])
+                                                }
+                                            }}
                                         />
                                     </FormControl>
-                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
 
-                        <FormField
-                            control={form.control}
-                            name="recurrenceRule"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                    <FormLabel>Repeat</FormLabel>
-                                    <FormControl>
-                                        <RecurrenceSelector
-                                            value={field.value || ''}
-                                            onChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        <div className="flex justify-between items-center pt-4 border-t">
+                            {/* Magic Suggest Button */}
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 gap-2"
+                                onClick={handleMagicSuggest}
+                                disabled={isSuggesting || !form.watch('title')}
+                                title="Use AI to suggest details"
+                            >
+                                {isSuggesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+                                AI Suggest Tips
+                            </Button>
 
-                        <div className="flex justify-end space-x-2 pt-4">
-                            <Button variant="outline" type="button" onClick={() => setOpen(false)}>
-                                Cancel
-                            </Button>
-                            <Button type="submit" disabled={isLoading}>
-                                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Create Task
-                            </Button>
+                            <div className="flex gap-2">
+                                <Button variant="outline" type="button" onClick={() => setOpen(false)}>
+                                    Cancel
+                                </Button>
+                                <Button type="submit" disabled={isLoading}>
+                                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Create Task
+                                </Button>
+                            </div>
                         </div>
                     </form>
                 </Form>

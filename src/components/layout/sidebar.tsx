@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import {
     LayoutDashboard,
     CheckSquare,
@@ -14,14 +13,14 @@ import {
     LogOut,
     User as UserIcon,
     Menu,
-    Folder,
     Sun,
     CalendarDays,
     LayoutGrid,
     Timer,
     Target,
     ChevronRight,
-    Plus
+    Plus,
+    Search
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -32,7 +31,6 @@ import { Project } from '@prisma/client'
 import { CreateProjectDialog } from '@/components/projects/create-project-dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
-import { Search } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -84,236 +82,198 @@ export function Sidebar({ className, projects, user, onOpenCommand }: SidebarPro
     const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url
 
     const routes = [
-        {
-            label: 'Dashboard',
-            icon: LayoutDashboard,
-            href: '/dashboard',
-            variant: 'default'
-        },
-        {
-            label: 'Inbox',
-            icon: Inbox,
-            href: '/inbox',
-            variant: 'ghost'
-        },
-        {
-            label: 'Today',
-            icon: Sun,
-            href: '/today',
-            variant: 'ghost'
-        },
-        {
-            label: 'Upcoming',
-            icon: CalendarDays,
-            href: '/upcoming',
-            variant: 'ghost'
-        },
-        {
-            label: 'Calendar',
-            icon: Calendar,
-            href: '/calendar',
-            variant: 'ghost'
-        },
-        {
-            label: 'My Tasks',
-            icon: CheckSquare,
-            href: '/tasks',
-            variant: 'ghost'
-        },
-        {
-            label: 'Areas',
-            icon: LayoutGrid,
-            href: '/areas',
-            variant: 'ghost'
-        },
-        {
-            label: 'Focus',
-            icon: Timer,
-            href: '/focus',
-            variant: 'ghost'
-        },
-        {
-            label: 'Habits',
-            icon: Target,
-            href: '/habits',
-            variant: 'ghost'
-        },
+        { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
+        { label: 'Inbox', icon: Inbox, href: '/inbox' },
+        { label: 'Today', icon: Sun, href: '/today' },
+        { label: 'Upcoming', icon: CalendarDays, href: '/upcoming' },
+        { label: 'Calendar', icon: Calendar, href: '/calendar' },
+        { label: 'My Tasks', icon: CheckSquare, href: '/tasks' },
+        { label: 'Areas', icon: LayoutGrid, href: '/areas' },
+        { label: 'Focus', icon: Timer, href: '/focus' },
+        { label: 'Habits', icon: Target, href: '/habits' },
     ]
 
     const SidebarContent = () => (
-        <div className="space-y-4 py-4 flex flex-col h-full bg-muted/20 border-r">
-            <div className="px-3 py-2">
-                <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
-                    Task App
-                </h2>
-                
-                {/* Search/Command Button */}
+        <div className="flex flex-col h-full bg-sidebar/50 backdrop-blur-xl border-r border-sidebar-border supports-[backdrop-filter]:bg-sidebar/20">
+            {/* Header / Logo Area */}
+            <div className="px-4 py-6">
+                <div className="flex items-center gap-2 px-2 mb-6">
+                    <div className="h-6 w-6 rounded-md bg-primary flex items-center justify-center">
+                        <CheckSquare className="h-4 w-4 text-primary-foreground" />
+                    </div>
+                    <span className="text-lg font-semibold tracking-tight text-foreground">
+                        TaskFlow
+                    </span>
+                </div>
+
+                {/* Search Trigger */}
                 <Button
                     variant="outline"
-                    className="w-full justify-start mb-2 text-muted-foreground"
+                    className="w-full justify-start text-muted-foreground bg-background/50 border-input/50 hover:bg-accent/50 hover:text-accent-foreground shadow-sm h-9"
                     onClick={onOpenCommand}
                 >
-                    <Search className="mr-2 h-4 w-4" />
-                    <span>Search</span>
-                    <kbd className="pointer-events-none ml-auto inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                    <Search className="mr-2 h-4 w-4 opacity-50" />
+                    <span className="text-sm font-normal">Search...</span>
+                    <kbd className="pointer-events-none ml-auto h-5 select-none items-center gap-1 rounded bg-muted/50 px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 flex">
                         <span className="text-xs">⌘</span>K
                     </kbd>
                 </Button>
-                
-                <div className="space-y-1">
-                    {routes.map((route) => (
-                        <Button
-                            key={route.href}
-                            variant={pathname === route.href ? 'secondary' : 'ghost'}
-                            className="w-full justify-start"
-                            asChild
-                        >
-                            <Link href={route.href}>
-                                <route.icon className="mr-2 h-4 w-4" />
-                                {route.label}
-                            </Link>
-                        </Button>
-                    ))}
-                </div>
             </div>
 
-            <div className="px-3 py-2 flex-1 overflow-y-auto">
-                <div className="mb-2 px-2 flex items-center justify-between text-xs font-semibold tracking-tight text-muted-foreground py-1">
-                    <button
-                        onClick={() => setProjectsExpanded(!projectsExpanded)}
-                        className="flex items-center gap-2 hover:text-foreground transition-colors"
-                    >
-                        <motion.div
-                            animate={{ rotate: projectsExpanded ? 90 : 0 }}
-                            transition={{ duration: 0.2, ease: "easeInOut" }}
-                        >
-                            <ChevronRight className="h-3 w-3" />
-                        </motion.div>
-                        <span>PROJECTS</span>
-                    </button>
-                    <button
-                        onClick={() => setShowCreateDialog(true)}
-                        className="p-1 hover:bg-accent hover:text-foreground rounded transition-colors"
-                    >
-                        <Plus className="h-3 w-3" />
-                    </button>
+            {/* Main Navigation */}
+            <div className="px-3 flex-1 overflow-y-auto no-scrollbar">
+                <div className="space-y-1 mb-6">
+                    {routes.map((route) => {
+                        const isActive = pathname === route.href
+                        return (
+                            <Link
+                                key={route.href}
+                                href={route.href}
+                                className={cn(
+                                    "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 group relative",
+                                    isActive
+                                        ? "text-primary bg-primary/10"
+                                        : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                                )}
+                            >
+                                <route.icon className={cn(
+                                    "h-4 w-4 transition-colors",
+                                    isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                                )} />
+                                {route.label}
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="sidebar-active-indicator"
+                                        className="absolute left-0 w-1 h-3/5 bg-primary rounded-r-full"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                    />
+                                )}
+                            </Link>
+                        )
+                    })}
                 </div>
-                
-                <AnimatePresence initial={false}>
-                    {projectsExpanded && (
-                        <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2, ease: "easeInOut" }}
-                            className="space-y-1 overflow-hidden"
+
+                {/* Projects Section */}
+                <div className="px-3 mb-2">
+                    <div className="flex items-center justify-between group mb-2">
+                        <button
+                            onClick={() => setProjectsExpanded(!projectsExpanded)}
+                            className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors uppercase tracking-wider"
                         >
-                            {projects.map((project, index) => (
-                                <motion.div
-                                    key={project.id}
-                                    initial={{ x: -20, opacity: 0 }}
-                                    animate={{ x: 0, opacity: 1 }}
-                                    exit={{ x: -20, opacity: 0 }}
-                                    transition={{ 
-                                        duration: 0.2, 
-                                        delay: index * 0.03,
-                                        ease: "easeOut"
-                                    }}
-                                >
-                                    <Button
-                                        variant={pathname === `/projects/${project.id}` ? 'secondary' : 'ghost'}
-                                        className="w-full justify-start font-normal truncate"
-                                        asChild
+                            <motion.div
+                                animate={{ rotate: projectsExpanded ? 90 : 0 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <ChevronRight className="h-3 w-3" />
+                            </motion.div>
+                            Projects
+                        </button>
+                        <button
+                            onClick={() => setShowCreateDialog(true)}
+                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-accent rounded-sm transition-all duration-200"
+                        >
+                            <Plus className="h-3 w-3 text-muted-foreground" />
+                        </button>
+                    </div>
+
+                    <AnimatePresence initial={false}>
+                        {projectsExpanded && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.3, ease: "circOut" }}
+                                className="space-y-0.5 overflow-hidden pl-2"
+                            >
+                                {projects.map((project, index) => (
+                                    <motion.div
+                                        key={project.id}
+                                        initial={{ x: -10, opacity: 0 }}
+                                        animate={{ x: 0, opacity: 1 }}
+                                        transition={{ delay: index * 0.05 }}
                                     >
-                                        <Link href={`/projects/${project.id}`}>
+                                        <Link
+                                            href={`/projects/${project.id}`}
+                                            className={cn(
+                                                "flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors",
+                                                pathname === `/projects/${project.id}`
+                                                    ? "text-foreground bg-accent/60 font-medium"
+                                                    : "text-muted-foreground hover:text-foreground hover:bg-accent/30"
+                                            )}
+                                        >
                                             <span className={cn(
-                                                "mr-2 h-2 w-2 rounded-full",
+                                                "h-2 w-2 rounded-full ring-1 ring-white/10",
                                                 project.color === 'red' && "bg-red-500",
                                                 project.color === 'blue' && "bg-blue-500",
                                                 project.color === 'green' && "bg-green-500",
                                                 project.color === 'purple' && "bg-purple-500",
                                                 project.color === 'orange' && "bg-orange-500",
-                                                (!project.color || project.color === 'neutral') && "bg-gray-400"
+                                                (!project.color || project.color === 'neutral') && "bg-zinc-400"
                                             )} />
-                                            {project.name}
+                                            <span className="truncate">{project.name}</span>
                                         </Link>
-                                    </Button>
-                                </motion.div>
-                            ))}
-                            {projects.length === 0 && (
-                                <motion.p 
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="px-4 py-2 text-xs text-muted-foreground"
-                                >
-                                    No projects yet
-                                </motion.p>
-                            )}
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-                
-                <CreateProjectDialog 
-                    open={showCreateDialog} 
-                    onOpenChange={setShowCreateDialog}
-                />
+                                    </motion.div>
+                                ))}
+                                {projects.length === 0 && (
+                                    <div className="px-3 py-2 text-xs text-muted-foreground italic">
+                                        No projects yet
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
 
-            <div className="mt-auto px-3 py-2 border-t">
+            <CreateProjectDialog
+                open={showCreateDialog}
+                onOpenChange={setShowCreateDialog}
+            />
+
+            {/* Footer / Profile */}
+            <div className="p-3 border-t border-sidebar-border bg-sidebar/50">
                 <Popover>
                     <PopoverTrigger asChild>
                         <Button
                             variant="ghost"
-                            className="w-full justify-start px-2 h-auto py-2"
+                            className="w-full justify-start px-2 py-6 hover:bg-accent/50 group"
                         >
-                            <Avatar className="h-8 w-8 mr-2">
+                            <Avatar className="h-8 w-8 mr-3 border border-border/50 shadow-sm transition-transform group-hover:scale-105">
                                 <AvatarImage src={avatarUrl} />
-                                <AvatarFallback className="text-xs">
+                                <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
                                     {displayName?.charAt(0).toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
-                            <div className="flex flex-col items-start flex-1 min-w-0">
-                                <span className="text-sm font-medium truncate w-full text-left">
+                            <div className="flex flex-col items-start min-w-0">
+                                <span className="text-sm font-medium truncate text-foreground/90">
                                     {displayName}
                                 </span>
-                                <span className="text-xs text-muted-foreground truncate w-full text-left">
+                                <span className="text-xs text-muted-foreground truncate font-normal">
                                     {user?.email}
                                 </span>
                             </div>
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent 
-                        className="w-64 p-2" 
-                        align="end" 
-                        side="top"
-                        sideOffset={8}
+                    <PopoverContent
+                        className="w-56 p-1 mb-2 bg-popover/95 backdrop-blur-xl border-border/50 shadow-xl"
+                        align="start"
+                        side="right"
+                        sideOffset={12}
                     >
-                        <div className="space-y-1">
-                            <Button
-                                variant={pathname === '/profile' ? 'secondary' : 'ghost'}
-                                className="w-full justify-start"
-                                asChild
-                            >
-                                <Link href="/profile">
-                                    <UserIcon className="mr-2 h-4 w-4" />
-                                    View Profile
-                                </Link>
-                            </Button>
+                        <div className="space-y-0.5">
+                            <Link href="/profile">
+                                <Button variant="ghost" className="w-full justify-start h-8 px-2 text-sm font-normal">
+                                    <UserIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                                    Profile
+                                </Button>
+                            </Link>
+
+                            <Separator className="my-1 bg-border/50" />
                             <Button
                                 variant="ghost"
-                                className="w-full justify-start"
-                                asChild
-                            >
-                                <Link href="/dashboard">
-                                    <Settings className="mr-2 h-4 w-4" />
-                                    Settings
-                                </Link>
-                            </Button>
-                            <Separator className="my-1" />
-                            <Button 
-                                variant="ghost" 
-                                className="w-full justify-start text-red-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950" 
+                                className="w-full justify-start h-8 px-2 text-sm font-normal text-destructive hover:text-destructive hover:bg-destructive/10"
                                 onClick={handleSignOut}
                             >
                                 <LogOut className="mr-2 h-4 w-4" />
@@ -328,19 +288,17 @@ export function Sidebar({ className, projects, user, onOpenCommand }: SidebarPro
 
     return (
         <>
-            {/* Desktop Sidebar */}
             <div className={cn("hidden md:block w-64 fixed inset-y-0 z-50", className)}>
                 <SidebarContent />
             </div>
 
-            {/* Mobile Sidebar Trigger */}
             <Sheet>
                 <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="md:hidden fixed top-4 left-4 z-50">
+                    <Button variant="ghost" size="icon" className="md:hidden fixed top-3 left-3 z-50 bg-background/50 backdrop-blur-md border border-border/50 shadow-sm">
                         <Menu className="h-5 w-5" />
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-64">
+                <SheetContent side="left" className="p-0 w-72 border-r border-border/50 bg-background/95 backdrop-blur-xl">
                     <SidebarContent />
                 </SheetContent>
             </Sheet>

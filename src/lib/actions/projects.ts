@@ -30,7 +30,8 @@ export async function getProjects() {
         where: {
             userId: user.id
         },
-        select: {
+        // Select all fields to avoid type mismatches with the frontend components
+        /* select: {
             id: true,
             name: true,
             description: true,
@@ -41,7 +42,7 @@ export async function getProjects() {
             isArchived: true,
             createdAt: true,
             updatedAt: true,
-        },
+        }, */
         orderBy: {
             sortOrder: 'asc'
         }
@@ -173,8 +174,8 @@ export async function getProject(id: string) {
                             priority: true,
                             dueDate: true,
                             sortOrder: true,
-                            tags: { 
-                                select: { 
+                            tags: {
+                                select: {
                                     tag: {
                                         select: {
                                             id: true,
@@ -182,7 +183,7 @@ export async function getProject(id: string) {
                                             color: true,
                                         }
                                     }
-                                } 
+                                }
                             }
                         },
                         orderBy: { sortOrder: 'asc' },
@@ -204,8 +205,8 @@ export async function getProject(id: string) {
                     priority: true,
                     dueDate: true,
                     sortOrder: true,
-                    tags: { 
-                        select: { 
+                    tags: {
+                        select: {
                             tag: {
                                 select: {
                                     id: true,
@@ -213,7 +214,7 @@ export async function getProject(id: string) {
                                     color: true,
                                 }
                             }
-                        } 
+                        }
                     }
                 },
                 orderBy: { sortOrder: 'asc' },
@@ -248,11 +249,11 @@ export async function deleteProject(id: string) {
         return { success: true }
     } catch (error: any) {
         console.error('Failed to delete project:', error)
-        
+
         if (error.code === 'P2025') {
             return { success: false, error: 'Project not found or access denied' }
         }
-        
+
         return { success: false, error: 'Failed to delete project' }
     }
 }
@@ -302,14 +303,14 @@ export async function updateProject(id: string, data: Partial<CreateProjectInput
         return { success: true, data: project }
     } catch (error: any) {
         console.error('Failed to update project:', error)
-        
+
         if (error.code === 'P2025') {
             return { success: false, error: 'Project not found or access denied' }
         }
         if (error.code === 'P2003') {
             return { success: false, error: 'Invalid area selected' }
         }
-        
+
         return { success: false, error: 'Failed to update project' }
     }
 }
