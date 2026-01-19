@@ -25,6 +25,7 @@ interface BlockRendererProps {
     onDelete: () => void
     onAddBlock: (type: BlockType, afterBlockId: string) => void
     onOpenSlashMenu: () => void
+    focusedBlockId?: string | null
     isEditing?: boolean
 }
 
@@ -34,6 +35,7 @@ export function BlockRenderer({
     onDelete,
     onAddBlock,
     onOpenSlashMenu,
+    focusedBlockId,
     isEditing = false,
 }: BlockRendererProps) {
     const commonProps = {
@@ -42,6 +44,7 @@ export function BlockRenderer({
         onDelete,
         onAddBlock,
         onOpenSlashMenu,
+        focusedBlockId,
         isEditing,
     }
 

@@ -94,6 +94,7 @@ export function ToggleBlock({
                     value={content.text || ''}
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
+                    onPointerDown={(e) => e.stopPropagation()} // Prevent drag interference
                     placeholder={isHeading ? `Heading ${level}` : "Toggle list"}
                     className={textStyles}
                 />

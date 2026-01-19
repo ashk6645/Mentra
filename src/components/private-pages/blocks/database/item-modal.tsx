@@ -79,6 +79,7 @@ export function ItemModal({
     const [showSlashMenu, setShowSlashMenu] = useState(false)
     const [slashMenuPosition, setSlashMenuPosition] = useState({ x: 0, y: 0 })
     const [activeBlockId, setActiveBlockId] = useState<string | null>(null)
+    const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null)
 
     // Reset state when item changes
     useEffect(() => {
@@ -128,6 +129,7 @@ export function ItemModal({
             type,
             content: {},
             sortOrder: blocks.length,
+            parentBlockId: null,
             createdAt: new Date(),
             updatedAt: new Date(),
         }
@@ -141,6 +143,7 @@ export function ItemModal({
             setBlocks([...blocks, newBlock])
         }
 
+        setFocusedBlockId(newBlock.id)
         setShowSlashMenu(false)
     }
 
@@ -150,6 +153,13 @@ export function ItemModal({
 
     const handleDeleteBlock = (id: string) => {
         setBlocks(blocks.filter(b => b.id !== id))
+    }
+
+    const handleOpenSlashMenu = (afterBlockId: string | null) => {
+        setActiveBlockId(afterBlockId)
+        // Position handled by SlashMenu component below (center if no mouse event?)
+        // Or if triggered by slash, handled by BlockRenderer/Wrapper callback props
+        setShowSlashMenu(true)
     }
 
     const handleSlashCommand = (blockId: string, position: { x: number; y: number }) => {
@@ -283,13 +293,16 @@ export function ItemModal({
                                         block={block}
                                         onDelete={() => handleDeleteBlock(block.id)}
                                         onDuplicate={() => { }}
-                                        onAddAbove={() => handleAddBlock('TEXT', block.id)}
+                                        onAddBlock={(type) => handleAddBlock(type, block.id)}
+                                        onOpenSlashMenu={() => handleOpenSlashMenu(block.id)}
                                     >
                                         <BlockRenderer
                                             block={block}
                                             onUpdate={(content) => handleUpdateBlock(block.id, content)}
                                             onDelete={() => handleDeleteBlock(block.id)}
                                             onAddBlock={(type, afterId) => handleAddBlock(type, afterId)}
+                                            onOpenSlashMenu={() => handleOpenSlashMenu(block.id)}
+                                            focusedBlockId={focusedBlockId}
                                         />
                                     </BlockWrapper>
                                 ))}
@@ -309,6 +322,7 @@ export function ItemModal({
                 {/* Slash Menu */}
                 {showSlashMenu && (
                     <SlashMenu
+                        isOpen={showSlashMenu}
                         position={slashMenuPosition}
                         onSelect={(type) => handleAddBlock(type, activeBlockId || undefined)}
                         onClose={() => setShowSlashMenu(false)}

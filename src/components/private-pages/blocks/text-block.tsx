@@ -9,6 +9,7 @@ interface TextBlockProps {
     onDelete: () => void
     onAddBlock: (type: BlockType, afterBlockId: string) => void
     onOpenSlashMenu: () => void
+    focusedBlockId?: string | null
     isEditing?: boolean
 }
 
@@ -18,10 +19,20 @@ export function TextBlock({
     onDelete,
     onAddBlock,
     onOpenSlashMenu,
+    focusedBlockId,
 }: TextBlockProps) {
     const content = block.content as { text?: string }
     const [text, setText] = useState(content.text || '')
     const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+    // Auto-focus if this block is the newly created one
+    useEffect(() => {
+        if (focusedBlockId === block.id && textareaRef.current) {
+            textareaRef.current.focus()
+            // Reset cursor to start? Or end? Usually end if splitting?
+            // For now just focus.
+        }
+    }, [focusedBlockId, block.id])
 
     // Auto-resize textarea
     useEffect(() => {

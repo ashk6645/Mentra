@@ -470,7 +470,9 @@ function BoardView({
     onOpenItem,
     onAddItem,
 }: Omit<ViewRendererProps, 'onUpdateItem'>) {
-    const statusProperty = properties.find(p => p.type === 'SELECT')
+    const statusProperty = properties.find(p => p.name === 'Status' || p.type === 'SELECT')
+    const propertyId = statusProperty?.id || 'status'
+
     const statuses = statusProperty?.options || [
         { id: 'not_started', name: 'Not started', color: 'gray' },
         { id: 'in_progress', name: 'In progress', color: 'blue' },
@@ -479,8 +481,9 @@ function BoardView({
 
     const groupedItems = statuses.reduce((acc, status) => {
         acc[status.id] = items.filter(item => {
-            const itemStatus = item.properties.status || 'not_started'
-            return itemStatus === status.id
+            // Check both property ID and 'status' fallback
+            const itemValue = item.properties[propertyId] || item.properties.status || 'not_started'
+            return itemValue === status.id
         })
         return acc
     }, {} as Record<string, DatabaseItem[]>)

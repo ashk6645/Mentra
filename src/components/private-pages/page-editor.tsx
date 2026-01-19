@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import {
     DndContext,
     DragEndEvent,
+    DragStartEvent,
     closestCenter,
     PointerSensor,
     useSensor,
@@ -84,6 +85,7 @@ export function PageEditor({ page }: PageEditorProps) {
     const [slashMenuPosition, setSlashMenuPosition] = useState({ x: 0, y: 0 })
     const [insertAfterBlockId, setInsertAfterBlockId] = useState<string | null>(null)
     const [activeDragId, setActiveDragId] = useState<string | null>(null)
+    const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null)
     const titleRef = useRef<HTMLInputElement>(null)
     const contentRef = useRef<HTMLDivElement>(null)
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -216,6 +218,7 @@ export function PageEditor({ page }: PageEditorProps) {
             } else {
                 setBlocks([result.block as PageBlock, ...blocks])
             }
+            setFocusedBlockId(result.block.id)
             router.refresh()
         }
         setSlashMenuOpen(false)
@@ -422,6 +425,8 @@ export function PageEditor({ page }: PageEditorProps) {
                                                 onUpdate={(content) => handleBlockUpdate(block.id, content)}
                                                 onDelete={() => handleBlockDelete(block.id)}
                                                 onAddBlock={(type, afterId) => handleAddBlock(type, afterId)}
+                                                onOpenSlashMenu={() => handleOpenSlashMenu(block.id)}
+                                                focusedBlockId={focusedBlockId}
                                             />
                                         </BlockWrapper>
                                     ))}
@@ -444,6 +449,8 @@ export function PageEditor({ page }: PageEditorProps) {
                                                     onUpdate={() => { }}
                                                     onDelete={() => { }}
                                                     onAddBlock={() => { }}
+                                                    onOpenSlashMenu={() => { }}
+                                                    focusedBlockId={focusedBlockId}
                                                 />
                                             </div>
                                         </BlockWrapper>
