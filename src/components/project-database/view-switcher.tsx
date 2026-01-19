@@ -1,27 +1,18 @@
 'use client'
 
 import React from 'react'
-import { 
-  Table, 
-  LayoutGrid, 
-  Calendar, 
+import {
+  Table,
+  LayoutGrid,
+  Calendar,
   CalendarRange,
-  Check 
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useProjectDatabase } from './project-database-context'
-import { DatabaseView, DATABASE_VIEWS } from './types'
+import { DatabaseView } from './types'
 
 // ========================================
-// VIEW SWITCHER
+// VIEW SWITCHER (Underline Tabs Style)
 // ========================================
 
 export function ViewSwitcher() {
@@ -31,127 +22,60 @@ export function ViewSwitcher() {
     value: DatabaseView
     label: string
     icon: React.ReactNode
-    description: string
   }> = [
-    {
-      value: 'table',
-      label: 'Table',
-      icon: <Table className="h-4 w-4" />,
-      description: 'Spreadsheet view with all properties',
-    },
-    {
-      value: 'board',
-      label: 'Board',
-      icon: <LayoutGrid className="h-4 w-4" />,
-      description: 'Kanban board grouped by status',
-    },
-    {
-      value: 'timeline',
-      label: 'Timeline',
-      icon: <CalendarRange className="h-4 w-4" />,
-      description: 'Gantt-style timeline view',
-    },
-    {
-      value: 'calendar',
-      label: 'Calendar',
-      icon: <Calendar className="h-4 w-4" />,
-      description: 'Monthly calendar with deadlines',
-    },
-  ]
+      {
+        value: 'table',
+        label: 'Table',
+        icon: <Table className="h-4 w-4" />,
+      },
+      {
+        value: 'board',
+        label: 'Board',
+        icon: <LayoutGrid className="h-4 w-4" />,
+      },
+      {
+        value: 'timeline',
+        label: 'Timeline',
+        icon: <CalendarRange className="h-4 w-4" />,
+      },
+      {
+        value: 'calendar',
+        label: 'Calendar',
+        icon: <Calendar className="h-4 w-4" />,
+      },
+    ]
 
   return (
-    <Tabs 
-      value={viewState.view} 
-      onValueChange={(value) => setView(value as DatabaseView)}
-      className="w-auto"
-    >
-      <TabsList className="h-9">
-        {views.map((view) => (
-          <TabsTrigger
+    <div className="flex items-center gap-1">
+      {views.map((view) => {
+        const isActive = viewState.view === view.value
+        return (
+          <button
             key={view.value}
-            value={view.value}
-            className="gap-2 px-3"
+            onClick={() => setView(view.value)}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-all",
+              isActive
+                ? "bg-background text-foreground shadow-sm border border-border/50"
+                : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+            )}
           >
             {view.icon}
             <span className="hidden sm:inline">{view.label}</span>
-          </TabsTrigger>
-        ))}
-      </TabsList>
-    </Tabs>
+          </button>
+        )
+      })}
+    </div>
   )
 }
 
 // ========================================
-// VIEW SWITCHER (DROPDOWN ALTERNATIVE)
+// VIEW SWITCHER DROPDOWN (Alternative)
 // ========================================
 
 export function ViewSwitcherDropdown() {
   const { viewState, setView } = useProjectDatabase()
 
-  const views: Array<{
-    value: DatabaseView
-    label: string
-    icon: React.ReactNode
-    description: string
-  }> = [
-    {
-      value: 'table',
-      label: 'Table',
-      icon: <Table className="h-4 w-4" />,
-      description: 'Spreadsheet view with all properties',
-    },
-    {
-      value: 'board',
-      label: 'Board',
-      icon: <LayoutGrid className="h-4 w-4" />,
-      description: 'Kanban board grouped by status',
-    },
-    {
-      value: 'timeline',
-      label: 'Timeline',
-      icon: <CalendarRange className="h-4 w-4" />,
-      description: 'Gantt-style timeline view',
-    },
-    {
-      value: 'calendar',
-      label: 'Calendar',
-      icon: <Calendar className="h-4 w-4" />,
-      description: 'Monthly calendar with deadlines',
-    },
-  ]
-
-  const currentView = views.find((v) => v.value === viewState.view)
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
-          {currentView?.icon}
-          <span>{currentView?.label}</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-64">
-        {views.map((view) => (
-          <DropdownMenuItem
-            key={view.value}
-            onClick={() => setView(view.value)}
-            className="flex items-start gap-3 p-3 cursor-pointer"
-          >
-            <div className="mt-0.5">{view.icon}</div>
-            <div className="flex-1 space-y-0.5">
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-sm">{view.label}</span>
-                {viewState.view === view.value && (
-                  <Check className="h-4 w-4 text-primary" />
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {view.description}
-              </p>
-            </div>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
+  // Keeping dropdown version in case needed for mobile
+  return null
 }

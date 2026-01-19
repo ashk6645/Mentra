@@ -1,0 +1,324 @@
+'use client'
+
+import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { updatePage, deletePage } from '@/lib/actions/pages'
+import { createBlock, updateBlock, deleteBlock, insertBlockAt } from '@/lib/actions/blocks'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+    MoreHorizontal,
+    Star,
+    Trash2,
+    Image as ImageIcon,
+} from 'lucide-react'
+import { BlockRenderer } from './block-renderer'
+import { BlockWrapper } from './block-wrapper'
+import { SlashMenu } from './slash-menu'
+import { Block, BlockType, getDefaultBlockContent } from './types'
+
+// ========================================
+// TYPES
+// ========================================
+
+interface PageBlock {
+    id: string
+    type: string
+    content: Record<string, unknown>
+    sortOrder: number
+    parentBlockId?: string | null
+    childBlocks?: PageBlock[]
+    databaseView?: unknown
+}
+
+interface PageData {
+    id: string
+    title: string
+    icon: string | null
+    coverImage: string | null
+    isFavorited: boolean
+    blocks: PageBlock[]
+}
+
+interface PageEditorProps {
+    page: PageData
+}
+
+// ========================================
+// PAGE EDITOR COMPONENT
+// ========================================
+
+export function PageEditor({ page }: PageEditorProps) {
+    const router = useRouter()
+    const [title, setTitle] = useState(page.title)
+    const [icon, setIcon] = useState(page.icon || '📄')
+    const [isFavorited, setIsFavorited] = useState(page.isFavorited)
+    const [blocks, setBlocks] = useState<PageBlock[]>(page.blocks)
+    const [isSaving, setIsSaving] = useState(false)
+    const [slashMenuOpen, setSlashMenuOpen] = useState(false)
+    const [slashMenuPosition, setSlashMenuPosition] = useState({ x: 0, y: 0 })
+    const [insertAfterBlockId, setInsertAfterBlockId] = useState<string | null>(null)
+    const titleRef = useRef<HTMLInputElement>(null)
+    const contentRef = useRef<HTMLDivElement>(null)
+    const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+    // Autosave title changes
+    const saveTitle = useCallback(async (newTitle: string) => {
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current)
+        }
+
+        saveTimeoutRef.current = setTimeout(async () => {
+            setIsSaving(true)
+            await updatePage(page.id, { title: newTitle })
+            setIsSaving(false)
+            router.refresh()
+        }, 500)
+    }, [page.id, router])
+
+    const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newTitle = e.target.value
+        setTitle(newTitle)
+        saveTitle(newTitle)
+    }
+
+    const handleTitleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            e.preventDefault()
+            titleRef.current?.blur()
+            // Focus first block or create one
+            if (blocks.length === 0) {
+                handleAddFirstBlock()
+            }
+        }
+    }
+
+    const handleToggleFavorite = async () => {
+        setIsFavorited(!isFavorited)
+        await updatePage(page.id, { isFavorited: !isFavorited })
+        router.refresh()
+    }
+
+    const handleDelete = async () => {
+        if (confirm('Are you sure you want to delete this page?')) {
+            await deletePage(page.id)
+            router.push('/dashboard')
+            router.refresh()
+        }
+    }
+
+    const handleIconChange = async (newIcon: string) => {
+        setIcon(newIcon)
+        await updatePage(page.id, { icon: newIcon })
+        router.refresh()
+    }
+
+    // Block operations
+    const handleAddFirstBlock = async () => {
+        const result = await createBlock({
+            pageId: page.id,
+            type: 'TEXT' as BlockType,
+            content: { text: '' },
+        })
+        if (result.success && result.block) {
+            setBlocks([...blocks, result.block as PageBlock])
+            router.refresh()
+        }
+    }
+
+    const handleBlockUpdate = async (blockId: string, content: Record<string, unknown>) => {
+        // Optimistic update
+        setBlocks(blocks.map(b => b.id === blockId ? { ...b, content } : b))
+
+        // Debounced save
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current)
+        }
+        saveTimeoutRef.current = setTimeout(async () => {
+            await updateBlock(blockId, { content })
+        }, 300)
+    }
+
+    const handleBlockDelete = async (blockId: string) => {
+        // Optimistic update
+        setBlocks(blocks.filter(b => b.id !== blockId))
+        await deleteBlock(blockId)
+        router.refresh()
+    }
+
+    const handleAddBlock = async (type: BlockType, afterBlockId: string | null) => {
+        const content = getDefaultBlockContent(type)
+        const result = await insertBlockAt(page.id, type as any, afterBlockId, content)
+        if (result.success && result.block) {
+            // Insert at correct position
+            if (afterBlockId) {
+                const idx = blocks.findIndex(b => b.id === afterBlockId)
+                const newBlocks = [...blocks]
+                newBlocks.splice(idx + 1, 0, result.block as PageBlock)
+                setBlocks(newBlocks)
+            } else {
+                setBlocks([result.block as PageBlock, ...blocks])
+            }
+            router.refresh()
+        }
+        setSlashMenuOpen(false)
+    }
+
+    const handleOpenSlashMenu = (afterBlockId: string | null, e?: React.MouseEvent) => {
+        setInsertAfterBlockId(afterBlockId)
+        if (e) {
+            setSlashMenuPosition({ x: e.clientX, y: e.clientY })
+        } else if (contentRef.current) {
+            const rect = contentRef.current.getBoundingClientRect()
+            setSlashMenuPosition({ x: rect.left + 40, y: rect.top + 100 })
+        }
+        setSlashMenuOpen(true)
+    }
+
+    const handleSlashMenuSelect = (type: BlockType) => {
+        handleAddBlock(type, insertAfterBlockId)
+    }
+
+    // Keyboard "/" detection for empty page
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === '/' && blocks.length === 0 && !slashMenuOpen) {
+                e.preventDefault()
+                handleOpenSlashMenu(null)
+            }
+        }
+        document.addEventListener('keydown', handleKeyDown)
+        return () => document.removeEventListener('keydown', handleKeyDown)
+    }, [blocks.length, slashMenuOpen])
+
+    // Focus title on mount if it's "Untitled"
+    useEffect(() => {
+        if (page.title === 'Untitled' && titleRef.current) {
+            titleRef.current.focus()
+            titleRef.current.select()
+        }
+    }, [page.title])
+
+    return (
+        <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
+            {/* Page Header */}
+            <div className="px-8 pt-16 pb-8">
+                {/* Top Actions */}
+                <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-2">
+                        {/* Icon Button */}
+                        <button
+                            onClick={() => {
+                                const emojis = ['📄', '📝', '📋', '📊', '🎯', '💡', '🚀', '⭐', '📌', '🔖', '📚', '🎨']
+                                const currentIndex = emojis.indexOf(icon)
+                                const nextIndex = (currentIndex + 1) % emojis.length
+                                handleIconChange(emojis[nextIndex])
+                            }}
+                            className="text-4xl hover:bg-accent/50 rounded-lg p-2 transition-colors"
+                            title="Click to change icon"
+                        >
+                            {icon}
+                        </button>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                        {isSaving && (
+                            <span className="text-xs text-muted-foreground mr-2">Saving...</span>
+                        )}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleToggleFavorite}
+                            className={cn(isFavorited && "text-yellow-500")}
+                        >
+                            <Star className={cn("h-4 w-4", isFavorited && "fill-current")} />
+                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={handleToggleFavorite}>
+                                    <Star className="h-4 w-4 mr-2" />
+                                    {isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem disabled>
+                                    <ImageIcon className="h-4 w-4 mr-2" />
+                                    Add cover image
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    className="text-destructive focus:text-destructive"
+                                    onClick={handleDelete}
+                                >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete page
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                </div>
+
+                {/* Title */}
+                <input
+                    ref={titleRef}
+                    type="text"
+                    value={title}
+                    onChange={handleTitleChange}
+                    onKeyDown={handleTitleKeyDown}
+                    placeholder="Untitled"
+                    className="w-full text-4xl font-bold bg-transparent border-none outline-none placeholder:text-muted-foreground/50 focus:ring-0"
+                />
+            </div>
+
+            {/* Page Content */}
+            <div ref={contentRef} className="flex-1 px-8 pb-16">
+                {blocks.length === 0 ? (
+                    <button
+                        onClick={(e) => handleOpenSlashMenu(null, e)}
+                        className="py-4 text-muted-foreground hover:text-foreground transition-colors text-left w-full"
+                    >
+                        Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">/</kbd> for commands, or click here to add a block...
+                    </button>
+                ) : (
+                    <div className="space-y-0.5">
+                        {blocks.map((block) => (
+                            <BlockWrapper
+                                key={block.id}
+                                block={block as Block}
+                                onDelete={() => handleBlockDelete(block.id)}
+                                onDuplicate={() => {/* TODO */ }}
+                                onAddBlock={(type) => handleAddBlock(type, block.id)}
+                                onOpenSlashMenu={() => handleOpenSlashMenu(block.id)}
+                            >
+                                <BlockRenderer
+                                    block={block as Block}
+                                    onUpdate={(content) => handleBlockUpdate(block.id, content)}
+                                    onDelete={() => handleBlockDelete(block.id)}
+                                    onAddBlock={(type, afterId) => handleAddBlock(type, afterId)}
+                                />
+                            </BlockWrapper>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Slash Menu */}
+            <SlashMenu
+                isOpen={slashMenuOpen}
+                onClose={() => setSlashMenuOpen(false)}
+                onSelect={handleSlashMenuSelect}
+                position={slashMenuPosition}
+            />
+        </div>
+    )
+}

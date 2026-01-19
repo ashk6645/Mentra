@@ -30,6 +30,7 @@ model Profile {
   xpLogs               XPLog[]
   aiLogs               AIActivityLog[]
   areas                AreaOfLife[]
+  pages                Page[]
   sharedProjectsOwned  SharedProject[] @relation("SharedByUser")
   sharedProjectsAccess SharedProject[] @relation("SharedWithUser")
 
@@ -314,3 +315,134 @@ model SharedProject {
   @@unique([projectId, sharedWithUserId])
   @@map("shared_projects")
 }
+
+// ========================================
+// PRIVATE PAGES SYSTEM (OPTIMIZED)
+// ========================================
+
+// 15. Private Pages
+model Page {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  parentPageId String?  @map("parent_page_id")
+  title        String   @default("Untitled")
+  icon         String?  @default("📄")
+  coverImage   String?  @map("cover_image")
+  isFavorited  Boolean  @default(false) @map("is_favorited")
+  isArchived   Boolean  @default(false) @map("is_archived")  // Soft delete
+  sortOrder    Int      @default(0) @map("sort_order")
+  depth        Int      @default(0)  // Nesting depth (max 5)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user       Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentPage Page?   @relation("PageHierarchy", fields: [parentPageId], references: [id], onDelete: Cascade)
+  childPages Page[]  @relation("PageHierarchy")
+  blocks     Block[]
+
+  @@index([userId])
+  @@index([parentPageId])
+  @@index([userId, isArchived])
+  @@map("pages")
+}
+
+// 16. Blocks (Content within pages)
+model Block {
+  id            String    @id @default(uuid())
+  pageId        String    @map("page_id")
+  parentBlockId String?   @map("parent_block_id")
+  type          BlockType
+  content       Json      @default("{}")
+  sortOrder     Int       @default(0) @map("sort_order")
+  isArchived    Boolean   @default(false) @map("is_archived")  // Soft delete
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  page          Page           @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  parentBlock   Block?         @relation("BlockNesting", fields: [parentBlockId], references: [id], onDelete: Cascade)
+  childBlocks   Block[]        @relation("BlockNesting")
+  databaseViews DatabaseView[]  // One block can have MULTIPLE views
+
+  @@index([pageId])
+  @@index([parentBlockId])
+  @@index([pageId, sortOrder])
+  @@index([pageId, isArchived])
+  @@map("blocks")
+}
+
+// 17. Database Views (MULTIPLE views per database block)
+model DatabaseView {
+  id            String     @id @default(uuid())
+  blockId       String     @map("block_id")  // NO UNIQUE - allows multiple views
+  name          String     @default("Default View")  // View name for switching
+  sourceType    SourceType @map("source_type")
+  viewType      ViewType   @map("view_type")
+  filters       Json?      @default("[]")
+  sorts         Json?      @default("[]")
+  visibleFields Json?      @default("[]") @map("visible_fields")
+  groupBy       String?    @map("group_by")
+  isDefault     Boolean    @default(false) @map("is_default")  // Which view shows first
+  sortOrder     Int        @default(0) @map("sort_order")  // Order in view switcher
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  block Block @relation(fields: [blockId], references: [id], onDelete: Cascade)
+
+  @@index([blockId])
+  @@map("database_views")
+}
+
+// ========================================
+// ENUMS FOR PRIVATE PAGES
+// ========================================
+
+enum BlockType {
+  // Database blocks
+  DATABASE_TABLE
+  DATABASE_BOARD
+  DATABASE_GALLERY
+  DATABASE_LIST
+  DATABASE_CALENDAR
+  DATABASE_CHART
+
+  // Content blocks
+  TEXT
+  HEADING_1
+  HEADING_2
+  HEADING_3
+  TOGGLE_HEADING_1
+  TOGGLE_HEADING_2
+  TOGGLE_HEADING_3
+  BULLETED_LIST
+  NUMBERED_LIST
+  TODO_LIST
+  TOGGLE_LIST
+  CALLOUT
+  QUOTE
+  CODE
+  DIVIDER
+
+  // Media blocks
+  IMAGE
+  VIDEO
+  FILE
+}
+
+enum SourceType {
+  TASKS
+  PROJECTS
+  HABITS
+}
+
+enum ViewType {
+  TABLE
+  BOARD
+  GALLERY
+  LIST
+  CALENDAR
+  CHART
+}
+

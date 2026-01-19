@@ -33,18 +33,28 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Separator } from '@/components/ui/separator'
 import { motion, AnimatePresence } from 'framer-motion'
 
+interface PageItem {
+    id: string
+    title: string
+    icon: string | null
+    parentPageId: string | null
+    isFavorited: boolean
+}
+
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     projects: Project[]
+    pages?: PageItem[]
     user: any
     onOpenCommand?: () => void
 }
 
-export function Sidebar({ className, projects, user, onOpenCommand }: SidebarProps) {
+export function Sidebar({ className, projects, pages = [], user, onOpenCommand }: SidebarProps) {
     const pathname = usePathname()
     const router = useRouter()
     const supabase = createClient()
     const [profile, setProfile] = useState<any>(null)
     const [projectsExpanded, setProjectsExpanded] = useState(true)
+    const [pagesExpanded, setPagesExpanded] = useState(true)
     const [showCreateDialog, setShowCreateDialog] = useState(false)
 
     useEffect(() => {
@@ -220,6 +230,73 @@ export function Sidebar({ className, projects, user, onOpenCommand }: SidebarPro
                                     <div className="px-3 py-2 text-xs text-muted-foreground italic">
                                         No projects yet
                                     </div>
+                                )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+
+                {/* Private Pages Section */}
+                <div className="px-3 mb-2">
+                    <div className="flex items-center justify-between group mb-2">
+                        <button
+                            onClick={() => setPagesExpanded(!pagesExpanded)}
+                            className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors uppercase tracking-wider"
+                        >
+                            <motion.div
+                                animate={{ rotate: pagesExpanded ? 90 : 0 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <ChevronRight className="h-3 w-3" />
+                            </motion.div>
+                            Private
+                        </button>
+                        <Link
+                            href="/private/new"
+                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-accent rounded-sm transition-all duration-200"
+                        >
+                            <Plus className="h-3 w-3 text-muted-foreground" />
+                        </Link>
+                    </div>
+
+                    <AnimatePresence initial={false}>
+                        {pagesExpanded && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.3, ease: "circOut" }}
+                                className="space-y-0.5 overflow-hidden pl-2"
+                            >
+                                {pages.map((page, index) => (
+                                    <motion.div
+                                        key={page.id}
+                                        initial={{ x: -10, opacity: 0 }}
+                                        animate={{ x: 0, opacity: 1 }}
+                                        transition={{ delay: index * 0.05 }}
+                                    >
+                                        <Link
+                                            href={`/private/${page.id}`}
+                                            className={cn(
+                                                "flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors",
+                                                pathname === `/private/${page.id}`
+                                                    ? "text-foreground bg-accent/60 font-medium"
+                                                    : "text-muted-foreground hover:text-foreground hover:bg-accent/30"
+                                            )}
+                                        >
+                                            <span className="text-base">{page.icon || '📄'}</span>
+                                            <span className="truncate">{page.title}</span>
+                                        </Link>
+                                    </motion.div>
+                                ))}
+                                {pages.length === 0 && (
+                                    <Link
+                                        href="/private/new"
+                                        className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                                    >
+                                        <Plus className="h-3 w-3" />
+                                        <span>New page</span>
+                                    </Link>
                                 )}
                             </motion.div>
                         )}

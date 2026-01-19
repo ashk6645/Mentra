@@ -1,10 +1,10 @@
 'use client'
 
 import React, { useCallback, useMemo, useState } from 'react'
-import { 
-  DndContext, 
-  DragEndEvent, 
-  DragOverlay, 
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
   DragStartEvent,
   PointerSensor,
   useSensor,
@@ -17,8 +17,8 @@ import {
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { 
-  MoreHorizontal, 
+import {
+  MoreHorizontal,
   Plus,
   GripVertical,
   Calendar,
@@ -59,9 +59,9 @@ export function BoardView({ groupBy = 'status', onCardClick }: BoardViewProps) {
     createProject,
     deleteProject,
   } = useProjectDatabase()
-  
+
   const [activeId, setActiveId] = useState<string | null>(null)
-  
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -69,17 +69,17 @@ export function BoardView({ groupBy = 'status', onCardClick }: BoardViewProps) {
       },
     })
   )
-  
+
   // Group projects by the selected field
   const groupedProjects = useMemo(() => {
     const groups: Record<string, ProjectDatabaseItem[]> = {}
-    
+
     if (groupBy === 'status') {
       // Initialize all status columns
       Object.keys(PROJECT_STATUSES).forEach(status => {
         groups[status] = []
       })
-      
+
       projects.forEach(project => {
         const key = project.status || 'ACTIVE'
         if (!groups[key]) groups[key] = []
@@ -90,7 +90,7 @@ export function BoardView({ groupBy = 'status', onCardClick }: BoardViewProps) {
       Object.keys(PRIORITY_CONFIG).forEach(priority => {
         groups[priority] = []
       })
-      
+
       projects.forEach(project => {
         const key = project.priority || 'MEDIUM'
         if (!groups[key]) groups[key] = []
@@ -101,17 +101,17 @@ export function BoardView({ groupBy = 'status', onCardClick }: BoardViewProps) {
       areas.forEach(area => {
         groups[area.id] = []
       })
-      
+
       projects.forEach(project => {
         const key = project.areaId || 'none'
         if (!groups[key]) groups[key] = []
         groups[key].push(project)
       })
     }
-    
+
     return groups
   }, [projects, groupBy, areas])
-  
+
   // Get column config based on groupBy
   const getColumnConfig = useCallback((key: string) => {
     if (groupBy === 'status') {
@@ -141,25 +141,25 @@ export function BoardView({ groupBy = 'status', onCardClick }: BoardViewProps) {
     }
     return { title: key }
   }, [groupBy, areas])
-  
+
   // Handle drag events
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string)
   }
-  
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
     setActiveId(null)
-    
+
     if (!over) return
-    
+
     const projectId = active.id as string
     const overId = over.id as string
-    
+
     // Check if dropped on a column
     if (Object.keys(groupedProjects).includes(overId)) {
       const newValue = overId
-      
+
       if (groupBy === 'status') {
         updateProject(projectId, { status: newValue as ProjectStatus })
       } else if (groupBy === 'priority') {
@@ -169,14 +169,14 @@ export function BoardView({ groupBy = 'status', onCardClick }: BoardViewProps) {
       }
     }
   }
-  
+
   // Get the active project for overlay
   const activeProject = activeId ? projects.find(p => p.id === activeId) : null
-  
+
   // Add new project to column
   const handleAddToColumn = async (columnKey: string) => {
     const data: Partial<ProjectDatabaseItem> = { name: '' }
-    
+
     if (groupBy === 'status') {
       data.status = columnKey as ProjectStatus
     } else if (groupBy === 'priority') {
@@ -184,10 +184,10 @@ export function BoardView({ groupBy = 'status', onCardClick }: BoardViewProps) {
     } else if (groupBy === 'area') {
       data.areaId = columnKey === 'none' ? null : columnKey
     }
-    
+
     await createProject(data)
   }
-  
+
   return (
     <DndContext
       sensors={sensors}
@@ -198,7 +198,7 @@ export function BoardView({ groupBy = 'status', onCardClick }: BoardViewProps) {
       <div className="flex gap-4 h-full overflow-x-auto pb-4">
         {Object.entries(groupedProjects).map(([key, columnProjects]) => {
           const config = getColumnConfig(key)
-          
+
           return (
             <BoardColumn
               key={key}
@@ -216,7 +216,7 @@ export function BoardView({ groupBy = 'status', onCardClick }: BoardViewProps) {
           )
         })}
       </div>
-      
+
       <DragOverlay>
         {activeProject ? (
           <ProjectCard
@@ -263,24 +263,24 @@ function BoardColumn({
     id,
     data: { type: 'column' },
   })
-  
+
   return (
     <div
       ref={setNodeRef}
-      className="flex-shrink-0 w-72 flex flex-col bg-muted/30 rounded-lg"
+      className="flex-shrink-0 w-72 flex flex-col bg-muted/20 rounded-xl border border-border/30"
     >
       {/* Column Header */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-border/50">
+      <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/30">
         <div className="flex items-center gap-2">
           {icon && <span className="text-sm">{icon}</span>}
           {customColor && (
-            <span 
-              className="w-3 h-3 rounded-full"
+            <span
+              className="w-2.5 h-2.5 rounded-full ring-1 ring-white/10"
               style={{ backgroundColor: customColor }}
             />
           )}
           <h3 className="font-medium text-sm">{title}</h3>
-          <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+          <span className="text-xs text-muted-foreground/70 bg-muted/50 px-1.5 py-0.5 rounded-md">
             {projects.length}
           </span>
         </div>
@@ -293,7 +293,7 @@ function BoardColumn({
           <Plus className="w-4 h-4" />
         </Button>
       </div>
-      
+
       {/* Column Content */}
       <ScrollArea className="flex-1 px-2 py-2">
         <SortableContext
@@ -312,7 +312,7 @@ function BoardColumn({
             ))}
           </div>
         </SortableContext>
-        
+
         {projects.length === 0 && (
           <div className="py-8 text-center">
             <p className="text-muted-foreground text-sm">No projects</p>
@@ -352,13 +352,13 @@ function SortableProjectCard({ project, areas, onClick, onDelete }: SortableProj
     transition,
     isDragging,
   } = useSortable({ id: project.id })
-  
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
   }
-  
+
   return (
     <div ref={setNodeRef} style={style}>
       <ProjectCard
@@ -385,33 +385,33 @@ interface ProjectCardProps {
   dragHandleProps?: Record<string, unknown>
 }
 
-function ProjectCard({ 
-  project, 
-  areas, 
-  onClick, 
-  onDelete, 
+function ProjectCard({
+  project,
+  areas,
+  onClick,
+  onDelete,
   isDragging,
   dragHandleProps,
 }: ProjectCardProps) {
   const area = areas.find(a => a.id === project.areaId)
-  
+
   return (
     <Card
       className={cn(
-        "p-3 cursor-pointer hover:shadow-md transition-all group",
+        "p-3 cursor-pointer hover:shadow-sm border-border/40 transition-all group",
         isDragging && "shadow-lg ring-2 ring-primary/20"
       )}
       onClick={onClick}
     >
       {/* Header with drag handle */}
       <div className="flex items-start gap-2">
-        <div 
+        <div
           className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab mt-0.5"
           {...dragHandleProps}
         >
           <GripVertical className="w-4 h-4 text-muted-foreground" />
         </div>
-        
+
         <div className="flex-1 min-w-0">
           {/* Title */}
           <div className="flex items-center gap-2 mb-2">
@@ -420,18 +420,18 @@ function ProjectCard({
               {project.name || 'Untitled'}
             </h4>
           </div>
-          
+
           {/* Metadata */}
           <div className="flex flex-wrap items-center gap-2 text-xs">
             {/* Priority */}
             <PriorityBadge priority={project.priority} size="sm" />
-            
+
             {/* Area */}
             {area && <AreaBadge area={area} size="sm" />}
           </div>
-          
+
           {/* Footer */}
-          <div className="flex items-center justify-between mt-3 pt-2 border-t border-border/50">
+          <div className="flex items-center justify-between mt-3 pt-2 border-t border-border/30">
             {/* Due date */}
             {project.targetDate && (
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -439,7 +439,7 @@ function ProjectCard({
                 {format(new Date(project.targetDate), 'MMM d')}
               </div>
             )}
-            
+
             {/* Progress */}
             {project.progress > 0 && (
               <div className="flex-1 max-w-20 ml-auto">
@@ -448,7 +448,7 @@ function ProjectCard({
             )}
           </div>
         </div>
-        
+
         {/* Actions */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -464,7 +464,7 @@ function ProjectCard({
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={onClick}>Open</DropdownMenuItem>
             <DropdownMenuItem>Duplicate</DropdownMenuItem>
-            <DropdownMenuItem 
+            <DropdownMenuItem
               className="text-destructive"
               onClick={(e) => {
                 e.stopPropagation()

@@ -58,21 +58,19 @@ export default async function ProjectDatabasePage() {
   })
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* Page Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center justify-between px-6 py-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Projects Database</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Manage all your projects in one place with multiple views
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              {projectsWithProgress.length} projects
-            </span>
-          </div>
+    <div className="flex-1 h-full flex flex-col animate-in-fade">
+      {/* Page Header - Consistent with Dashboard/Profile */}
+      <div className="px-8 py-6 border-b border-border/40 bg-background/50 backdrop-blur-sm sticky top-0 z-20 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Manage all your projects in one place
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-muted-foreground tabular-nums">
+            {projectsWithProgress.length} {projectsWithProgress.length === 1 ? 'project' : 'projects'}
+          </span>
         </div>
       </div>
 

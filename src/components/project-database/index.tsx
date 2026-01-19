@@ -48,7 +48,7 @@ export function ProjectDatabase({
       color: project.color,
       icon: project.icon,
     })
-    
+
     return result.project || null
   }
 
@@ -71,8 +71,8 @@ export function ProjectDatabase({
       onProjectUpdate={handleUpdate}
       onProjectDelete={handleDelete}
     >
-      <ProjectDatabaseContent 
-        onProjectClick={onProjectClick} 
+      <ProjectDatabaseContent
+        onProjectClick={onProjectClick}
         className={className}
       />
     </ProjectDatabaseProvider>
@@ -124,8 +124,8 @@ function DatabaseToolbar() {
   const [showProperties, setShowProperties] = useState(false)
 
   return (
-    <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex items-center justify-between px-6 py-3">
+    <div className="border-b border-border/30 bg-muted/20">
+      <div className="flex items-center justify-between px-6 py-2">
         {/* Left: View Switcher */}
         <ViewSwitcher />
 
