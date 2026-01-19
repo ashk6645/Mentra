@@ -1,8 +1,10 @@
-'use client'
-
+import {
+    useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { GripVertical, Plus, Trash2, Copy, MoreHorizontal } from 'lucide-react'
+import { GripVertical, Plus, Trash2, Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -31,18 +33,54 @@ export function BlockWrapper({
     onDuplicate,
     onAddBlock,
     onOpenSlashMenu,
-    isDragging,
-    dragHandleProps,
+    isDragging: isOverlayDragging, // Renamed to avoid key collision
+    dragHandleProps, // Explicit props for overlay mode
 }: BlockWrapperProps) {
     const [isHovered, setIsHovered] = useState(false)
     const [showMenu, setShowMenu] = useState(false)
 
+    // Sortable hook
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging: isSortableDragging,
+    } = useSortable({
+        id: block.id,
+        disabled: !!isOverlayDragging, // Disable sortable logic if this is the overlay clone
+    })
+
+    const style = {
+        transform: CSS.Translate.toString(transform),
+        transition,
+    }
+
+    // Determine dragging state
+    const isDragging = isOverlayDragging || isSortableDragging
+
+    // If overlay, we don't apply sortable ref/style/etc
+    const wrapperProps = isOverlayDragging
+        ? {}
+        : {
+            ref: setNodeRef,
+            style,
+            ...attributes,
+        }
+
+    const handleProps = isOverlayDragging
+        ? dragHandleProps || {}
+        : listeners
+
     return (
         <div
+            {...wrapperProps}
             className={cn(
-                "group relative flex items-start gap-1 py-0.5 -ml-8 pl-8 rounded transition-colors",
+                "group relative flex items-start gap-1 py-0.5 -ml-12 pl-12 rounded transition-colors",
                 isHovered && "bg-accent/20",
-                isDragging && "opacity-50"
+                isDragging && "opacity-50 blur-[1px]", // Visual feedback for original item
+                isOverlayDragging && "bg-background shadow-xl border border-border opacity-100 blur-none z-50 overflow-hidden" // Mobile overlay style
             )}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -51,8 +89,9 @@ export function BlockWrapper({
             <div
                 className={cn(
                     "absolute left-0 flex items-center gap-0.5 transition-opacity",
-                    isHovered || showMenu ? "opacity-100" : "opacity-0"
+                    (isHovered || showMenu || isOverlayDragging) ? "opacity-100" : "opacity-0"
                 )}
+                contentEditable={false} // Prevent cursor entering here
             >
                 {/* Add Block Button */}
                 <button
@@ -68,7 +107,7 @@ export function BlockWrapper({
                     <DropdownMenuTrigger asChild>
                         <button
                             className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors cursor-grab active:cursor-grabbing"
-                            {...dragHandleProps}
+                            {...handleProps}
                         >
                             <GripVertical className="h-4 w-4" />
                         </button>

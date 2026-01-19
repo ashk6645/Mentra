@@ -11,6 +11,7 @@ import { CodeBlock } from './blocks/code-block'
 import { ListBlock } from './blocks/list-block'
 import { ImageBlock } from './blocks/image-block'
 import { VideoBlock } from './blocks/video-block'
+import { ToggleBlock } from './blocks/toggle-block'
 import { DatabaseBlock } from './blocks/database-block'
 
 // ========================================
@@ -23,6 +24,7 @@ interface BlockRendererProps {
     onUpdate: (content: Record<string, unknown>) => void
     onDelete: () => void
     onAddBlock: (type: BlockType, afterBlockId: string) => void
+    onOpenSlashMenu: () => void
     isEditing?: boolean
 }
 
@@ -31,6 +33,7 @@ export function BlockRenderer({
     onUpdate,
     onDelete,
     onAddBlock,
+    onOpenSlashMenu,
     isEditing = false,
 }: BlockRendererProps) {
     const commonProps = {
@@ -38,6 +41,7 @@ export function BlockRenderer({
         onUpdate,
         onDelete,
         onAddBlock,
+        onOpenSlashMenu,
         isEditing,
     }
 
@@ -65,8 +69,6 @@ export function BlockRenderer({
             return <ListBlock {...commonProps} variant="numbered" />
         case 'TODO_LIST':
             return <ListBlock {...commonProps} variant="todo" />
-        case 'TOGGLE_LIST':
-            return <ListBlock {...commonProps} variant="bulleted" /> // Fallback for now
 
         // Content blocks
         case 'CALLOUT':
@@ -76,13 +78,12 @@ export function BlockRenderer({
         case 'CODE':
             return <CodeBlock {...commonProps} />
 
-        // Toggle headings (fallback to regular headings for now)
+        // Toggle blocks
         case 'TOGGLE_HEADING_1':
-            return <HeadingBlock {...commonProps} level={1} />
         case 'TOGGLE_HEADING_2':
-            return <HeadingBlock {...commonProps} level={2} />
         case 'TOGGLE_HEADING_3':
-            return <HeadingBlock {...commonProps} level={3} />
+        case 'TOGGLE_LIST':
+            return <ToggleBlock {...commonProps} />
 
         // Media blocks
         case 'IMAGE':

@@ -8,6 +8,7 @@ interface TextBlockProps {
     onUpdate: (content: Record<string, unknown>) => void
     onDelete: () => void
     onAddBlock: (type: BlockType, afterBlockId: string) => void
+    onOpenSlashMenu: () => void
     isEditing?: boolean
 }
 
@@ -16,6 +17,7 @@ export function TextBlock({
     onUpdate,
     onDelete,
     onAddBlock,
+    onOpenSlashMenu,
 }: TextBlockProps) {
     const content = block.content as { text?: string }
     const [text, setText] = useState(content.text || '')
@@ -36,6 +38,15 @@ export function TextBlock({
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        // Universal Slash Menu
+        if (e.key === '/') {
+            // Can be enhanced to only trigger if it's the start of line or standalone
+            // For now, simple trigger
+            e.preventDefault()
+            onOpenSlashMenu()
+            return
+        }
+
         // Enter creates new block
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault()

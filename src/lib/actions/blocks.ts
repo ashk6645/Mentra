@@ -104,7 +104,7 @@ export async function createBlock(data: CreateBlockInput) {
             data: {
                 pageId: data.pageId,
                 type: data.type,
-                content: data.content || {},
+                content: (data.content || {}) as any,
                 parentBlockId: data.parentBlockId || null,
                 sortOrder,
             },
@@ -147,7 +147,7 @@ export async function updateBlock(id: string, data: UpdateBlockInput) {
         const block = await prisma.block.update({
             where: { id },
             data: {
-                ...(data.content !== undefined && { content: data.content }),
+                ...(data.content !== undefined && { content: data.content as any }),
                 ...(data.sortOrder !== undefined && { sortOrder: data.sortOrder }),
             },
             include: {
@@ -227,6 +227,7 @@ export async function insertBlockAt(
         }
 
         let sortOrder = 0
+        let parentBlockId: string | null = null
 
         if (afterBlockId) {
             // Get the block we're inserting after
@@ -236,6 +237,8 @@ export async function insertBlockAt(
             })
 
             if (afterBlock) {
+                parentBlockId = afterBlock.parentBlockId
+
                 // Get the next block to calculate position between
                 const nextBlock = await prisma.block.findFirst({
                     where: {
@@ -261,11 +264,18 @@ export async function insertBlockAt(
             data: {
                 pageId,
                 type,
-                content: content || {},
+                content: (content || {}) as any,
                 sortOrder,
+                parentBlockId,
             },
             include: {
                 databaseViews: true,
+                childBlocks: {
+                    orderBy: { sortOrder: 'asc' },
+                    include: {
+                        databaseViews: true,
+                    },
+                },
             },
         })
 
@@ -349,7 +359,7 @@ export async function duplicateBlock(id: string) {
             data: {
                 pageId: original.pageId,
                 type: original.type,
-                content: original.content as Record<string, unknown>,
+                content: original.content as any,
                 parentBlockId: original.parentBlockId,
                 sortOrder: original.sortOrder + 0.5,
             },
