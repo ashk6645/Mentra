@@ -352,6 +352,7 @@ model Block {
   id            String    @id @default(uuid())
   pageId        String    @map("page_id")
   parentBlockId String?   @map("parent_block_id")
+  parentItemId  String?   @map("parent_item_id")  // For blocks inside database items
   type          BlockType
   content       Json      @default("{}")
   sortOrder     Int       @default(0) @map("sort_order")
@@ -360,13 +361,17 @@ model Block {
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  page          Page           @relation(fields: [pageId], references: [id], onDelete: Cascade)
-  parentBlock   Block?         @relation("BlockNesting", fields: [parentBlockId], references: [id], onDelete: Cascade)
-  childBlocks   Block[]        @relation("BlockNesting")
-  databaseViews DatabaseView[]  // One block can have MULTIPLE views
+  page               Page               @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  parentBlock        Block?             @relation("BlockNesting", fields: [parentBlockId], references: [id], onDelete: Cascade)
+  childBlocks        Block[]            @relation("BlockNesting")
+  parentItem         DatabaseItem?      @relation("ItemContent", fields: [parentItemId], references: [id], onDelete: Cascade)
+  databaseViews      DatabaseView[]     // One block can have MULTIPLE views
+  databaseItems      DatabaseItem[]     // Items in this database block
+  databaseProperties DatabaseProperty[] // Properties/columns in this database block
 
   @@index([pageId])
   @@index([parentBlockId])
+  @@index([parentItemId])
   @@index([pageId, sortOrder])
   @@index([pageId, isArchived])
   @@map("blocks")
@@ -377,7 +382,6 @@ model DatabaseView {
   id            String     @id @default(uuid())
   blockId       String     @map("block_id")  // NO UNIQUE - allows multiple views
   name          String     @default("Default View")  // View name for switching
-  sourceType    SourceType @map("source_type")
   viewType      ViewType   @map("view_type")
   filters       Json?      @default("[]")
   sorts         Json?      @default("[]")
@@ -393,6 +397,45 @@ model DatabaseView {
 
   @@index([blockId])
   @@map("database_views")
+}
+
+// 18. Database Items (Rows/Cards in inline databases)
+model DatabaseItem {
+  id          String   @id @default(uuid())
+  blockId     String   @map("block_id")
+  title       String   @default("Untitled")
+  icon        String?
+  coverImage  String?  @map("cover_image")
+  properties  Json     @default("{}")  // Property values keyed by property ID
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  block       Block         @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  childBlocks Block[]       @relation("ItemContent")  // Blocks inside the item (page content)
+
+  @@index([blockId])
+  @@index([blockId, sortOrder])
+  @@map("database_items")
+}
+
+// 19. Database Properties (Column definitions for inline databases)
+model DatabaseProperty {
+  id        String       @id @default(uuid())
+  blockId   String       @map("block_id")
+  name      String       @default("Property")
+  type      String       @default("TEXT")  // TEXT, NUMBER, SELECT, MULTI_SELECT, DATE, CHECKBOX, URL, EMAIL, PHONE
+  options   Json?        @default("[]")  // For select/multi-select options
+  sortOrder Int          @default(0) @map("sort_order")
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  block Block @relation(fields: [blockId], references: [id], onDelete: Cascade)
+
+  @@index([blockId])
+  @@map("database_properties")
 }
 
 // ========================================
@@ -445,4 +488,3 @@ enum ViewType {
   CALENDAR
   CHART
 }
-
