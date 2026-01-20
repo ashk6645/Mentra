@@ -36,10 +36,17 @@ export function QuoteBlock({
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        // Shift+Enter creates new block outside quote
+        if (e.key === 'Enter' && e.shiftKey) {
             e.preventDefault()
+            // Immediately blur for instant feedback
+            if (textareaRef.current) {
+                textareaRef.current.blur()
+            }
             onAddBlock('TEXT', block.id)
         }
+        // Regular Enter creates new line within quote (default behavior)
+
         if (e.key === 'Backspace' && text === '') {
             e.preventDefault()
             onDelete()

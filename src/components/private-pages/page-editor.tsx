@@ -89,6 +89,7 @@ export function PageEditor({ page }: PageEditorProps) {
     const titleRef = useRef<HTMLInputElement>(null)
     const contentRef = useRef<HTMLDivElement>(null)
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const focusedBlockIdRef = useRef<string | null>(null) // Persists across renders
 
     // Dnd Sensors
     const sensors = useSensors(
@@ -209,17 +210,42 @@ export function PageEditor({ page }: PageEditorProps) {
         const content = getDefaultBlockContent(type)
         const result = await insertBlockAt(page.id, type as any, afterBlockId, content)
         if (result.success && result.block) {
-            // Insert at correct position
-            if (afterBlockId) {
-                const idx = blocks.findIndex(b => b.id === afterBlockId)
-                const newBlocks = [...blocks]
-                newBlocks.splice(idx + 1, 0, result.block as PageBlock)
+            // Check if this is a nested block (inside a toggle)
+            const isNestedBlock = afterBlockId?.includes('_nested_start')
+
+            if (isNestedBlock) {
+                // For nested blocks, do optimistic update by adding to parent's childBlocks
+                const parentId = afterBlockId!.replace('_nested_start', '')
+                const newBlocks = blocks.map(b => {
+                    if (b.id === parentId) {
+                        return {
+                            ...b,
+                            childBlocks: [...(b.childBlocks || []), result.block as PageBlock]
+                        }
+                    }
+                    return b
+                })
                 setBlocks(newBlocks)
+                setFocusedBlockId(result.block.id)
             } else {
-                setBlocks([result.block as PageBlock, ...blocks])
+                // Insert at correct position for top-level blocks
+                if (afterBlockId) {
+                    const idx = blocks.findIndex(b => b.id === afterBlockId)
+                    if (idx !== -1) {
+                        const newBlocks = [...blocks]
+                        newBlocks.splice(idx + 1, 0, result.block as PageBlock)
+                        setBlocks(newBlocks)
+                        setFocusedBlockId(result.block.id)
+                    } else {
+                        // If not found, refresh to get the latest state
+                        focusedBlockIdRef.current = result.block.id
+                        router.refresh()
+                    }
+                } else {
+                    setBlocks([result.block as PageBlock, ...blocks])
+                    setFocusedBlockId(result.block.id)
+                }
             }
-            setFocusedBlockId(result.block.id)
-            router.refresh()
         }
         setSlashMenuOpen(false)
     }
@@ -289,6 +315,18 @@ export function PageEditor({ page }: PageEditorProps) {
             titleRef.current.select()
         }
     }, [page.title])
+
+
+    // Apply focus from ref after page updates (for nested blocks after refresh)
+    useEffect(() => {
+        if (focusedBlockIdRef.current) {
+            // Small delay to ensure DOM is fully updated
+            setTimeout(() => {
+                setFocusedBlockId(focusedBlockIdRef.current)
+                focusedBlockIdRef.current = null // Clear after applying
+            }, 150)
+        }
+    }, [page.blocks]) // Trigger when blocks update from server
 
     const activeBlock = activeDragId ? blocks.find(b => b.id === activeDragId) : null
 

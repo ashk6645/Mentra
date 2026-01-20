@@ -34,6 +34,10 @@ export function HeadingBlock({
         // Enter creates new text block below
         if (e.key === 'Enter') {
             e.preventDefault()
+            // Immediately blur for instant feedback
+            if (inputRef.current) {
+                inputRef.current.blur()
+            }
             onAddBlock('TEXT', block.id)
         }
 

@@ -43,6 +43,10 @@ export function ListBlock({
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             e.preventDefault()
+            // Immediately blur for instant feedback
+            if (inputRef.current) {
+                inputRef.current.blur()
+            }
             // Create same type of list item
             const blockType = variant === 'bulleted' ? 'BULLETED_LIST'
                 : variant === 'numbered' ? 'NUMBERED_LIST'

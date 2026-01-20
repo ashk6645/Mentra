@@ -230,32 +230,66 @@ export async function insertBlockAt(
         let parentBlockId: string | null = null
 
         if (afterBlockId) {
-            // Get the block we're inserting after
-            const afterBlock = await prisma.block.findFirst({
-                where: { id: afterBlockId, pageId },
-                select: { sortOrder: true, parentBlockId: true },
-            })
+            // Check for special nested block indicator (e.g., "uuid_nested_start")
+            if (afterBlockId.includes('_nested_start')) {
+                // Extract the parent block ID
+                const parentId = afterBlockId.replace('_nested_start', '')
 
-            if (afterBlock) {
-                parentBlockId = afterBlock.parentBlockId
-
-                // Get the next block to calculate position between
-                const nextBlock = await prisma.block.findFirst({
-                    where: {
-                        pageId,
-                        parentBlockId: afterBlock.parentBlockId,
-                        sortOrder: { gt: afterBlock.sortOrder },
-                    },
-                    select: { sortOrder: true },
-                    orderBy: { sortOrder: 'asc' },
-                })
-
-                if (nextBlock) {
-                    // Insert between
-                    sortOrder = (afterBlock.sortOrder + nextBlock.sortOrder) / 2
+                // Validate the extracted parent ID
+                const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+                if (uuidRegex.test(parentId)) {
+                    // This is a nested block - set parent and start at 0
+                    parentBlockId = parentId
+                    sortOrder = 0
                 } else {
-                    // Insert at end
-                    sortOrder = afterBlock.sortOrder + 1
+                    console.warn('Invalid parent UUID extracted from nested indicator:', parentId)
+                    // Fall back to end of page
+                    const maxSortOrder = await prisma.block.aggregate({
+                        where: { pageId, parentBlockId: null },
+                        _max: { sortOrder: true },
+                    })
+                    sortOrder = (maxSortOrder._max.sortOrder || 0) + 1
+                }
+            } else {
+                // Validate UUID format
+                const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+                if (!uuidRegex.test(afterBlockId)) {
+                    console.warn('Invalid UUID format for afterBlockId:', afterBlockId)
+                    // If invalid UUID, insert at the end
+                    const maxSortOrder = await prisma.block.aggregate({
+                        where: { pageId, parentBlockId: null },
+                        _max: { sortOrder: true },
+                    })
+                    sortOrder = (maxSortOrder._max.sortOrder || 0) + 1
+                } else {
+                    // Get the block we're inserting after
+                    const afterBlock = await prisma.block.findFirst({
+                        where: { id: afterBlockId, pageId },
+                        select: { sortOrder: true, parentBlockId: true },
+                    })
+
+                    if (afterBlock) {
+                        parentBlockId = afterBlock.parentBlockId
+
+                        // Get the next block to calculate position between
+                        const nextBlock = await prisma.block.findFirst({
+                            where: {
+                                pageId,
+                                parentBlockId: afterBlock.parentBlockId,
+                                sortOrder: { gt: afterBlock.sortOrder },
+                            },
+                            select: { sortOrder: true },
+                            orderBy: { sortOrder: 'asc' },
+                        })
+
+                        if (nextBlock) {
+                            // Insert between
+                            sortOrder = (afterBlock.sortOrder + nextBlock.sortOrder) / 2
+                        } else {
+                            // Insert at end
+                            sortOrder = afterBlock.sortOrder + 1
+                        }
+                    }
                 }
             }
         }

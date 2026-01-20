@@ -58,11 +58,18 @@ export function TextBlock({
             return
         }
 
-        // Enter creates new block
-        if (e.key === 'Enter' && !e.shiftKey) {
+        // Shift+Enter creates new block (exit current block)
+        if (e.key === 'Enter' && e.shiftKey) {
             e.preventDefault()
+            // Immediately blur to give instant feedback
+            if (textareaRef.current) {
+                textareaRef.current.blur()
+            }
+            // Create new block
             onAddBlock('TEXT', block.id)
         }
+        // Regular Enter just creates a new line (default textarea behavior)
+        // No need to handle it - let the textarea handle it naturally
 
         // Backspace on empty block deletes it
         if (e.key === 'Backspace' && text === '') {

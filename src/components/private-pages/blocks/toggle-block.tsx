@@ -6,6 +6,7 @@ import { ChevronRight, ChevronDown } from 'lucide-react'
 import { Block, BlockType } from '../types'
 import { BlockWrapper } from '../block-wrapper'
 import { BlockRenderer } from '../block-renderer'
+import { updateBlock, deleteBlock } from '@/lib/actions/blocks'
 
 interface ToggleBlockProps {
     block: Block
@@ -13,6 +14,7 @@ interface ToggleBlockProps {
     onDelete: () => void
     onAddBlock: (type: BlockType, afterBlockId: string) => void
     onOpenSlashMenu: () => void
+    focusedBlockId?: string | null
     isEditing?: boolean
 }
 
@@ -22,6 +24,7 @@ export function ToggleBlock({
     onDelete,
     onAddBlock,
     onOpenSlashMenu,
+    focusedBlockId,
     isEditing
 }: ToggleBlockProps) {
     const content = block.content as { text: string; isOpen?: boolean }
@@ -107,23 +110,9 @@ export function ToggleBlock({
                         <BlockWrapper
                             key={child.id}
                             block={child}
-                            onDelete={() => {
-                                // We need a way to delete child blocks. 
-                                // Since we don't have direct access to parent's child list update here easily without full tree,
-                                // we rely on the implementation where `onDelete` passes the ID back up or calls a server action directly.
-                                // The top-level PageEditor `handleBlockDelete` calls `deleteBlock` server action.
-                                // We should probably pass a specialized handler or just use the global one if it supports ID.
-                                // But `onDelete` in props is void. 
-                                // Actually, BlockWrapper calls `onDelete` which is `() => handleBlockDelete(block.id)` in PageEditor.
-                                // For nested, we need to pass a similar handler.
-                                // Since we don't have the `handleBlockDelete` from PageEditor directly here, we need to pass it down through recursion.
-                                // But wait, `ToggleBlock` receives `onDelete` which deletes ITSELF.
-                                // We need a `onDeleteChild` or similar. 
-                                // However, `BlockRenderer` interface only has `onDelete` (for itself).
-                                // Ideally `PageEditor` should provide a context or we pass a global delete handler.
-                                // For now, we unfortunately can't wire up child deletion easily without changing the interface to pass the ID.
-                                // Let's assume for this iteration we can't delete nested via wrapper button unless we hack it.
-                                // actually, deeper blocks need their own `onDelete`.
+                            onDelete={async () => {
+                                // Call server action directly to delete nested block
+                                await deleteBlock(child.id)
                             }}
                             onDuplicate={() => { }}
                             onAddBlock={(type) => onAddBlock(type, child.id)}
@@ -131,16 +120,17 @@ export function ToggleBlock({
                         >
                             <BlockRenderer
                                 block={child}
-                                onUpdate={(newContent) => {
-                                    // Deep update is complex without a global store or recursive update function.
-                                    // For now, simple optimistic updates won't work deep in the tree without state management (like useReducer or global context).
-                                    // But we CAN call the server action `updateBlock` directly if we had it, but we only have `onUpdate` prop.
-                                    // This is a limitation of the current recursion.
-                                    // We will leave this as a todo or partial implementation.
+                                onUpdate={async (newContent) => {
+                                    // Call server action directly to update nested block
+                                    await updateBlock(child.id, { content: newContent })
                                 }}
-                                onDelete={() => { /* Same issue */ }}
+                                onDelete={async () => {
+                                    // Call server action directly to delete nested block
+                                    await deleteBlock(child.id)
+                                }}
                                 onAddBlock={onAddBlock}
                                 onOpenSlashMenu={onOpenSlashMenu}
+                                focusedBlockId={focusedBlockId}
                             />
                         </BlockWrapper>
                     ))}
