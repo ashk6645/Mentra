@@ -1,7 +1,7 @@
 import { getProject } from '@/lib/actions/projects'
 import { notFound } from 'next/navigation'
 import { CreateTaskDialog } from '@/components/tasks/create-task-dialog'
-import { ProjectBoard } from '@/components/projects/project-board'
+import { TaskBoard } from '@/components/board/TaskBoard'
 import { ProjectSettingsMenu } from '@/components/projects/project-settings-menu'
 import { Badge } from '@/components/ui/badge'
 
@@ -49,10 +49,16 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 </div>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 px-4 py-6 overflow-hidden">
-                <ProjectBoard project={project} />
-            </div>
+                        {/* Content */}
+                        <div className="flex-1 px-4 py-6 overflow-hidden">
+                                {/* Pass all project tasks (from all sections and uncategorized) to TaskBoard */}
+                                <TaskBoard
+                                    tasks={[
+                                        ...project.sections.flatMap((section: any) => section.tasks.map((t: any) => ({ ...t, sectionId: section.id }))),
+                                        ...project.tasks
+                                    ]}
+                                />
+                        </div>
         </div>
     )
 }
