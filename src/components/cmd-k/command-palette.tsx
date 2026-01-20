@@ -19,19 +19,18 @@ import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
 
 import {
-    CommandDialog,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-    CommandSeparator,
-    CommandShortcut,
-} from "@/components/ui/command"
+    SearchCommand,
+    SearchInput,
+    SearchList,
+    SearchEmpty,
+    SearchGroup,
+    SearchItem,
+    SearchSeparator,
+    SearchShortcut,
+} from "@/components/ui/search-command"
 import { Project, Task } from "@prisma/client"
 import { searchTasks } from "@/lib/actions/tasks"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 
 export function CommandPalette({ projects, onOpenChange }: { projects: Project[], onOpenChange?: (open: boolean) => void }) {
     const [open, setOpen] = React.useState(false)
@@ -44,6 +43,11 @@ export function CommandPalette({ projects, onOpenChange }: { projects: Project[]
     const handleOpenChange = (newOpen: boolean) => {
         setOpen(newOpen)
         onOpenChange?.(newOpen)
+        // Reset query when closing
+        if (!newOpen) {
+            setQuery("")
+            setTasks([])
+        }
     }
 
     React.useEffect(() => {
@@ -106,6 +110,48 @@ export function CommandPalette({ projects, onOpenChange }: { projects: Project[]
         { name: "System", icon: Laptop, value: "system" },
     ].filter(item => filterStatic(item.name))
 
+    // Flatten all items for keyboard navigation validation
+    const allItems = React.useMemo(() => [
+        ...tasks.map(t => ({ type: 'task', data: t, action: () => runCommand(() => router.push(`/projects/${t.projectId || 'inbox'}?taskId=${t.id}`)) })),
+        ...mainNav.map(n => ({ type: 'nav', data: n, action: () => runCommand(() => router.push(n.route)) })),
+        ...filteredProjects.map(p => ({ type: 'project', data: p, action: () => runCommand(() => router.push(`/projects/${p.id}`)) })),
+        ...themes.map(t => ({ type: 'theme', data: t, action: () => runCommand(() => setTheme(t.value)) }))
+    ], [tasks, mainNav, filteredProjects, themes, router, runCommand, setTheme])
+
+    const [selectedIndex, setSelectedIndex] = React.useState(0)
+
+    // Reset selection when query or results change
+    React.useEffect(() => {
+        setSelectedIndex(0)
+    }, [query, allItems.length])
+
+    // Keyboard navigation
+    React.useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (!open || allItems.length === 0) return
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault()
+                setSelectedIndex(prev => (prev + 1) % allItems.length)
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault()
+                setSelectedIndex(prev => (prev - 1 + allItems.length) % allItems.length)
+            } else if (e.key === 'Enter') {
+                e.preventDefault()
+                allItems[selectedIndex]?.action()
+            }
+        }
+
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [open, allItems, selectedIndex])
+
+    // Scroll selected item into view
+    const selectedItemRef = React.useRef<HTMLDivElement>(null)
+    React.useEffect(() => {
+        selectedItemRef.current?.scrollIntoView({ block: 'nearest' })
+    }, [selectedIndex])
+
     // Expose open state to parent
     React.useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -113,81 +159,124 @@ export function CommandPalette({ projects, onOpenChange }: { projects: Project[]
         }
     }, [])
 
-    return (
-        <>
-            <CommandDialog open={open} onOpenChange={handleOpenChange} shouldFilter={false}>
-                <CommandInput
-                    placeholder="Type a command or search tasks..."
-                    value={query}
-                    onValueChange={setQuery}
-                />
-                <CommandList>
-                    {/* Custom Empty State */}
-                    {query && tasks.length === 0 && filteredProjects.length === 0 && mainNav.length === 0 && themes.length === 0 && !isSearching && (
-                        <CommandEmpty>No results found.</CommandEmpty>
-                    )}
+    const hasResults = allItems.length > 0
 
-                    {/* Tasks Results */}
-                    {tasks.length > 0 && (
-                        <CommandGroup heading="Tasks">
-                            {tasks.map(task => (
-                                <CommandItem key={task.id} onSelect={() => runCommand(() => router.push(`/projects/${task.projectId || 'inbox'}?taskId=${task.id}`))}>
+    // Helper to track global index during rendering
+    let globalIndex = 0
+
+    return (
+        <SearchCommand open={open} onOpenChange={handleOpenChange}>
+            <SearchInput
+                placeholder="Type a command or search tasks..."
+                value={query}
+                onValueChange={setQuery}
+            />
+            <SearchList>
+                {/* Custom Empty State */}
+                {query && !hasResults && !isSearching && (
+                    <SearchEmpty>No results found.</SearchEmpty>
+                )}
+
+                {isSearching && (
+                    <SearchEmpty>Searching...</SearchEmpty>
+                )}
+
+                {/* Tasks Results */}
+                {tasks.length > 0 && (
+                    <SearchGroup heading="Tasks">
+                        {tasks.map((task, i) => {
+                            const index = globalIndex++
+                            const isSelected = index === selectedIndex
+                            return (
+                                <SearchItem
+                                    key={task.id}
+                                    ref={isSelected ? selectedItemRef : undefined}
+                                    selected={isSelected}
+                                    onSelect={() => runCommand(() => router.push(`/projects/${task.projectId || 'inbox'}?taskId=${task.id}`))}
+                                >
                                     <div className={cn("mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary", task.completed ? "bg-primary text-primary-foreground" : "opacity-50")} />
                                     <span className="truncate flex-1">{task.title}</span>
                                     {task.project && (
                                         <span className="ml-2 text-xs text-muted-foreground">{task.project.name}</span>
                                     )}
-                                </CommandItem>
-                            ))}
-                        </CommandGroup>
-                    )}
+                                </SearchItem>
+                            )
+                        })}
+                    </SearchGroup>
+                )}
 
-                    {tasks.length > 0 && (filteredProjects.length > 0 || mainNav.length > 0) && <CommandSeparator />}
+                {tasks.length > 0 && (filteredProjects.length > 0 || mainNav.length > 0) && <SearchSeparator />}
 
-                    {/* Navigation */}
-                    {mainNav.length > 0 && (
-                        <CommandGroup heading="Suggestions">
-                            {mainNav.map(item => (
-                                <CommandItem key={item.name} onSelect={() => runCommand(() => router.push(item.route))}>
+                {/* Navigation */}
+                {mainNav.length > 0 && (
+                    <SearchGroup heading="Suggestions">
+                        {mainNav.map((item, i) => {
+                            const index = globalIndex++
+                            const isSelected = index === selectedIndex
+                            return (
+                                <SearchItem
+                                    key={item.name}
+                                    ref={isSelected ? selectedItemRef : undefined}
+                                    selected={isSelected}
+                                    onSelect={() => runCommand(() => router.push(item.route))}
+                                >
                                     <item.icon className="mr-2 h-4 w-4" />
                                     <span>{item.name}</span>
-                                </CommandItem>
-                            ))}
-                        </CommandGroup>
-                    )}
+                                </SearchItem>
+                            )
+                        })}
+                    </SearchGroup>
+                )}
 
-                    {/* Projects */}
-                    {filteredProjects.length > 0 && (
-                        <>
-                            <CommandSeparator />
-                            <CommandGroup heading="Projects">
-                                {filteredProjects.map(project => (
-                                    <CommandItem key={project.id} onSelect={() => runCommand(() => router.push(`/projects/${project.id}`))}>
+                {/* Projects */}
+                {filteredProjects.length > 0 && (
+                    <>
+                        <SearchSeparator />
+                        <SearchGroup heading="Projects">
+                            {filteredProjects.map((project, i) => {
+                                const index = globalIndex++
+                                const isSelected = index === selectedIndex
+                                return (
+                                    <SearchItem
+                                        key={project.id}
+                                        ref={isSelected ? selectedItemRef : undefined}
+                                        selected={isSelected}
+                                        onSelect={() => runCommand(() => router.push(`/projects/${project.id}`))}
+                                    >
                                         <Home className="mr-2 h-4 w-4" />
                                         <span>{project.name}</span>
-                                    </CommandItem>
-                                ))}
-                            </CommandGroup>
-                        </>
-                    )}
+                                    </SearchItem>
+                                )
+                            })}
+                        </SearchGroup>
+                    </>
+                )}
 
-                    {/* Themes */}
-                    {themes.length > 0 && (
-                        <>
-                            <CommandSeparator />
-                            <CommandGroup heading="Theme">
-                                {themes.map(item => (
-                                    <CommandItem key={item.name} onSelect={() => runCommand(() => setTheme(item.value))}>
+                {/* Themes */}
+                {themes.length > 0 && (
+                    <>
+                        <SearchSeparator />
+                        <SearchGroup heading="Theme">
+                            {themes.map((item, i) => {
+                                const index = globalIndex++
+                                const isSelected = index === selectedIndex
+                                return (
+                                    <SearchItem
+                                        key={item.name}
+                                        ref={isSelected ? selectedItemRef : undefined}
+                                        selected={isSelected}
+                                        onSelect={() => runCommand(() => setTheme(item.value))}
+                                    >
                                         <item.icon className="mr-2 h-4 w-4" />
                                         <span>{item.name}</span>
-                                    </CommandItem>
-                                ))}
-                            </CommandGroup>
-                        </>
-                    )}
+                                    </SearchItem>
+                                )
+                            })}
+                        </SearchGroup>
+                    </>
+                )}
 
-                </CommandList>
-            </CommandDialog>
-        </>
+            </SearchList>
+        </SearchCommand>
     )
 }
