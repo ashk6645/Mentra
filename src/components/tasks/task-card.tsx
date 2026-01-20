@@ -74,7 +74,7 @@ export function TaskCard({ task }: { task: Task & { tags?: { tag: { id: string, 
                     </div>
 
                     {task.description && (
-                        <p className="text-sm text-secondary leading-relaxed line-clamp-2">
+                        <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
                             {task.description}
                         </p>
                     )}
@@ -119,8 +119,8 @@ export function TaskCard({ task }: { task: Task & { tags?: { tag: { id: string, 
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <EditTaskDialog 
-                            task={task} 
+                        <EditTaskDialog
+                            task={task}
                             trigger={
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                     <Pencil className="mr-2 h-4 w-4" />

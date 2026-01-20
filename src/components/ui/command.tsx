@@ -42,6 +42,7 @@ const CommandDialog = ({ children, shouldFilter, filter, value, onValueChange, l
                     value={value}
                     onValueChange={onValueChange}
                     loop={loop}
+                    disablePointerSelection={false}
                 >
                     {children}
                 </Command>
@@ -126,16 +127,31 @@ CommandSeparator.displayName = CommandPrimitive.Separator.displayName
 const CommandItem = React.forwardRef<
     React.ElementRef<typeof CommandPrimitive.Item>,
     React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
->(({ className, ...props }, ref) => (
-    <CommandPrimitive.Item
-        ref={ref}
-        className={cn(
-            "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-accent aria-selected:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-            className
-        )}
-        {...props}
-    />
-))
+>(({ className, onSelect, children, ...props }, ref) => {
+    const handleClick = React.useCallback((e: React.MouseEvent) => {
+        e.stopPropagation()
+        // Trigger onSelect when clicked with mouse
+        if (onSelect) {
+            onSelect(props.value || '')
+        }
+    }, [onSelect, props.value])
+
+    return (
+        <CommandPrimitive.Item
+            ref={ref}
+            className={cn(
+                "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-accent aria-selected:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+                className
+            )}
+            onSelect={onSelect}
+            {...props}
+        >
+            <div onClick={handleClick} className="flex items-center w-full">
+                {children}
+            </div>
+        </CommandPrimitive.Item>
+    )
+})
 
 CommandItem.displayName = CommandPrimitive.Item.displayName
 
