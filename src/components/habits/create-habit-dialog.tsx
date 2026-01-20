@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation'
 export function CreateHabitDialog() {
     const [open, setOpen] = useState(false)
     const [name, setName] = useState('')
-    const [frequency, setFrequency] = useState<'DAILY' | 'WEEKLY' | 'MONTHLY'>('DAILY')
+    const [frequency, setFrequency] = useState<'daily' | 'weekly' | 'monthly'>('daily')
     const [isLoading, setIsLoading] = useState(false)
     const router = useRouter()
 
@@ -26,7 +26,7 @@ export function CreateHabitDialog() {
 
         if (result.success) {
             setName('')
-            setFrequency('DAILY')
+            setFrequency('daily')
             setOpen(false)
             router.refresh()
         }
@@ -55,14 +55,14 @@ export function CreateHabitDialog() {
                     </div>
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Frequency</label>
-                        <Select value={frequency} onValueChange={(v: 'DAILY' | 'WEEKLY' | 'MONTHLY') => setFrequency(v)}>
+                        <Select value={frequency} onValueChange={(v: 'daily' | 'weekly' | 'monthly') => setFrequency(v)}>
                             <SelectTrigger>
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="DAILY">Daily</SelectItem>
-                                <SelectItem value="WEEKLY">Weekly</SelectItem>
-                                <SelectItem value="MONTHLY">Monthly</SelectItem>
+                                <SelectItem value="daily">Daily</SelectItem>
+                                <SelectItem value="weekly">Weekly</SelectItem>
+                                <SelectItem value="monthly">Monthly</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

@@ -7,7 +7,7 @@ import { z } from 'zod'
 
 const habitSchema = z.object({
     name: z.string().min(1, 'Name is required'),
-    frequency: z.enum(['DAILY', 'WEEKLY', 'MONTHLY']).default('DAILY'),
+    frequency: z.enum(['daily', 'weekly', 'monthly']).default('daily'),
 })
 
 export async function getHabits() {
@@ -41,7 +41,7 @@ export async function getHabits() {
             },
             orderBy: { createdAt: 'asc' }
         })
-        
+
         return habits
     } catch (error) {
         console.error('Failed to fetch habits:', error)
@@ -109,8 +109,8 @@ export async function completeHabit(habitId: string) {
                 select: {
                     id: true,
                     userId: true,
-                    streakCount: true,
-                    lastCompletedAt: true,
+                    currentStreak: true,
+                    bestStreak: true,
                 }
             })
 
@@ -138,34 +138,42 @@ export async function completeHabit(habitId: string) {
                 throw new Error('Already completed today')
             }
 
-            // Create completion
-            await tx.habitCompletion.create({
-                data: { habitId }
+            // Get the last completion to calculate streak
+            const lastCompletion = await tx.habitCompletion.findFirst({
+                where: { habitId },
+                orderBy: { completedAt: 'desc' },
+                select: { completedAt: true }
             })
 
             // Calculate streak
             let newStreak = 1
-            if (habit.lastCompletedAt) {
+            if (lastCompletion) {
                 const lastCompleted = new Date(
-                    habit.lastCompletedAt.getFullYear(),
-                    habit.lastCompletedAt.getMonth(),
-                    habit.lastCompletedAt.getDate()
+                    lastCompletion.completedAt.getFullYear(),
+                    lastCompletion.completedAt.getMonth(),
+                    lastCompletion.completedAt.getDate()
                 )
                 const yesterday = new Date(today)
                 yesterday.setDate(yesterday.getDate() - 1)
 
                 // Continue streak if completed yesterday
                 if (lastCompleted.getTime() === yesterday.getTime()) {
-                    newStreak = habit.streakCount + 1
+                    newStreak = habit.currentStreak + 1
                 }
             }
 
-            // Update habit
+            // Create completion
+            await tx.habitCompletion.create({
+                data: { habitId }
+            })
+
+            // Update habit with new streak
+            const newBestStreak = Math.max(newStreak, habit.bestStreak)
             const updatedHabit = await tx.habit.update({
                 where: { id: habitId },
                 data: {
-                    streakCount: newStreak,
-                    lastCompletedAt: now
+                    currentStreak: newStreak,
+                    bestStreak: newBestStreak,
                 }
             })
 
@@ -176,7 +184,7 @@ export async function completeHabit(habitId: string) {
         return { success: true, data: result }
     } catch (error: any) {
         console.error('Failed to complete habit:', error)
-        
+
         if (error.message === 'Already completed today') {
             return { success: false, error: 'Already completed today' }
         }
@@ -186,7 +194,7 @@ export async function completeHabit(habitId: string) {
         if (error.message === 'Unauthorized') {
             return { success: false, error: 'Unauthorized' }
         }
-        
+
         return { success: false, error: 'Failed to complete habit' }
     }
 }
@@ -213,11 +221,11 @@ export async function deleteHabit(habitId: string) {
         return { success: true }
     } catch (error: any) {
         console.error('Failed to delete habit:', error)
-        
+
         if (error.code === 'P2025') {
             return { success: false, error: 'Habit not found or access denied' }
         }
-        
+
         return { success: false, error: 'Failed to delete habit' }
     }
 }
