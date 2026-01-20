@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Search } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 
 // Main Command Container
 interface SearchCommandProps {
@@ -16,6 +16,7 @@ export function SearchCommand({ open, onOpenChange, children }: SearchCommandPro
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="overflow-hidden p-0 shadow-lg max-w-2xl">
+                <DialogTitle className="sr-only">Command Menu</DialogTitle>
                 <div className="flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground">
                     {children}
                 </div>

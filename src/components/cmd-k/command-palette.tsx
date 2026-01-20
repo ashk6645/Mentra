@@ -73,8 +73,12 @@ export function CommandPalette({ projects, onOpenChange }: { projects: Project[]
         setIsSearching(true)
         const timer = setTimeout(async () => {
             try {
-                const results = await searchTasks(query)
-                setTasks(results)
+                const result = await searchTasks(query)
+                if (result.success) {
+                    setTasks(result.data)
+                } else {
+                    setTasks([])
+                }
             } catch (error) {
                 console.error("Search error", error)
             } finally {
