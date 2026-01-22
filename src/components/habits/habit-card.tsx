@@ -115,10 +115,10 @@ export function HabitCard({ habit }: HabitCardProps) {
                                 <div className="flex items-center gap-2 mt-1">
                                     <Flame className={cn(
                                         "h-4 w-4",
-                                        habit.streakCount > 0 ? "text-orange-500" : "text-gray-400"
+                                        habit.currentStreak > 0 ? "text-orange-500" : "text-gray-400"
                                     )} />
                                     <span className="text-sm text-muted-foreground">
-                                        {habit.streakCount} day streak
+                                        {habit.currentStreak} day streak
                                     </span>
                                 </div>
                             </div>
