@@ -137,7 +137,7 @@ export function CreateAreaDialog({ area, open: controlledOpen, onOpenChange: set
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 {trigger || (
-                    <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/20 transition-all hover:scale-105">
+                    <Button>
                         <Plus className="mr-2 h-4 w-4" />
                         New Area
                     </Button>
@@ -221,19 +221,7 @@ export function CreateAreaDialog({ area, open: controlledOpen, onOpenChange: set
                                 )}
                             />
 
-                            <FormField
-                                control={form.control}
-                                name="icon"
-                                render={({ field }) => (
-                                    <FormItem className="flex flex-col">
-                                        <FormLabel>Icon</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Icon Name" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                            {/* Icon field removed as per user request */}
                         </div>
 
                         <div className="flex justify-end space-x-2 pt-4">
