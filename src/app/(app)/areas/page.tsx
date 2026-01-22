@@ -37,10 +37,13 @@ export default async function AreasPage() {
                     </section>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
-                    {areas.map((area, index) => (
-                        <AreaCard key={area.id} area={area} index={index} />
-                    ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-20">
+                    {areas.map((area, index) => {
+                        const stats = balanceData.find(b => b.name === area.name)
+                        return (
+                            <AreaCard key={area.id} area={area} index={index} stats={stats} />
+                        )
+                    })}
 
                     {areas.length === 0 && (
                         <div className="col-span-full flex flex-col items-center justify-center p-16 border-2 border-dashed border-white/10 rounded-2xl text-center bg-white/5 backdrop-blur-sm">

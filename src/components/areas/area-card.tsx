@@ -70,58 +70,64 @@ export function AreaCard({ area, index = 0 }: AreaCardProps) {
             <Card className="h-full border-0 bg-white/5 backdrop-blur-md shadow-lg hover:shadow-xl transition-all relative overflow-hidden group">
                 <div className={`absolute inset-0 bg-gradient-to-br ${gradientClass} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
 
-                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 relative z-10">
-                    <CardTitle className="text-lg font-medium flex items-center gap-3">
-                        <div className={`w-3 h-3 rounded-full ${bgColorClass} shadow-[0_0_8px_rgba(0,0,0,0.2)]`} />
-                        <span className="group-hover:text-primary transition-colors">{area.name}</span>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4 relative z-10">
+                    <CardTitle className="text-base font-semibold flex items-center gap-2 truncate pr-2">
+                        <div className={`w-2.5 h-2.5 rounded-full ${bgColorClass} shadow-[0_0_8px_rgba(0,0,0,0.2)] flex-shrink-0`} />
+                        <span className="truncate group-hover:text-primary transition-colors">{area.name}</span>
                     </CardTitle>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2 text-muted-foreground hover:text-foreground">
-                                <MoreVertical className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Edit Area</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive focus:text-destructive">Delete Area</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center gap-1">
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/10 text-muted-foreground">
+                            {area.projects.length}
+                        </span>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
+                                    <MoreVertical className="h-3.5 w-3.5" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem>Edit Area</DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive focus:text-destructive">Delete Area</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </CardHeader>
 
-                <CardContent className="relative z-10">
-                    <div className="space-y-4 mt-2">
-                        <div className="flex items-center justify-between text-sm text-muted-foreground">
-                            <span>{area.projects.length} Projects</span>
-                            <Link href={`/areas/${area.id}`} className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center hover:text-primary">
-                                View Details <ArrowRight className="ml-1 h-3 w-3" />
-                            </Link>
-                        </div>
-
+                <CardContent className="px-4 pb-4 pt-0 relative z-10">
+                    <div className="mt-3">
                         {area.projects.length === 0 ? (
-                            <div className="h-20 flex items-center justify-center border border-dashed border-white/10 rounded-lg bg-black/5">
-                                <p className="text-xs text-muted-foreground italic">No projects yet</p>
+                            <div className="h-12 flex items-center justify-center border border-dashed border-white/10 rounded-md bg-black/5">
+                                <p className="text-[10px] text-muted-foreground italic">No projects</p>
                             </div>
                         ) : (
-                            <div className="space-y-2">
+                            <div className="space-y-1">
                                 {area.projects.slice(0, 3).map(project => (
                                     <Link
                                         key={project.id}
                                         href={`/projects/${project.id}`}
-                                        className="flex items-center gap-3 p-2 rounded-md hover:bg-white/10 transition-colors group/item"
+                                        className="flex items-center gap-2 p-1.5 rounded-md hover:bg-white/10 transition-colors group/item"
                                     >
-                                        <div className="p-1.5 rounded-md bg-background/50 group-hover/item:bg-background transition-colors">
-                                            <Folder className="h-3.5 w-3.5 text-muted-foreground group-hover/item:text-primary" />
+                                        <div className="p-1 rounded bg-background/50 group-hover/item:bg-background transition-colors">
+                                            <Folder className="h-3 w-3 text-muted-foreground group-hover/item:text-primary" />
                                         </div>
-                                        <span className="text-sm truncate flex-1">{project.name}</span>
+                                        <span className="text-xs truncate flex-1 text-muted-foreground group-hover/item:text-foreground transition-colors">
+                                            {project.name}
+                                        </span>
                                     </Link>
                                 ))}
-                                {area.projects.length > 3 && (
-                                    <p className="text-xs text-muted-foreground pl-2 pt-1">
-                                        + {area.projects.length - 3} more projects
-                                    </p>
+                                {(area.projects.length > 3) && (
+                                    <Link href={`/areas/${area.id}`} className="block text-[10px] text-center text-muted-foreground hover:text-primary mt-1 transition-colors">
+                                        + {area.projects.length - 3} more...
+                                    </Link>
                                 )}
                             </div>
                         )}
+
+                        <div className="mt-3 pt-3 border-t border-white/5 flex justify-end">
+                            <Link href={`/areas/${area.id}`} className="text-xs flex items-center text-muted-foreground hover:text-primary transition-colors">
+                                Open Area <ArrowRight className="ml-1 h-3 w-3" />
+                            </Link>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
