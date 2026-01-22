@@ -233,6 +233,11 @@ export async function createProject(data: CreateProjectInput) {
             id: true,
             name: true,
             color: true,
+            icon: true,
+            userId: true,
+            sortOrder: true,
+            createdAt: true,
+            updatedAt: true,
           }
         },
       },
@@ -251,11 +256,11 @@ export async function createProject(data: CreateProjectInput) {
     }
   } catch (error: any) {
     console.error('Error creating project:', error)
-    
+
     if (error.code === 'P2003') {
       return { success: false, error: 'Invalid area selected', project: null }
     }
-    
+
     return { success: false, error: 'Failed to create project', project: null }
   }
 }
@@ -332,6 +337,11 @@ export async function updateProject(id: string, data: UpdateProjectInput) {
             id: true,
             name: true,
             color: true,
+            icon: true,
+            userId: true,
+            sortOrder: true,
+            createdAt: true,
+            updatedAt: true,
           }
         },
         tasks: {
@@ -361,14 +371,14 @@ export async function updateProject(id: string, data: UpdateProjectInput) {
     }
   } catch (error: any) {
     console.error('Error updating project:', error)
-    
+
     if (error.code === 'P2003') {
       return { success: false, error: 'Invalid area selected', project: null }
     }
     if (error.code === 'P2025') {
       return { success: false, error: 'Project not found', project: null }
     }
-    
+
     return { success: false, error: 'Failed to update project', project: null }
   }
 }
@@ -409,11 +419,11 @@ export async function deleteProject(id: string) {
     return { success: true }
   } catch (error: any) {
     console.error('Error deleting project:', error)
-    
+
     if (error.code === 'P2025') {
       return { success: false, error: 'Project not found' }
     }
-    
+
     return { success: false, error: 'Failed to delete project' }
   }
 }

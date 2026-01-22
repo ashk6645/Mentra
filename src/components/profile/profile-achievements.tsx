@@ -122,9 +122,9 @@ export async function ProfileAchievements() {
       title: 'Beginner',
       description: 'Earn 100 XP',
       icon: <Zap className="h-6 w-6" />,
-      progress: Math.min(profile?.xp || 0, 100),
+      progress: Math.min(profile?.totalXp || 0, 100),
       max: 100,
-      unlocked: (profile?.xp || 0) >= 100,
+      unlocked: (profile?.totalXp || 0) >= 100,
       category: 'xp'
     },
     {
@@ -132,9 +132,9 @@ export async function ProfileAchievements() {
       title: 'Experienced',
       description: 'Earn 500 XP',
       icon: <Zap className="h-6 w-6" />,
-      progress: Math.min(profile?.xp || 0, 500),
+      progress: Math.min(profile?.totalXp || 0, 500),
       max: 500,
-      unlocked: (profile?.xp || 0) >= 500,
+      unlocked: (profile?.totalXp || 0) >= 500,
       category: 'xp'
     },
     {
@@ -142,9 +142,9 @@ export async function ProfileAchievements() {
       title: 'Expert',
       description: 'Earn 1,000 XP',
       icon: <Zap className="h-6 w-6" />,
-      progress: Math.min(profile?.xp || 0, 1000),
+      progress: Math.min(profile?.totalXp || 0, 1000),
       max: 1000,
-      unlocked: (profile?.xp || 0) >= 1000,
+      unlocked: (profile?.totalXp || 0) >= 1000,
       category: 'xp'
     },
 
@@ -225,14 +225,14 @@ export async function ProfileAchievements() {
                   <div
                     key={achievement.id}
                     className={`flex gap-4 rounded-lg border p-4 transition-all ${achievement.unlocked
-                        ? 'border-primary bg-primary/5'
-                        : 'opacity-60 grayscale'
+                      ? 'border-primary bg-primary/5'
+                      : 'opacity-60 grayscale'
                       }`}
                   >
                     <div
                       className={`rounded-full p-3 ${achievement.unlocked
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted text-muted-foreground'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground'
                         }`}
                     >
                       {achievement.icon}

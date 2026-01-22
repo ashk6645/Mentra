@@ -82,8 +82,8 @@ export async function ProfileActivity() {
     switch (activity.type) {
       case 'xp':
         return {
-          title: activity.data?.action?.replace(/_/g, ' ') ?? 'Activity',
-          description: `Earned ${activity.data.points} XP`
+          title: activity.data?.source?.replace(/_/g, ' ') ?? 'Activity',
+          description: `Earned ${activity.data.amount} XP`
         }
       case 'task':
         return {
