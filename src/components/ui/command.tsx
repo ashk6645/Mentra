@@ -124,31 +124,42 @@ const CommandSeparator = React.forwardRef<
 ))
 CommandSeparator.displayName = CommandPrimitive.Separator.displayName
 
+
 const CommandItem = React.forwardRef<
     React.ElementRef<typeof CommandPrimitive.Item>,
     React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
 >(({ className, onSelect, children, ...props }, ref) => {
-    const handleClick = React.useCallback((e: React.MouseEvent) => {
-        e.stopPropagation()
-        // Trigger onSelect when clicked with mouse
-        if (onSelect) {
-            onSelect(props.value || '')
-        }
-    }, [onSelect, props.value])
-
+    // Use CMDK's setSelected to sync pointer hover with selection
+    const itemRef = React.useRef<HTMLDivElement>(null);
+    React.useImperativeHandle(ref, () => itemRef.current as HTMLDivElement);
     return (
         <CommandPrimitive.Item
-            ref={ref}
+            ref={itemRef}
             className={cn(
                 "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-accent aria-selected:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
                 className
             )}
             onSelect={onSelect}
+            onClick={() => {
+                if (onSelect) {
+                    onSelect(props.value || '')
+                }
+            }}
+            onMouseMove={e => {
+                if (itemRef.current && typeof window !== 'undefined') {
+                    // @ts-ignore
+                    if (window.CMDK && typeof window.CMDK.setSelected === 'function') {
+                        // @ts-ignore
+                        window.CMDK.setSelected(itemRef.current);
+                    } else {
+                        itemRef.current.focus();
+                    }
+                }
+            }}
+            tabIndex={-1}
             {...props}
         >
-            <div onClick={handleClick} className="flex items-center w-full">
-                {children}
-            </div>
+            {children}
         </CommandPrimitive.Item>
     )
 })

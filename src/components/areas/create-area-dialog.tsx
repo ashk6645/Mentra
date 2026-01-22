@@ -76,12 +76,12 @@ export function CreateAreaDialog() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button>
+                <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/20 transition-all hover:scale-105">
                     <Plus className="mr-2 h-4 w-4" />
                     New Area
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] bg-background/80 backdrop-blur-xl border-white/10">
                 <DialogHeader>
                     <DialogTitle>Create Area of Life</DialogTitle>
                 </DialogHeader>

@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
+import { useMemo, useState } from 'react'
 
 interface AreaBalance {
     name: string
@@ -16,10 +16,80 @@ interface BalanceVisualizationProps {
     data: AreaBalance[]
 }
 
+// Utility to get color hex codes from tailwind-like names (simplified mapping)
+const getColorHex = (colorName: string) => {
+    const colors: Record<string, string> = {
+        red: '#ef4444',
+        orange: '#f97316',
+        amber: '#f59e0b',
+        yellow: '#eab308',
+        lime: '#84cc16',
+        green: '#22c55e',
+        emerald: '#10b981',
+        teal: '#14b8a6',
+        cyan: '#06b6d4',
+        sky: '#0ea5e9',
+        blue: '#3b82f6',
+        indigo: '#6366f1',
+        violet: '#8b5cf6',
+        purple: '#a855f7',
+        fuchsia: '#d946ef',
+        pink: '#ec4899',
+        rose: '#f43f5e',
+        neutral: '#737373',
+        slate: '#64748b',
+        gray: '#6b7280',
+        zinc: '#71717a',
+        stone: '#78716c',
+    }
+    return colors[colorName] || colors.neutral
+}
+
 export function BalanceVisualization({ data }: BalanceVisualizationProps) {
-    if (data.length === 0) {
+    const [hoveredArea, setHoveredArea] = useState<string | null>(null)
+
+    // Calculate points for the radar chart
+    const radarData = useMemo(() => {
+        if (!data || data.length < 3) return null
+
+        const totalPoints = data.length
+        const radius = 100
+        const center = { x: 150, y: 150 }
+        const angleStep = (Math.PI * 2) / totalPoints
+
+        const points = data.map((area, index) => {
+            const angle = index * angleStep - Math.PI / 2 // Start from top
+            // Normalize value: if no tasks, visual min is 10% for visibility
+            // If tasks exist, we use the percentage of completion or task distribution
+            // Let's use percentage completed as the metric for "Balance" 
+            // OR maybe even better: use a mix of 'magnitude' (task count relative to max) and 'completion'
+            // For simplicity and "Life Balance" meaning, typically it means attention given vs needed.
+            // Let's stick to the current implementation's logic (data.percentage) but ensure it's visible.
+
+            const value = Math.max(area.percentage, 10) // Min 10% radius
+            const distance = (value / 100) * radius
+
+            return {
+                x: center.x + Math.cos(angle) * distance,
+                y: center.y + Math.sin(angle) * distance,
+                name: area.name,
+                value: area.percentage,
+                color: getColorHex(area.color),
+                original: area,
+                angle,
+                maxPoint: {
+                    x: center.x + Math.cos(angle) * radius,
+                    y: center.y + Math.sin(angle) * radius
+                }
+            }
+        })
+
+        return { points, center, radius }
+    }, [data])
+
+    if (!data || data.length === 0) {
         return (
-            <Card>
+            <Card className="bg-white/5 backdrop-blur-md border border-white/10">
                 <CardHeader>
                     <CardTitle className="text-lg">Life Balance</CardTitle>
                 </CardHeader>
@@ -32,56 +102,179 @@ export function BalanceVisualization({ data }: BalanceVisualizationProps) {
         )
     }
 
-    const totalTasks = data.reduce((sum, area) => sum + area.taskCount, 0)
-
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-lg">Life Balance</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                {/* Distribution Bar */}
-                <div className="relative h-8 rounded-full overflow-hidden bg-muted flex">
-                    {data.map((area, index) => {
-                        const width = totalTasks > 0 ? (area.taskCount / totalTasks) * 100 : 0
-                        if (width === 0) return null
-                        return (
-                            <div
-                                key={area.name}
-                                className={`h-full bg-${area.color || 'gray'}-500 transition-all`}
-                                style={{ width: `${width}%` }}
-                                title={`${area.name}: ${area.taskCount} tasks`}
-                            />
-                        )
-                    })}
-                </div>
-
-                {/* Legend */}
-                <div className="grid grid-cols-2 gap-3">
+    if (!radarData) {
+        // Fallback for < 3 items where radar chart doesn't make sense
+        return (
+            <Card className="bg-white/5 backdrop-blur-md border border-white/10 transition-all hover:bg-white/10">
+                <CardHeader>
+                    <CardTitle className="text-lg bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent">
+                        Life Areas Overview
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
                     {data.map(area => (
-                        <div key={area.name} className="flex items-center gap-2">
-                            <div className={`w-3 h-3 rounded-full bg-${area.color || 'gray'}-500`} />
-                            <span className="text-sm font-medium truncate">{area.name}</span>
-                            <span className="text-xs text-muted-foreground ml-auto">
-                                {area.taskCount}
-                            </span>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Completion Progress per Area */}
-                <div className="space-y-3 pt-2 border-t">
-                    <h4 className="text-sm font-medium text-muted-foreground">Completion Progress</h4>
-                    {data.map(area => (
-                        <div key={area.name} className="space-y-1">
-                            <div className="flex justify-between text-sm">
-                                <span>{area.name}</span>
-                                <span className="text-muted-foreground">
-                                    {area.completedCount}/{area.taskCount} ({area.percentage}%)
+                        <div key={area.name} className="space-y-2 group">
+                            <div className="flex justify-between text-sm font-medium">
+                                <span className="flex items-center gap-2">
+                                    <div className={`w-2 h-2 rounded-full`} style={{ backgroundColor: getColorHex(area.color) }} />
+                                    {area.name}
+                                </span>
+                                <span className="text-muted-foreground group-hover:text-foreground transition-colors">
+                                    {area.percentage}%
                                 </span>
                             </div>
-                            <Progress value={area.percentage} className="h-2" />
+                            <div className="h-2 w-full bg-muted/20 rounded-full overflow-hidden">
+                                <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${area.percentage}%` }}
+                                    transition={{ duration: 1, ease: "easeOut" }}
+                                    className="h-full rounded-full"
+                                    style={{ backgroundColor: getColorHex(area.color) }}
+                                />
+                            </div>
                         </div>
+                    ))}
+                </CardContent>
+            </Card>
+        )
+    }
+
+    const { points, center } = radarData
+    const polyPoints = points.map(p => `${p.x},${p.y}`).join(' ')
+
+    return (
+        <Card className="bg-white/5 backdrop-blur-md border border-white/10 overflow-hidden relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
+            <CardHeader className="relative z-10 pb-2">
+                <CardTitle className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">
+                    Life Balance Matrix
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">
+                    Visualizing your progress across all areas
+                </p>
+            </CardHeader>
+            <CardContent className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+                {/* Radar Chart */}
+                <div className="relative w-[300px] h-[300px] flex-shrink-0">
+                    <svg width="300" height="300" className="overflow-visible">
+                        {/* Background Webs */}
+                        {[0.25, 0.5, 0.75, 1].map((scale, i) => (
+                            <motion.circle
+                                key={scale}
+                                cx={center.x}
+                                cy={center.y}
+                                r={100 * scale}
+                                fill="none"
+                                stroke="currentColor"
+                                strokeOpacity={0.1}
+                                strokeDasharray="4 4"
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ delay: i * 0.1, duration: 0.5 }}
+                            />
+                        ))}
+
+                        {/* Axes */}
+                        {points.map((p, i) => (
+                            <motion.line
+                                key={`axis-${i}`}
+                                x1={center.x}
+                                y1={center.y}
+                                x2={p.maxPoint.x}
+                                y2={p.maxPoint.y}
+                                stroke="currentColor"
+                                strokeOpacity={0.1}
+                                initial={{ pathLength: 0 }}
+                                animate={{ pathLength: 1 }}
+                                transition={{ duration: 0.8, ease: "easeInOut" }}
+                            />
+                        ))}
+
+                        {/* Data Polygon */}
+                        <motion.polygon
+                            points={polyPoints}
+                            fill="rgba(var(--primary), 0.2)"
+                            stroke="hsl(var(--primary))"
+                            strokeWidth="2"
+                            initial={{ scale: 0, opacity: 0, transformOrigin: `${center.x}px ${center.y}px` }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.8, type: "spring" }}
+                            className="drop-shadow-[0_0_10px_rgba(var(--primary),0.3)]"
+                        />
+
+                        {/* Interactive Points */}
+                        {points.map((p, i) => (
+                            <motion.g
+                                key={p.name}
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: 0.5 + i * 0.1 }}
+                                onHoverStart={() => setHoveredArea(p.name)}
+                                onHoverEnd={() => setHoveredArea(null)}
+                            >
+                                <circle
+                                    cx={p.x}
+                                    cy={p.y}
+                                    r={6}
+                                    fill={p.color}
+                                    className="cursor-pointer hover:brightness-125 transition-all"
+                                    stroke="white"
+                                    strokeWidth={2}
+                                />
+                                {/* Label for points */}
+                                <text
+                                    x={p.maxPoint.x + (Math.cos(p.angle) * 20)}
+                                    y={p.maxPoint.y + (Math.sin(p.angle) * 20)}
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fill="currentColor"
+                                    className="text-[10px] font-medium fill-muted-foreground uppercase tracking-wider"
+                                >
+                                    {p.name}
+                                </text>
+                            </motion.g>
+                        ))}
+                    </svg>
+                </div>
+
+                {/* Legend & Stats */}
+                <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {data.map((area, i) => (
+                        <motion.div
+                            key={area.name}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3 + i * 0.1 }}
+                            className={`p-3 rounded-lg border border-transparent transition-all duration-300 ${hoveredArea === area.name
+                                    ? 'bg-muted border-muted-foreground/20 scale-[1.02]'
+                                    : 'hover:bg-muted/50'
+                                }`}
+                            onMouseEnter={() => setHoveredArea(area.name)}
+                            onMouseLeave={() => setHoveredArea(null)}
+                        >
+                            <div className="flex items-center gap-3 mb-2">
+                                <div
+                                    className="w-2 h-8 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.1)]"
+                                    style={{ backgroundColor: getColorHex(area.color) }}
+                                />
+                                <div>
+                                    <h4 className="font-semibold text-sm leading-none mb-1">{area.name}</h4>
+                                    <p className="text-xs text-muted-foreground">{area.taskCount} tasks</p>
+                                </div>
+                                <div className="ml-auto text-right">
+                                    <span className="text-xl font-bold">{area.percentage}%</span>
+                                </div>
+                            </div>
+                            <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                                <motion.div
+                                    className="h-full rounded-full"
+                                    style={{ backgroundColor: getColorHex(area.color) }}
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${area.percentage}%` }}
+                                    transition={{ duration: 1, delay: 0.5 }}
+                                />
+                            </div>
+                        </motion.div>
                     ))}
                 </div>
             </CardContent>

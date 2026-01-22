@@ -115,7 +115,7 @@ export function CommandPalette({ projects, onOpenChange }: { projects: Project[]
 
     return (
         <>
-            <CommandDialog open={open} onOpenChange={handleOpenChange} shouldFilter={false}>
+            <CommandDialog open={open} onOpenChange={handleOpenChange} shouldFilter={false} disablePointerSelection={false}>
                 <CommandInput
                     placeholder="Type a command or search tasks..."
                     value={query}
@@ -177,7 +177,11 @@ export function CommandPalette({ projects, onOpenChange }: { projects: Project[]
                             <CommandSeparator />
                             <CommandGroup heading="Theme">
                                 {themes.map(item => (
-                                    <CommandItem key={item.name} onSelect={() => runCommand(() => setTheme(item.value))}>
+                                    <CommandItem
+                                        key={item.name}
+                                        value={item.value}
+                                        onSelect={() => runCommand(() => setTheme(item.value))}
+                                    >
                                         <item.icon className="mr-2 h-4 w-4" />
                                         <span>{item.name}</span>
                                     </CommandItem>
