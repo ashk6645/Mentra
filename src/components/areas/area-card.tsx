@@ -77,7 +77,6 @@ export function AreaCard({ area, stats, index = 0 }: AreaCardProps) {
             layout
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.05 }}
         >
             <div className="h-full relative group">
