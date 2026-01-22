@@ -170,7 +170,7 @@ export function CreateAreaDialog({ area, open: controlledOpen, onOpenChange: set
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col">
                                         <FormLabel>Color</FormLabel>
-                                        <Popover>
+                                        <Popover modal={true}>
                                             <PopoverTrigger asChild>
                                                 <FormControl>
                                                     <Button
