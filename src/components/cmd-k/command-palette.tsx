@@ -123,7 +123,7 @@ export function CommandPalette({ projects, onOpenChange }: { projects: Project[]
 
     return (
         <>
-            <CommandDialog open={open} onOpenChange={handleOpenChange} shouldFilter={false} disablePointerSelection={false}>
+            <CommandDialog open={open} onOpenChange={handleOpenChange} shouldFilter={false}>
                 <CommandInput
                     placeholder="Type a command or search tasks..."
                     value={query}

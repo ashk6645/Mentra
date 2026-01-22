@@ -59,8 +59,34 @@ const formSchema = z.object({
     tagIds: z.array(z.string()).optional(),
 })
 
-export function CreateTaskDialog({ projectId }: { projectId?: string }) {
-    const [open, setOpen] = useState(false)
+interface CreateTaskDialogProps {
+    projectId?: string
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
+    defaultStatus?: string
+    onTaskCreated?: (task: any) => void
+}
+
+export function CreateTaskDialog({
+    projectId,
+    open: controlledOpen,
+    onOpenChange: controlledOnOpenChange,
+    defaultStatus,
+    onTaskCreated
+}: CreateTaskDialogProps) {
+    const [internalOpen, setInternalOpen] = useState(false)
+    const isControlled = controlledOpen !== undefined
+    const open = isControlled ? controlledOpen : internalOpen
+
+    // Helper to handle state change whether controlled or not
+    const setOpen = (newOpen: boolean) => {
+        if (controlledOnOpenChange) {
+            controlledOnOpenChange(newOpen)
+        } else {
+            setInternalOpen(newOpen)
+        }
+    }
+
     const [projects, setProjects] = useState<Project[]>([])
     const [tags, setTags] = useState<Tag[]>([])
 

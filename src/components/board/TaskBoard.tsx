@@ -20,8 +20,16 @@ interface TaskBoardProps {
 export function TaskBoard({ tasks, onTaskCreated }: TaskBoardProps) {
   const [showCreate, setShowCreate] = useState<string | null>(null);
 
+  const getTaskStatus = (task: Task) => {
+    if (task.completed) return "COMPLETED"
+    // For now, map everything else to NOT_STARTED or based on logic
+    // If we had a specific field, we'd use it.
+    // Assuming default is NOT_STARTED for active tasks
+    return "NOT_STARTED"
+  }
+
   const getTasksByStatus = (status: string) =>
-    tasks.filter((t) => t.status === status);
+    tasks.filter((t) => getTaskStatus(t) === status);
 
   return (
     <div className="flex gap-4 w-full overflow-x-auto">

@@ -21,7 +21,11 @@ export function XPBadge() {
     const [stats, setStats] = useState<UserStats | null>(null)
 
     useEffect(() => {
-        getUserStats().then(setStats)
+        getUserStats().then(result => {
+            if (result.success && result.data) {
+                setStats(result.data)
+            }
+        })
     }, [])
 
     if (!stats) return null
