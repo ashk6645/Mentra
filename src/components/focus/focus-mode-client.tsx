@@ -9,8 +9,14 @@ import { Maximize2, Minimize2, Target, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Task } from '@prisma/client'
 
+// Remove Task import if not used elsewhere, or keep it.
+// Actually, let's just define the interface explicitly.
+
 interface FocusModeClientProps {
-    tasks: Task[]
+    tasks: {
+        id: string
+        title: string
+    }[]
 }
 
 export function FocusModeClient({ tasks }: FocusModeClientProps) {

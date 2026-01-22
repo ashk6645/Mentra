@@ -26,7 +26,7 @@ export default async function PrivatePage({ params }: PageProps) {
 
     return (
         <div className="flex-1 h-full flex flex-col animate-in-fade">
-            <PageEditor page={result.page} />
+            <PageEditor page={result.page as any} />
         </div>
     )
 }

@@ -4,7 +4,8 @@ import { HabitCard } from '@/components/habits/habit-card'
 import { Target } from 'lucide-react'
 
 export default async function HabitsPage() {
-    const habits = await getHabits()
+    const habitsResult = await getHabits()
+    const habits = habitsResult.success ? habitsResult.data : []
 
     return (
         <div className="flex flex-col h-full p-8 space-y-8 overflow-y-auto">

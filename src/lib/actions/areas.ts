@@ -11,6 +11,29 @@ const areaSchema = z.object({
     color: z.string().optional(),
 })
 
+export async function getArea(id: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return null
+
+    try {
+        const area = await prisma.areaOfLife.findUnique({
+            where: {
+                id,
+                userId: user.id
+            },
+            include: {
+                projects: true
+            }
+        })
+        return area
+    } catch (error) {
+        console.error('Failed to fetch area:', error)
+        return null
+    }
+}
+
 export async function getAreas() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

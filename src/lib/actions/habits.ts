@@ -25,15 +25,24 @@ export async function getHabits() {
                 id: true,
                 userId: true,
                 name: true,
+                description: true,
                 frequency: true,
+                targetDays: true,
+                icon: true,
+                color: true,
+                xpPerCompletion: true,
                 currentStreak: true,
                 bestStreak: true,
+                isActive: true,
                 createdAt: true,
                 updatedAt: true,
                 completions: {
                     select: {
                         id: true,
+                        habitId: true,
                         completedAt: true,
+                        xpEarned: true,
+                        notes: true,
                     },
                     orderBy: { completedAt: 'desc' },
                     take: 30 // Last 30 completions
@@ -42,7 +51,7 @@ export async function getHabits() {
             orderBy: { createdAt: 'asc' }
         })
 
-        return habits
+        return { success: true, data: habits }
     } catch (error) {
         console.error('Failed to fetch habits:', error)
         return { success: false, error: 'Failed to fetch habits', data: [] }

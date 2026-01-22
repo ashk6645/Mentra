@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Folder, MoreVertical, ArrowRight } from 'lucide-react'
+import { Folder, MoreVertical, ArrowRight, Trash2, Edit2 } from 'lucide-react'
 import { AreaOfLife, Project } from '@prisma/client'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -12,9 +12,22 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { deleteArea } from '@/lib/actions/areas'
+import { useRouter } from 'next/navigation'
+import { CreateAreaDialog } from './create-area-dialog'
+import { useState } from 'react'
+
+interface AreaStats {
+    name: string
+    color: string
+    taskCount: number
+    completedCount: number
+    percentage: number
+}
 
 interface AreaCardProps {
     area: AreaOfLife & { projects: Project[] }
+    stats?: AreaStats
     index?: number
 }
 
@@ -43,94 +56,114 @@ const colorMap: Record<string, string> = {
     stone: 'bg-stone-500',
 }
 
-const gradientMap: Record<string, string> = {
-    red: 'from-red-500/20 to-red-500/5',
-    orange: 'from-orange-500/20 to-orange-500/5',
-    blue: 'from-blue-500/20 to-blue-500/5',
-    green: 'from-green-500/20 to-green-500/5',
-    purple: 'from-purple-500/20 to-purple-500/5',
-    neutral: 'from-neutral-500/20 to-neutral-500/5',
-    // Fallback for others
-    default: 'from-primary/20 to-primary/5'
-}
-
-export function AreaCard({ area, index = 0 }: AreaCardProps) {
+export function AreaCard({ area, stats, index = 0 }: AreaCardProps) {
     const bgColorClass = colorMap[area.color || 'neutral'] || 'bg-neutral-500'
-    const gradientClass = gradientMap[area.color || 'neutral'] || gradientMap.default
+    const router = useRouter()
+    const [isEditOpen, setIsEditOpen] = useState(false)
+
+    // Default stats if missing
+    const completeness = stats?.percentage || 0
+    const taskCount = stats?.taskCount || 0
+
+    const handleDelete = async () => {
+        if (confirm('Are you sure you want to delete this area? This cannot be undone.')) {
+            await deleteArea(area.id)
+            router.refresh()
+        }
+    }
 
     return (
         <motion.div
             layout
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            whileHover={{ y: -5 }}
+            whileHover={{ y: -4 }}
             transition={{ duration: 0.3, delay: index * 0.05 }}
         >
-            <Card className="h-full border-0 bg-white/5 backdrop-blur-md shadow-lg hover:shadow-xl transition-all relative overflow-hidden group">
-                <div className={`absolute inset-0 bg-gradient-to-br ${gradientClass} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+            <div className="h-full relative group">
+                <Link href={`/areas/${area.id}`} className="block h-full">
+                    <Card className="h-full border-0 bg-white/5 backdrop-blur-md hover:bg-white/10 transition-all overflow-hidden relative cursor-pointer ring-1 ring-white/10 hover:ring-primary/50">
+                        {/* Top Color Accent Line */}
+                        <div className={`absolute top-0 left-0 right-0 h-1 ${bgColorClass} opacity-80`} />
 
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4 relative z-10">
-                    <CardTitle className="text-base font-semibold flex items-center gap-2 truncate pr-2">
-                        <div className={`w-2.5 h-2.5 rounded-full ${bgColorClass} shadow-[0_0_8px_rgba(0,0,0,0.2)] flex-shrink-0`} />
-                        <span className="truncate group-hover:text-primary transition-colors">{area.name}</span>
-                    </CardTitle>
-                    <div className="flex items-center gap-1">
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/10 text-muted-foreground">
-                            {area.projects.length}
-                        </span>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
-                                    <MoreVertical className="h-3.5 w-3.5" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem>Edit Area</DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive focus:text-destructive">Delete Area</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                </CardHeader>
-
-                <CardContent className="px-4 pb-4 pt-0 relative z-10">
-                    <div className="mt-3">
-                        {area.projects.length === 0 ? (
-                            <div className="h-12 flex items-center justify-center border border-dashed border-white/10 rounded-md bg-black/5">
-                                <p className="text-[10px] text-muted-foreground italic">No projects</p>
-                            </div>
-                        ) : (
-                            <div className="space-y-1">
-                                {area.projects.slice(0, 3).map(project => (
-                                    <Link
-                                        key={project.id}
-                                        href={`/projects/${project.id}`}
-                                        className="flex items-center gap-2 p-1.5 rounded-md hover:bg-white/10 transition-colors group/item"
-                                    >
-                                        <div className="p-1 rounded bg-background/50 group-hover/item:bg-background transition-colors">
-                                            <Folder className="h-3 w-3 text-muted-foreground group-hover/item:text-primary" />
-                                        </div>
-                                        <span className="text-xs truncate flex-1 text-muted-foreground group-hover/item:text-foreground transition-colors">
-                                            {project.name}
+                        <CardContent className="p-5 flex flex-col h-full justify-between">
+                            {/* Header: Icon + Name */}
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-10 h-10 rounded-xl ${bgColorClass} bg-opacity-20 flex items-center justify-center text-foreground group-hover:scale-110 transition-transform`}>
+                                        <Folder className="w-5 h-5 opacity-80" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <h3 className="font-bold text-base leading-tight group-hover:text-primary transition-colors">
+                                            {area.name}
+                                        </h3>
+                                        <span className="text-xs text-muted-foreground mt-0.5">
+                                            {area.projects.length} Projects
                                         </span>
-                                    </Link>
-                                ))}
-                                {(area.projects.length > 3) && (
-                                    <Link href={`/areas/${area.id}`} className="block text-[10px] text-center text-muted-foreground hover:text-primary mt-1 transition-colors">
-                                        + {area.projects.length - 3} more...
-                                    </Link>
-                                )}
+                                    </div>
+                                </div>
                             </div>
-                        )}
 
-                        <div className="mt-3 pt-3 border-t border-white/5 flex justify-end">
-                            <Link href={`/areas/${area.id}`} className="text-xs flex items-center text-muted-foreground hover:text-primary transition-colors">
-                                Open Area <ArrowRight className="ml-1 h-3 w-3" />
-                            </Link>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+                            {/* Footer: Progress & Stats */}
+                            <div className="mt-2 space-y-3">
+                                <div className="flex justify-between items-end text-xs">
+                                    <span className="text-muted-foreground">Progress</span>
+                                    <span className="font-bold">{completeness}%</span>
+                                </div>
+
+                                <div className="h-1.5 w-full bg-black/20 rounded-full overflow-hidden">
+                                    <motion.div
+                                        className={`h-full rounded-full ${bgColorClass}`}
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${completeness}%` }}
+                                        transition={{ duration: 1, delay: 0.2 }}
+                                    />
+                                </div>
+
+                                <div className="pt-2 flex items-center justify-between text-xs text-muted-foreground opacity-60 group-hover:opacity-100 transition-opacity">
+                                    <span>{taskCount} Tasks total</span>
+                                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </Link>
+
+                {/* Absoluted Actions - outside the Link but inside the relative container */}
+                <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 hover:bg-white/10 text-muted-foreground hover:text-white"
+                        onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            setIsEditOpen(true)
+                        }}
+                    >
+                        <Edit2 className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 hover:bg-red-500/10 text-muted-foreground hover:text-red-500"
+                        onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            handleDelete()
+                        }}
+                    >
+                        <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                </div>
+
+                <CreateAreaDialog
+                    open={isEditOpen}
+                    onOpenChange={setIsEditOpen}
+                    area={area}
+                    trigger={<span className="hidden" />} // Hidden trigger since we control open state
+                />
+            </div>
         </motion.div>
     )
 }

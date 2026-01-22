@@ -44,6 +44,7 @@ export async function getTasks() {
             },
             select: {
                 id: true,
+                userId: true, // Added for type compatibility
                 title: true,
                 description: true,
                 priority: true,
@@ -55,6 +56,7 @@ export async function getTasks() {
                 scheduledStart: true,
                 scheduledEnd: true,
                 durationMinutes: true,
+                xpEarned: true, // Added for type compatibility
                 sortOrder: true,
                 createdAt: true,
                 updatedAt: true,

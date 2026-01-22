@@ -38,7 +38,15 @@ export function CommandPalette({ projects, onOpenChange }: { projects: Project[]
     const router = useRouter()
     const { setTheme } = useTheme()
     const [query, setQuery] = React.useState("")
-    const [tasks, setTasks] = React.useState<(Task & { project?: Project | null })[]>([])
+    const [tasks, setTasks] = React.useState<{
+        id: string
+        title: string
+        description: string | null
+        completed: boolean
+        priority: string | null
+        dueDate: Date | null
+        project: { name: string; id: string; color: string | null } | null
+    }[]>([])
     const [isSearching, setIsSearching] = React.useState(false)
 
     const handleOpenChange = (newOpen: boolean) => {
@@ -69,8 +77,8 @@ export function CommandPalette({ projects, onOpenChange }: { projects: Project[]
         setIsSearching(true)
         const timer = setTimeout(async () => {
             try {
-                const results = await searchTasks(query)
-                setTasks(results)
+                const result = await searchTasks(query)
+                setTasks(result.success ? result.data : [])
             } catch (error) {
                 console.error("Search error", error)
             } finally {
@@ -131,7 +139,7 @@ export function CommandPalette({ projects, onOpenChange }: { projects: Project[]
                     {tasks.length > 0 && (
                         <CommandGroup heading="Tasks">
                             {tasks.map(task => (
-                                <CommandItem key={task.id} onSelect={() => runCommand(() => router.push(`/projects/${task.projectId || 'inbox'}?taskId=${task.id}`))}>
+                                <CommandItem key={task.id} onSelect={() => runCommand(() => router.push(`/projects/${task.project?.id || 'inbox'}?taskId=${task.id}`))}>
                                     <div className={cn("mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary", task.completed ? "bg-primary text-primary-foreground" : "opacity-50")} />
                                     <span className="truncate flex-1">{task.title}</span>
                                     {task.project && (
