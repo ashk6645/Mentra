@@ -90,9 +90,9 @@ export async function ProfileAchievements() {
       title: 'On a Roll',
       description: 'Maintain a 3-day streak',
       icon: <Flame className="h-6 w-6" />,
-      progress: Math.min(profile?.streakCount || 0, 3),
+      progress: Math.min(profile?.currentStreak || 0, 3),
       max: 3,
-      unlocked: (profile?.streakCount || 0) >= 3,
+      unlocked: (profile?.currentStreak || 0) >= 3,
       category: 'streak'
     },
     {
@@ -100,9 +100,9 @@ export async function ProfileAchievements() {
       title: 'Week Warrior',
       description: 'Maintain a 7-day streak',
       icon: <Flame className="h-6 w-6" />,
-      progress: Math.min(profile?.streakCount || 0, 7),
+      progress: Math.min(profile?.currentStreak || 0, 7),
       max: 7,
-      unlocked: (profile?.streakCount || 0) >= 7,
+      unlocked: (profile?.currentStreak || 0) >= 7,
       category: 'streak'
     },
     {
@@ -110,9 +110,9 @@ export async function ProfileAchievements() {
       title: 'Monthly Master',
       description: 'Maintain a 30-day streak',
       icon: <Flame className="h-6 w-6" />,
-      progress: Math.min(profile?.streakCount || 0, 30),
+      progress: Math.min(profile?.currentStreak || 0, 30),
       max: 30,
-      unlocked: (profile?.streakCount || 0) >= 30,
+      unlocked: (profile?.currentStreak || 0) >= 30,
       category: 'streak'
     },
 
@@ -195,8 +195,8 @@ export async function ProfileAchievements() {
                   {Math.round((unlockedCount / achievements.length) * 100)}%
                 </span>
               </div>
-              <Progress 
-                value={(unlockedCount / achievements.length) * 100} 
+              <Progress
+                value={(unlockedCount / achievements.length) * 100}
               />
             </div>
             <Trophy className="h-12 w-12 text-yellow-500" />
@@ -224,18 +224,16 @@ export async function ProfileAchievements() {
                 {categoryAchievements.map(achievement => (
                   <div
                     key={achievement.id}
-                    className={`flex gap-4 rounded-lg border p-4 transition-all ${
-                      achievement.unlocked
+                    className={`flex gap-4 rounded-lg border p-4 transition-all ${achievement.unlocked
                         ? 'border-primary bg-primary/5'
                         : 'opacity-60 grayscale'
-                    }`}
+                      }`}
                   >
                     <div
-                      className={`rounded-full p-3 ${
-                        achievement.unlocked
+                      className={`rounded-full p-3 ${achievement.unlocked
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-muted text-muted-foreground'
-                      }`}
+                        }`}
                     >
                       {achievement.icon}
                     </div>
@@ -253,8 +251,8 @@ export async function ProfileAchievements() {
                       </div>
                       {!achievement.unlocked && (
                         <div className="space-y-1">
-                          <Progress 
-                            value={(achievement.progress / achievement.max) * 100} 
+                          <Progress
+                            value={(achievement.progress / achievement.max) * 100}
                           />
                           <p className="text-xs text-muted-foreground">
                             {achievement.progress} / {achievement.max}

@@ -147,7 +147,7 @@ export function DatabaseBlock({
     }
 
     const handleUpdateItem = async (id: string, data: Partial<DatabaseItem>) => {
-        const result = await updateDatabaseItem(id, data)
+        const result = await updateDatabaseItem(id, data as any)
         if (result.success) {
             setItems(items.map(item => item.id === id ? { ...item, ...data } : item))
             if (selectedItem?.id === id) {
@@ -284,6 +284,7 @@ function DatabaseViewRenderer({
         case 'TABLE':
             return (
                 <TableView
+                    viewType={viewType}
                     items={items}
                     properties={properties}
                     onOpenItem={onOpenItem}
@@ -294,6 +295,7 @@ function DatabaseViewRenderer({
         case 'BOARD':
             return (
                 <BoardView
+                    viewType={viewType}
                     items={items}
                     properties={properties}
                     onOpenItem={onOpenItem}
