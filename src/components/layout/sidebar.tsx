@@ -129,24 +129,64 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
                 )} />
             </button>
 
-            {/* Header / Logo Area */}
+            {/* Header / User Profile Area */}
             <div className={cn("flex flex-col gap-4 transition-all duration-300", isSidebarCollapsed ? "px-2 py-4" : "px-4 py-6")}>
-                <div className={cn("flex items-center", isSidebarCollapsed ? "justify-center" : "gap-2 px-2")}>
-                    {/* Logo */}
-                    <div className="h-6 w-6 rounded-md bg-primary flex items-center justify-center shrink-0 shadow-sm">
-                        <CheckSquare className="h-4 w-4 text-primary-foreground" />
-                    </div>
-                    {!isSidebarCollapsed && (
-                        <motion.span
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -10 }}
-                            className="text-lg font-semibold tracking-tight text-foreground whitespace-nowrap"
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            className={cn(
+                                "w-full justify-start hover:bg-accent/50 group p-2",
+                                isSidebarCollapsed && "px-0 justify-center"
+                            )}
                         >
-                            TaskFlow
-                        </motion.span>
-                    )}
-                </div>
+                            <Avatar className={cn(
+                                "border border-border/50 shadow-sm transition-transform group-hover:scale-105",
+                                isSidebarCollapsed ? "h-8 w-8" : "h-8 w-8 mr-3"
+                            )}>
+                                <AvatarImage src={avatarUrl} />
+                                <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                                    {displayName?.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                            </Avatar>
+                            {!isSidebarCollapsed && (
+                                <div className="flex flex-col items-start min-w-0">
+                                    <span className="text-sm font-medium truncate text-foreground/90">
+                                        {displayName}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground truncate font-normal">
+                                        {user?.email}
+                                    </span>
+                                </div>
+                            )}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                        className="w-56 p-1 mt-2 bg-popover/95 backdrop-blur-xl border-border/50 shadow-xl"
+                        align="start"
+                        side="right"
+                        sideOffset={12}
+                    >
+                        <div className="space-y-0.5">
+                            <Link href="/profile">
+                                <Button variant="ghost" className="w-full justify-start h-8 px-2 text-sm font-normal">
+                                    <UserIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                                    Profile
+                                </Button>
+                            </Link>
+
+                            <Separator className="my-1 bg-border/50" />
+                            <Button
+                                variant="ghost"
+                                className="w-full justify-start h-8 px-2 text-sm font-normal text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={handleSignOut}
+                            >
+                                <LogOut className="mr-2 h-4 w-4" />
+                                Sign Out
+                            </Button>
+                        </div>
+                    </PopoverContent>
+                </Popover>
 
             </div>
 
@@ -377,66 +417,6 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
                 open={showCreateDialog}
                 onOpenChange={setShowCreateDialog}
             />
-
-            {/* Footer / Profile */}
-            <div className="p-3 border-t border-sidebar-border bg-sidebar/50">
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            className={cn(
-                                "w-full justify-start hover:bg-accent/50 group",
-                                isSidebarCollapsed ? "px-0 justify-center h-10 w-10" : "px-2 py-6"
-                            )}
-                        >
-                            <Avatar className={cn(
-                                "border border-border/50 shadow-sm transition-transform group-hover:scale-105",
-                                isSidebarCollapsed ? "h-8 w-8" : "h-8 w-8 mr-3"
-                            )}>
-                                <AvatarImage src={avatarUrl} />
-                                <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
-                                    {displayName?.charAt(0).toUpperCase()}
-                                </AvatarFallback>
-                            </Avatar>
-                            {!isSidebarCollapsed && (
-                                <div className="flex flex-col items-start min-w-0">
-                                    <span className="text-sm font-medium truncate text-foreground/90 top-0">
-                                        {displayName}
-                                    </span>
-                                    <span className="text-xs text-muted-foreground truncate font-normal">
-                                        {user?.email}
-                                    </span>
-                                </div>
-                            )}
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent
-                        className="w-56 p-1 mb-2 bg-popover/95 backdrop-blur-xl border-border/50 shadow-xl"
-                        align="start"
-                        side="right"
-                        sideOffset={12}
-                    >
-                        <div className="space-y-0.5">
-                            <Link href="/profile">
-                                <Button variant="ghost" className="w-full justify-start h-8 px-2 text-sm font-normal">
-                                    <UserIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                                    Profile
-                                </Button>
-                            </Link>
-
-                            <Separator className="my-1 bg-border/50" />
-                            <Button
-                                variant="ghost"
-                                className="w-full justify-start h-8 px-2 text-sm font-normal text-destructive hover:text-destructive hover:bg-destructive/10"
-                                onClick={handleSignOut}
-                            >
-                                <LogOut className="mr-2 h-4 w-4" />
-                                Sign Out
-                            </Button>
-                        </div>
-                    </PopoverContent>
-                </Popover>
-            </div>
         </div>
     )
 
