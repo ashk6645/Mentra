@@ -129,6 +129,7 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
                 )} />
             </button>
 
+
             {/* Header / User Profile Area */}
             <div className={cn("flex flex-col gap-4 transition-all duration-300", isSidebarCollapsed ? "px-2 py-6" : "px-4 py-6")}>
                 <Popover>
@@ -150,12 +151,9 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
                                 </AvatarFallback>
                             </Avatar>
                             {!isSidebarCollapsed && (
-                                <div className="flex items-center gap-2 flex-1 min-w-0">
-                                    <span className="text-sm font-medium truncate text-foreground/90">
-                                        {displayName}
-                                    </span>
-                                    <ChevronRight className="h-3 w-3 text-muted-foreground ml-auto shrink-0" />
-                                </div>
+                                <span className="text-sm font-medium truncate text-foreground/90">
+                                    {displayName}
+                                </span>
                             )}
                         </Button>
                     </PopoverTrigger>
