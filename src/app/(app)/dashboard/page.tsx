@@ -7,7 +7,6 @@ import { FocusWidget } from '@/components/dashboard/focus-widget'
 import { ActivityWidget } from '@/components/dashboard/activity-widget'
 import { DateWidget } from '@/components/dashboard/date-widget'
 import { QuickActions } from '@/components/dashboard/quick-actions'
-import { ProjectsGrid } from '@/components/dashboard/projects-grid'
 import { HabitsWidget } from '@/components/dashboard/habits-widget'
 
 export default async function DashboardPage() {
@@ -23,7 +22,7 @@ export default async function DashboardPage() {
         today.setHours(0, 0, 0, 0)
 
         // Fetch all data in parallel
-        const [tasksResult, profile, stats, projects, recentActivity, habits] = await Promise.all([
+        const [tasksResult, profile, stats, recentActivity, habits] = await Promise.all([
             getTasks(),
             prisma.profile.findUnique({
                 where: { id: user.id },
@@ -32,17 +31,6 @@ export default async function DashboardPage() {
             prisma.xPLog.aggregate({
                 where: { userId: user.id },
                 _sum: { amount: true }
-            }),
-            // Get active projects with task counts
-            prisma.project.findMany({
-                where: { userId: user.id, isArchived: false },
-                include: {
-                    _count: {
-                        select: { tasks: { where: { completed: false } } }
-                    }
-                },
-                take: 5,
-                orderBy: { updatedAt: 'desc' }
             }),
             // Get recent activity (completed tasks for now)
             prisma.task.findMany({
@@ -113,13 +101,10 @@ export default async function DashboardPage() {
                         />
 
                         {/* Focus & Activity Split */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[350px]">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[400px]">
                             <FocusWidget tasks={todayTasks} />
                             <ActivityWidget activities={activityItems} />
                         </div>
-
-                        {/* Projects Grid */}
-                        <ProjectsGrid projects={projects} />
                     </div>
 
                     {/* Right Column (Sidebar Widgets) */}
