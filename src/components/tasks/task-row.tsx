@@ -3,19 +3,21 @@
 import { format, isToday, isTomorrow } from 'date-fns'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
-import { toggleTaskCompletion } from '@/lib/actions/tasks'
+import { toggleTaskCompletion, deleteTask } from '@/lib/actions/tasks'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { MoreHorizontal, Pencil, Trash } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { EditTaskDialog } from './edit-task-dialog'
 
 interface TaskRowProps {
-    task: {
-        id: string
-        title: string
-        description?: string | null
-        completed: boolean
-        priority?: string | null
-        dueDate?: Date | null
-    }
+    task: any // Using any to avoid type conflicts with shared components for now
 }
 
 export function TaskRow({ task }: TaskRowProps) {
@@ -31,6 +33,13 @@ export function TaskRow({ task }: TaskRowProps) {
             console.error('Failed to toggle task', error)
         } finally {
             setIsPending(false)
+        }
+    }
+
+    const handleDelete = async () => {
+        if (confirm('Are you sure you want to delete this task?')) {
+            await deleteTask(task.id)
+            router.refresh()
         }
     }
 
@@ -50,7 +59,6 @@ export function TaskRow({ task }: TaskRowProps) {
 
     const getPriorityLabel = (priority?: string | null) => {
         if (!priority) return ''
-        // Capitalize first letter
         return priority.charAt(0).toUpperCase() + priority.slice(1)
     }
 
@@ -86,7 +94,7 @@ export function TaskRow({ task }: TaskRowProps) {
 
             <div className="flex-1 min-w-0">
                 <p className={cn(
-                    "font-semibold text-base leading-none truncate",
+                    "font-semibold text-base leading-none truncate cursor-pointer hover:text-primary transition-colors",
                     task.completed && "line-through text-muted-foreground"
                 )}>
                     {task.title}
@@ -113,6 +121,30 @@ export function TaskRow({ task }: TaskRowProps) {
                         {formatDueDate(task.dueDate)}
                     </div>
                 )}
+
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Menu</span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <EditTaskDialog
+                            task={task}
+                            trigger={
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Edit
+                                </DropdownMenuItem>
+                            }
+                        />
+                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={handleDelete}>
+                            <Trash className="mr-2 h-4 w-4" />
+                            Delete
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </div>
     )
