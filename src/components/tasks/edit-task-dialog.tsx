@@ -113,6 +113,9 @@ export function EditTaskDialog({ task, trigger }: EditTaskDialogProps) {
                 startDate.setHours(hours, minutes, 0, 0)
                 scheduledStart = startDate.toISOString()
 
+                // Update dueDate to include the time component as well
+                values.dueDate.setHours(hours, minutes, 0, 0)
+
                 if (values.durationMinutes) {
                     const endDate = new Date(startDate.getTime() + values.durationMinutes * 60000)
                     scheduledEnd = endDate.toISOString()
@@ -123,7 +126,7 @@ export function EditTaskDialog({ task, trigger }: EditTaskDialogProps) {
                 id: task.id,
                 ...values,
                 dueDate: values.dueDate ? values.dueDate.toISOString() : null,
-                projectId: values.projectId === 'none' ? null : values.projectId,
+                projectId: values.projectId === 'none' ? undefined : values.projectId,
                 scheduledStart,
                 scheduledEnd,
             })
@@ -257,7 +260,6 @@ export function EditTaskDialog({ task, trigger }: EditTaskDialogProps) {
                                                         field.onChange([...current, tagId])
                                                     }
                                                 }}
-                                                availableTags={tags}
                                             />
                                         </div>
                                     </FormControl>

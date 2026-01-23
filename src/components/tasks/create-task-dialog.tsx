@@ -193,6 +193,9 @@ export function CreateTaskDialog({
                 startDate.setHours(hours, minutes, 0, 0)
                 scheduledStart = startDate.toISOString()
 
+                // Update dueDate to include the time component as well
+                values.dueDate.setHours(hours, minutes, 0, 0)
+
                 if (values.durationMinutes) {
                     const endDate = new Date(startDate.getTime() + values.durationMinutes * 60000)
                     scheduledEnd = endDate.toISOString()
