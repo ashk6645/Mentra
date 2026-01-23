@@ -86,8 +86,10 @@ export function PageEditor({ page }: PageEditorProps) {
     const [insertAfterBlockId, setInsertAfterBlockId] = useState<string | null>(null)
     const [activeDragId, setActiveDragId] = useState<string | null>(null)
     const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null)
+    const [emptyPageText, setEmptyPageText] = useState('')
     const titleRef = useRef<HTMLInputElement>(null)
     const contentRef = useRef<HTMLDivElement>(null)
+    const emptyPageTextareaRef = useRef<HTMLTextAreaElement>(null)
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const focusedBlockIdRef = useRef<string | null>(null) // Persists across renders
 
@@ -183,6 +185,57 @@ export function PageEditor({ page }: PageEditorProps) {
         if (result.success && result.block) {
             setBlocks([...blocks, result.block as PageBlock])
             router.refresh()
+        }
+    }
+
+    // Handle typing on empty page - auto-create text block
+    const handleEmptyPageInput = async (text: string) => {
+        const result = await createBlock({
+            pageId: page.id,
+            type: 'TEXT' as BlockType,
+            content: { text },
+        })
+        if (result.success && result.block) {
+            setBlocks([result.block as PageBlock])
+            setEmptyPageText('')
+            setFocusedBlockId(result.block.id)
+            router.refresh()
+        }
+    }
+
+    const handleEmptyPageKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        // Trigger slash menu on '/'
+        if (e.key === '/' && emptyPageText === '') {
+            e.preventDefault()
+            handleOpenSlashMenu(null)
+            return
+        }
+
+        // Create block on Enter with content
+        if (e.key === 'Enter' && emptyPageText.trim()) {
+            e.preventDefault()
+            handleEmptyPageInput(emptyPageText)
+            return
+        }
+
+        // Allow backspace and other keys naturally
+    }
+
+    const handleEmptyPageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const newText = e.target.value
+        setEmptyPageText(newText)
+
+        // Auto-create block when user types (debounced)
+        if (newText.trim() && newText !== '/') {
+            // Only create if they've typed substantial content or pressed enter
+            // We'll rely on Enter key or blur to actually create the block
+        }
+    }
+
+    const handleEmptyPageBlur = () => {
+        // Create block if there's content when user leaves the textarea
+        if (emptyPageText.trim()) {
+            handleEmptyPageInput(emptyPageText)
         }
     }
 
@@ -296,17 +349,13 @@ export function PageEditor({ page }: PageEditorProps) {
         }),
     }
 
-    // Keyboard "/" detection for empty page
+    // Auto-resize empty page textarea
     useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === '/' && blocks.length === 0 && !slashMenuOpen) {
-                e.preventDefault()
-                handleOpenSlashMenu(null)
-            }
+        if (emptyPageTextareaRef.current && blocks.length === 0) {
+            emptyPageTextareaRef.current.style.height = 'auto'
+            emptyPageTextareaRef.current.style.height = emptyPageTextareaRef.current.scrollHeight + 'px'
         }
-        document.addEventListener('keydown', handleKeyDown)
-        return () => document.removeEventListener('keydown', handleKeyDown)
-    }, [blocks.length, slashMenuOpen])
+    }, [emptyPageText, blocks.length])
 
     // Focus title on mount if it's "Untitled"
     useEffect(() => {
@@ -431,12 +480,19 @@ export function PageEditor({ page }: PageEditorProps) {
                 {/* Page Content */}
                 <div ref={contentRef} className="flex-1 px-8 pb-16">
                     {blocks.length === 0 ? (
-                        <button
-                            onClick={(e) => handleOpenSlashMenu(null, e)}
-                            className="py-4 text-muted-foreground hover:text-foreground transition-colors text-left w-full"
-                        >
-                            Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">/</kbd> for commands, or click here to add a block...
-                        </button>
+                        <div className="relative">
+                            <textarea
+                                ref={emptyPageTextareaRef}
+                                value={emptyPageText}
+                                onChange={handleEmptyPageChange}
+                                onKeyDown={handleEmptyPageKeyDown}
+                                onBlur={handleEmptyPageBlur}
+                                placeholder="Type something, or press '/' for commands..."
+                                className="w-full bg-transparent border-none outline-none resize-none text-base leading-relaxed placeholder:text-muted-foreground/40 focus:ring-0 min-h-[1.5rem] py-2"
+                                rows={1}
+                                autoFocus
+                            />
+                        </div>
                     ) : (
                         <DndContext
                             sensors={sensors}
