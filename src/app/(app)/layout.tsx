@@ -6,6 +6,7 @@ import { getPages } from '@/lib/actions/pages'
 
 import { CommandPalette } from '@/components/cmd-k/command-palette'
 import { CommandPaletteWrapper } from '@/components/cmd-k/command-palette-wrapper'
+import { GlobalQuickAdd } from '@/components/tasks/global-quick-add'
 
 export default async function AppLayout({
     children,
@@ -32,6 +33,7 @@ export default async function AppLayout({
             <CommandPaletteWrapper projects={projects} pages={pages} user={user}>
                 {children}
             </CommandPaletteWrapper>
+            <GlobalQuickAdd />
         </div>
     )
 }

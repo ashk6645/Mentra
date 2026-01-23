@@ -6,7 +6,6 @@ import { StatsRow } from '@/components/dashboard/stats-row'
 import { FocusWidget } from '@/components/dashboard/focus-widget'
 import { ActivityWidget } from '@/components/dashboard/activity-widget'
 import { DateWidget } from '@/components/dashboard/date-widget'
-import { QuickActions } from '@/components/dashboard/quick-actions'
 import { HabitsWidget } from '@/components/dashboard/habits-widget'
 
 export default async function DashboardPage() {
@@ -110,7 +109,6 @@ export default async function DashboardPage() {
                     {/* Right Column (Sidebar Widgets) */}
                     <div className="md:col-span-4 lg:col-span-3 space-y-6">
                         <DateWidget />
-                        <QuickActions />
                         <HabitsWidget habits={habits} />
                     </div>
                 </div>
