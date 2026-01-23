@@ -116,7 +116,7 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
     ]
 
     const SidebarContent = () => (
-        <div className="group flex flex-col h-full bg-sidebar/50 backdrop-blur-xl border-r border-sidebar-border supports-[backdrop-filter]:bg-sidebar/20 relative">
+        <div className="group flex flex-col h-full bg-sidebar/95 backdrop-blur-xl border-r border-sidebar-border supports-[backdrop-filter]:bg-sidebar/80 relative">
             {/* Collapse Toggle Button - Floating on Border */}
             <button
                 onClick={toggleSidebarCollapsed}
