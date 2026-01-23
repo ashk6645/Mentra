@@ -421,7 +421,7 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
             <motion.div
                 className={cn("hidden md:block fixed inset-y-0 z-50", className)}
                 initial={false}
-                animate={{ width: isSidebarCollapsed ? 80 : 256 }}
+                animate={{ width: isSidebarCollapsed ? 80 : 220 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
             >
                 <SidebarContent />
@@ -433,7 +433,7 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
                         <Menu className="h-5 w-5" />
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-72 border-r border-border/50 bg-background/95 backdrop-blur-xl">
+                <SheetContent side="left" className="p-0 w-64 border-r border-border/50 bg-background/95 backdrop-blur-xl">
                     <SidebarContent />
                 </SheetContent>
             </Sheet>
