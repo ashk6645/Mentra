@@ -148,25 +148,6 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
                     )}
                 </div>
 
-                {/* Search Trigger */}
-                <Button
-                    variant="outline"
-                    className={cn(
-                        "text-muted-foreground bg-background/50 border-input/50 hover:bg-accent/50 hover:text-accent-foreground shadow-sm h-9 px-2 transition-all duration-300",
-                        isSidebarCollapsed ? "justify-center w-9 p-0 mx-auto" : "w-full justify-start"
-                    )}
-                    onClick={onOpenCommand}
-                >
-                    <Search className={cn("h-4 w-4 opacity-50", !isSidebarCollapsed && "mr-2")} />
-                    {!isSidebarCollapsed && (
-                        <>
-                            <span className="text-sm font-normal">Search...</span>
-                            <kbd className="pointer-events-none ml-auto h-5 select-none items-center gap-1 rounded bg-muted/50 px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 flex">
-                                <span className="text-xs">⌘</span>K
-                            </kbd>
-                        </>
-                    )}
-                </Button>
             </div>
 
 
@@ -174,6 +155,27 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
             {/* Main Navigation */}
             <div className="px-3 flex-1 overflow-y-auto no-scrollbar">
                 <div className="space-y-1 mb-6">
+                    {/* Search Trigger */}
+                    <button
+                        onClick={onOpenCommand}
+                        className={cn(
+                            "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 group relative w-full",
+                            "text-muted-foreground hover:text-foreground hover:bg-accent/50",
+                            isSidebarCollapsed && "justify-center px-2"
+                        )}
+                    >
+                        <Search className="h-4 w-4 transition-colors shrink-0 text-muted-foreground group-hover:text-foreground" />
+                        {!isSidebarCollapsed && (
+                            <motion.span
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="whitespace-nowrap"
+                            >
+                                Search
+                            </motion.span>
+                        )}
+                    </button>
                     {routes.map((route) => {
                         const isActive = pathname === route.href
                         return (
