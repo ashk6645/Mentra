@@ -51,6 +51,42 @@ export async function getProjects() {
     return projects
 }
 
+export async function getProjectsForBoard() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return []
+
+    const projects = await prisma.project.findMany({
+        where: {
+            userId: user.id
+        },
+        include: {
+            tasks: {
+                select: {
+                    completed: true
+                }
+            }
+        },
+        orderBy: {
+            sortOrder: 'asc'
+        }
+    })
+
+    return projects.map(project => {
+        const totalTasks = project.tasks.length
+        const completedTasks = project.tasks.filter(t => t.completed).length
+        const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+
+        return {
+            ...project,
+            tasks: undefined, // Remove tasks array to keep payload light
+            progress,
+            totalTasks,
+            completedTasks
+        }
+    })
+}
+
 export async function createProject(data: CreateProjectInput) {
     try {
         const supabase = await createClient()
