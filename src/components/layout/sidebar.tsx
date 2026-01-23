@@ -116,45 +116,36 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
     ]
 
     const SidebarContent = () => (
-        <div className="group flex flex-col h-full bg-sidebar/50 backdrop-blur-xl border-r border-sidebar-border supports-[backdrop-filter]:bg-sidebar/20">
+        <div className="group flex flex-col h-full bg-sidebar/50 backdrop-blur-xl border-r border-sidebar-border supports-[backdrop-filter]:bg-sidebar/20 relative">
+            {/* Collapse Toggle Button - Floating on Border */}
+            <button
+                onClick={toggleSidebarCollapsed}
+                className="absolute -right-3 top-8 z-50 h-6 w-6 rounded-full border border-sidebar-border bg-background flex items-center justify-center shadow-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+                <ChevronRight className={cn(
+                    "h-3 w-3 transition-transform duration-200",
+                    !isSidebarCollapsed && "rotate-180"
+                )} />
+            </button>
+
             {/* Header / Logo Area */}
             <div className={cn("flex flex-col gap-4 transition-all duration-300", isSidebarCollapsed ? "px-2 py-4" : "px-4 py-6")}>
-                <div className={cn("flex items-center", isSidebarCollapsed ? "justify-center flex-col gap-2" : "justify-between px-2")}>
+                <div className={cn("flex items-center", isSidebarCollapsed ? "justify-center" : "gap-2 px-2")}>
                     {/* Logo */}
-                    <div className={cn("flex items-center gap-2 transition-all duration-300", isSidebarCollapsed ? "justify-center" : "")}>
-                        <div className="h-6 w-6 rounded-md bg-primary flex items-center justify-center shrink-0 shadow-sm">
-                            <CheckSquare className="h-4 w-4 text-primary-foreground" />
-                        </div>
-                        {!isSidebarCollapsed && (
-                            <motion.span
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -10 }}
-                                className="text-lg font-semibold tracking-tight text-foreground whitespace-nowrap"
-                            >
-                                TaskFlow
-                            </motion.span>
-                        )}
+                    <div className="h-6 w-6 rounded-md bg-primary flex items-center justify-center shrink-0 shadow-sm">
+                        <CheckSquare className="h-4 w-4 text-primary-foreground" />
                     </div>
-
-                    {/* Toggle Button */}
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={toggleSidebarCollapsed}
-                        className={cn(
-                            "text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-300",
-                            isSidebarCollapsed ? "h-8 w-8 mt-2" : "h-7 w-7 opacity-0 group-hover:opacity-100"
-                        )}
-                    >
-                        <PanelLeftClose
-                            className={cn(
-                                "h-4 w-4 transition-transform duration-300",
-                                isSidebarCollapsed && "rotate-180"
-                            )}
-                        />
-                        <span className="sr-only">Toggle Sidebar</span>
-                    </Button>
+                    {!isSidebarCollapsed && (
+                        <motion.span
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            className="text-lg font-semibold tracking-tight text-foreground whitespace-nowrap"
+                        >
+                            TaskFlow
+                        </motion.span>
+                    )}
                 </div>
 
                 {/* Search Trigger */}
@@ -177,6 +168,7 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
                     )}
                 </Button>
             </div>
+
 
 
             {/* Main Navigation */}
