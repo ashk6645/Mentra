@@ -68,6 +68,7 @@ interface CreateTaskDialogProps {
     onOpenChange?: (open: boolean) => void
     defaultStatus?: string
     onTaskCreated?: (task: any) => void
+    trigger?: React.ReactNode
 }
 
 export function CreateTaskDialog({
@@ -75,7 +76,8 @@ export function CreateTaskDialog({
     open: controlledOpen,
     onOpenChange: controlledOnOpenChange,
     defaultStatus,
-    onTaskCreated
+    onTaskCreated,
+    trigger
 }: CreateTaskDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false)
     const isControlled = controlledOpen !== undefined
@@ -218,10 +220,14 @@ export function CreateTaskDialog({
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className="shadow-sm">
-                    <Plus className="mr-2 h-4 w-4" />
-                    New Task
-                </Button>
+                {trigger ? (
+                    trigger
+                ) : (
+                    <Button className="shadow-sm">
+                        <Plus className="mr-2 h-4 w-4" />
+                        New Task
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[550px] gap-6">
                 <DialogHeader>
