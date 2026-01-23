@@ -130,7 +130,7 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
             </button>
 
             {/* Header / User Profile Area */}
-            <div className={cn("flex flex-col gap-4 transition-all duration-300", isSidebarCollapsed ? "px-2 py-4" : "px-4 py-6")}>
+            <div className={cn("flex flex-col gap-4 transition-all duration-300", isSidebarCollapsed ? "px-2 py-6" : "px-4 py-6")}>
                 <Popover>
                     <PopoverTrigger asChild>
                         <Button
