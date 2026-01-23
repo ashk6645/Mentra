@@ -142,7 +142,7 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
                         >
                             <Avatar className={cn(
                                 "border border-border/50 shadow-sm transition-transform group-hover:scale-105",
-                                isSidebarCollapsed ? "h-8 w-8" : "h-8 w-8 mr-3"
+                                isSidebarCollapsed ? "h-8 w-8" : "h-8 w-8 mr-2"
                             )}>
                                 <AvatarImage src={avatarUrl} />
                                 <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
@@ -150,13 +150,11 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
                                 </AvatarFallback>
                             </Avatar>
                             {!isSidebarCollapsed && (
-                                <div className="flex flex-col items-start min-w-0">
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
                                     <span className="text-sm font-medium truncate text-foreground/90">
                                         {displayName}
                                     </span>
-                                    <span className="text-xs text-muted-foreground truncate font-normal">
-                                        {user?.email}
-                                    </span>
+                                    <ChevronRight className="h-3 w-3 text-muted-foreground ml-auto shrink-0" />
                                 </div>
                             )}
                         </Button>
