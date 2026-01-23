@@ -116,31 +116,53 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
     ]
 
     const SidebarContent = () => (
-        <div className="flex flex-col h-full bg-sidebar/50 backdrop-blur-xl border-r border-sidebar-border supports-[backdrop-filter]:bg-sidebar/20">
+        <div className="group flex flex-col h-full bg-sidebar/50 backdrop-blur-xl border-r border-sidebar-border supports-[backdrop-filter]:bg-sidebar/20">
             {/* Header / Logo Area */}
-            <div className={cn("flex flex-col gap-4", isSidebarCollapsed ? "px-2 py-6 items-center" : "px-4 py-6")}>
-                <div className={cn("flex items-center mb-2", isSidebarCollapsed ? "justify-center" : "gap-2 px-2")}>
-                    <div className="h-6 w-6 rounded-md bg-primary flex items-center justify-center shrink-0">
-                        <CheckSquare className="h-4 w-4 text-primary-foreground" />
+            <div className={cn("flex flex-col gap-4 transition-all duration-300", isSidebarCollapsed ? "px-2 py-4" : "px-4 py-6")}>
+                <div className={cn("flex items-center", isSidebarCollapsed ? "justify-center flex-col gap-2" : "justify-between px-2")}>
+                    {/* Logo */}
+                    <div className={cn("flex items-center gap-2 transition-all duration-300", isSidebarCollapsed ? "justify-center" : "")}>
+                        <div className="h-6 w-6 rounded-md bg-primary flex items-center justify-center shrink-0 shadow-sm">
+                            <CheckSquare className="h-4 w-4 text-primary-foreground" />
+                        </div>
+                        {!isSidebarCollapsed && (
+                            <motion.span
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -10 }}
+                                className="text-lg font-semibold tracking-tight text-foreground whitespace-nowrap"
+                            >
+                                TaskFlow
+                            </motion.span>
+                        )}
                     </div>
-                    {!isSidebarCollapsed && (
-                        <motion.span
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="text-lg font-semibold tracking-tight text-foreground whitespace-nowrap"
-                        >
-                            TaskFlow
-                        </motion.span>
-                    )}
+
+                    {/* Toggle Button */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={toggleSidebarCollapsed}
+                        className={cn(
+                            "text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-300",
+                            isSidebarCollapsed ? "h-8 w-8 mt-2" : "h-7 w-7 opacity-0 group-hover:opacity-100"
+                        )}
+                    >
+                        <PanelLeftClose
+                            className={cn(
+                                "h-4 w-4 transition-transform duration-300",
+                                isSidebarCollapsed && "rotate-180"
+                            )}
+                        />
+                        <span className="sr-only">Toggle Sidebar</span>
+                    </Button>
                 </div>
 
                 {/* Search Trigger */}
                 <Button
                     variant="outline"
                     className={cn(
-                        "text-muted-foreground bg-background/50 border-input/50 hover:bg-accent/50 hover:text-accent-foreground shadow-sm h-9 px-2",
-                        isSidebarCollapsed ? "justify-center w-9 p-0" : "w-full justify-start"
+                        "text-muted-foreground bg-background/50 border-input/50 hover:bg-accent/50 hover:text-accent-foreground shadow-sm h-9 px-2 transition-all duration-300",
+                        isSidebarCollapsed ? "justify-center w-9 p-0 mx-auto" : "w-full justify-start"
                     )}
                     onClick={onOpenCommand}
                 >
@@ -155,6 +177,7 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
                     )}
                 </Button>
             </div>
+
 
             {/* Main Navigation */}
             <div className="px-3 flex-1 overflow-y-auto no-scrollbar">
@@ -351,24 +374,6 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
 
             {/* Footer / Profile */}
             <div className="p-3 border-t border-sidebar-border bg-sidebar/50">
-                {/* Collapse Toggle */}
-                <div className="mb-2 px-1">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full justify-start text-muted-foreground hover:text-foreground"
-                        onClick={toggleSidebarCollapsed}
-                    >
-                        <PanelLeftClose
-                            className={cn(
-                                "h-4 w-4 transition-transform",
-                                isSidebarCollapsed && "rotate-180 mx-auto"
-                            )}
-                        />
-                        {!isSidebarCollapsed && <span className="ml-2 text-xs">Collapse</span>}
-                    </Button>
-                </div>
-
                 <Popover>
                     <PopoverTrigger asChild>
                         <Button
