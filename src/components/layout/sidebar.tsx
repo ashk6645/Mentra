@@ -220,24 +220,30 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
                 {!isSidebarCollapsed && (
                     <div className="px-3 mb-2">
                         <div className="flex items-center justify-between group mb-2">
-                            <button
-                                onClick={() => setProjectsExpanded(!projectsExpanded)}
-                                className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors uppercase tracking-wider"
-                            >
-                                <motion.div
-                                    animate={{ rotate: projectsExpanded ? 90 : 0 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <ChevronRight className="h-3 w-3" />
-                                </motion.div>
+                            <span className="text-sm font-medium text-muted-foreground">
                                 Projects
-                            </button>
-                            <button
-                                onClick={() => setShowCreateDialog(true)}
-                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-accent rounded-sm transition-all duration-200"
-                            >
-                                <Plus className="h-3 w-3 text-muted-foreground" />
-                            </button>
+                            </span>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <button
+                                    onClick={() => setProjectsExpanded(!projectsExpanded)}
+                                    className="p-1 hover:bg-accent rounded-sm transition-all duration-200"
+                                    aria-label={projectsExpanded ? "Collapse projects" : "Expand projects"}
+                                >
+                                    <motion.div
+                                        animate={{ rotate: projectsExpanded ? 90 : 0 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                                    </motion.div>
+                                </button>
+                                <button
+                                    onClick={() => setShowCreateDialog(true)}
+                                    className="p-1 hover:bg-accent rounded-sm transition-all duration-200"
+                                    aria-label="Add project"
+                                >
+                                    <Plus className="h-3 w-3 text-muted-foreground" />
+                                </button>
+                            </div>
                         </div>
 
                         <AnimatePresence initial={false}>
@@ -293,24 +299,30 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
                 {!isSidebarCollapsed && (
                     <div className="px-3 mb-2">
                         <div className="flex items-center justify-between group mb-2">
-                            <button
-                                onClick={() => setPagesExpanded(!pagesExpanded)}
-                                className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors uppercase tracking-wider"
-                            >
-                                <motion.div
-                                    animate={{ rotate: pagesExpanded ? 90 : 0 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <ChevronRight className="h-3 w-3" />
-                                </motion.div>
+                            <span className="text-sm font-medium text-muted-foreground">
                                 Private
-                            </button>
-                            <Link
-                                href="/private/new"
-                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-accent rounded-sm transition-all duration-200"
-                            >
-                                <Plus className="h-3 w-3 text-muted-foreground" />
-                            </Link>
+                            </span>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <button
+                                    onClick={() => setPagesExpanded(!pagesExpanded)}
+                                    className="p-1 hover:bg-accent rounded-sm transition-all duration-200"
+                                    aria-label={pagesExpanded ? "Collapse private pages" : "Expand private pages"}
+                                >
+                                    <motion.div
+                                        animate={{ rotate: pagesExpanded ? 90 : 0 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                                    </motion.div>
+                                </button>
+                                <Link
+                                    href="/private/new"
+                                    className="p-1 hover:bg-accent rounded-sm transition-all duration-200"
+                                    aria-label="Add private page"
+                                >
+                                    <Plus className="h-3 w-3 text-muted-foreground" />
+                                </Link>
+                            </div>
                         </div>
 
                         <AnimatePresence initial={false}>
