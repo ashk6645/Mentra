@@ -315,6 +315,151 @@ export async function deleteTask(id: string) {
     }
 }
 
+/**
+ * Create task from natural language input
+ * Supports Todoist-style syntax: #project @tag p1-p4 !reminder dates
+ */
+export async function createTaskFromNaturalLanguage(input: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { success: false, error: 'Unauthorized' }
+    }
+
+    try {
+        // Import parser dynamically to avoid server/client issues
+        const { parseTaskNaturalLanguage, calculateReminderTime } = await import('@/lib/parsers/task-parser')
+
+        // Get user's projects and tags for context
+        const [projects, tags] = await Promise.all([
+            prisma.project.findMany({
+                where: { userId: user.id },
+                select: { id: true, name: true },
+            }),
+            prisma.tag.findMany({
+                where: { userId: user.id },
+                select: { id: true, name: true },
+            }),
+        ])
+
+        // Parse the input
+        const parsed = parseTaskNaturalLanguage(input, {
+            currentDate: new Date(),
+            availableProjects: projects,
+            availableTags: tags,
+        })
+
+        // Match project by name
+        let projectId: string | undefined
+        if (parsed.projectName) {
+            const project = projects.find(
+                p => p.name.toLowerCase() === parsed.projectName!.toLowerCase()
+            )
+            projectId = project?.id
+        }
+
+        // Match tags by name and auto-create if needed
+        const tagIds: string[] = []
+        for (const tagName of parsed.tagNames) {
+            let tag = tags.find(t => t.name.toLowerCase() === tagName.toLowerCase())
+
+            if (!tag) {
+                // Auto-create tag
+                tag = await prisma.tag.create({
+                    data: {
+                        userId: user.id,
+                        name: tagName,
+                    },
+                })
+            }
+
+            tagIds.push(tag.id)
+        }
+
+        // Ensure profile exists
+        await prisma.profile.upsert({
+            where: { id: user.id },
+            update: {},
+            create: {
+                id: user.id,
+                email: user.email!,
+                displayName: user.user_metadata?.display_name || user.email?.split('@')[0] || 'User',
+            }
+        })
+
+        // Create the task
+        const task = await prisma.task.create({
+            data: {
+                userId: user.id,
+                title: parsed.title,
+                priority: parsed.priority,
+                dueDate: parsed.dueDate,
+                projectId,
+                tags: tagIds.length > 0
+                    ? {
+                        create: tagIds.map((tagId) => ({
+                            tag: {
+                                connect: { id: tagId },
+                            },
+                        })),
+                    }
+                    : undefined,
+            },
+            include: {
+                tags: {
+                    include: {
+                        tag: true,
+                    },
+                },
+                project: true,
+            },
+        })
+
+        // Create reminder if specified
+        if (parsed.reminderPattern && parsed.dueDate) {
+            const reminderTime = calculateReminderTime(parsed.dueDate, parsed.reminderPattern)
+            if (reminderTime) {
+                await prisma.reminder.create({
+                    data: {
+                        taskId: task.id,
+                        remindAt: reminderTime,
+                    },
+                })
+            }
+        }
+
+        // Award XP for task creation
+        const xpAmount = parsed.priority === 'urgent' ? 15 : 10
+        await prisma.xPLog.create({
+            data: {
+                userId: user.id,
+                amount: xpAmount,
+                source: 'task',
+                sourceId: task.id,
+                description: `Created task: ${task.title}`,
+            },
+        })
+
+        // Update user's total XP
+        await prisma.profile.update({
+            where: { id: user.id },
+            data: {
+                totalXp: {
+                    increment: xpAmount,
+                },
+            },
+        })
+
+        revalidatePath('/', 'layout')
+        return { success: true, data: task }
+    } catch (error) {
+        console.error('Error creating task from natural language:', error)
+        return { success: false, error: 'Failed to create task' }
+    }
+}
+
+
 export async function searchTasks(query: string) {
     try {
         const supabase = await createClient()
