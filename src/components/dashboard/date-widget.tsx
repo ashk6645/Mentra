@@ -111,19 +111,8 @@ export function DateWidget() {
                         todayActive: "calendar-today-active",
                     }}
                 />
-                {!loading && (
-                    <div className="px-4 pb-3 text-xs text-muted-foreground text-center">
-                        <div className="flex items-center justify-center gap-4">
-                            <span className="inline-flex items-center gap-1.5">
-                                <span className="inline-block w-3 h-3 rounded bg-muted"></span>
-                                Streak
-                            </span>
-                            <span className="inline-flex items-center gap-1.5">
-                                <span className="inline-block w-3 h-3 rounded border-2 border-dotted border-foreground"></span>
-                                Today
-                            </span>
-                        </div>
-                    </div>
+                {!loading && activityDates.length > 0 && (
+                    <div className="px-4 pb-3" />
                 )}
             </CardContent>
         </Card>
