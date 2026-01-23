@@ -30,12 +30,7 @@ export default async function AppLayout({
     return (
         <div className="min-h-screen bg-background">
             <CommandPaletteWrapper projects={projects} pages={pages} user={user}>
-                <main className="md:pl-64 min-h-screen transition-[padding] duration-300 ease-in-out">
-                    {/* Adds padding-top on mobile for the burger menu to not overlap content */}
-                    <div className="h-full pt-16 md:pt-0 relative animate-in-fade">
-                        {children}
-                    </div>
-                </main>
+                {children}
             </CommandPaletteWrapper>
         </div>
     )
