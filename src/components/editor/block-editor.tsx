@@ -51,11 +51,13 @@ export function BlockEditor({
         blockId: string | null
         position: { top: number; left: number } | null
         query: string
+        placement?: 'top' | 'bottom'
     }>({
         isOpen: false,
         blockId: null,
         position: null,
-        query: ''
+        query: '',
+        placement: 'bottom'
     })
 
     // Close menu helper
@@ -97,26 +99,74 @@ export function BlockEditor({
     // For now, let's implement a wrapper or logic in `onChange` of blocks
 
     const handleBlockChange = useCallback((id: string, content: any) => {
-        // Basic Slash Command Trigger Logic
-        // If we are editing text and it starts with /, show menu
-        // real implementation requires cursor coordinates
-        if (content.text && (content.text as string).startsWith('/')) {
-            // We need to find the DOM element to position the menu
-            const blockElement = document.querySelector(`[data-block-id="${id}"]`)
-            if (blockElement) {
-                const rect = blockElement.getBoundingClientRect()
-                setSlashMenuState({
-                    isOpen: true,
-                    blockId: id,
-                    position: { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX },
-                    query: (content.text as string).substring(1) // Remove leading /
-                })
-                return
-            }
-        } else {
-            if (slashMenuState.isOpen && slashMenuState.blockId === id) {
-                closeSlashMenu()
-            }
+        // 1. Get raw text (no trim initially to preserve position)
+        const textContent = (document.createElement('div').textContent = content.text || '') || ''
+
+        // Use DOM text extraction if needed, but for logic we need exact text
+        // We'll stick to a simpler approach first as per instructions "Step 1: Get raw text"
+        // But content.text IS HTML.
+        const tempDiv = document.createElement('div')
+        tempDiv.innerHTML = content.text || ''
+        const text = tempDiv.textContent || ''
+
+        // 2. Get cursor position
+        const selection = window.getSelection()
+        if (!selection || !selection.isCollapsed) {
+            if (slashMenuState.isOpen) closeSlashMenu()
+            return
+        }
+
+        // We need to be careful: selection.anchorOffset is relative to the NODE.
+        // If content is strict text, it works.
+        // If content has spans, anchorOffset is relative to that span.
+        // FOR NOW: We assume simple text block. If it fails for complex HTML, we need more robust cursor logic.
+        // But user provided code: "const cursorOffset = selection.anchorOffset"
+        const cursorOffset = selection.anchorOffset
+
+        // 3. Only analyze text before cursor
+        const beforeCursor = text.slice(0, cursorOffset)
+
+        // 4. Find last slash
+        const slashIndex = beforeCursor.lastIndexOf('/')
+        if (slashIndex === -1) {
+            if (slashMenuState.isOpen) closeSlashMenu()
+            return
+        }
+
+        // 5. Validate slash context
+        // Slash must be at start (index 0) or preceded by whitespace
+        if (slashIndex > 0 && !/\s/.test(beforeCursor[slashIndex - 1])) {
+            if (slashMenuState.isOpen) closeSlashMenu()
+            return
+        }
+
+        // 6. Extract query
+        const query = beforeCursor.slice(slashIndex + 1)
+
+        // Space ends slash mode
+        if (query.includes(' ')) {
+            if (slashMenuState.isOpen) closeSlashMenu()
+            return
+        }
+
+        // 7. Open / update menu
+        const blockElement = document.querySelector(`[data-block-id="${id}"]`)
+        if (blockElement) {
+            const rect = blockElement.getBoundingClientRect()
+
+            // Determine placement based on available space
+            const spaceBelow = window.innerHeight - rect.bottom
+            const menuHeightEst = 320
+            const placement = spaceBelow < menuHeightEst ? 'top' : 'bottom'
+            const top = placement === 'top' ? rect.top : rect.bottom
+
+            setSlashMenuState({
+                isOpen: true,
+                blockId: id,
+                query,
+                position: { top, left: rect.left },
+                placement
+            })
         }
 
         updateBlock(id, { content })
