@@ -62,11 +62,10 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
         icon: string | null
         sortOrder: number
     }>
-    onOpenCommand?: () => void
 }
 
 // Change to non-exported function, exported as memo at bottom
-function SidebarComponent({ className, user, projects: initialProjects = [], onOpenCommand }: SidebarProps) {
+function SidebarComponent({ className, user, projects: initialProjects = [] }: SidebarProps) {
     const pathname = usePathname()
     const router = useRouter()
     const supabase = createClient()
@@ -234,7 +233,7 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
                 <div className="space-y-1 mb-6">
                     {/* Search Trigger */}
                     <button
-                        onClick={onOpenCommand}
+                        onClick={() => (window as any).__openCommandPalette?.()}
                         className={cn(
                             "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 group relative w-full",
                             "text-muted-foreground hover:text-foreground hover:bg-accent/50",

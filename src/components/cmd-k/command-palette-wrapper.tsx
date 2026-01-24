@@ -7,12 +7,11 @@ import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 
 interface CommandPaletteWrapperProps {
-    user: any
-    projects?: any[]
+    sidebar: React.ReactNode
     children: React.ReactNode
 }
 
-export function CommandPaletteWrapper({ user, projects, children }: CommandPaletteWrapperProps) {
+export function CommandPaletteWrapper({ sidebar, children }: CommandPaletteWrapperProps) {
     const { isSidebarCollapsed } = useUIStore()
     const [mounted, setMounted] = useState(false)
 
@@ -20,16 +19,10 @@ export function CommandPaletteWrapper({ user, projects, children }: CommandPalet
         setMounted(true)
     }, [])
 
-    const handleOpenCommand = () => {
-        if (typeof window !== 'undefined') {
-            (window as any).__openCommandPalette?.()
-        }
-    }
-
     return (
         <>
             <CommandPalette />
-            <Sidebar user={user} projects={projects} onOpenCommand={handleOpenCommand} />
+            {sidebar}
 
             {!mounted ? (
                 <main className="md:pl-64 min-h-screen">
