@@ -3,6 +3,8 @@ import { CreateHabitDialog } from '@/components/habits/create-habit-dialog'
 import { HabitCard } from '@/components/habits/habit-card'
 import { Target } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 export default async function HabitsPage() {
     const habitsResult = await getHabits()
     const habits = habitsResult.success ? habitsResult.data : []
