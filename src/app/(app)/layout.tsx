@@ -1,10 +1,9 @@
-import { SidebarLoader } from '@/components/layout/sidebar-loader'
-import { SidebarSkeleton } from '@/components/layout/sidebar-skeleton'
-import { Suspense } from 'react'
-import { createClient } from '@/lib/supabase/server'
+import { Sidebar } from '@/components/layout/sidebar'
 import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { CommandPaletteWrapper } from '@/components/cmd-k/command-palette-wrapper'
 import { GlobalQuickAdd } from '@/components/tasks/global-quick-add'
+import { getProjects } from '@/lib/actions/projects'
 
 export default async function AppLayout({
     children,
@@ -18,16 +17,12 @@ export default async function AppLayout({
         redirect('/login')
     }
 
-    // Projects are now fetched inside SidebarLoader (streaming)
-    const sidebar = (
-        <Suspense fallback={<SidebarSkeleton />}>
-            <SidebarLoader user={user} />
-        </Suspense>
-    )
+    const projects = await getProjects(user.id)
 
+    // Remove data fetching from layout - let components fetch their own data
     return (
         <div className="min-h-screen bg-background">
-            <CommandPaletteWrapper sidebar={sidebar}>
+            <CommandPaletteWrapper user={user} projects={projects}>
                 {children}
             </CommandPaletteWrapper>
             <GlobalQuickAdd />
