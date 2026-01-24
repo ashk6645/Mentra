@@ -22,9 +22,20 @@ import { SlashCommandMenu } from './slash-command-menu'
 interface BlockEditorProps {
     initialBlocks?: Block[]
     onChange?: (blocks: Block[]) => void
+    onUpdateBlock?: (id: string, content: any) => void
+    onCreateBlock?: (block: Block, afterBlockId?: string) => void
+    onDeleteBlock?: (id: string) => void
+    onReorderBlocks?: (blocks: Block[]) => void
 }
 
-export function BlockEditor({ initialBlocks = [], onChange }: BlockEditorProps) {
+export function BlockEditor({
+    initialBlocks = [],
+    onChange,
+    onUpdateBlock,
+    onCreateBlock,
+    onDeleteBlock,
+    onReorderBlocks
+}: BlockEditorProps) {
     const { blocks, addBlock, updateBlock, removeBlock, setBlocks } = useBlockEditor({
         initialBlocks,
         onChange
@@ -65,6 +76,7 @@ export function BlockEditor({ initialBlocks = [], onChange }: BlockEditorProps) 
             const newIndex = blocks.findIndex((item) => item.id === over.id)
             const newBlocks = arrayMove(blocks, oldIndex, newIndex)
             setBlocks(newBlocks)
+            onReorderBlocks?.(newBlocks)
         }
     }
 
@@ -106,7 +118,8 @@ export function BlockEditor({ initialBlocks = [], onChange }: BlockEditorProps) 
         }
 
         updateBlock(id, { content })
-    }, [updateBlock, slashMenuState.isOpen, slashMenuState.blockId, closeSlashMenu])
+        onUpdateBlock?.(id, { content })
+    }, [updateBlock, slashMenuState.isOpen, slashMenuState.blockId, closeSlashMenu, onUpdateBlock])
 
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent, blockId: string) => {
@@ -129,8 +142,27 @@ export function BlockEditor({ initialBlocks = [], onChange }: BlockEditorProps) 
 
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault()
-            const newBlockId = addBlock('TEXT', {}, blockId)
-            setFocusedBlockId(newBlockId)
+            // Update local state via hook (which expects just ID/type/content usually, but addBlock implementation varies)
+            // Actually useBlockEditor's addBlock returns ID and updates state.
+            const addedId = addBlock('TEXT', {}, blockId)
+            setFocusedBlockId(addedId)
+
+            // We need to get the block object to pass to onCreateBlock
+            // Since addBlock updates state, we might not have the block obj immediately available in 'blocks' var within this closure
+            // But we can construct it.
+            if (onCreateBlock) {
+                // We rely on addBlock returning the ID that was used.
+                const createdBlock: Block = {
+                    id: addedId,
+                    type: 'TEXT',
+                    content: {},
+                    sortOrder: 0,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }
+                onCreateBlock(createdBlock, blockId)
+            }
+
         } else if (e.key === 'Backspace') {
             const block = blocks.find(b => b.id === blockId)
             const isEmpty = !block?.content.text || block.content.text === ''
@@ -142,6 +174,7 @@ export function BlockEditor({ initialBlocks = [], onChange }: BlockEditorProps) 
                     const prevBlock = blocks[index - 1]
                     setFocusedBlockId(prevBlock.id)
                     removeBlock(blockId)
+                    onDeleteBlock?.(blockId)
                 }
             }
         } else if (e.key === 'ArrowUp') {
@@ -162,13 +195,16 @@ export function BlockEditor({ initialBlocks = [], onChange }: BlockEditorProps) 
     const handleSlashSelect = useCallback((type: BlockType) => {
         if (slashMenuState.blockId) {
             // Convert the current block to the new type
-            updateBlock(slashMenuState.blockId, { type, content: { text: '' } }) // Reset content? Or keep?
+            const updates = { type, content: { text: '' } }
+            updateBlock(slashMenuState.blockId, updates)
+            onUpdateBlock?.(slashMenuState.blockId, updates)
+
             // Usually we clear the '/' text.
             closeSlashMenu()
             // Focus?
             setFocusedBlockId(slashMenuState.blockId)
         }
-    }, [slashMenuState.blockId, updateBlock, closeSlashMenu])
+    }, [slashMenuState.blockId, updateBlock, closeSlashMenu, onUpdateBlock])
 
     return (
         <div className="w-full max-w-3xl mx-auto min-h-[500px] p-8 bg-white dark:bg-zinc-950 rounded-lg shadow-sm border">

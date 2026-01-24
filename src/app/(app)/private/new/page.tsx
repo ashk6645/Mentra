@@ -1,24 +1,36 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createPage } from '@/lib/actions/pages'
 
-export const dynamic = 'force-dynamic'
+export default function NewPrivatePage() {
+    const router = useRouter()
 
-export default async function NewPrivatePage() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    useEffect(() => {
+        const init = async () => {
+            try {
+                const result = await createPage({ title: 'Untitled' })
+                if (result.success && result.page) {
+                    router.replace(`/private/${result.page.id}`)
+                    router.refresh()
+                } else {
+                    router.replace('/dashboard')
+                }
+            } catch (error) {
+                console.error('Failed to create page', error)
+                router.replace('/dashboard')
+            }
+        }
+        init()
+    }, [router])
 
-    if (!user) {
-        redirect('/login')
-    }
-
-    // Create a new page and redirect to it
-    const result = await createPage({ title: 'Untitled' })
-
-    if (result.success && result.page) {
-        redirect(`/private/${result.page.id}`)
-    }
-
-    // Fallback to dashboard if page creation fails
-    redirect('/dashboard')
+    return (
+        <div className="flex h-full items-center justify-center">
+            <div className="animate-pulse flex flex-col items-center gap-2 text-muted-foreground">
+                <div className="h-6 w-6 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                <span className="text-sm">Creating page...</span>
+            </div>
+        </div>
+    )
 }

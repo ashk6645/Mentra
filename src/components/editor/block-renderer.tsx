@@ -10,6 +10,7 @@ import { HeadingBlock } from './blocks/heading-block'
 import { ListBlock } from './blocks/list-block'
 import { TodoBlock } from './blocks/todo-block'
 import { DividerBlock } from './blocks/divider-block'
+import { CodeBlock } from './blocks/code-block'
 
 // Map block types to components
 const BLOCK_COMPONENTS: Partial<Record<BlockType, React.ComponentType<any>>> = {
@@ -21,8 +22,11 @@ const BLOCK_COMPONENTS: Partial<Record<BlockType, React.ComponentType<any>>> = {
     NUMBERED_LIST: ListBlock,
     TODO_LIST: TodoBlock,
     DIVIDER: DividerBlock,
+    CODE: CodeBlock,
     DATABASE_BOARD: DatabaseBlock,
     DATABASE_TABLE: DatabaseBlock,
+    DATABASE_GALLERY: DatabaseBlock,
+    DATABASE_CALENDAR: DatabaseBlock,
 }
 
 interface BlockRendererProps {

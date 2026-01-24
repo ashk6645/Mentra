@@ -17,6 +17,7 @@ declare module 'react-contenteditable' {
         onChange?: (event: ContentEditableEvent) => void;
         onBlur?: (event: React.FocusEvent<HTMLElement>) => void;
         onKeyDown?: (event: React.KeyboardEvent<HTMLElement>) => void;
+        placeholder?: string;
     }
 
     export default class ContentEditable extends React.Component<Props> { }

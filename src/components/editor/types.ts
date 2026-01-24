@@ -12,6 +12,8 @@ export type BlockType =
     | 'IMAGE'
     | 'DATABASE_TABLE'
     | 'DATABASE_BOARD'
+    | 'DATABASE_GALLERY'
+    | 'DATABASE_CALENDAR'
 
 
 export type BlockContent = Record<string, any>

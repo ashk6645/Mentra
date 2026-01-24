@@ -10,6 +10,7 @@ import { BlockType } from '@prisma/client'
 // ========================================
 
 export interface CreateBlockInput {
+    id?: string
     pageId: string
     type: BlockType
     content?: Record<string, unknown>
@@ -102,6 +103,7 @@ export async function createBlock(data: CreateBlockInput) {
 
         const block = await prisma.block.create({
             data: {
+                id: data.id, // Optional client-generated ID
                 pageId: data.pageId,
                 type: data.type,
                 content: (data.content || {}) as any,
@@ -207,7 +209,8 @@ export async function insertBlockAt(
     pageId: string,
     type: BlockType,
     afterBlockId: string | null,
-    content?: Record<string, unknown>
+    content?: Record<string, unknown>,
+    id?: string // Optional client ID
 ) {
     try {
         const supabase = await createClient()
@@ -296,6 +299,7 @@ export async function insertBlockAt(
 
         const block = await prisma.block.create({
             data: {
+                id,
                 pageId,
                 type,
                 content: (content || {}) as any,
