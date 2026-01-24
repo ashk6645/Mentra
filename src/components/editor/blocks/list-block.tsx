@@ -26,7 +26,7 @@ export const ListBlock = React.forwardRef<HTMLElement, ListBlockProps>(
 
         return (
             <div className="flex items-start gap-2 py-1">
-                <div className="mt-1.5 select-none w-5 flex justify-center">
+                <div className="h-6 select-none w-5 flex items-center justify-center shrink-0">
                     {block.type === 'BULLETED_LIST' && (
                         <div className="w-1.5 h-1.5 rounded-full bg-black dark:bg-white" />
                     )}
