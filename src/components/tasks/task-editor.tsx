@@ -61,25 +61,64 @@ export function TaskEditor({
     const [priority, setPriority] = useState<string | null>(null)
     const [projectId, setProjectId] = useState<string>(defaultProjectId || 'inbox')
 
+    // Clean title for submission (without tags/dates)
+    const [parsedTitle, setParsedTitle] = useState('')
+
     // Auto-focus title on mount
     const titleInputRef = useRef<HTMLInputElement>(null)
+    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+
     useEffect(() => {
         if (titleInputRef.current) {
             titleInputRef.current.focus()
         }
     }, [])
 
+    const handleTitleChange = (newVal: string) => {
+        setTitle(newVal)
+        setParsedTitle(newVal) // Default to raw if no parsing happens
+
+        // Simple debounce for parsing
+        if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+        debounceTimerRef.current = setTimeout(async () => {
+            try {
+                // Dynamic import to parse
+                const { parseTaskNaturalLanguage } = await import('@/lib/parsers/task-parser')
+
+                const parsed = parseTaskNaturalLanguage(newVal, {
+                    currentDate: new Date(),
+                    availableProjects: projects,
+                    availableTags: availableTags,
+                })
+
+                setParsedTitle(parsed.title)
+
+                if (parsed.dueDate) setDate(parsed.dueDate)
+                if (parsed.priority) setPriority(parsed.priority)
+                if (parsed.projectName) {
+                    const p = projects.find(proj => proj.name.toLowerCase() === parsed.projectName?.toLowerCase())
+                    if (p) setProjectId(p.id)
+                }
+            } catch (err) {
+                console.error("Parsing error", err)
+            }
+        }, 500)
+    }
+
     const handleSubmit = (e?: React.FormEvent) => {
         if (e) e.preventDefault()
         if (!title.trim()) return
 
+        // Verify projectId is valid (exists in projects list) or is 'inbox'
+        const isValidProject = projectId === 'inbox' || projects.some(p => p.id === projectId)
+        const finalProjectId = isValidProject ? (projectId === 'inbox' ? undefined : projectId) : undefined
+
         onSubmit({
-            title,
+            title: parsedTitle || title, // Use parsed title if available
             description,
             dueDate: date,
             priority: priority as any,
-            projectId: projectId === 'inbox' ? undefined : projectId,
-            // Tags and time could be added here if we expanded the UI further
+            projectId: finalProjectId,
         })
     }
 
@@ -95,7 +134,7 @@ export function TaskEditor({
                     className="w-full bg-transparent text-lg font-semibold placeholder:text-muted-foreground/60 focus:outline-none"
                     placeholder="Task name"
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    onChange={(e) => handleTitleChange(e.target.value)}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault()
@@ -182,6 +221,11 @@ export function TaskEditor({
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                         <Clock className="h-4 w-4 text-muted-foreground" />
                     </Button>
+                </div>
+
+                {/* Natural Language Tips */}
+                <div className="pt-2 text-[10px] text-muted-foreground/60 select-none">
+                    Use <span className="font-mono">#project</span>, <span className="font-mono">@tag</span>, <span className="font-mono">p1-4</span>, <span className="font-mono">!reminder</span>, or type dates like <span className="font-mono">"tomorrow at 3pm"</span>.
                 </div>
             </div>
 
