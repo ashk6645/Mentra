@@ -36,7 +36,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useUIStore } from '@/stores/use-ui-store'
 import { PanelLeftClose, MoreHorizontal, Trash2 } from 'lucide-react'
 import { deleteProject, getProjects } from '@/lib/actions/projects'
-import { deletePage } from '@/lib/actions/pages'
+import { deletePage, getPages } from '@/lib/actions/pages'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -94,10 +94,14 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
     useEffect(() => {
         if (user?.id) {
             fetchProfile()
-            // fetchProjects() removed - passed as prop
-            fetchPages()
         }
     }, [user?.id])
+
+    useEffect(() => {
+        if (user?.id) {
+            fetchPages()
+        }
+    }, [user?.id, pathname])
 
     async function fetchProfile() {
         try {
@@ -120,15 +124,15 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
     }
 
     async function fetchPages() {
+        console.log("Fetching pages for user:", user?.id)
         try {
-            const { data } = await supabase
-                .from('pages')
-                .select('id, title, icon, parentPageId, isFavorited')
-                .eq('userId', user?.id)
-                .order('createdAt', { ascending: false })
+            const result = await getPages()
 
-            if (data) {
-                setPages(data as PageItem[])
+            if (result.success && result.pages) {
+                console.log("Fetched pages:", result.pages.length, result.pages)
+                setPages(result.pages as PageItem[])
+            } else {
+                console.error("Error fetching pages via action:", result.error)
             }
         } catch (error) {
             console.error('Error fetching pages:', error)
