@@ -171,10 +171,11 @@ export function DatabaseBlock({
 
     return (
         <>
-            <div className="border border-border rounded-lg overflow-hidden bg-background">
-                {/* Header */}
-                <div className="flex items-center justify-between px-4 py-2 border-b border-border/50">
-                    <div className="flex items-center gap-2">
+            {/* Notion-style Database Block */}
+            <div className="my-1 rounded-md overflow-hidden bg-background border border-border/40 shadow-sm hover:shadow-md transition-shadow">
+                {/* Header - Notion style */}
+                <div className="flex items-center justify-between px-3 py-2.5 bg-muted/30 border-b border-border/40">
+                    <div className="flex items-center gap-2 flex-1">
                         <input
                             type="text"
                             value={title}
@@ -182,52 +183,78 @@ export function DatabaseBlock({
                                 setTitle(e.target.value)
                                 onUpdate({ ...content, title: e.target.value })
                             }}
-                            className="font-semibold text-base bg-transparent border-none outline-none focus:ring-0"
-                            placeholder="Database title..."
+                            className="font-semibold text-sm bg-transparent border-none outline-none focus:ring-0 placeholder:text-muted-foreground/50"
+                            placeholder="Untitled Database"
                         />
+                        <span className="text-xs text-muted-foreground tabular-nums">
+                            {items.length} {items.length === 1 ? 'item' : 'items'}
+                        </span>
                     </div>
 
                     <div className="flex items-center gap-1">
-                        {/* View Switcher */}
+                        {/* View Switcher - Notion style */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-muted-foreground">
+                                <Button variant="ghost" size="sm" className="h-6 gap-1 text-xs text-muted-foreground hover:text-foreground hover:bg-accent/50">
                                     {currentView.icon}
-                                    <span className="text-xs">{currentView.label}</span>
+                                    <span>{currentView.label}</span>
                                     <ChevronDown className="h-3 w-3" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
+                            <DropdownMenuContent align="end" className="w-40">
                                 {VIEW_TYPES.map((view) => (
                                     <DropdownMenuItem
                                         key={view.type}
                                         onClick={() => handleChangeView(view.type)}
-                                        className={cn(viewType === view.type && "bg-accent")}
+                                        className={cn(
+                                            "flex items-center gap-2 text-sm",
+                                            viewType === view.type && "bg-accent font-medium"
+                                        )}
                                     >
                                         {view.icon}
-                                        <span className="ml-2">{view.label}</span>
+                                        <span>{view.label}</span>
                                     </DropdownMenuItem>
                                 ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
 
-                        {/* New Button */}
+                        {/* New Button - Notion style */}
                         <Button
                             size="sm"
-                            className="h-7 gap-1"
+                            variant="ghost"
+                            className="h-6 gap-1 text-xs hover:bg-accent/50"
                             onClick={handleAddItem}
                         >
                             <Plus className="h-3 w-3" />
                             New
                         </Button>
+
+                        {/* More Options */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground">
+                                    <MoreHorizontal className="h-3.5 w-3.5" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem>
+                                    <Settings className="h-3.5 w-3.5 mr-2" />
+                                    Properties
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                    <Expand className="h-3.5 w-3.5 mr-2" />
+                                    Full page
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
 
                 {/* Content */}
-                <div className="min-h-[100px]">
+                <div className="min-h-[120px] bg-background">
                     {isLoading ? (
-                        <div className="flex items-center justify-center py-12">
-                            <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
+                        <div className="flex items-center justify-center py-16">
+                            <div className="animate-spin rounded-full h-5 w-5 border-2 border-primary border-t-transparent" />
                         </div>
                     ) : (
                         <DatabaseViewRenderer
@@ -342,38 +369,48 @@ function TableView({
 
     return (
         <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm border-collapse">
                 <thead>
-                    <tr className="border-b border-border/50">
-                        <th className="text-left py-2 px-4 font-medium text-muted-foreground w-[250px]">
-                            <span className="flex items-center gap-2">
-                                Aa Name
-                            </span>
+                    <tr className="border-b border-border/40">
+                        <th className="text-left py-2 px-3 font-medium text-muted-foreground text-xs uppercase tracking-wide w-[280px] bg-muted/20">
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-base">📄</span>
+                                <span>Name</span>
+                            </div>
                         </th>
                         {properties.map((prop) => (
-                            <th key={prop.id} className="text-left py-2 px-4 font-medium text-muted-foreground">
+                            <th key={prop.id} className="text-left py-2 px-3 font-medium text-muted-foreground text-xs uppercase tracking-wide bg-muted/20">
                                 {prop.name}
                             </th>
                         ))}
-                        <th className="py-2 px-4 text-left text-muted-foreground">
-                            <button className="text-xs hover:text-foreground">+ Add property</button>
+                        <th className="py-2 px-3 text-left text-muted-foreground bg-muted/20 w-8">
+                            <button className="text-xs hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                                +
+                            </button>
                         </th>
                     </tr>
                 </thead>
                 <tbody>
-                    {items.map((item) => (
-                        <tr key={item.id} className="border-b border-border/30 hover:bg-accent/30 group">
-                            <td className="py-1.5 px-4">
+                    {items.map((item, index) => (
+                        <tr 
+                            key={item.id} 
+                            className={cn(
+                                "border-b border-border/30 hover:bg-accent/30 group transition-colors",
+                                index % 2 === 0 ? "bg-background" : "bg-muted/10"
+                            )}
+                        >
+                            <td className="py-2 px-3">
                                 <button
                                     onClick={() => onOpenItem(item)}
-                                    className="flex items-center gap-2 hover:text-primary text-left w-full"
+                                    className="flex items-center gap-2 hover:text-primary text-left w-full group/cell"
                                 >
-                                    <Expand className="h-3 w-3 opacity-0 group-hover:opacity-50" />
-                                    <span className="truncate">{item.title}</span>
+                                    <Expand className="h-3 w-3 opacity-0 group-hover/cell:opacity-50 transition-opacity" />
+                                    <span className="text-sm">{item.icon || '📄'}</span>
+                                    <span className="truncate font-medium">{item.title}</span>
                                 </button>
                             </td>
                             {properties.map((prop) => (
-                                <td key={prop.id} className="py-1.5 px-4">
+                                <td key={prop.id} className="py-2 px-3">
                                     {prop.type === 'SELECT' && (
                                         <StatusBadge
                                             value={item.properties[prop.id] || item.properties.status}
@@ -383,20 +420,25 @@ function TableView({
                                             })}
                                         />
                                     )}
+                                    {prop.type === 'TEXT' && (
+                                        <span className="text-sm text-muted-foreground">
+                                            {item.properties[prop.id] || '—'}
+                                        </span>
+                                    )}
                                 </td>
                             ))}
                             <td></td>
                         </tr>
                     ))}
                     {/* Add row */}
-                    <tr>
-                        <td colSpan={properties.length + 2} className="py-1.5 px-4">
+                    <tr className="hover:bg-accent/20 transition-colors">
+                        <td colSpan={properties.length + 2} className="py-2 px-3">
                             <button
                                 onClick={onAddItem}
-                                className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm"
+                                className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm w-full"
                             >
-                                <Plus className="h-3 w-3" />
-                                New page
+                                <Plus className="h-3.5 w-3.5" />
+                                <span>New</span>
                             </button>
                         </td>
                     </tr>
@@ -483,7 +525,6 @@ function BoardView({
 
     const groupedItems = statuses.reduce((acc, status) => {
         acc[status.id] = items.filter(item => {
-            // Check both property ID and 'status' fallback
             const itemValue = item.properties[propertyId] || item.properties.status || 'not_started'
             return itemValue === status.id
         })
@@ -491,44 +532,56 @@ function BoardView({
     }, {} as Record<string, DatabaseItem[]>)
 
     return (
-        <div className="flex gap-3 p-3 overflow-x-auto">
+        <div className="flex gap-4 p-4 overflow-x-auto">
             {statuses.map((status) => (
-                <div key={status.id} className="flex-shrink-0 w-64 bg-muted/30 rounded-lg">
-                    {/* Column Header */}
-                    <div className="flex items-center justify-between p-3 pb-2">
+                <div key={status.id} className="flex-shrink-0 w-72 bg-muted/20 rounded-lg">
+                    {/* Column Header - Notion style */}
+                    <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/30">
                         <div className="flex items-center gap-2">
                             <span className={cn(
                                 "w-2 h-2 rounded-full",
-                                status.color === 'gray' && "bg-gray-500",
+                                status.color === 'gray' && "bg-gray-400",
                                 status.color === 'blue' && "bg-blue-500",
                                 status.color === 'green' && "bg-green-500",
+                                status.color === 'red' && "bg-red-500",
+                                status.color === 'yellow' && "bg-yellow-500",
                             )} />
                             <span className="text-sm font-medium">{status.name}</span>
-                            <span className="text-xs text-muted-foreground bg-muted px-1.5 rounded">
+                            <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                                 {groupedItems[status.id]?.length || 0}
                             </span>
                         </div>
                     </div>
 
                     {/* Cards */}
-                    <div className="px-2 pb-2 space-y-2">
+                    <div className="p-2 space-y-2 min-h-[200px]">
                         {(groupedItems[status.id] || []).map((item) => (
                             <button
                                 key={item.id}
                                 onClick={() => onOpenItem(item)}
-                                className="w-full bg-background border border-border rounded-lg p-3 text-left hover:shadow-sm transition-shadow"
+                                className="w-full bg-background border border-border/40 rounded-md p-3 text-left hover:shadow-md hover:border-border transition-all group"
                             >
-                                <span className="text-sm">{item.title}</span>
+                                <div className="flex items-start gap-2">
+                                    <span className="text-base">{item.icon || '📄'}</span>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-sm font-medium truncate">{item.title}</div>
+                                        {item.properties.description && (
+                                            <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                                {item.properties.description}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </button>
                         ))}
 
                         {/* Add Card */}
                         <button
                             onClick={onAddItem}
-                            className="w-full flex items-center gap-2 p-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded transition-colors"
+                            className="w-full flex items-center gap-2 p-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-md transition-colors"
                         >
                             <Plus className="h-4 w-4" />
-                            New page
+                            <span>New</span>
                         </button>
                     </div>
                 </div>

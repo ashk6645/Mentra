@@ -148,20 +148,11 @@ export function PageEditor({ page }: PageEditorProps) {
         // Immediate local state update is handled by BlockEditor
         // We just schedule server save
         saveTimeoutRef.current = setTimeout(async () => {
-            // We need to map 'updates' from BlockEditor (which might be just content or type) 
-            // to the expected format for updateBlock action
+            // Map updates from BlockEditor to the expected format for updateBlock action
             const payload: any = {}
-            if (updates.content) payload.content = updates.content
-            if (updates.type) {
-                // updateBlock action doesn't support changing type currently?
-                // Let's check blocks.ts. It supports content and sortOrder.
-                // Ideally changing type means re-creating or supporting it.
-                // For now, let's assume type change is rare or handled differently.
-                // Actually BlockEditor calls updateBlock with type for Slash commands!
-                // WE NEED TO FIX THIS: updateBlock action needs to support type change or we delete/create.
-                // Prisma doesn't easily allow type change if strict.
-                // Let's act like we save content. Type change might fail if not supported.
-            }
+            if (updates.content !== undefined) payload.content = updates.content
+            if (updates.type !== undefined) payload.type = updates.type
+            if (updates.sortOrder !== undefined) payload.sortOrder = updates.sortOrder
 
             await updateBlock(id, payload)
         }, 500)

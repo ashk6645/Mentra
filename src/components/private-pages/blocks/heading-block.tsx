@@ -31,18 +31,19 @@ export function HeadingBlock({
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        const input = inputRef.current
+        if (!input) return
+
+        const cursorPosition = input.selectionStart || 0
+
         // Enter creates new text block below
         if (e.key === 'Enter') {
             e.preventDefault()
-            // Immediately blur for instant feedback
-            if (inputRef.current) {
-                inputRef.current.blur()
-            }
             onAddBlock('TEXT', block.id)
         }
 
-        // Backspace on empty block deletes it
-        if (e.key === 'Backspace' && text === '') {
+        // Backspace at start of empty block - delete block
+        if (e.key === 'Backspace' && cursorPosition === 0 && text === '') {
             e.preventDefault()
             onDelete()
         }

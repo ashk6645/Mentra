@@ -19,6 +19,7 @@ export interface CreateBlockInput {
 }
 
 export interface UpdateBlockInput {
+    type?: BlockType
     content?: Record<string, unknown>
     sortOrder?: number
 }
@@ -149,6 +150,7 @@ export async function updateBlock(id: string, data: UpdateBlockInput) {
         const block = await prisma.block.update({
             where: { id },
             data: {
+                ...(data.type !== undefined && { type: data.type }),
                 ...(data.content !== undefined && { content: data.content as any }),
                 ...(data.sortOrder !== undefined && { sortOrder: data.sortOrder }),
             },

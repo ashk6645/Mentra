@@ -41,19 +41,22 @@ export function ListBlock({
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        const input = inputRef.current
+        if (!input) return
+
+        const cursorPosition = input.selectionStart || 0
+
+        // Enter creates same type of list item
         if (e.key === 'Enter') {
             e.preventDefault()
-            // Immediately blur for instant feedback
-            if (inputRef.current) {
-                inputRef.current.blur()
-            }
-            // Create same type of list item
             const blockType = variant === 'bulleted' ? 'BULLETED_LIST'
                 : variant === 'numbered' ? 'NUMBERED_LIST'
                     : 'TODO_LIST'
             onAddBlock(blockType, block.id)
         }
-        if (e.key === 'Backspace' && text === '') {
+
+        // Backspace at start of empty block - delete block
+        if (e.key === 'Backspace' && cursorPosition === 0 && text === '') {
             e.preventDefault()
             onDelete()
         }

@@ -29,8 +29,9 @@ export function TextBlock({
     useEffect(() => {
         if (focusedBlockId === block.id && textareaRef.current) {
             textareaRef.current.focus()
-            // Reset cursor to start? Or end? Usually end if splitting?
-            // For now just focus.
+            // Move cursor to end
+            const length = textareaRef.current.value.length
+            textareaRef.current.setSelectionRange(length, length)
         }
     }, [focusedBlockId, block.id])
 
@@ -54,9 +55,10 @@ export function TextBlock({
 
         const cursorPosition = textarea.selectionStart
         const textBeforeCursor = text.substring(0, cursorPosition)
+        const textAfterCursor = text.substring(cursorPosition)
 
         // Slash menu trigger - only at start of line or after space
-        if (e.key === '/' && (cursorPosition === 0 || textBeforeCursor.endsWith(' ') || textBeforeCursor.endsWith('\n'))) {
+        if (e.key === '/' && (cursorPosition === 0 || textBeforeCursor.endsWith(' '))) {
             // Let the slash be typed, then trigger menu
             setTimeout(() => {
                 onOpenSlashMenu()
@@ -67,13 +69,34 @@ export function TextBlock({
         // Enter key - create new block
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault()
-            onAddBlock('TEXT', block.id)
+            
+            // If there's text after cursor, split it
+            if (textAfterCursor) {
+                // Update current block with text before cursor
+                setText(textBeforeCursor)
+                onUpdate({ text: textBeforeCursor })
+                
+                // Create new block with text after cursor
+                // This would need to be handled by parent to set initial content
+                onAddBlock('TEXT', block.id)
+            } else {
+                // Just create new empty block
+                onAddBlock('TEXT', block.id)
+            }
         }
 
-        // Backspace at start of empty block - delete block
-        if (e.key === 'Backspace' && cursorPosition === 0 && text === '') {
+        // Shift+Enter - just new line (default behavior)
+        // No need to handle
+
+        // Backspace at start of block - delete block and merge with previous
+        if (e.key === 'Backspace' && cursorPosition === 0) {
             e.preventDefault()
-            onDelete()
+            // Only delete if block is empty
+            if (text === '') {
+                onDelete()
+            }
+            // If block has content, let parent handle merging
+            // This would need parent support
         }
     }
 
@@ -83,7 +106,7 @@ export function TextBlock({
             value={text}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            placeholder="Type something..."
+            placeholder="Type '/' for commands"
             className="w-full bg-transparent border-none outline-none resize-none text-base leading-relaxed placeholder:text-muted-foreground/40 focus:ring-0 min-h-[1.5rem]"
             rows={1}
         />
