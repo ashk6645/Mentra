@@ -310,7 +310,7 @@ export async function togglePageFavorite(id: string) {
             data: { isFavorited: !page.isFavorited },
         })
 
-        revalidateTag(`pages-${user.id}`)
+            ; (revalidateTag as any)(`pages-${user.id}`)
         revalidatePath('/', 'layout')
 
         return { success: true, isFavorited: updated.isFavorited }
