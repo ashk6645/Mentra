@@ -21,18 +21,23 @@ const createProjectSchema = z.object({
 
 export type CreateProjectInput = z.infer<typeof createProjectSchema>
 
-export async function getProjects() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-        console.log('[getProjects] No user found')
-        return []
+export async function getProjects(userId?: string) {
+    if (!userId) {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+            console.log('[getProjects] No user found')
+            return []
+        }
+        userId = user.id
+        console.log('[getProjects] Fetching for user:', userId)
+    } else {
+        // console.log('[getProjects] Using provided userId:', userId)
     }
-    console.log('[getProjects] Fetching for user:', user.id)
 
     return await prisma.project.findMany({
         where: {
-            userId: user.id
+            userId: userId
         },
         select: {
             id: true,

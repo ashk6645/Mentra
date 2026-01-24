@@ -128,7 +128,6 @@ export function TableView({ onRowClick }: TableViewProps) {
             <th className="w-10 px-2 py-2 text-left">
               <Checkbox
                 checked={allSelected}
-                // @ts-ignore - indeterminate is valid but not in types
                 indeterminate={someSelected}
                 onCheckedChange={handleSelectAllToggle}
                 data-no-row-click

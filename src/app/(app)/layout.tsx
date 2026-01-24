@@ -17,7 +17,7 @@ export default async function AppLayout({
         redirect('/login')
     }
 
-    const projects = await getProjects()
+    const projects = await getProjects(user.id)
 
     // Remove data fetching from layout - let components fetch their own data
     return (
