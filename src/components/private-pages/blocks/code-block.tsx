@@ -9,7 +9,7 @@ interface CodeBlockProps {
     block: Block
     onUpdate: (content: Record<string, unknown>) => void
     onDelete: () => void
-    onAddBlock: (type: BlockType, afterBlockId: string) => void
+    onAddBlock: (type: BlockType, afterBlockId: string, initialContent?: Record<string, unknown>) => void
     isEditing?: boolean
 }
 

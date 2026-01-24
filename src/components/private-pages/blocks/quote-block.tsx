@@ -7,7 +7,7 @@ interface QuoteBlockProps {
     block: Block
     onUpdate: (content: Record<string, unknown>) => void
     onDelete: () => void
-    onAddBlock: (type: BlockType, afterBlockId: string) => void
+    onAddBlock: (type: BlockType, afterBlockId: string, initialContent?: Record<string, unknown>) => void
     isEditing?: boolean
 }
 
@@ -36,14 +36,34 @@ export function QuoteBlock({
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        const textarea = textareaRef.current
+        if (!textarea) return
+
+        const cursorPosition = textarea.selectionStart
+        const textBeforeCursor = text.substring(0, cursorPosition)
+        const textAfterCursor = text.substring(cursorPosition)
+
         // Shift+Enter creates new block outside quote
         if (e.key === 'Enter' && e.shiftKey) {
             e.preventDefault()
+            
+            // If there's text after cursor, split it
+            if (textAfterCursor) {
+                // Update current block with text before cursor
+                setText(textBeforeCursor)
+                onUpdate({ text: textBeforeCursor })
+                
+                // Create new text block with text after cursor
+                onAddBlock('TEXT', block.id, { text: textAfterCursor })
+            } else {
+                // Just create new empty text block
+                onAddBlock('TEXT', block.id)
+            }
+            
             // Immediately blur for instant feedback
             if (textareaRef.current) {
                 textareaRef.current.blur()
             }
-            onAddBlock('TEXT', block.id)
         }
         // Regular Enter creates new line within quote (default behavior)
 

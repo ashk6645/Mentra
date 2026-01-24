@@ -12,7 +12,7 @@ interface ToggleBlockProps {
     block: Block
     onUpdate: (content: Record<string, unknown>) => void
     onDelete: () => void
-    onAddBlock: (type: BlockType, afterBlockId: string) => void
+    onAddBlock: (type: BlockType, afterBlockId: string, initialContent?: Record<string, unknown>) => void
     onOpenSlashMenu: () => void
     focusedBlockId?: string | null
     isEditing?: boolean
@@ -39,6 +39,11 @@ export function ToggleBlock({
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        const input = e.currentTarget
+        const cursorPosition = input.selectionStart || 0
+        const textBeforeCursor = (content.text || '').substring(0, cursorPosition)
+        const textAfterCursor = (content.text || '').substring(cursorPosition)
+
         if (e.key === '/') {
             e.preventDefault()
             onOpenSlashMenu()
@@ -47,10 +52,18 @@ export function ToggleBlock({
 
         if (e.key === 'Enter') {
             e.preventDefault()
-            // Create a new block AFTER the toggle (sibling)
-            // Or if open, create inside? Notion creates sibling for heading toggles usually, unless at end of line?
-            // Let's stick to sibling for now, creating a new line below.
-            onAddBlock('TEXT', block.id)
+            
+            // If there's text after cursor, split it
+            if (textAfterCursor) {
+                // Update current block with text before cursor
+                onUpdate({ ...content, text: textBeforeCursor })
+                
+                // Create new text block with text after cursor
+                onAddBlock('TEXT', block.id, { text: textAfterCursor })
+            } else {
+                // Just create new empty text block
+                onAddBlock('TEXT', block.id)
+            }
         }
 
         if (e.key === 'Backspace' && (!content.text || content.text === '')) {

@@ -46,10 +46,10 @@ export const ToggleBlock = React.forwardRef<HTMLElement, ToggleBlockProps>(
 
         return (
             <div className="flex flex-col">
-                <div className="flex items-start gap-1 py-1 group">
+                <div className="flex items-center gap-1 py-1 group">
                     <button
                         onClick={toggleOpen}
-                        className="mt-1.5 p-0.5 rounded hover:bg-gray-200 dark:hover:bg-zinc-800 text-gray-500 transition-colors select-none"
+                        className="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-zinc-800 text-gray-500 transition-colors select-none flex-shrink-0"
                         contentEditable={false}
                     >
                         <ChevronRight

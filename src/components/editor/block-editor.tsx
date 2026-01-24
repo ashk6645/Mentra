@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useState, useRef } from 'react'
 import {
     DndContext,
     closestCenter,
@@ -44,6 +44,8 @@ export function BlockEditor({
     const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null)
     // New state to track desired cursor position
     const [focusedBlockCursor, setFocusedBlockCursor] = useState<{ id: string; offset: number } | null>(null)
+    // Flag to prevent handleBlockChange from interfering with Enter key text splitting
+    const isHandlingEnterRef = useRef(false)
 
     // Slash Action Menu State
     const [slashMenuState, setSlashMenuState] = useState<{
@@ -99,6 +101,13 @@ export function BlockEditor({
     // For now, let's implement a wrapper or logic in `onChange` of blocks
 
     const handleBlockChange = useCallback((id: string, content: any) => {
+        // Skip slash menu logic if we're in the middle of handling Enter key
+        if (isHandlingEnterRef.current) {
+            updateBlock(id, { content })
+            onUpdateBlock?.(id, { content })
+            return
+        }
+
         // 1. Get raw text (no trim initially to preserve position)
         const textContent = (document.createElement('div').textContent = content.text || '') || ''
 
@@ -113,6 +122,8 @@ export function BlockEditor({
         const selection = window.getSelection()
         if (!selection || !selection.isCollapsed) {
             if (slashMenuState.isOpen) closeSlashMenu()
+            updateBlock(id, { content })
+            onUpdateBlock?.(id, { content })
             return
         }
 
@@ -130,6 +141,8 @@ export function BlockEditor({
         const slashIndex = beforeCursor.lastIndexOf('/')
         if (slashIndex === -1) {
             if (slashMenuState.isOpen) closeSlashMenu()
+            updateBlock(id, { content })
+            onUpdateBlock?.(id, { content })
             return
         }
 
@@ -137,6 +150,8 @@ export function BlockEditor({
         // Slash must be at start (index 0) or preceded by whitespace
         if (slashIndex > 0 && !/\s/.test(beforeCursor[slashIndex - 1])) {
             if (slashMenuState.isOpen) closeSlashMenu()
+            updateBlock(id, { content })
+            onUpdateBlock?.(id, { content })
             return
         }
 
@@ -146,6 +161,8 @@ export function BlockEditor({
         // Space ends slash mode
         if (query.includes(' ')) {
             if (slashMenuState.isOpen) closeSlashMenu()
+            updateBlock(id, { content })
+            onUpdateBlock?.(id, { content })
             return
         }
 
@@ -195,6 +212,9 @@ export function BlockEditor({
         if (e.key === 'Enter') {
             e.preventDefault()
 
+            // Set flag to prevent handleBlockChange from interfering
+            isHandlingEnterRef.current = true
+
             // Check current block type
             const currentBlock = blocks.find(b => b.id === blockId)
 
@@ -213,7 +233,55 @@ export function BlockEditor({
                     }
                     onCreateBlock(createdBlock, blockId)
                 }
+                // Clear flag before returning
+                isHandlingEnterRef.current = false
                 return
+            }
+
+            // Get cursor position and split text
+            let textBeforeCursor = ''
+            let textAfterCursor = ''
+            
+            const blockElement = document.querySelector(`[data-block-id="${blockId}"]`)
+            
+            if (blockElement) {
+                // Try input/textarea elements first (for private-pages blocks and simpler detection)
+                const inputElement = blockElement.querySelector('input[type="text"], textarea') as HTMLInputElement | HTMLTextAreaElement
+                if (inputElement && document.activeElement === inputElement) {
+                    const fullText = inputElement.value || ''
+                    const cursorOffset = inputElement.selectionStart || 0
+                    
+                    textBeforeCursor = fullText.substring(0, cursorOffset)
+                    textAfterCursor = fullText.substring(cursorOffset)
+                } else {
+                    // Try ContentEditable (for editor blocks)
+                    const selection = window.getSelection()
+                    if (selection && selection.rangeCount > 0) {
+                        const range = selection.getRangeAt(0)
+                        // Get the contenteditable that's actually focused
+                        const contentElement = blockElement.querySelector('[contenteditable="true"]') || blockElement.querySelector('[contenteditable]')
+                        if (contentElement && contentElement.contains(selection.anchorNode)) {
+                            // Get full text
+                            const fullText = contentElement.textContent || ''
+                            
+                            // Calculate cursor offset
+                            try {
+                                const preCaretRange = range.cloneRange()
+                                preCaretRange.selectNodeContents(contentElement)
+                                preCaretRange.setEnd(range.endContainer, range.endOffset)
+                                const cursorOffset = preCaretRange.toString().length
+                                
+                                textBeforeCursor = fullText.substring(0, cursorOffset)
+                                textAfterCursor = fullText.substring(cursorOffset)
+                            } catch (e) {
+                                // Fallback: just use the full text
+                                console.warn('Error calculating cursor position:', e)
+                                textBeforeCursor = fullText
+                                textAfterCursor = ''
+                            }
+                        }
+                    }
+                }
             }
 
             // Regular Enter
@@ -225,7 +293,7 @@ export function BlockEditor({
 
             let nextType: BlockType = 'TEXT'
             if (currentBlock) {
-                if (currentBlock.type === 'BULLETED_LIST' || currentBlock.type === 'NUMBERED_LIST' || currentBlock.type === 'TODO_LIST') {
+                if (currentBlock.type === 'BULLETED_LIST' || currentBlock.type === 'NUMBERED_LIST' || currentBlock.type === 'TODO_LIST' || currentBlock.type === 'TOGGLE_LIST') {
                     nextType = currentBlock.type
                 }
             }
@@ -240,23 +308,47 @@ export function BlockEditor({
                 // We don't need to add new block if we just converted this one.
                 // onUpdateBlock handle type change? We need to ensure it propagates.
                 onUpdateBlock?.(blockId, { type: 'TEXT' })
+                // Clear flag before returning
+                isHandlingEnterRef.current = false
                 return
             }
 
-            const addedId = addBlock(nextType, {}, blockId)
+            // Update current block with text before cursor
+            if (textBeforeCursor !== undefined && currentBlock) {
+                updateBlock(blockId, { content: { ...currentBlock.content, text: textBeforeCursor } })
+                onUpdateBlock?.(blockId, { content: { ...currentBlock.content, text: textBeforeCursor } })
+            }
+
+            // Create new block with text after cursor
+            let newContent: any = textAfterCursor ? { text: textAfterCursor } : { text: '' }
+            
+            // Add default properties for specific block types
+            if (nextType === 'TODO_LIST') {
+                newContent.checked = false
+            } else if (nextType === 'TOGGLE_LIST') {
+                newContent.isOpen = false
+                newContent.children = []
+            }
+            
+            const addedId = addBlock(nextType, newContent, blockId)
             setFocusedBlockId(addedId)
 
             if (onCreateBlock) {
                 const createdBlock: Block = {
                     id: addedId,
                     type: nextType,
-                    content: {},
+                    content: newContent,
                     sortOrder: 0,
                     createdAt: new Date(),
                     updatedAt: new Date()
                 }
                 onCreateBlock(createdBlock, blockId)
             }
+
+            // Clear flag after Enter handling is complete
+            setTimeout(() => {
+                isHandlingEnterRef.current = false
+            }, 0)
 
         } else if (e.key === 'Backspace') {
             const currentBlock = blocks.find(b => b.id === blockId)

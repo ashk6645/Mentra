@@ -8,7 +8,7 @@ interface HeadingBlockProps {
     block: Block
     onUpdate: (content: Record<string, unknown>) => void
     onDelete: () => void
-    onAddBlock: (type: BlockType, afterBlockId: string) => void
+    onAddBlock: (type: BlockType, afterBlockId: string, initialContent?: Record<string, unknown>) => void
     level: 1 | 2 | 3
     isEditing?: boolean
 }
@@ -35,11 +35,25 @@ export function HeadingBlock({
         if (!input) return
 
         const cursorPosition = input.selectionStart || 0
+        const textBeforeCursor = text.substring(0, cursorPosition)
+        const textAfterCursor = text.substring(cursorPosition)
 
         // Enter creates new text block below
         if (e.key === 'Enter') {
             e.preventDefault()
-            onAddBlock('TEXT', block.id)
+            
+            // If there's text after cursor, split it
+            if (textAfterCursor) {
+                // Update current block with text before cursor
+                setText(textBeforeCursor)
+                onUpdate({ text: textBeforeCursor })
+                
+                // Create new text block with text after cursor
+                onAddBlock('TEXT', block.id, { text: textAfterCursor })
+            } else {
+                // Just create new empty text block
+                onAddBlock('TEXT', block.id)
+            }
         }
 
         // Backspace at start of empty block - delete block

@@ -9,7 +9,7 @@ interface ListBlockProps {
     block: Block
     onUpdate: (content: Record<string, unknown>) => void
     onDelete: () => void
-    onAddBlock: (type: BlockType, afterBlockId: string) => void
+    onAddBlock: (type: BlockType, afterBlockId: string, initialContent?: Record<string, unknown>) => void
     variant: 'bulleted' | 'numbered' | 'todo'
     number?: number
     isEditing?: boolean
@@ -45,6 +45,8 @@ export function ListBlock({
         if (!input) return
 
         const cursorPosition = input.selectionStart || 0
+        const textBeforeCursor = text.substring(0, cursorPosition)
+        const textAfterCursor = text.substring(cursorPosition)
 
         // Enter creates same type of list item
         if (e.key === 'Enter') {
@@ -52,7 +54,25 @@ export function ListBlock({
             const blockType = variant === 'bulleted' ? 'BULLETED_LIST'
                 : variant === 'numbered' ? 'NUMBERED_LIST'
                     : 'TODO_LIST'
-            onAddBlock(blockType, block.id)
+            
+            // If there's text after cursor, split it
+            if (textAfterCursor) {
+                // Update current block with text before cursor
+                setText(textBeforeCursor)
+                onUpdate({ text: textBeforeCursor, isChecked })
+                
+                // Create new list item with text after cursor
+                const newContent = variant === 'todo' 
+                    ? { text: textAfterCursor, isChecked: false }
+                    : { text: textAfterCursor }
+                onAddBlock(blockType, block.id, newContent)
+            } else {
+                // Just create new empty list item
+                const newContent = variant === 'todo' 
+                    ? { text: '', isChecked: false }
+                    : { text: '' }
+                onAddBlock(blockType, block.id, newContent)
+            }
         }
 
         // Backspace at start of empty block - delete block
