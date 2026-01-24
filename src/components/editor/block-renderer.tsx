@@ -6,13 +6,23 @@ import { cn } from '@/lib/utils'
 import { ParagraphBlock } from './blocks/paragraph-block'
 
 import { DatabaseBlock } from './blocks/database-block'
+import { HeadingBlock } from './blocks/heading-block'
+import { ListBlock } from './blocks/list-block'
+import { TodoBlock } from './blocks/todo-block'
+import { DividerBlock } from './blocks/divider-block'
 
 // Map block types to components
 const BLOCK_COMPONENTS: Partial<Record<BlockType, React.ComponentType<any>>> = {
     TEXT: ParagraphBlock,
+    HEADING_1: HeadingBlock,
+    HEADING_2: HeadingBlock,
+    HEADING_3: HeadingBlock,
+    BULLETED_LIST: ListBlock,
+    NUMBERED_LIST: ListBlock,
+    TODO_LIST: TodoBlock,
+    DIVIDER: DividerBlock,
     DATABASE_BOARD: DatabaseBlock,
     DATABASE_TABLE: DatabaseBlock,
-    // Add other types here
 }
 
 interface BlockRendererProps {
