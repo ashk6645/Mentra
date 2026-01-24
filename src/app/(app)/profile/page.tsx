@@ -16,17 +16,14 @@ export default function ProfilePage() {
   return (
     <div className="flex-1 h-full flex flex-col">
       {/* Modern Header with Gradient */}
-      <div className="relative px-8 py-8 border-b border-border/40 bg-gradient-to-br from-primary/5 via-background to-background backdrop-blur-sm">
-        <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,transparent,black)]" />
-        <div className="relative">
-          <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">
-            Your Profile
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">Manage your personal information and track your progress.</p>
-        </div>
+      <div className="px-8 py-6 border-b border-border/40">
+        <h2 className="text-3xl font-bold tracking-tight">
+          Your Profile
+        </h2>
+        <p className="text-sm text-muted-foreground mt-0">Manage your personal information and track your progress.</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-8 py-8 space-y-8">
+      <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
         <Suspense fallback={<PageLoadingSkeleton />}>
           <ProfileHeader />
         </Suspense>
