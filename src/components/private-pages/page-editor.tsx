@@ -229,7 +229,7 @@ export function PageEditor({ page }: PageEditorProps) {
     }
 
     return (
-        <div className="flex-1 flex flex-col w-full h-full bg-white dark:bg-zinc-950">
+        <div className="flex-1 flex flex-col w-full h-full bg-background">
             {/* Cover Image */}
             {coverImage && (
                 <div className="group relative w-full h-48 md:h-60 bg-muted shrink-0">
