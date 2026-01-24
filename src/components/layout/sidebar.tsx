@@ -24,7 +24,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Project } from '@prisma/client'
@@ -50,7 +50,8 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     onOpenCommand?: () => void
 }
 
-export function Sidebar({ className, projects, pages = [], user, onOpenCommand }: SidebarProps) {
+// Change to non-exported function, exported as memo at bottom
+function SidebarComponent({ className, projects, pages = [], user, onOpenCommand }: SidebarProps) {
     const pathname = usePathname()
     const router = useRouter()
     const supabase = createClient()
@@ -434,3 +435,5 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
         </>
     )
 }
+
+export const Sidebar = memo(SidebarComponent)

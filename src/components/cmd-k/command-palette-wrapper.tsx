@@ -36,37 +36,33 @@ export function CommandPaletteWrapper({ projects, pages = [], user, children }: 
         }
     }
 
-    if (!mounted) {
-        return (
-            <>
-                <CommandPalette projects={projects} />
-                <Sidebar projects={projects} pages={pages} user={user} onOpenCommand={handleOpenCommand} />
-                <main className="md:pl-64 min-h-screen">
-                    <div className="h-full pt-16 md:pt-0 relative animate-in-fade">
-                        {children}
-                    </div>
-                </main>
-            </>
-        )
-    }
-
     return (
         <>
             <CommandPalette projects={projects} />
             <Sidebar projects={projects} pages={pages} user={user} onOpenCommand={handleOpenCommand} />
-            <motion.main
-                className="min-h-screen"
-                initial={false}
-                animate={{
-                    paddingLeft: isSidebarCollapsed ? 80 : 256
-                }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-            >
-                {/* Adds padding-top on mobile for the burger menu to not overlap content */}
-                <div className="h-full pt-16 md:pt-0 relative animate-in-fade">
-                    {children}
-                </div>
-            </motion.main>
+
+            {!mounted ? (
+                <main className="md:pl-64 min-h-screen">
+                    {/* Fixed padding to match the motion variant initial state */}
+                    <div className="h-full pt-16 md:pt-0 relative animate-in-fade" style={{ paddingLeft: isSidebarCollapsed ? 80 : 256 }}>
+                        {children}
+                    </div>
+                </main>
+            ) : (
+                <motion.main
+                    className="min-h-screen"
+                    initial={false}
+                    animate={{
+                        paddingLeft: isSidebarCollapsed ? 80 : 256
+                    }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                    {/* Adds padding-top on mobile for the burger menu to not overlap content */}
+                    <div className="h-full pt-16 md:pt-0 relative animate-in-fade">
+                        {children}
+                    </div>
+                </motion.main>
+            )}
         </>
     )
 }
