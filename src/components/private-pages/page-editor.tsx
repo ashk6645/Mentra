@@ -64,7 +64,7 @@ export function PageEditor({ page }: PageEditorProps) {
             await updatePage(page.id, { title: newTitle })
             setIsSaving(false)
             router.refresh()
-        }, 500)
+        }, 200)
     }, [page.id, router])
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,7 +155,7 @@ export function PageEditor({ page }: PageEditorProps) {
             if (updates.sortOrder !== undefined) payload.sortOrder = updates.sortOrder
 
             await updateBlock(id, payload)
-        }, 500)
+        }, 200)
     }
 
     const handleDeleteBlock = async (id: string) => {
