@@ -4,9 +4,8 @@ import React, { useState } from 'react'
 import { Task } from '@prisma/client'
 import { TaskBoard } from '@/components/board/TaskBoard'
 import { TaskViewSwitcher, TaskViewType } from './task-view-switcher'
-// Will import Table and Gallery once created
-// import { TaskTable } from './task-table' 
-// import { TaskGallery } from './task-gallery'
+import { TaskTable } from './task-table'
+import { TaskGallery } from './task-gallery'
 import { Card } from '@/components/ui/card' // Placeholder for now
 
 interface ProjectTasksContainerProps {
@@ -32,15 +31,11 @@ export function ProjectTasksContainer({ tasks, projectId }: ProjectTasksContaine
                 )}
 
                 {view === 'table' && (
-                    <div className="p-4 text-center text-muted-foreground border border-dashed rounded-lg">
-                        Table View Coming Soon
-                    </div>
+                    <TaskTable tasks={tasks} />
                 )}
 
                 {view === 'gallery' && (
-                    <div className="p-4 text-center text-muted-foreground border border-dashed rounded-lg">
-                        Gallery View Coming Soon
-                    </div>
+                    <TaskGallery tasks={tasks} />
                 )}
             </div>
         </div>
