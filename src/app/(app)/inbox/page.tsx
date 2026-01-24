@@ -4,11 +4,9 @@ import { TaskRow } from '@/components/tasks/task-row'
 import { Inbox as InboxIcon, Plus } from 'lucide-react'
 
 export default async function InboxPage() {
-    const tasksResult = await getTasks()
-    const allTasks = tasksResult.success ? tasksResult.data : []
-
-    // Inbox: Tasks with no project assigned
-    const inboxTasks = allTasks.filter((task: any) => !task.projectId)
+    // Optimized: Only fetch tasks with no project assigned
+    const tasksResult = await getTasks({ projectId: null })
+    const inboxTasks = tasksResult.success ? tasksResult.data : []
 
     return (
         <div className="flex-1 overflow-y-auto bg-muted/5 min-h-full">

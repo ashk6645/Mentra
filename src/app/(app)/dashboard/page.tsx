@@ -20,18 +20,32 @@ export default async function DashboardPage() {
         const today = new Date()
         today.setHours(0, 0, 0, 0)
 
-        // Fetch all data in parallel
-        const [tasksResult, profile, stats, recentActivity, habits, totalCompletedTasks] = await Promise.all([
-            getTasks(),
+        // Fetch only necessary data in parallel
+        const [
+            todayTasksResult,
+            profile,
+            stats,
+            recentActivity,
+            habits,
+            totalCompletedTasks
+        ] = await Promise.all([
+            // 1. Get ONLY today's tasks + overdue (simplified for now to just all active tasks for filtering)
+            // Ideally we'd filter by date in DB, but due date handling can be complex with timezones.
+            // For now, let's at least filter out completed tasks
+            getTasks({ completed: false }),
+
+            // 2. Profile
             prisma.profile.findUnique({
                 where: { id: user.id },
             }),
-            // Get user stats (simplified query for now, can be extracted to action)
+
+            // 3. XP Stats
             prisma.xPLog.aggregate({
                 where: { userId: user.id },
                 _sum: { amount: true }
             }),
-            // Get recent activity (completed tasks for now)
+
+            // 4. Recent Activity (Completed tasks limit 10)
             prisma.task.findMany({
                 where: {
                     userId: user.id,
@@ -39,14 +53,22 @@ export default async function DashboardPage() {
                     completedAt: { not: null }
                 },
                 orderBy: { completedAt: 'desc' },
-                take: 10
+                take: 10,
+                select: {
+                    id: true,
+                    title: true,
+                    completedAt: true,
+                    xpEarned: true
+                }
             }),
-            // Get habits
+
+            // 5. Active Habits
             prisma.habit.findMany({
                 where: { userId: user.id, isActive: true },
                 take: 5
             }),
-            // Get total completed tasks count
+
+            // 6. Total Completed Count
             prisma.task.count({
                 where: {
                     userId: user.id,
@@ -55,24 +77,29 @@ export default async function DashboardPage() {
             })
         ])
 
-        const tasks = tasksResult.success && tasksResult.data ? tasksResult.data : []
+        const tasks = todayTasksResult.success && todayTasksResult.data ? todayTasksResult.data : []
         const totalXP = stats._sum.amount || 0
 
-        // Process tasks for widgets
+        // In-memory date filtering for today's view (safe because dataset is now smaller - only active tasks)
         const todayTasks = tasks.filter((task: any) => {
-            if (task.completed) return false
             if (!task.dueDate) return false
             const due = new Date(task.dueDate)
             due.setHours(0, 0, 0, 0)
-            return due.getTime() === today.getTime() || due < today
+            return due.getTime() <= today.getTime() // Today or Overdue
         })
 
-        const completedToday = tasks.filter((task: any) => {
-            if (!task.completed || !task.completedAt) return false
-            const completed = new Date(task.completedAt)
-            completed.setHours(0, 0, 0, 0)
-            return completed.getTime() === today.getTime()
-        }).length
+        // For "Completed Today" count, we ran a count query? No, we didn't. 
+        // Let's run a specific count query for today's completions to be accurate and fast
+        const completedTodayCount = await prisma.task.count({
+            where: {
+                userId: user.id,
+                completed: true,
+                completedAt: {
+                    gte: today,
+                    lt: new Date(today.getTime() + 86400000)
+                }
+            }
+        })
 
         // Map recent activity for widget
         const activityItems = recentActivity.map((task: any) => ({
@@ -98,10 +125,9 @@ export default async function DashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                     {/* Left Column (Main Content) */}
                     <div className="md:col-span-8 lg:col-span-9 space-y-6">
-                        {/* Stats Row */}
                         <StatsRow
-                            completedTasks={completedToday}
-                            totalTasks={todayTasks.length + completedToday} // Simple logic for daily progress
+                            completedTasks={completedTodayCount}
+                            totalTasks={todayTasks.length + completedTodayCount} // Simple logic for daily progress
                             streak={profile?.currentStreak || 0}
                             xp={totalXP}
                             totalCompleted={Number(totalCompletedTasks) || 0}

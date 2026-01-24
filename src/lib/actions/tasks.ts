@@ -30,7 +30,17 @@ export type UpdateTaskInput = z.infer<typeof updateTaskSchema>
 
 // Actions
 
-export async function getTasks() {
+export interface GetTasksOptions {
+    projectId?: string | null // string for specific project, null for no project (inbox)
+    completed?: boolean
+    dateRange?: {
+        start: Date
+        end: Date
+    }
+    limit?: number
+}
+
+export async function getTasks(options: GetTasksOptions = {}) {
     try {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
@@ -38,13 +48,31 @@ export async function getTasks() {
             return { success: false, error: 'Unauthorized', data: [] }
         }
 
+        const where: any = {
+            userId: user.id,
+        }
+
+        // Apply filters
+        if (options.projectId !== undefined) {
+            where.projectId = options.projectId
+        }
+
+        if (options.completed !== undefined) {
+            where.completed = options.completed
+        }
+
+        if (options.dateRange) {
+            where.dueDate = {
+                gte: options.dateRange.start,
+                lte: options.dateRange.end,
+            }
+        }
+
         const tasks = await prisma.task.findMany({
-            where: {
-                userId: user.id,
-            },
+            where,
             select: {
                 id: true,
-                userId: true, // Added for type compatibility
+                userId: true,
                 title: true,
                 description: true,
                 priority: true,
@@ -56,7 +84,7 @@ export async function getTasks() {
                 scheduledStart: true,
                 scheduledEnd: true,
                 durationMinutes: true,
-                xpEarned: true, // Added for type compatibility
+                xpEarned: true,
                 sortOrder: true,
                 createdAt: true,
                 updatedAt: true,
@@ -83,7 +111,8 @@ export async function getTasks() {
                 { completed: 'asc' },
                 { sortOrder: 'asc' },
                 { createdAt: 'desc' }
-            ]
+            ],
+            take: options.limit,
         })
 
         return { success: true, data: tasks }
