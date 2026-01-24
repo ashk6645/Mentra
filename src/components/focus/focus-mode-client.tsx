@@ -122,7 +122,7 @@ export function FocusModeClient({ tasks }: FocusModeClientProps) {
                                 value={selectedTaskId || ''}
                                 onValueChange={setSelectedTaskId}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger suppressHydrationWarning>
                                     <SelectValue placeholder="Select a task to focus on" />
                                 </SelectTrigger>
                                 <SelectContent>

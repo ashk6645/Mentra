@@ -57,6 +57,7 @@ export function SortableBlock({ block, removeBlock, ...props }: SortableBlockPro
                         <div
                             {...attributes}
                             {...listeners}
+                            suppressHydrationWarning
                             className={cn(
                                 "p-0.5 rounded cursor-grab hover:bg-gray-200 dark:hover:bg-zinc-800 text-gray-400 focus:outline-none",
                                 isDragging && "cursor-grabbing bg-gray-200 dark:bg-zinc-800"

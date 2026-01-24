@@ -177,6 +177,7 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
                     <PopoverTrigger asChild>
                         <Button
                             variant="ghost"
+                            suppressHydrationWarning
                             className={cn(
                                 "w-full justify-start hover:bg-accent/50 group p-2",
                                 isSidebarCollapsed && "px-0 justify-center"
@@ -362,6 +363,7 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
                                                     <button
                                                         className="opacity-0 group-hover/item:opacity-100 p-0.5 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-opacity"
                                                         aria-label="Project actions"
+                                                        suppressHydrationWarning
                                                     >
                                                         <MoreHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
                                                     </button>
@@ -457,6 +459,7 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
                                                     <button
                                                         className="opacity-0 group-hover/item:opacity-100 p-0.5 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-opacity"
                                                         aria-label="Page actions"
+                                                        suppressHydrationWarning
                                                     >
                                                         <MoreHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
                                                     </button>
