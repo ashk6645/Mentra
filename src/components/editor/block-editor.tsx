@@ -140,21 +140,64 @@ export function BlockEditor({
             }
         }
 
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === 'Enter') {
             e.preventDefault()
-            // Update local state via hook (which expects just ID/type/content usually, but addBlock implementation varies)
-            // Actually useBlockEditor's addBlock returns ID and updates state.
-            const addedId = addBlock('TEXT', {}, blockId)
+
+            // Check current block type
+            const currentBlock = blocks.find(b => b.id === blockId)
+
+            if (e.shiftKey) {
+                // Shift+Enter: Always exit list/structure to a new Text block
+                const addedId = addBlock('TEXT', {}, blockId)
+                setFocusedBlockId(addedId)
+                if (onCreateBlock) {
+                    const createdBlock: Block = {
+                        id: addedId,
+                        type: 'TEXT',
+                        content: {},
+                        sortOrder: 0,
+                        createdAt: new Date(),
+                        updatedAt: new Date()
+                    }
+                    onCreateBlock(createdBlock, blockId)
+                }
+                return
+            }
+
+            // Regular Enter
+            // If Text: New Text Block
+            // If List: New List Block (continue list)
+            // If Empty List: Break out to Text (optional, but requested behavior implies Shift+Enter handles breakout)
+            // But usually "Enter on empty list item" -> Text is standard. 
+            // The user said "press enter then it should continue the list", so we continue.
+
+            let nextType: BlockType = 'TEXT'
+            if (currentBlock) {
+                if (currentBlock.type === 'BULLETED_LIST' || currentBlock.type === 'NUMBERED_LIST' || currentBlock.type === 'TODO_LIST') {
+                    nextType = currentBlock.type
+                }
+            }
+
+            // Handle empty list item -> Break out (Standard Logic, good for UX even if user didn't explicitly ask, it prevents trapping)
+            const isEmpty = !currentBlock?.content.text || currentBlock.content.text === ''
+            if (isEmpty && nextType !== 'TEXT') {
+                // Convert current empty list item to Text? Or just make next one text?
+                // Usually converting current "empty list item" to "text" is better.
+                updateBlock(blockId, { type: 'TEXT' })
+                // And stay focused? Or just done?
+                // We don't need to add new block if we just converted this one.
+                // onUpdateBlock handle type change? We need to ensure it propagates.
+                onUpdateBlock?.(blockId, { type: 'TEXT' })
+                return
+            }
+
+            const addedId = addBlock(nextType, {}, blockId)
             setFocusedBlockId(addedId)
 
-            // We need to get the block object to pass to onCreateBlock
-            // Since addBlock updates state, we might not have the block obj immediately available in 'blocks' var within this closure
-            // But we can construct it.
             if (onCreateBlock) {
-                // We rely on addBlock returning the ID that was used.
                 const createdBlock: Block = {
                     id: addedId,
-                    type: 'TEXT',
+                    type: nextType,
                     content: {},
                     sortOrder: 0,
                     createdAt: new Date(),
@@ -162,6 +205,8 @@ export function BlockEditor({
                 }
                 onCreateBlock(createdBlock, blockId)
             }
+
+        } else if (e.key === 'Backspace') {
 
         } else if (e.key === 'Backspace') {
             const block = blocks.find(b => b.id === blockId)

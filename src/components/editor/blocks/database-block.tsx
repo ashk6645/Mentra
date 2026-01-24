@@ -10,10 +10,51 @@ import { cn } from '@/lib/utils'
 interface DatabaseBlockProps {
     block: Block
     isFocused: boolean
-    updateBlock: (id: string, content: any) => void
+    onChange: (content: any) => void
 }
 
-export function DatabaseBlock({ block, isFocused, updateBlock }: DatabaseBlockProps) {
+import { SHARED_DATABASE_ITEMS, DatabaseItem } from '../views/mock-data'
+import { v4 as uuidv4 } from 'uuid'
+
+export function DatabaseBlock({ block, isFocused, onChange }: DatabaseBlockProps) {
+    // Initialize items from content or seed with mock data
+    // We use a local state to ensure immediate UI feedback, 
+    // but we MUST sync to block.content via onChange.
+
+    // If block.content.items is missing, we should probably initialize it.
+    // However, we want to do this only once.
+    // BUT, since we are in a render function, we can't side-effect easily.
+    // We'll derive the items to display.
+
+    const items: DatabaseItem[] = block.content.items || SHARED_DATABASE_ITEMS
+
+    // Handler to update an individual item
+    const updateItem = (itemId: string, updates: Partial<DatabaseItem>) => {
+        const newItems = items.map(item =>
+            item.id === itemId ? { ...item, ...updates } : item
+        )
+        // Persist to block content
+        onChange({ ...block.content, items: newItems })
+    }
+
+    // Handler to add a new item
+    const addItem = () => {
+        const newItem: DatabaseItem = {
+            id: uuidv4(),
+            title: '',
+            status: 'Not started',
+            priority: 'Medium',
+            date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        }
+        const newItems = [...items, newItem]
+        onChange({ ...block.content, items: newItems })
+    }
+
+    // Handler to delete an item (optional, but good for completeness)
+    const deleteItem = (itemId: string) => {
+        const newItems = items.filter(item => item.id !== itemId)
+        onChange({ ...block.content, items: newItems })
+    }
     // Determine active view from block type if not overridden by local state
     // Actually, distinct block types mean distinct blocks. 
     // But we might want to switch view TYPE within the same block, 
@@ -60,14 +101,11 @@ export function DatabaseBlock({ block, isFocused, updateBlock }: DatabaseBlockPr
 
         // So we can't change type easily from here without refactoring `BlockRenderer` or `DatabaseBlock`.
         // User wants "smooth".
-        // Let's implement view switching via `content.viewType` override for now, 
-        // OR fix BlockRenderer to allow full updates.
+        // Since we can't easily change the block TYPE from here (BlockRenderer constraint),
+        // we update the content.view property.
+        // The onChange prop from BlockRenderer handles calling updateBlock for us.
 
-        // Actually, let's stick to using `block.type` as the source of truth, 
-        // but since we can't update it easily from here, 
-        // let's use `content.view` as a preferred override if present.
-
-        updateBlock(block.id, { view })
+        onChange({ ...block.content, view })
     }
 
     // Determine effective view
@@ -117,10 +155,40 @@ export function DatabaseBlock({ block, isFocused, updateBlock }: DatabaseBlockPr
             </div>
 
             <div className="min-h-[200px] overflow-x-auto">
-                {effectiveView === 'board' && <BoardView block={block} />}
-                {effectiveView === 'table' && <TableView block={block} />}
-                {effectiveView === 'gallery' && <GalleryView block={block} />}
-                {effectiveView === 'calendar' && <CalendarView block={block} />}
+                <div className="min-h-[200px] overflow-x-auto">
+                    {effectiveView === 'board' && (
+                        <BoardView
+                            items={items}
+                            onUpdateItem={updateItem}
+                            onAddItem={addItem}
+                            onDeleteItem={deleteItem}
+                        />
+                    )}
+                    {effectiveView === 'table' && (
+                        <TableView
+                            items={items}
+                            onUpdateItem={updateItem}
+                            onAddItem={addItem}
+                            onDeleteItem={deleteItem}
+                        />
+                    )}
+                    {effectiveView === 'gallery' && (
+                        <GalleryView
+                            items={items}
+                            onUpdateItem={updateItem}
+                            onAddItem={addItem}
+                            onDeleteItem={deleteItem}
+                        />
+                    )}
+                    {effectiveView === 'calendar' && (
+                        <CalendarView
+                            items={items}
+                            onUpdateItem={updateItem}
+                            onAddItem={addItem}
+                            onDeleteItem={deleteItem}
+                        />
+                    )}
+                </div>
             </div>
         </div>
     )

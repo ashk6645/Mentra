@@ -3,38 +3,7 @@ import { Block } from '../types'
 import { Plus, MoreHorizontal, ImageIcon } from 'lucide-react'
 
 // Mock Data Types for UI Prototyping
-interface GalleryItem {
-    id: string
-    title: string
-    cover?: string
-    tags?: string[]
-}
-
-const INITIAL_ITEMS: GalleryItem[] = [
-    {
-        id: '1',
-        title: 'Sales Deck',
-        cover: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-        tags: ['Presentation']
-    },
-    {
-        id: '2',
-        title: 'Frontend Assets',
-        cover: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-        tags: ['Design', 'Assets']
-    },
-    {
-        id: '3',
-        title: 'Project Roadmap',
-        cover: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-        tags: ['Planning']
-    },
-    {
-        id: '4',
-        title: 'Q4 Goals',
-        tags: ['Strategy']
-    },
-]
+import { SHARED_DATABASE_ITEMS } from './mock-data'
 
 interface GalleryViewProps {
     block: Block
@@ -43,7 +12,7 @@ interface GalleryViewProps {
 export function GalleryView({ block }: GalleryViewProps) {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-4">
-            {INITIAL_ITEMS.map(item => (
+            {SHARED_DATABASE_ITEMS.map(item => (
                 <div key={item.id} className="group bg-white dark:bg-zinc-950 rounded-lg shadow-sm border border-gray-200 dark:border-zinc-800 hover:shadow-md transition-all overflow-hidden cursor-pointer">
                     {/* Cover Area */}
                     <div className="h-32 bg-gray-100 dark:bg-zinc-900 w-full relative">
