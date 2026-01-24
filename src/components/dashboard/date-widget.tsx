@@ -49,11 +49,16 @@ export function DateWidget() {
         const today = startOfDay(new Date())
         const checkDate = startOfDay(day)
 
-        // Check if date is within the last N days (where N = currentStreak)
-        for (let i = 1; i < currentStreak; i++) { // Start from 1 to exclude today
+        // If today has activity: Active streak includes today. Look back (streak - 1) days.
+        // If today NO activity: Active streak ends yesterday. Look back (streak) days.
+        const todayActive = hasActivity(today)
+        const daysToLookBack = todayActive ? currentStreak : currentStreak + 1
+
+        // Check if date is within the streak range
+        for (let i = 1; i < daysToLookBack; i++) {
             const streakDate = subDays(today, i)
             if (isSameDay(checkDate, streakDate)) {
-                return hasActivity(day)
+                return true
             }
         }
 
@@ -73,19 +78,28 @@ export function DateWidget() {
             <CardContent className="p-0">
                 <style jsx global>{`
                     .calendar-streak {
-                        background-color: var(--muted);
-                        color: var(--foreground);
+                        background-color: hsl(20, 100%, 96%); /* Very light orange background */
+                        color: hsl(20, 100%, 50%); /* Orange text */
                         border-radius: 0.375rem;
+                        font-weight: 500;
                     }
                     .calendar-today-default {
-                        border: 2px dotted var(--foreground);
+                        border: 2px solid hsl(20, 100%, 50%);
+                        color: hsl(20, 100%, 50%);
                         border-radius: 0.375rem;
+                        font-weight: 600;
                     }
                     .calendar-today-active {
-                        background-color: var(--muted);
-                        color: var(--foreground);
+                        background-color: hsl(20, 100%, 50%); /* Solid orange */
+                        color: white !important;
                         border-radius: 0.375rem;
-                        border: 2px solid var(--muted);
+                        font-weight: 700;
+                        border: 2px solid hsl(20, 100%, 50%);
+                    }
+                    /* Dark mode adjustments */
+                    .dark .calendar-streak {
+                        background-color: hsl(20, 80%, 15%);
+                        color: hsl(20, 90%, 60%);
                     }
                 `}</style>
                 <Calendar
