@@ -61,9 +61,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/manifest.json" />
+        {/* Favicon is handled automatically by Next.js via icon.svg in app directory */}
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
