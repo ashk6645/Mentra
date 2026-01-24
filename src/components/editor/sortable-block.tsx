@@ -22,6 +22,7 @@ interface SortableBlockProps {
     onBlur: (id: string) => void
     onKeyDown: (e: React.KeyboardEvent, blockId: string) => void
     numberedListIndex?: number
+    cursorOffset?: number | null
 }
 
 export function SortableBlock({ block, removeBlock, ...props }: SortableBlockProps) {

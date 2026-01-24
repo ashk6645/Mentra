@@ -42,6 +42,8 @@ export function BlockEditor({
     })
 
     const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null)
+    // New state to track desired cursor position
+    const [focusedBlockCursor, setFocusedBlockCursor] = useState<{ id: string; offset: number } | null>(null)
 
     // Slash Action Menu State
     const [slashMenuState, setSlashMenuState] = useState<{
@@ -212,18 +214,31 @@ export function BlockEditor({
 
             // Check for empty block (robust check)
             const textContent = currentBlock?.content?.text || ''
-            // We treat a block as empty if it has no text or just whitespace/BR that browsers sometimes add
-            const isEmpty = !textContent || textContent.trim() === '' || textContent === '<br>'
+            // Strip HTML tags and replace &nbsp; with space
+            const plainText = textContent.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
+            const isEmpty = plainText === ''
 
             // 1. If block is empty and not the first block, delete it and focus previous
             if (currentBlock && index > 0 && isEmpty) {
                 e.preventDefault()
                 const prevBlock = blocks[index - 1]
+
+                // Before removing, we need to know where to put cursor in prev block
+                // Standard behavior is "end of prev block".
+                const prevContent = prevBlock.content.text || ''
+                // Calculate length of plain text for cursor offset? 
+                // Actually contentEditable cursor offset is relative to text node usually.
+                // If prevContent has HTML, valid offset might be tricky without DOM.
+                // But typically our blocks are simple text. 
+                // We'll set cursor offset to a large number to ensure "end"? 
+                // Or just `prevContent.length` if it's text.
+                // Use a safe heuristic.
+                const prevLen = prevContent.replace(/<[^>]*>/g, '').length // Approx text length
+
                 removeBlock(blockId)
-                // We want to focus the previous block.
-                // Ideally at the END of its content. 
-                // Standard focus might go to start, but for "erasing flow" it's acceptable to just focus.
                 setFocusedBlockId(prevBlock.id)
+                // Set cursor to end
+                setFocusedBlockCursor({ id: prevBlock.id, offset: prevLen }) // Or just prevLen
                 onDeleteBlock?.(blockId)
                 return
             }
@@ -255,6 +270,7 @@ export function BlockEditor({
                     // Remove current
                     removeBlock(blockId)
                     setFocusedBlockId(prevBlock.id)
+                    setFocusedBlockCursor({ id: prevBlock.id, offset: prevText.length })
                     onDeleteBlock?.(blockId)
                 }
             }
@@ -315,6 +331,7 @@ export function BlockEditor({
                                         key={block.id}
                                         block={block}
                                         isFocused={focusedBlockId === block.id}
+                                        cursorOffset={focusedBlockCursor?.id === block.id ? focusedBlockCursor.offset : null}
                                         numberedListIndex={currentNumber}
                                         // We intercept updateBlock here to check for slash commands!
                                         // No wait, better to pass a specific handler?
