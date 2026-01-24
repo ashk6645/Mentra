@@ -111,11 +111,15 @@ export function CreateTaskDialog({
                     </Button>
                 )}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] p-0 gap-0 bg-transparent border-none shadow-none">
+            {/* Prevent closing when clicking outside */}
+            <DialogContent
+                onInteractOutside={(e) => e.preventDefault()}
+                className="sm:max-w-[600px] p-0 gap-0 bg-transparent border-none shadow-none"
+            >
                 <DialogTitle className="sr-only">Create New Task</DialogTitle>
-                {/* 
-                    Using transparent/border-none dialog content because TaskEditor 
-                    handles the "Card" look ourselves. 
+                {/*
+                    Using transparent/border-none dialog content because TaskEditor
+                    handles the "Card" look ourselves.
                  */}
                 <TaskEditor
                     projects={projects.map(p => ({ id: p.id, name: p.name }))}

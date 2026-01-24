@@ -76,7 +76,10 @@ export function GlobalQuickAdd({ className }: GlobalQuickAddProps) {
 
             {/* Quick Add Dialog */}
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent className="sm:max-w-[550px]">
+                <DialogContent
+                    className="sm:max-w-[550px]"
+                    onInteractOutside={(e) => e.preventDefault()}
+                >
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <Zap className="h-5 w-5" />
