@@ -29,6 +29,7 @@ import {
     CommandShortcut,
 } from "@/components/ui/command"
 import { searchTasks } from "@/lib/actions/tasks"
+import { getProjects } from "@/lib/actions/projects"
 import { cn } from "@/lib/utils"
 
 interface Project {
@@ -68,8 +69,7 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
     // Fetch projects when command palette opens
     React.useEffect(() => {
         if (open && projects.length === 0) {
-            fetch('/api/projects')
-                .then(res => res.json())
+            getProjects()
                 .then(data => setProjects(data))
                 .catch(err => console.error('Failed to fetch projects:', err))
         }
