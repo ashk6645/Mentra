@@ -311,9 +311,13 @@ export function BalanceVisualization({ data }: BalanceVisualizationProps) {
                                 />
                                 {/* Label for points */}
                                 <text
-                                    x={p.maxPoint.x + (Math.cos(p.angle) * 20)}
-                                    y={p.maxPoint.y + (Math.sin(p.angle) * 20)}
-                                    textAnchor="middle"
+                                    x={p.maxPoint.x + (Math.cos(p.angle) * 18)}
+                                    y={p.maxPoint.y + (Math.sin(p.angle) * 18)}
+                                    textAnchor={
+                                        Math.cos(p.angle) > 0.1 ? 'start' :
+                                            Math.cos(p.angle) < -0.1 ? 'end' :
+                                                'middle'
+                                    }
                                     dominantBaseline="middle"
                                     fill="currentColor"
                                     className="text-[10px] font-medium fill-muted-foreground uppercase tracking-wider"
