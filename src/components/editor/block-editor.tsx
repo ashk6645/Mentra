@@ -207,7 +207,7 @@ export function BlockEditor({
     }, [slashMenuState.blockId, updateBlock, closeSlashMenu, onUpdateBlock])
 
     return (
-        <div className="w-full max-w-3xl mx-auto min-h-[500px] p-8 bg-white dark:bg-zinc-950 rounded-lg shadow-sm border">
+        <div className="w-full max-w-3xl mx-auto min-h-[500px]">
             <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
@@ -243,17 +243,22 @@ export function BlockEditor({
                         ))}
                     </SortableContext>
 
-                    {blocks.length === 0 && (
-                        <div
-                            className="text-gray-400 cursor-text"
-                            onClick={() => {
-                                const id = addBlock()
-                                setFocusedBlockId(id)
-                            }}
-                        >
-                            Click to add a block...
-                        </div>
-                    )}
+                    {/* Empty State / Click to add at bottom */}
+                    <div
+                        className="min-h-[100px] cursor-text -ml-2 pl-2 mt-4"
+                        onClick={() => {
+                            // Always add a new block at the end
+                            const id = addBlock()
+                            setFocusedBlockId(id)
+
+                            // Ensure we scroll to it?
+                            // addBlock updates state, focus effect handles it?
+                        }}
+                    >
+                        {blocks.length === 0 && (
+                            <div className="text-gray-400">Click to add a block...</div>
+                        )}
+                    </div>
                 </div>
             </DndContext>
 
