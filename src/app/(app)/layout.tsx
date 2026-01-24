@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { CommandPaletteWrapper } from '@/components/cmd-k/command-palette-wrapper'
 import { GlobalQuickAdd } from '@/components/tasks/global-quick-add'
+import { getProjects } from '@/lib/actions/projects'
 
 export default async function AppLayout({
     children,
@@ -16,10 +17,12 @@ export default async function AppLayout({
         redirect('/login')
     }
 
+    const projects = await getProjects()
+
     // Remove data fetching from layout - let components fetch their own data
     return (
         <div className="min-h-screen bg-background">
-            <CommandPaletteWrapper user={user}>
+            <CommandPaletteWrapper user={user} projects={projects}>
                 {children}
             </CommandPaletteWrapper>
             <GlobalQuickAdd />

@@ -60,9 +60,10 @@ const colors = [
 interface CreateProjectDialogProps {
     open?: boolean
     onOpenChange?: (open: boolean) => void
+    onProjectCreated?: () => void
 }
 
-export function CreateProjectDialog({ open: externalOpen, onOpenChange: externalOnOpenChange }: CreateProjectDialogProps = {}) {
+export function CreateProjectDialog({ open: externalOpen, onOpenChange: externalOnOpenChange, onProjectCreated }: CreateProjectDialogProps = {}) {
     const [internalOpen, setInternalOpen] = useState(false)
     const [step, setStep] = useState<'template' | 'details'>('template')
     const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplate | null>(null)
@@ -118,6 +119,9 @@ export function CreateProjectDialog({ open: externalOpen, onOpenChange: external
                 templateId: 'blank',
             })
             router.refresh()
+            if (onProjectCreated) {
+                onProjectCreated()
+            }
         } else {
             console.error(result.error)
         }
@@ -166,8 +170,8 @@ export function CreateProjectDialog({ open: externalOpen, onOpenChange: external
                                 {step === 'template' ? 'Choose a Template' : 'Project Details'}
                             </DialogTitle>
                             <DialogDescription>
-                                {step === 'template' 
-                                    ? 'Start with a pre-built template or create from scratch' 
+                                {step === 'template'
+                                    ? 'Start with a pre-built template or create from scratch'
                                     : 'Customize your project settings'}
                             </DialogDescription>
                         </div>
@@ -241,11 +245,11 @@ export function CreateProjectDialog({ open: externalOpen, onOpenChange: external
                                     <FormItem>
                                         <FormLabel>Description (Optional)</FormLabel>
                                         <FormControl>
-                                            <Textarea 
-                                                placeholder="Add project description..." 
-                                                className="resize-none" 
+                                            <Textarea
+                                                placeholder="Add project description..."
+                                                className="resize-none"
                                                 rows={3}
-                                                {...field} 
+                                                {...field}
                                             />
                                         </FormControl>
                                         <FormMessage />

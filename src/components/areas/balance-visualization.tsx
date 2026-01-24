@@ -50,7 +50,7 @@ export function BalanceVisualization({ data }: BalanceVisualizationProps) {
 
     // Calculate points for the radar chart
     const radarData = useMemo(() => {
-        if (!data || data.length < 3) return null
+        if (!data) return null
 
         const totalPoints = data.length
         const radius = 100
@@ -140,7 +140,25 @@ export function BalanceVisualization({ data }: BalanceVisualizationProps) {
     }
 
     const { points, center } = radarData
-    const polyPoints = points.map(p => `${p.x},${p.y}`).join(' ')
+
+    // For specific visual effect and "filling", if we have few points (like 1 or 2),
+    // a simple line or dot doesn't "fill". Anchoring to center makes it a shape.
+    // For 3+ points, standard radar chart logic applies (closed loop).
+    let polygonPoints = points
+    if (points.length < 3) {
+        polygonPoints = [...points, {
+            x: center.x,
+            y: center.y,
+            name: 'center',
+            value: 0,
+            color: 'transparent',
+            angle: 0,
+            maxPoint: center,
+            original: data[0] // Mock original to satisfy type
+        }]
+    }
+
+    const polyPoints = polygonPoints.map(p => `${p.x},${p.y}`).join(' ')
 
     return (
         <Card className="bg-white/5 backdrop-blur-md border border-white/10 overflow-hidden relative">
@@ -157,7 +175,31 @@ export function BalanceVisualization({ data }: BalanceVisualizationProps) {
                 {/* Radar Chart */}
                 <div className="relative w-[300px] h-[300px] flex-shrink-0">
                     <svg width="300" height="300" className="overflow-visible">
-                        {/* Background Webs */}
+                        <defs>
+                            {polygonPoints.map((point, i) => {
+                                const nextPoint = polygonPoints[(i + 1) % polygonPoints.length]
+                                // Skip degenerate slices if using the center-mock hack
+                                if (point.name === 'center' || nextPoint.name === 'center') return null
+
+                                return (
+                                    <linearGradient
+                                        key={`gradient-${i}`}
+                                        id={`sliceGradient-${i}`}
+                                        x1="0%"
+                                        y1="0%"
+                                        x2="100%"
+                                        y2="100%"
+                                        gradientUnits="userSpaceOnUse"
+                                        gradientTransform={`rotate(${point.angle}, ${center.x}, ${center.y})`}
+                                    >
+                                        <stop offset="0%" stopColor={getColorHex(point.color)} stopOpacity={0.6} />
+                                        <stop offset="100%" stopColor={getColorHex(nextPoint.color)} stopOpacity={0.6} />
+                                    </linearGradient>
+                                )
+                            })}
+                        </defs>
+
+                        {/* Background Webs - Thicker and more visible */}
                         {[0.25, 0.5, 0.75, 1].map((scale, i) => (
                             <motion.circle
                                 key={scale}
@@ -166,8 +208,9 @@ export function BalanceVisualization({ data }: BalanceVisualizationProps) {
                                 r={100 * scale}
                                 fill="none"
                                 stroke="currentColor"
-                                strokeOpacity={0.1}
-                                strokeDasharray="4 4"
+                                strokeOpacity={scale === 1 ? 0.3 : 0.1}
+                                strokeWidth={scale === 1 ? 2 : 1}
+                                strokeDasharray={scale === 1 ? "0" : "4 4"}
                                 initial={{ scale: 0, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ delay: i * 0.1, duration: 0.5 }}
@@ -183,26 +226,71 @@ export function BalanceVisualization({ data }: BalanceVisualizationProps) {
                                 x2={p.maxPoint.x}
                                 y2={p.maxPoint.y}
                                 stroke="currentColor"
-                                strokeOpacity={0.1}
+                                strokeOpacity={0.2}
                                 initial={{ pathLength: 0 }}
                                 animate={{ pathLength: 1 }}
                                 transition={{ duration: 0.8, ease: "easeInOut" }}
                             />
                         ))}
 
-                        {/* Data Polygon */}
+                        {/* Data Slices (Fill Only) */}
+                        {polygonPoints.map((point, i) => {
+                            const nextPoint = polygonPoints[(i + 1) % polygonPoints.length]
+                            if (point.name === 'center' || nextPoint.name === 'center') return null
+
+                            const pathData = `M ${center.x},${center.y} L ${point.x},${point.y} L ${nextPoint.x},${nextPoint.y} Z`
+
+                            return (
+                                <motion.path
+                                    key={`slice-${i}`}
+                                    d={pathData}
+                                    fill={`url(#sliceGradient-${i})`}
+                                    stroke="none"
+                                    initial={{ opacity: 0, scale: 0 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.5, delay: i * 0.1 }}
+                                    style={{ transformOrigin: `${center.x}px ${center.y}px` }}
+                                />
+                            )
+                        })}
+
+                        {/* Unified Outline */}
                         <motion.polygon
                             points={polyPoints}
-                            fill="rgba(var(--primary), 0.2)"
-                            stroke="hsl(var(--primary))"
-                            strokeWidth="2"
-                            initial={{ scale: 0, opacity: 0, transformOrigin: `${center.x}px ${center.y}px` }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.8, type: "spring" }}
-                            className="drop-shadow-[0_0_10px_rgba(var(--primary),0.3)]"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinejoin="round"
+                            initial={{ pathLength: 0, opacity: 0 }}
+                            animate={{ pathLength: 1, opacity: 1 }}
+                            transition={{ duration: 0.8, delay: 0.2 }}
+                            className="drop-shadow-sm text-foreground"
                         />
 
-                        {/* Interactive Points */}
+                        {/* Axis Tip Markers */}
+                        {points.map((p, i) => {
+                            // Only draw markers for actual data points (not center mock)
+                            if (p.name === 'center') return null
+                            return (
+                                <motion.rect
+                                    key={`marker-${i}`}
+                                    x={p.maxPoint.x - 4}
+                                    y={p.maxPoint.y - 4}
+                                    width={8}
+                                    height={8}
+                                    rx={2}
+                                    fill={getColorHex(p.color)}
+                                    stroke="currentColor"
+                                    strokeWidth={1}
+                                    initial={{ scale: 0, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    transition={{ delay: 0.5 + (i * 0.1) }}
+                                    className="drop-shadow-sm text-foreground"
+                                />
+                            )
+                        })}
+
+                        {/* Interactive Points (The actual measurement dots) */}
                         {points.map((p, i) => (
                             <motion.g
                                 key={p.name}
@@ -246,8 +334,8 @@ export function BalanceVisualization({ data }: BalanceVisualizationProps) {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.3 + i * 0.1 }}
                             className={`p-3 rounded-lg border border-transparent transition-all duration-300 ${hoveredArea === area.name
-                                    ? 'bg-muted border-muted-foreground/20 scale-[1.02]'
-                                    : 'hover:bg-muted/50'
+                                ? 'bg-muted border-muted-foreground/20 scale-[1.02]'
+                                : 'hover:bg-muted/50'
                                 }`}
                             onMouseEnter={() => setHoveredArea(area.name)}
                             onMouseLeave={() => setHoveredArea(null)}

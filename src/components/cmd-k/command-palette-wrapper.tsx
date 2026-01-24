@@ -8,10 +8,11 @@ import { useEffect, useState } from 'react'
 
 interface CommandPaletteWrapperProps {
     user: any
+    projects?: any[]
     children: React.ReactNode
 }
 
-export function CommandPaletteWrapper({ user, children }: CommandPaletteWrapperProps) {
+export function CommandPaletteWrapper({ user, projects, children }: CommandPaletteWrapperProps) {
     const { isSidebarCollapsed } = useUIStore()
     const [mounted, setMounted] = useState(false)
 
@@ -28,7 +29,7 @@ export function CommandPaletteWrapper({ user, children }: CommandPaletteWrapperP
     return (
         <>
             <CommandPalette />
-            <Sidebar user={user} onOpenCommand={handleOpenCommand} />
+            <Sidebar user={user} projects={projects} onOpenCommand={handleOpenCommand} />
 
             {!mounted ? (
                 <main className="md:pl-64 min-h-screen">

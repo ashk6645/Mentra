@@ -35,7 +35,7 @@ import { Separator } from '@/components/ui/separator'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUIStore } from '@/stores/use-ui-store'
 import { PanelLeftClose, MoreHorizontal, Trash2 } from 'lucide-react'
-import { deleteProject } from '@/lib/actions/projects'
+import { deleteProject, getProjects } from '@/lib/actions/projects'
 import { deletePage } from '@/lib/actions/pages'
 import {
     DropdownMenu,
@@ -55,11 +55,18 @@ interface PageItem {
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     user: any
+    projects?: Array<{
+        id: string
+        name: string
+        color: string | null
+        icon: string | null
+        sortOrder: number
+    }>
     onOpenCommand?: () => void
 }
 
 // Change to non-exported function, exported as memo at bottom
-function SidebarComponent({ className, user, onOpenCommand }: SidebarProps) {
+function SidebarComponent({ className, user, projects: initialProjects = [], onOpenCommand }: SidebarProps) {
     const pathname = usePathname()
     const router = useRouter()
     const supabase = createClient()
@@ -69,13 +76,11 @@ function SidebarComponent({ className, user, onOpenCommand }: SidebarProps) {
     const [projectsExpanded, setProjectsExpanded] = useState(true)
     const [pagesExpanded, setPagesExpanded] = useState(true)
     const [showCreateDialog, setShowCreateDialog] = useState(false)
-    const [projects, setProjects] = useState<Array<{
-        id: string
-        name: string
-        color: string | null
-        icon: string | null
-        sortOrder: number
-    }>>([])
+    // We use the prop directly, but if we need local optimistic updates we could use state. 
+    // For now, let's rely on the prop which comes from server (fresh on refresh).
+    // Actually, to support seamless optimistic updates from the create dialog without full page reload feels (though router.refresh behaves like one),
+    // let's just use the prop. The CreateDialog calls router.refresh() which updates the prop.
+    const projects = initialProjects
     const [pages, setPages] = useState<PageItem[]>([])
 
     // Reset expanded states when sidebar collapses to keep UI clean
@@ -89,7 +94,7 @@ function SidebarComponent({ className, user, onOpenCommand }: SidebarProps) {
     useEffect(() => {
         if (user?.id) {
             fetchProfile()
-            fetchProjects()
+            // fetchProjects() removed - passed as prop
             fetchPages()
         }
     }, [user?.id])
@@ -111,22 +116,6 @@ function SidebarComponent({ className, user, onOpenCommand }: SidebarProps) {
             }
         } catch (error) {
             console.error('Error fetching profile:', error)
-        }
-    }
-
-    async function fetchProjects() {
-        try {
-            const { data } = await supabase
-                .from('projects')
-                .select('*')
-                .eq('userId', user?.id)
-                .order('createdAt', { ascending: false })
-
-            if (data) {
-                setProjects(data as Project[])
-            }
-        } catch (error) {
-            console.error('Error fetching projects:', error)
         }
     }
 
