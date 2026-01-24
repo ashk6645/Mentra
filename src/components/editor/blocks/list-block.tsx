@@ -43,7 +43,7 @@ export const ListBlock = React.forwardRef<HTMLElement, ListBlockProps>(
                     onChange={handleChange}
                     onKeyDown={onKeyDown}
                     onFocus={onFocus}
-                    onBlur={onBlur}
+                    onBlur={() => onBlur(block.id)}
                     className={cn(
                         "flex-1 outline-none break-words whitespace-pre-wrap min-h-[1.5em]",
                         !text && "empty:before:content-['List_item'] empty:before:text-gray-300 empty:before:pointer-events-none"
