@@ -101,6 +101,7 @@ export function BlockEditor({
     // For now, let's implement a wrapper or logic in `onChange` of blocks
 
     const handleBlockChange = useCallback((id: string, content: any) => {
+        console.log('BlockEditor handleBlockChange:', id, content)
         // Skip slash menu logic if we're in the middle of handling Enter key
         if (isHandlingEnterRef.current) {
             updateBlock(id, { content })
@@ -508,8 +509,18 @@ export function BlockEditor({
                             const id = addBlock()
                             setFocusedBlockId(id)
 
-                            // Ensure we scroll to it?
-                            // addBlock updates state, focus effect handles it?
+                            // Fix: Persist to server
+                            if (onCreateBlock) {
+                                const createdBlock: Block = {
+                                    id,
+                                    type: 'TEXT',
+                                    content: {},
+                                    sortOrder: blocks.length, // Rough sort order, server will recalculate or use end
+                                    createdAt: new Date(),
+                                    updatedAt: new Date()
+                                }
+                                onCreateBlock(createdBlock)
+                            }
                         }}
                     >
                         {blocks.length === 0 && (
