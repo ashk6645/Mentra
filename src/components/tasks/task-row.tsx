@@ -16,6 +16,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { EditTaskDialog } from './edit-task-dialog'
 
+import { DeleteTaskDialog } from './delete-task-dialog'
+
 interface TaskRowProps {
     task: any // Using any to avoid type conflicts with shared components for now
 }
@@ -23,6 +25,7 @@ interface TaskRowProps {
 export function TaskRow({ task }: TaskRowProps) {
     const router = useRouter()
     const [isPending, setIsPending] = useState(false)
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
     const handleToggle = async (checked: boolean) => {
         setIsPending(true)
@@ -37,10 +40,8 @@ export function TaskRow({ task }: TaskRowProps) {
     }
 
     const handleDelete = async () => {
-        if (confirm('Are you sure you want to delete this task?')) {
-            await deleteTask(task.id)
-            router.refresh()
-        }
+        await deleteTask(task.id)
+        router.refresh()
     }
 
     const getPriorityColor = (priority?: string | null) => {
@@ -139,12 +140,25 @@ export function TaskRow({ task }: TaskRowProps) {
                                 </DropdownMenuItem>
                             }
                         />
-                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={handleDelete}>
+                        <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onSelect={(e) => {
+                                e.preventDefault()
+                                setShowDeleteDialog(true)
+                            }}
+                        >
                             <Trash className="mr-2 h-4 w-4" />
                             Delete
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
+
+                <DeleteTaskDialog
+                    open={showDeleteDialog}
+                    onOpenChange={setShowDeleteDialog}
+                    onConfirm={handleDelete}
+                    taskTitle={task.title}
+                />
             </div>
         </div>
     )
