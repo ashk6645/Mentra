@@ -1,0 +1,74 @@
+import React, { useCallback, useRef, useEffect } from 'react'
+import { Block, BlockType } from './types'
+import { cn } from '@/lib/utils'
+
+// Registry of block components (will be populated as we create them)
+import { ParagraphBlock } from './blocks/paragraph-block'
+
+// Map block types to components
+const BLOCK_COMPONENTS: Partial<Record<BlockType, React.ComponentType<any>>> = {
+    TEXT: ParagraphBlock,
+    // Add other types here
+}
+
+interface BlockRendererProps {
+    block: Block
+    isFocused: boolean
+    updateBlock: (id: string, updates: Partial<Block>) => void
+    addBlock: (type: any, content: any, afterId: string) => void
+    removeBlock: (id: string) => void
+    onFocus: (id: string) => void
+    onBlur: (id: string) => void
+    onKeyDown: (e: React.KeyboardEvent, blockId: string) => void
+}
+
+export function BlockRenderer({
+    block,
+    isFocused,
+    updateBlock,
+    addBlock,
+    removeBlock,
+    onFocus,
+    onBlur,
+    onKeyDown
+}: BlockRendererProps) {
+    const Component = BLOCK_COMPONENTS[block.type] || BLOCK_COMPONENTS['TEXT']
+    const contentRef = useRef<any>(null)
+
+    // Handle focus effect
+    useEffect(() => {
+        if (isFocused && contentRef.current) {
+            // We might need a more sophisticated focus handling depending on the block type
+            // For text blocks, we might want to set cursor to end or specific position
+            contentRef.current.focus?.()
+        }
+    }, [isFocused])
+
+    const handleChange = useCallback((content: any) => {
+        updateBlock(block.id, { content })
+    }, [block.id, updateBlock])
+
+    if (!Component) {
+        return <div className="p-4 text-red-500">Unknown block type: {block.type}</div>
+    }
+
+    return (
+        <div
+            className={cn("group relative flex items-start -ml-2 pl-2 rounded-md hover:bg-gray-50/50 transition-colors")}
+            data-block-id={block.id}
+        >
+            {/* Drag Handle / Menu Trigger could go here */}
+            <div className="flex-1 min-w-0">
+                <Component
+                    ref={contentRef}
+                    block={block}
+                    content={block.content}
+                    onChange={handleChange}
+                    onKeyDown={(e: React.KeyboardEvent) => onKeyDown(e, block.id)}
+                    onFocus={() => onFocus(block.id)}
+                    onBlur={() => onBlur(block.id)}
+                />
+            </div>
+        </div>
+    )
+}
