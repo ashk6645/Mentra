@@ -101,43 +101,47 @@ export async function ProfileActivity() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent Activity</CardTitle>
-        <CardDescription>Your recent accomplishments and actions</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ScrollArea className="h-[500px] pr-4">
-          <div className="space-y-4">
-            {activities.length === 0 ? (
-              <div className="py-8 text-center text-sm text-muted-foreground">
-                No activity yet. Start completing tasks to see your progress!
-              </div>
-            ) : (
-              activities.map((activity, index) => {
-                const { title, description } = getActivityText(activity)
-                return (
-                  <div
-                    key={`${activity.type}-${index}`}
-                    className="flex items-start gap-4 rounded-lg border p-4 transition-colors hover:bg-muted/50"
-                  >
-                    <div className="mt-1 rounded-full bg-muted p-2">
-                      {getActivityIcon(activity.type)}
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-sm font-medium leading-none">{title}</p>
-                      <p className="text-sm text-muted-foreground">{description}</p>
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(activity.date, { addSuffix: true })}
-                    </div>
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-semibold mb-1">Recent Activity</h3>
+        <p className="text-sm text-muted-foreground">Your recent accomplishments and actions</p>
+      </div>
+      
+      <ScrollArea className="h-[600px] pr-4">
+        <div className="space-y-3">
+          {activities.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="py-12 text-center">
+                <Target className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                <p className="text-sm text-muted-foreground">
+                  No activity yet. Start completing tasks to see your progress!
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            activities.map((activity, index) => {
+              const { title, description } = getActivityText(activity)
+              return (
+                <div
+                  key={`${activity.type}-${index}`}
+                  className="flex items-start gap-4 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-4 transition-all hover:bg-accent/50 hover:border-border group"
+                >
+                  <div className="mt-0.5 rounded-lg bg-muted/80 p-2.5 group-hover:bg-background transition-colors">
+                    {getActivityIcon(activity.type)}
                   </div>
-                )
-              })
-            )}
-          </div>
-        </ScrollArea>
-      </CardContent>
-    </Card>
+                  <div className="flex-1 space-y-1 min-w-0">
+                    <p className="text-sm font-medium leading-tight truncate">{title}</p>
+                    <p className="text-xs text-muted-foreground truncate">{description}</p>
+                  </div>
+                  <div className="text-xs text-muted-foreground whitespace-nowrap">
+                    {formatDistanceToNow(activity.date, { addSuffix: true })}
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
+      </ScrollArea>
+    </div>
   )
 }
