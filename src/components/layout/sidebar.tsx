@@ -116,7 +116,7 @@ function SidebarComponent({ className, projects, pages = [], user, onOpenCommand
         { label: 'Habits', icon: Target, href: '/habits' },
     ]
 
-    const SidebarContent = () => (
+    const sidebarContent = (
         <div className="group flex flex-col h-full bg-sidebar/95 backdrop-blur-xl border-r border-sidebar-border supports-[backdrop-filter]:bg-sidebar/80 relative">
             {/* Collapse Toggle Button - Floating on Border */}
             <button
@@ -419,7 +419,7 @@ function SidebarComponent({ className, projects, pages = [], user, onOpenCommand
                 animate={{ width: isSidebarCollapsed ? 80 : 220 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
             >
-                <SidebarContent />
+                {sidebarContent}
             </motion.div>
 
             <Sheet>
@@ -429,7 +429,7 @@ function SidebarComponent({ className, projects, pages = [], user, onOpenCommand
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="p-0 w-64 border-r border-border/50 bg-background/95 backdrop-blur-xl">
-                    <SidebarContent />
+                    {sidebarContent}
                 </SheetContent>
             </Sheet>
         </>
