@@ -29,24 +29,19 @@ export const CodeBlock = React.forwardRef<HTMLElement, CodeBlockProps>(
 
         // Intercept Enter key to allow new lines inside code block without creating new block
         const handleLocalKeyDown = (e: React.KeyboardEvent) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                // In text blocks, Enter creates new block. 
-                // In code block, we want new line.
-                // But usually Notion allows new line with Shift+Enter everywhere, 
-                // and Enter creates new block.
-                // However, for code blocks, users expect Enter to be a newline.
-                // We can use Shift+Enter to break out?
-                // Or standard behavior: Enter = newline, Shift+Enter = newline.
-                // To exit code block: 2 Enters? Or using arrow keys.
-                // Let's stick to standard internal newline for now, but we need to stop propagation
-                // if we want to mimic standard code editors.
-                // Current parent BlockBinder handles Enter to create new block.
-                // We need to STOP that if we want internal newlines.
+            if (e.key === 'Enter') {
+                if (e.shiftKey) {
+                    // Shift+Enter: Exit code block (Trigger parent handler which adds new block)
+                    onKeyDown(e)
+                    return
+                }
 
-                // BUT, preserving standard behavior: Enter -> New Block is consistent.
-                // Users use Shift+Enter for newline.
-                // Let's stick to consistent behavior for MVP unless requested.
+                // Regular Enter: Insert newline (Swallow event from parent)
+                e.stopPropagation()
+                // Do NOT preventDefault to allow ContentEditable to insert newline
+                return
             }
+            // Pass other keys to parent (like Arrows, Backspace)
             onKeyDown(e)
         }
 
