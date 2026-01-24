@@ -21,7 +21,7 @@ export default async function DashboardPage() {
         today.setHours(0, 0, 0, 0)
 
         // Fetch all data in parallel
-        const [tasksResult, profile, stats, recentActivity, habits] = await Promise.all([
+        const [tasksResult, profile, stats, recentActivity, habits, totalCompletedTasks] = await Promise.all([
             getTasks(),
             prisma.profile.findUnique({
                 where: { id: user.id },
@@ -45,6 +45,13 @@ export default async function DashboardPage() {
             prisma.habit.findMany({
                 where: { userId: user.id, isActive: true },
                 take: 5
+            }),
+            // Get total completed tasks count
+            prisma.task.count({
+                where: {
+                    userId: user.id,
+                    completed: true
+                }
             })
         ])
 
@@ -97,6 +104,7 @@ export default async function DashboardPage() {
                             totalTasks={todayTasks.length + completedToday} // Simple logic for daily progress
                             streak={profile?.currentStreak || 0}
                             xp={totalXP}
+                            totalCompleted={Number(totalCompletedTasks) || 0}
                         />
 
                         {/* Focus & Activity Split */}

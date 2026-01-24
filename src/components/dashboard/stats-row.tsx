@@ -8,9 +8,10 @@ interface StatsRowProps {
     totalTasks: number
     streak: number
     xp: number
+    totalCompleted: number
 }
 
-export function StatsRow({ completedTasks, totalTasks, streak, xp }: StatsRowProps) {
+export function StatsRow({ completedTasks, totalTasks, streak, xp, totalCompleted }: StatsRowProps) {
     const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
     const items = [
@@ -34,20 +35,27 @@ export function StatsRow({ completedTasks, totalTasks, streak, xp }: StatsRowPro
             icon: Zap,
             color: 'text-yellow-500',
             bgColor: 'bg-yellow-500/10'
+        },
+        {
+            label: 'Total Completed',
+            value: totalCompleted.toLocaleString(),
+            icon: CheckCircle2,
+            color: 'text-blue-500',
+            bgColor: 'bg-blue-500/10'
         }
     ]
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {items.map((item, index) => (
                 <Card key={index} className="border-none shadow-sm bg-card hover:bg-accent/5 transition-colors">
                     <CardContent className="p-4 flex items-center justify-between">
                         <div className="space-y-1">
-                            <p className="text-sm font-medium text-muted-foreground">{item.label}</p>
-                            <p className="text-2xl font-bold tracking-tight">{item.value}</p>
+                            <p className="text-xs font-medium text-muted-foreground">{item.label}</p>
+                            <p className="text-xl font-bold tracking-tight">{item.value}</p>
                         </div>
-                        <div className={`p-3 rounded-full ${item.bgColor}`}>
-                            <item.icon className={`h-5 w-5 ${item.color}`} />
+                        <div className={`p-2 rounded-full ${item.bgColor}`}>
+                            <item.icon className={`h-4 w-4 ${item.color}`} />
                         </div>
                     </CardContent>
                 </Card>
