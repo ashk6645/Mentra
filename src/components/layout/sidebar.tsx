@@ -69,7 +69,13 @@ function SidebarComponent({ className, user, onOpenCommand }: SidebarProps) {
     const [projectsExpanded, setProjectsExpanded] = useState(true)
     const [pagesExpanded, setPagesExpanded] = useState(true)
     const [showCreateDialog, setShowCreateDialog] = useState(false)
-    const [projects, setProjects] = useState<Project[]>([])
+    const [projects, setProjects] = useState<Array<{
+        id: string
+        name: string
+        color: string | null
+        icon: string | null
+        sortOrder: number
+    }>>([])
     const [pages, setPages] = useState<PageItem[]>([])
 
     // Reset expanded states when sidebar collapses to keep UI clean

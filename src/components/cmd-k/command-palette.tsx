@@ -42,7 +42,13 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
     const router = useRouter()
     const { setTheme } = useTheme()
     const [query, setQuery] = React.useState("")
-    const [projects, setProjects] = React.useState<Project[]>([])
+    const [projects, setProjects] = React.useState<Array<{
+        id: string
+        name: string
+        color: string | null
+        icon: string | null
+        sortOrder: number
+    }>>([])
     const [tasks, setTasks] = React.useState<{
         id: string
         title: string

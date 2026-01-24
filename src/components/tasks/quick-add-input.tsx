@@ -13,7 +13,13 @@ import { Project, Tag } from '@prisma/client'
 interface QuickAddInputProps {
     onSubmit: (parsedData: ParsedTaskData) => void | Promise<void>
     onCancel?: () => void
-    availableProjects?: Project[]
+    availableProjects?: Array<{
+        id: string
+        name: string
+        color: string | null
+        icon: string | null
+        sortOrder: number
+    }>
     availableTags?: Tag[]
     placeholder?: string
     autoFocus?: boolean

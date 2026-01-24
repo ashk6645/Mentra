@@ -19,7 +19,13 @@ interface GlobalQuickAddProps {
 
 export function GlobalQuickAdd({ className }: GlobalQuickAddProps) {
     const [open, setOpen] = useState(false)
-    const [projects, setProjects] = useState<Project[]>([])
+    const [projects, setProjects] = useState<Array<{
+        id: string
+        name: string
+        color: string | null
+        icon: string | null
+        sortOrder: number
+    }>>([])
     const [tags, setTags] = useState<Tag[]>([])
     const router = useRouter()
 

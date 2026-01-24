@@ -64,7 +64,13 @@ interface EditTaskDialogProps {
 
 export function EditTaskDialog({ task, trigger }: EditTaskDialogProps) {
     const [open, setOpen] = useState(false)
-    const [projects, setProjects] = useState<Project[]>([])
+    const [projects, setProjects] = useState<Array<{
+        id: string
+        name: string
+        color: string | null
+        icon: string | null
+        sortOrder: number
+    }>>([])
     const [tags, setTags] = useState<Tag[]>([])
     const [isLoading, setIsLoading] = useState(false)
 
