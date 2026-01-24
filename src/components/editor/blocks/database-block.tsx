@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Block } from '../types'
 import { BoardView } from '../views/board-view'
+import { TableView } from '../views/table-view'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs' // Assuming we have these or need to make them
 import { KanbanSquare, Table as TableIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -45,7 +46,7 @@ export function DatabaseBlock({ block, isFocused, updateBlock }: DatabaseBlockPr
 
             <div className="min-h-[300px]">
                 {activeView === 'board' && <BoardView block={block} />}
-                {activeView === 'table' && <div className="p-4 text-center text-gray-500">Table view coming soon</div>}
+                {activeView === 'table' && <TableView block={block} />}
             </div>
         </div>
     )
