@@ -42,12 +42,10 @@ export function DashboardHeader({ displayName, hoursRemaining }: DashboardHeader
                 </div>
             </div>
 
-            {hoursRemaining && (
-                <div className="text-right hidden md:block">
+            {/* <div className="text-right hidden md:block">
                     <p className="text-sm text-muted-foreground">Work hours remaining</p>
                     <p className="text-2xl font-semibold tabular-nums text-foreground">{hoursRemaining}h</p>
-                </div>
-            )}
+                </div> */}
         </div>
     )
 }

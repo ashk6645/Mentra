@@ -118,7 +118,6 @@ export default async function DashboardPage() {
                 {/* Header Section */}
                 <DashboardHeader
                     displayName={displayName}
-                    hoursRemaining={4} // Placeholder: Calculate real work hours remaining
                 />
 
                 {/* Main Bento Grid */}
