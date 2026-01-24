@@ -1,20 +1,7 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
 import { createClient } from '@/lib/supabase/server'
 import { Trophy, Star, Target, Zap, Flame, CheckCircle2, Calendar, Clock } from 'lucide-react'
 import prisma from '@/lib/prisma'
-
-interface Achievement {
-  id: string
-  title: string
-  description: string
-  icon: React.ReactNode
-  progress: number
-  max: number
-  unlocked: boolean
-  category: 'tasks' | 'streak' | 'xp' | 'focus'
-}
+import { AchievementsClient, type Achievement } from './achievements-client'
 
 export async function ProfileAchievements() {
   const supabase = await createClient()
@@ -172,101 +159,11 @@ export async function ProfileAchievements() {
   ]
 
   const unlockedCount = achievements.filter(a => a.unlocked).length
-  const categories = ['tasks', 'streak', 'xp', 'focus'] as const
 
   return (
-    <div className="space-y-6">
-      {/* Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Achievements</CardTitle>
-          <CardDescription>
-            Track your progress and unlock rewards
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-sm font-medium">
-                  {unlockedCount} of {achievements.length} unlocked
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  {Math.round((unlockedCount / achievements.length) * 100)}%
-                </span>
-              </div>
-              <Progress
-                value={(unlockedCount / achievements.length) * 100}
-              />
-            </div>
-            <Trophy className="h-12 w-12 text-yellow-500" />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Achievement Categories */}
-      {categories.map(category => {
-        const categoryAchievements = achievements.filter(a => a.category === category)
-        const categoryUnlocked = categoryAchievements.filter(a => a.unlocked).length
-
-        return (
-          <Card key={category}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="capitalize">{category} Achievements</CardTitle>
-                <Badge variant="secondary">
-                  {categoryUnlocked} / {categoryAchievements.length}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2">
-                {categoryAchievements.map(achievement => (
-                  <div
-                    key={achievement.id}
-                    className={`flex gap-4 rounded-lg border p-4 transition-all ${achievement.unlocked
-                      ? 'border-primary bg-primary/5'
-                      : 'opacity-60 grayscale'
-                      }`}
-                  >
-                    <div
-                      className={`rounded-full p-3 ${achievement.unlocked
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
-                        }`}
-                    >
-                      {achievement.icon}
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-semibold">{achievement.title}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {achievement.description}
-                          </p>
-                        </div>
-                        {achievement.unlocked && (
-                          <Badge className="ml-2">Unlocked</Badge>
-                        )}
-                      </div>
-                      {!achievement.unlocked && (
-                        <div className="space-y-1">
-                          <Progress
-                            value={(achievement.progress / achievement.max) * 100}
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            {achievement.progress} / {achievement.max}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )
-      })}
-    </div>
+    <AchievementsClient
+      achievements={achievements}
+      unlockedCount={unlockedCount}
+    />
   )
 }
