@@ -38,6 +38,7 @@ interface BlockRendererProps {
     onFocus: (id: string) => void
     onBlur: (id: string) => void
     onKeyDown: (e: React.KeyboardEvent, blockId: string) => void
+    numberedListIndex?: number
 }
 
 export function BlockRenderer({
@@ -48,7 +49,8 @@ export function BlockRenderer({
     removeBlock,
     onFocus,
     onBlur,
-    onKeyDown
+    onKeyDown,
+    ...props
 }: BlockRendererProps) {
     const Component = BLOCK_COMPONENTS[block.type] || BLOCK_COMPONENTS['TEXT']
     const contentRef = useRef<any>(null)
@@ -85,6 +87,7 @@ export function BlockRenderer({
                     onKeyDown={(e: React.KeyboardEvent) => onKeyDown(e, block.id)}
                     onFocus={() => onFocus(block.id)}
                     onBlur={() => onBlur(block.id)}
+                    numberedListIndex={props.numberedListIndex}
                 />
             </div>
         </div>

@@ -10,11 +10,12 @@ interface ListBlockProps {
     onChange: (content: any) => void
     onKeyDown: (e: React.KeyboardEvent) => void
     onFocus: () => void
-    onBlur: () => void
+    onBlur: (id: string) => void
+    numberedListIndex?: number
 }
 
 export const ListBlock = React.forwardRef<HTMLElement, ListBlockProps>(
-    ({ block, content, onChange, onKeyDown, onFocus, onBlur }, ref) => {
+    ({ block, content, onChange, onKeyDown, onFocus, onBlur, numberedListIndex }, ref) => {
         const text = content.text || ''
         const innerRef = useRef<HTMLElement>(null)
         React.useImperativeHandle(ref, () => innerRef.current!)
@@ -30,8 +31,9 @@ export const ListBlock = React.forwardRef<HTMLElement, ListBlockProps>(
                         <div className="w-1.5 h-1.5 rounded-full bg-black dark:bg-white" />
                     )}
                     {block.type === 'NUMBERED_LIST' && (
-                        <span className="text-sm font-medium text-gray-500">1.</span>
-                        // Note: Real numbering requires calculating index among siblings
+                        <span className="text-sm font-medium text-gray-500 select-none">
+                            {numberedListIndex ? `${numberedListIndex}.` : '1.'}
+                        </span>
                     )}
                 </div>
                 <ContentEditable

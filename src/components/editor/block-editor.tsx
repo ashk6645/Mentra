@@ -207,18 +207,54 @@ export function BlockEditor({
             }
 
         } else if (e.key === 'Backspace') {
+            const currentBlock = blocks.find(b => b.id === blockId)
+            const index = blocks.findIndex(b => b.id === blockId)
 
-        } else if (e.key === 'Backspace') {
-            const block = blocks.find(b => b.id === blockId)
-            const isEmpty = !block?.content.text || block.content.text === ''
+            // Check for empty block (robust check)
+            const textContent = currentBlock?.content?.text || ''
+            // We treat a block as empty if it has no text or just whitespace/BR that browsers sometimes add
+            const isEmpty = !textContent || textContent.trim() === '' || textContent === '<br>'
 
-            if (isEmpty && blocks.length > 1) {
+            // 1. If block is empty and not the first block, delete it and focus previous
+            if (currentBlock && index > 0 && isEmpty) {
                 e.preventDefault()
-                const index = blocks.findIndex(b => b.id === blockId)
-                if (index > 0) {
-                    const prevBlock = blocks[index - 1]
-                    setFocusedBlockId(prevBlock.id)
+                const prevBlock = blocks[index - 1]
+                removeBlock(blockId)
+                // We want to focus the previous block.
+                // Ideally at the END of its content. 
+                // Standard focus might go to start, but for "erasing flow" it's acceptable to just focus.
+                setFocusedBlockId(prevBlock.id)
+                onDeleteBlock?.(blockId)
+                return
+            }
+
+            // 2. If block has content, but cursor is at START, merge with previous
+            const selection = window.getSelection()
+            // We need to be careful with "isAtStart" in ContentEditable.
+            // If anchorOffset is 0 and isCollapsed, we are likely at start.
+            const isAtStart = selection && selection.isCollapsed && selection.anchorOffset === 0
+
+            if (currentBlock && index > 0 && isAtStart && !isEmpty) {
+                const prevBlock = blocks[index - 1]
+
+                // Allow merging Text-like blocks
+                const isCurrentText = ['TEXT', 'HEADING_1', 'HEADING_2', 'HEADING_3', 'BULLETED_LIST', 'NUMBERED_LIST', 'TODO_LIST'].includes(currentBlock.type)
+                const isPrevText = ['TEXT', 'HEADING_1', 'HEADING_2', 'HEADING_3', 'BULLETED_LIST', 'NUMBERED_LIST', 'TODO_LIST'].includes(prevBlock.type)
+
+                if (isCurrentText && isPrevText) {
+                    e.preventDefault()
+
+                    const prevText = prevBlock.content.text || ''
+                    const currentText = currentBlock.content.text || ''
+
+                    // Update previous block with merged text
+                    updateBlock(prevBlock.id, {
+                        content: { ...prevBlock.content, text: prevText + currentText }
+                    })
+
+                    // Remove current
                     removeBlock(blockId)
+                    setFocusedBlockId(prevBlock.id)
                     onDeleteBlock?.(blockId)
                 }
             }
@@ -263,29 +299,43 @@ export function BlockEditor({
                         items={blocks.map(b => b.id)}
                         strategy={verticalListSortingStrategy}
                     >
-                        {blocks.map(block => (
-                            <SortableBlock
-                                key={block.id}
-                                block={block}
-                                isFocused={focusedBlockId === block.id}
-                                // We intercept updateBlock here to check for slash commands!
-                                // No wait, better to pass a specific handler?
-                                // Let's pass updateBlock but wrapper it
-                                updateBlock={(id, updates) => {
-                                    // If it's a content update, check specifically
-                                    if (updates.content) {
-                                        handleBlockChange(id, updates.content)
-                                    } else {
-                                        updateBlock(id, updates)
-                                    }
-                                }}
-                                addBlock={addBlock}
-                                removeBlock={removeBlock}
-                                onFocus={handleFocus}
-                                onBlur={handleBlur}
-                                onKeyDown={handleKeyDown}
-                            />
-                        ))}
+                        {(() => {
+                            let numberCounter = 0;
+                            return blocks.map(block => {
+                                // Calculate numbering: increment if NUMBERED_LIST, else reset
+                                if (block.type === 'NUMBERED_LIST') {
+                                    numberCounter++;
+                                } else {
+                                    numberCounter = 0;
+                                }
+                                const currentNumber = numberCounter > 0 ? numberCounter : undefined;
+
+                                return (
+                                    <SortableBlock
+                                        key={block.id}
+                                        block={block}
+                                        isFocused={focusedBlockId === block.id}
+                                        numberedListIndex={currentNumber}
+                                        // We intercept updateBlock here to check for slash commands!
+                                        // No wait, better to pass a specific handler?
+                                        // Let's pass updateBlock but wrapper it
+                                        updateBlock={(id, updates) => {
+                                            // If it's a content update, check specifically
+                                            if (updates.content) {
+                                                handleBlockChange(id, updates.content)
+                                            } else {
+                                                updateBlock(id, updates)
+                                            }
+                                        }}
+                                        addBlock={addBlock}
+                                        removeBlock={removeBlock}
+                                        onFocus={handleFocus}
+                                        onBlur={handleBlur}
+                                        onKeyDown={handleKeyDown}
+                                    />
+                                )
+                            })
+                        })()}
                     </SortableContext>
 
                     {/* Empty State / Click to add at bottom */}
