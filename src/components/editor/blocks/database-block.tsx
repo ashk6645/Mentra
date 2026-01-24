@@ -119,7 +119,13 @@ export function DatabaseBlock({ block, isFocused, onChange }: DatabaseBlockProps
                     {effectiveView === 'board' && <KanbanSquare className="w-4 h-4" />}
                     {effectiveView === 'gallery' && <LayoutGrid className="w-4 h-4" />}
                     {effectiveView === 'calendar' && <CalendarDays className="w-4 h-4" />}
-                    <span>{block.content.title || 'Database'}</span>
+                    <input
+                        type="text"
+                        value={block.content.title || ''}
+                        onChange={(e) => onChange({ ...block.content, title: e.target.value })}
+                        placeholder="Database"
+                        className="bg-transparent border-none outline-none font-medium placeholder:text-gray-400 focus:ring-0 p-0 m-0 w-full"
+                    />
                 </div>
 
                 <div className="flex bg-gray-100 dark:bg-zinc-800 rounded-lg p-1 gap-1 opacity-0 group-hover/db:opacity-100 transition-opacity">
