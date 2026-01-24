@@ -6,6 +6,7 @@ import {
   LayoutGrid,
   Calendar,
   CalendarRange,
+  KanbanSquare,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useProjectDatabase } from './project-database-context'
@@ -31,6 +32,11 @@ export function ViewSwitcher() {
       {
         value: 'board',
         label: 'Board',
+        icon: <KanbanSquare className="h-4 w-4" />,
+      },
+      {
+        value: 'gallery',
+        label: 'Gallery',
         icon: <LayoutGrid className="h-4 w-4" />,
       },
       {

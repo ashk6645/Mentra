@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { ProjectDatabaseProvider, useProjectDatabase } from './project-database-context'
 import { TableView } from './table-view'
 import { BoardView } from './board-view'
+import { GalleryView } from './gallery-view'
 import { TimelineView } from './timeline-view'
 import { CalendarView } from './calendar-view'
 import { ViewSwitcher } from './view-switcher'
@@ -175,6 +176,9 @@ function DatabaseViewRenderer({ onProjectClick }: DatabaseViewRendererProps) {
 
     case 'board':
       return <BoardView onCardClick={onProjectClick} groupBy="status" />
+
+    case 'gallery':
+      return <GalleryView onProjectClick={onProjectClick} />
 
     case 'timeline':
       return <TimelineView onProjectClick={onProjectClick} zoom="month" />

@@ -98,6 +98,7 @@ export const DATABASE_VIEWS = {
   BOARD: 'board',
   TIMELINE: 'timeline',
   CALENDAR: 'calendar',
+  GALLERY: 'gallery',
 } as const
 
 export type DatabaseView = typeof DATABASE_VIEWS[keyof typeof DATABASE_VIEWS]

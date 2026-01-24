@@ -20,7 +20,8 @@ import {
     Target,
     ChevronRight,
     Plus,
-    Search
+    Search,
+    Folder
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -119,6 +120,7 @@ function SidebarComponent({ className, projects, pages = [], user, onOpenCommand
         { label: 'Today', icon: Sun, href: '/today' },
         { label: 'Upcoming', icon: CalendarDays, href: '/upcoming' },
         { label: 'Calendar', icon: Calendar, href: '/calendar' },
+        { label: 'Projects', icon: Folder, href: '/project-database' },
         { label: 'My Tasks', icon: CheckSquare, href: '/tasks' },
         { label: 'Areas', icon: LayoutGrid, href: '/areas' },
         { label: 'Focus', icon: Timer, href: '/focus' },
