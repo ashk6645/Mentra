@@ -1,34 +1,16 @@
 import { CreateTaskDialog } from '@/components/tasks/create-task-dialog'
-import { TaskRow } from '@/components/tasks/task-row'
 import { Inbox as InboxIcon, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import prisma from '@/lib/prisma'
+import { InboxTaskList } from '@/components/inbox/inbox-task-list'
+import { InboxSkeleton } from '@/components/inbox/inbox-skeleton'
+import { Suspense } from 'react'
 
 export default async function InboxPage() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return null
 
-    // Direct query - faster than action
-    const inboxTasks = await prisma.task.findMany({
-        where: {
-            userId: user.id,
-            projectId: null
-        },
-        select: {
-            id: true,
-            title: true,
-            description: true,
-            priority: true,
-            dueDate: true,
-            completed: true,
-            sortOrder: true,
-        },
-        orderBy: [
-            { completed: 'asc' },
-            { sortOrder: 'asc' }
-        ]
-    })
+
 
     return (
         <div className="flex-1 overflow-y-auto bg-muted/5 min-h-full">
@@ -48,15 +30,9 @@ export default async function InboxPage() {
                 </div>
 
                 <div className="mt-8 space-y-3">
-                    {inboxTasks.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground bg-card rounded-lg border border-dashed">
-                            Your inbox is empty. Great job!
-                        </div>
-                    ) : (
-                        inboxTasks.map((task: any) => (
-                            <TaskRow key={task.id} task={task} />
-                        ))
-                    )}
+                    <Suspense fallback={<InboxSkeleton />}>
+                        <InboxTaskList userId={user.id} />
+                    </Suspense>
 
                     <CreateTaskDialog
                         projectId="none"
