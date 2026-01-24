@@ -33,7 +33,16 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Separator } from '@/components/ui/separator'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUIStore } from '@/stores/use-ui-store'
-import { PanelLeftClose } from 'lucide-react'
+import { PanelLeftClose, MoreHorizontal, Trash2 } from 'lucide-react'
+import { deleteProject } from '@/lib/actions/projects'
+import { deletePage } from '@/lib/actions/pages'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu'
 
 interface PageItem {
     id: string
@@ -294,18 +303,19 @@ function SidebarComponent({ className, projects, pages = [], user, onOpenCommand
                                             initial={{ x: -10, opacity: 0 }}
                                             animate={{ x: 0, opacity: 1 }}
                                             transition={{ delay: index * 0.05 }}
+                                            className="group/item flex items-center pr-2"
                                         >
                                             <Link
                                                 href={`/projects/${project.id}`}
                                                 className={cn(
-                                                    "flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors",
+                                                    "flex-1 flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors",
                                                     pathname === `/projects/${project.id}`
                                                         ? "text-foreground bg-accent/60 font-medium"
                                                         : "text-muted-foreground hover:text-foreground hover:bg-accent/30"
                                                 )}
                                             >
                                                 <span className={cn(
-                                                    "h-2 w-2 rounded-full ring-1 ring-white/10",
+                                                    "h-2 w-2 rounded-full ring-1 ring-white/10 shrink-0",
                                                     project.color === 'red' && "bg-red-500",
                                                     project.color === 'blue' && "bg-blue-500",
                                                     project.color === 'green' && "bg-green-500",
@@ -315,6 +325,29 @@ function SidebarComponent({ className, projects, pages = [], user, onOpenCommand
                                                 )} />
                                                 <span className="truncate">{project.name}</span>
                                             </Link>
+
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <button
+                                                        className="opacity-0 group-hover/item:opacity-100 p-0.5 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-opacity"
+                                                        aria-label="Project actions"
+                                                    >
+                                                        <MoreHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
+                                                    </button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            deleteProject(project.id)
+                                                        }}
+                                                        className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/10 gap-2"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                        Delete Project
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </motion.div>
                                     ))}
                                     {projects.length === 0 && (
@@ -373,19 +406,43 @@ function SidebarComponent({ className, projects, pages = [], user, onOpenCommand
                                             initial={{ x: -10, opacity: 0 }}
                                             animate={{ x: 0, opacity: 1 }}
                                             transition={{ delay: index * 0.05 }}
+                                            className="group/item flex items-center pr-2"
                                         >
                                             <Link
                                                 href={`/private/${page.id}`}
                                                 className={cn(
-                                                    "flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors",
+                                                    "flex-1 flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors",
                                                     pathname === `/private/${page.id}`
                                                         ? "text-foreground bg-accent/60 font-medium"
                                                         : "text-muted-foreground hover:text-foreground hover:bg-accent/30"
                                                 )}
                                             >
-                                                <span className="text-base">{page.icon || '📄'}</span>
+                                                <span className="text-base shrink-0">{page.icon || '📄'}</span>
                                                 <span className="truncate">{page.title}</span>
                                             </Link>
+
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <button
+                                                        className="opacity-0 group-hover/item:opacity-100 p-0.5 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-opacity"
+                                                        aria-label="Page actions"
+                                                    >
+                                                        <MoreHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
+                                                    </button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            deletePage(page.id)
+                                                        }}
+                                                        className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/10 gap-2"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                        Delete Page
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </motion.div>
                                     ))}
                                     {pages.length === 0 && (
