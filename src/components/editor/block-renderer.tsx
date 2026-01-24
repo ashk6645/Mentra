@@ -5,9 +5,13 @@ import { cn } from '@/lib/utils'
 // Registry of block components (will be populated as we create them)
 import { ParagraphBlock } from './blocks/paragraph-block'
 
+import { DatabaseBlock } from './blocks/database-block'
+
 // Map block types to components
 const BLOCK_COMPONENTS: Partial<Record<BlockType, React.ComponentType<any>>> = {
     TEXT: ParagraphBlock,
+    DATABASE_BOARD: DatabaseBlock,
+    DATABASE_TABLE: DatabaseBlock,
     // Add other types here
 }
 
