@@ -241,16 +241,16 @@ export function BlockEditor({
             // Get cursor position and split text
             let textBeforeCursor = ''
             let textAfterCursor = ''
-            
+
             const blockElement = document.querySelector(`[data-block-id="${blockId}"]`)
-            
+
             if (blockElement) {
                 // Try input/textarea elements first (for private-pages blocks and simpler detection)
                 const inputElement = blockElement.querySelector('input[type="text"], textarea') as HTMLInputElement | HTMLTextAreaElement
                 if (inputElement && document.activeElement === inputElement) {
                     const fullText = inputElement.value || ''
                     const cursorOffset = inputElement.selectionStart || 0
-                    
+
                     textBeforeCursor = fullText.substring(0, cursorOffset)
                     textAfterCursor = fullText.substring(cursorOffset)
                 } else {
@@ -263,14 +263,14 @@ export function BlockEditor({
                         if (contentElement && contentElement.contains(selection.anchorNode)) {
                             // Get full text
                             const fullText = contentElement.textContent || ''
-                            
+
                             // Calculate cursor offset
                             try {
                                 const preCaretRange = range.cloneRange()
                                 preCaretRange.selectNodeContents(contentElement)
                                 preCaretRange.setEnd(range.endContainer, range.endOffset)
                                 const cursorOffset = preCaretRange.toString().length
-                                
+
                                 textBeforeCursor = fullText.substring(0, cursorOffset)
                                 textAfterCursor = fullText.substring(cursorOffset)
                             } catch (e) {
@@ -321,7 +321,7 @@ export function BlockEditor({
 
             // Create new block with text after cursor
             let newContent: any = textAfterCursor ? { text: textAfterCursor } : { text: '' }
-            
+
             // Add default properties for specific block types
             if (nextType === 'TODO_LIST') {
                 newContent.checked = false
@@ -329,7 +329,7 @@ export function BlockEditor({
                 newContent.isOpen = false
                 newContent.children = []
             }
-            
+
             const addedId = addBlock(nextType, newContent, blockId)
             setFocusedBlockId(addedId)
 
@@ -487,7 +487,10 @@ export function BlockEditor({
                                             }
                                         }}
                                         addBlock={addBlock}
-                                        removeBlock={removeBlock}
+                                        removeBlock={(id) => {
+                                            removeBlock(id)
+                                            onDeleteBlock?.(id)
+                                        }}
                                         onFocus={handleFocus}
                                         onBlur={handleBlur}
                                         onKeyDown={handleKeyDown}

@@ -24,20 +24,31 @@ export function useBlockEditor({ initialBlocks = [], onChange }: UseBlockEditorP
         content: BlockContent = {},
         afterBlockId?: string
     ) => {
-        const newBlock: Block = {
-            id: uuidv4(),
-            type,
-            content,
-            sortOrder: 0,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        }
-
         const currentBlocks = blocksRef.current
 
+        // Calculate proper sortOrder
+        let sortOrder = 0
+        
         if (afterBlockId) {
             const index = currentBlocks.findIndex(b => b.id === afterBlockId)
             if (index !== -1) {
+                // Insert between current block and next block
+                const currentSortOrder = currentBlocks[index].sortOrder || index
+                const nextBlock = currentBlocks[index + 1]
+                const nextSortOrder = nextBlock ? (nextBlock.sortOrder || index + 1) : currentSortOrder + 1
+                
+                // Place new block between current and next
+                sortOrder = (currentSortOrder + nextSortOrder) / 2
+                
+                const newBlock: Block = {
+                    id: uuidv4(),
+                    type,
+                    content,
+                    sortOrder,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                }
+                
                 const newBlocks = [
                     ...currentBlocks.slice(0, index + 1),
                     newBlock,
@@ -48,7 +59,19 @@ export function useBlockEditor({ initialBlocks = [], onChange }: UseBlockEditorP
             }
         }
 
-        // Default: append to end
+        // Default: append to end with proper sortOrder
+        const lastBlock = currentBlocks[currentBlocks.length - 1]
+        sortOrder = lastBlock ? (lastBlock.sortOrder || currentBlocks.length - 1) + 1 : 0
+        
+        const newBlock: Block = {
+            id: uuidv4(),
+            type,
+            content,
+            sortOrder,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        }
+
         updateBlocks([...currentBlocks, newBlock])
         return newBlock.id
     }, [updateBlocks])

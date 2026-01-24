@@ -519,7 +519,12 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
 
             <Sheet>
                 <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="md:hidden fixed top-3 left-3 z-50 bg-background/50 backdrop-blur-md border border-border/50 shadow-sm">
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="md:hidden fixed top-3 left-3 z-50 bg-background/50 backdrop-blur-md border border-border/50 shadow-sm"
+                        suppressHydrationWarning
+                    >
                         <Menu className="h-5 w-5" />
                     </Button>
                 </SheetTrigger>
