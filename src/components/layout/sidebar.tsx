@@ -241,13 +241,7 @@ export function Sidebar({ className, projects, pages = [], user, onOpenCommand }
                                     </motion.span>
                                 )}
                                 {isActive && (
-                                    <motion.div
-                                        layoutId="sidebar-active-indicator"
-                                        className="absolute left-0 w-1 h-3/5 bg-primary rounded-r-full"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                    />
+                                    <></>
                                 )}
                             </Link>
                         )
