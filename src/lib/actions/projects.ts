@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
+import { AppError, ErrorCodes, ErrorMessages } from '@/lib/error-handler'
 
 const createProjectSchema = z.object({
     name: z.string().min(1, 'Name is required'),
@@ -94,22 +95,42 @@ export async function createProject(data: CreateProjectInput) {
         const { data: { user } } = await supabase.auth.getUser()
 
         if (!user) {
-            return { success: false, error: 'Unauthorized' }
+            throw new AppError(
+                ErrorMessages.UNAUTHORIZED,
+                ErrorCodes.UNAUTHORIZED,
+                401,
+                ErrorMessages.UNAUTHORIZED
+            )
         }
 
         const result = createProjectSchema.safeParse(data)
 
         if (!result.success) {
-            return { success: false, error: result.error.flatten().fieldErrors }
+            throw new AppError(
+                'Validation failed',
+                ErrorCodes.VALIDATION_ERROR,
+                400,
+                ErrorMessages.VALIDATION_ERROR
+            )
         }
 
         const trimmedName = result.data.name.trim()
         if (trimmedName.length === 0) {
-            return { success: false, error: 'Project name cannot be empty' }
+            throw new AppError(
+                'Project name cannot be empty',
+                ErrorCodes.VALIDATION_ERROR,
+                400,
+                'Project name cannot be empty'
+            )
         }
 
         if (trimmedName.length > 100) {
-            return { success: false, error: 'Project name must be less than 100 characters' }
+            throw new AppError(
+                'Project name too long',
+                ErrorCodes.VALIDATION_ERROR,
+                400,
+                'Project name must be less than 100 characters'
+            )
         }
 
         const project = await prisma.$transaction(async (tx) => {
@@ -158,7 +179,7 @@ export async function createProject(data: CreateProjectInput) {
             return newProject
         })
 
-            ; (revalidateTag as any)(`projects-${user.id}`)
+        ; (revalidateTag as any)(`projects-${user.id}`)
         revalidatePath('/', 'layout')
         revalidatePath('/projects')
         revalidatePath('/dashboard')
@@ -167,11 +188,15 @@ export async function createProject(data: CreateProjectInput) {
     } catch (error: any) {
         console.error('Failed to create project:', error)
 
+        if (error instanceof AppError) {
+            return { success: false, error: error.userMessage || error.message }
+        }
+
         if (error.code === 'P2003') {
             return { success: false, error: 'Invalid area selected' }
         }
 
-        return { success: false, error: 'Failed to create project' }
+        return { success: false, error: 'Failed to create project. Please try again.' }
     }
 }
 

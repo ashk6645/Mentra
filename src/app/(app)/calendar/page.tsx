@@ -1,6 +1,8 @@
 import { getTasks } from '@/lib/actions/tasks'
 import { CalendarWrapper } from '@/components/calendar/calendar-wrapper'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Calendar - Time Block Your Tasks',
   description: 'Visual calendar to time block and schedule your tasks',

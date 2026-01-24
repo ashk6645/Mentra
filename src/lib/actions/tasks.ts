@@ -6,6 +6,7 @@ import prisma from '@/lib/prisma'
 import { z } from 'zod'
 import { Task } from '@prisma/client'
 import { awardXP, updateStreak } from '@/lib/actions/gamification'
+import { AppError, ErrorCodes, ErrorMessages } from '@/lib/error-handler'
 
 // Schemas
 const createTaskSchema = z.object({
@@ -41,13 +42,19 @@ export interface GetTasksOptions {
 }
 
 export async function getTasks(options: GetTasksOptions = {}) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-        return { success: false, error: 'Unauthorized', data: [] }
-    }
-
     try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        if (!user) {
+            throw new AppError(
+                ErrorMessages.UNAUTHORIZED,
+                ErrorCodes.UNAUTHORIZED,
+                401,
+                ErrorMessages.UNAUTHORIZED
+            )
+        }
+
         const where: any = {
             userId: user.id,
         }
@@ -117,29 +124,43 @@ export async function getTasks(options: GetTasksOptions = {}) {
 
         return { success: true, data: tasks }
     } catch (error) {
-        console.error('getTasks: Database error', error)
-        return { success: false, error: 'Failed to fetch tasks', data: [] }
+        console.error('getTasks error:', error)
+        
+        if (error instanceof AppError) {
+            return { success: false, error: error.userMessage || error.message, data: [] }
+        }
+        
+        return { success: false, error: ErrorMessages.DATABASE_ERROR, data: [] }
     }
 }
 
 export async function createTask(data: CreateTaskInput) {
-    console.log('createTask called with:', data)
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-        console.error('createTask: Unauthorized')
-        return { success: false, error: 'Unauthorized' }
-    }
-
-    const result = createTaskSchema.safeParse(data)
-
-    if (!result.success) {
-        console.error('createTask: Validation failed', result.error)
-        return { success: false, error: result.error.flatten() }
-    }
-
     try {
+        console.log('createTask called with:', data)
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            throw new AppError(
+                ErrorMessages.UNAUTHORIZED,
+                ErrorCodes.UNAUTHORIZED,
+                401,
+                ErrorMessages.UNAUTHORIZED
+            )
+        }
+
+        const result = createTaskSchema.safeParse(data)
+
+        if (!result.success) {
+            console.error('createTask: Validation failed', result.error)
+            throw new AppError(
+                'Validation failed',
+                ErrorCodes.VALIDATION_ERROR,
+                400,
+                ErrorMessages.VALIDATION_ERROR
+            )
+        }
+
         // Ensure profile exists before creating task
         await prisma.profile.upsert({
             where: { id: user.id },
@@ -167,12 +188,17 @@ export async function createTask(data: CreateTaskInput) {
         })
 
         console.log('createTask: Success', task)
-            ; (revalidateTag as any)(`tasks-${user.id}`) // Invalidate cache
+        ; (revalidateTag as any)(`tasks-${user.id}`)
         revalidatePath('/', 'layout')
         return { success: true, data: task }
     } catch (error) {
-        console.error('createTask: Database error', error)
-        return { success: false, error: 'Failed to create task' }
+        console.error('createTask error:', error)
+        
+        if (error instanceof AppError) {
+            return { success: false, error: error.userMessage || error.message }
+        }
+        
+        return { success: false, error: 'Failed to create task. Please try again.' }
     }
 }
 

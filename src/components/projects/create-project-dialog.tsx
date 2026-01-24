@@ -39,6 +39,7 @@ import { AreaOfLife } from '@prisma/client'
 import { PROJECT_TEMPLATES, ProjectTemplate } from '@/lib/project-templates'
 import { cn } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { showErrorToast, showSuccessToast } from '@/lib/error-handler'
 
 const formSchema = z.object({
     name: z.string().min(1, 'Name is required'),
@@ -108,6 +109,7 @@ export function CreateProjectDialog({ open: externalOpen, onOpenChange: external
         })
 
         if (result.success) {
+            showSuccessToast('Project created', 'Your project has been created successfully')
             setOpen(false)
             setStep('template')
             setSelectedTemplate(null)
@@ -123,7 +125,7 @@ export function CreateProjectDialog({ open: externalOpen, onOpenChange: external
                 onProjectCreated()
             }
         } else {
-            console.error(result.error)
+            showErrorToast(result.error || 'Failed to create project', 'Create project')
         }
     }
 

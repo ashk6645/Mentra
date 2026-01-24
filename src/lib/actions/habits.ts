@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { AppError, ErrorCodes, ErrorMessages } from '@/lib/error-handler'
 
 const habitSchema = z.object({
     name: z.string().min(1, 'Name is required'),
@@ -16,7 +17,12 @@ export async function getHabits() {
         const { data: { user } } = await supabase.auth.getUser()
 
         if (!user) {
-            return { success: false, error: 'Unauthorized', data: [] }
+            throw new AppError(
+                ErrorMessages.UNAUTHORIZED,
+                ErrorCodes.UNAUTHORIZED,
+                401,
+                ErrorMessages.UNAUTHORIZED
+            )
         }
 
         const habits = await prisma.habit.findMany({
@@ -45,7 +51,7 @@ export async function getHabits() {
                         notes: true,
                     },
                     orderBy: { completedAt: 'desc' },
-                    take: 30 // Last 30 completions
+                    take: 30
                 }
             },
             orderBy: { createdAt: 'asc' }
@@ -54,7 +60,12 @@ export async function getHabits() {
         return { success: true, data: habits }
     } catch (error) {
         console.error('Failed to fetch habits:', error)
-        return { success: false, error: 'Failed to fetch habits', data: [] }
+        
+        if (error instanceof AppError) {
+            return { success: false, error: error.userMessage || error.message, data: [] }
+        }
+        
+        return { success: false, error: ErrorMessages.DATABASE_ERROR, data: [] }
     }
 }
 
@@ -64,21 +75,41 @@ export async function createHabit(data: z.infer<typeof habitSchema>) {
         const { data: { user } } = await supabase.auth.getUser()
 
         if (!user) {
-            return { success: false, error: 'Unauthorized' }
+            throw new AppError(
+                ErrorMessages.UNAUTHORIZED,
+                ErrorCodes.UNAUTHORIZED,
+                401,
+                ErrorMessages.UNAUTHORIZED
+            )
         }
 
         const validation = habitSchema.safeParse(data)
         if (!validation.success) {
-            return { success: false, error: validation.error.flatten().fieldErrors }
+            throw new AppError(
+                'Validation failed',
+                ErrorCodes.VALIDATION_ERROR,
+                400,
+                ErrorMessages.VALIDATION_ERROR
+            )
         }
 
         const trimmedName = validation.data.name.trim()
         if (trimmedName.length === 0) {
-            return { success: false, error: 'Habit name cannot be empty' }
+            throw new AppError(
+                'Habit name cannot be empty',
+                ErrorCodes.VALIDATION_ERROR,
+                400,
+                'Habit name cannot be empty'
+            )
         }
 
         if (trimmedName.length > 100) {
-            return { success: false, error: 'Habit name must be less than 100 characters' }
+            throw new AppError(
+                'Habit name too long',
+                ErrorCodes.VALIDATION_ERROR,
+                400,
+                'Habit name must be less than 100 characters'
+            )
         }
 
         const habit = await prisma.habit.create({
@@ -93,7 +124,12 @@ export async function createHabit(data: z.infer<typeof habitSchema>) {
         return { success: true, data: habit }
     } catch (error) {
         console.error('Failed to create habit:', error)
-        return { success: false, error: 'Failed to create habit' }
+        
+        if (error instanceof AppError) {
+            return { success: false, error: error.userMessage || error.message }
+        }
+        
+        return { success: false, error: 'Failed to create habit. Please try again.' }
     }
 }
 

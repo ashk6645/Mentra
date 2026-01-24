@@ -5,6 +5,8 @@ import { UpcomingHeader } from '@/components/upcoming/upcoming-header'
 import { isAfter, startOfDay, addDays, isSameDay, format, isBefore } from 'date-fns'
 import { Plus } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 export default async function UpcomingPage() {
     const tasksResult = await getTasks()
     const allTasks = tasksResult.success ? tasksResult.data : []

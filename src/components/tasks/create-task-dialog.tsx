@@ -15,6 +15,8 @@ import { getTags } from '@/lib/actions/tags'
 import { useRouter } from 'next/navigation'
 import { Project, Tag } from '@prisma/client'
 import { TaskEditor } from './task-editor'
+import { showErrorToast, showSuccessToast } from '@/lib/error-handler'
+import { InlineLoader } from '@/components/shared/loading-spinner'
 
 interface CreateTaskDialogProps {
     projectId?: string
@@ -55,13 +57,24 @@ export function CreateTaskDialog({
     }>>([])
     const [tags, setTags] = useState<Tag[]>([])
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [isLoadingData, setIsLoadingData] = useState(false)
 
     const router = useRouter()
 
     useEffect(() => {
         if (open) {
-            getProjects().then(setProjects)
-            getTags().then(setTags)
+            setIsLoadingData(true)
+            Promise.all([getProjects(), getTags()])
+                .then(([projectsData, tagsData]) => {
+                    setProjects(projectsData)
+                    setTags(tagsData)
+                })
+                .catch((error) => {
+                    showErrorToast(error, 'Failed to load projects and tags')
+                })
+                .finally(() => {
+                    setIsLoadingData(false)
+                })
         }
     }, [open])
     async function handleTaskSubmit(data: {
@@ -82,18 +95,22 @@ export function CreateTaskDialog({
                 priority: data.priority || undefined,
                 dueDate: data.dueDate ? data.dueDate.toISOString() : undefined,
                 projectId: data.projectId,
-                sectionId: data.sectionId || defaultSectionId, // Use editor data or default prop
+                sectionId: data.sectionId || defaultSectionId,
             })
 
             if (result.success) {
+                showSuccessToast('Task created', 'Your task has been created successfully')
                 setOpen(false)
                 router.refresh()
                 if (onTaskCreated && result.data) {
                     onTaskCreated(result.data)
                 }
+            } else {
+                showErrorToast(result.error || 'Failed to create task', 'Create task')
             }
         } catch (e) {
             console.error('Task creation exception:', e)
+            showErrorToast(e, 'Failed to create task')
         } finally {
             setIsSubmitting(false)
         }
@@ -117,18 +134,20 @@ export function CreateTaskDialog({
                 className="sm:max-w-[600px] p-0 gap-0 bg-transparent border-none shadow-none"
             >
                 <DialogTitle className="sr-only">Create New Task</DialogTitle>
-                {/*
-                    Using transparent/border-none dialog content because TaskEditor
-                    handles the "Card" look ourselves.
-                 */}
-                <TaskEditor
-                    projects={projects.map(p => ({ id: p.id, name: p.name }))}
-                    availableTags={tags.map(t => ({ id: t.id, name: t.name }))}
-                    defaultProjectId={projectId}
-                    onCancel={() => setOpen(false)}
-                    onSubmit={handleTaskSubmit}
-                    isSubmitting={isSubmitting}
-                />
+                {isLoadingData ? (
+                    <div className="bg-card rounded-lg p-8 flex items-center justify-center">
+                        <InlineLoader text="Loading..." />
+                    </div>
+                ) : (
+                    <TaskEditor
+                        projects={projects.map(p => ({ id: p.id, name: p.name }))}
+                        availableTags={tags.map(t => ({ id: t.id, name: t.name }))}
+                        defaultProjectId={projectId}
+                        onCancel={() => setOpen(false)}
+                        onSubmit={handleTaskSubmit}
+                        isSubmitting={isSubmitting}
+                    />
+                )}
             </DialogContent>
         </Dialog>
     )

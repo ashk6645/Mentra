@@ -1,6 +1,8 @@
 import { getTasks } from '@/lib/actions/tasks'
 import { FocusModeClient } from '@/components/focus/focus-mode-client'
 
+export const dynamic = 'force-dynamic'
+
 export default async function FocusPage() {
     const tasksResult = await getTasks()
     const allTasks = tasksResult.success ? tasksResult.data : []

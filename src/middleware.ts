@@ -1,7 +1,32 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { rateLimit } from '@/lib/rate-limit'
+
+const limiter = rateLimit({
+  interval: 60000, // 1 minute
+  uniqueTokenPerInterval: 100, // 100 requests per minute per IP
+})
 
 export async function updateSession(request: NextRequest) {
+    // Apply rate limiting to API routes
+    if (request.nextUrl.pathname.startsWith('/api/')) {
+        const rateLimitResult = await limiter.check(request, 30) // 30 requests per minute for API
+        
+        if (!rateLimitResult.success) {
+            return NextResponse.json(
+                { error: 'Too many requests. Please try again later.' },
+                { 
+                    status: 429,
+                    headers: {
+                        'X-RateLimit-Limit': '30',
+                        'X-RateLimit-Remaining': '0',
+                        'X-RateLimit-Reset': new Date(rateLimitResult.resetTime || Date.now()).toISOString(),
+                    }
+                }
+            )
+        }
+    }
+
     let response = NextResponse.next({
         request: {
             headers: request.headers,

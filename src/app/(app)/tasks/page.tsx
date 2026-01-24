@@ -4,6 +4,8 @@ import { CreateTaskDialog } from '@/components/tasks/create-task-dialog'
 import { TaskRow } from '@/components/tasks/task-row'
 import { CheckCircle2, ListTodo, Plus } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 async function TaskList() {
     const tasksResult = await getTasks()
     const tasks = tasksResult.success ? tasksResult.data : []
