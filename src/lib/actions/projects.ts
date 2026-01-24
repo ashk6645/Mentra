@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
@@ -26,29 +26,25 @@ export async function getProjects() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return []
 
-    const projects = await prisma.project.findMany({
-        where: {
-            userId: user.id
+    const getCachedProjects = unstable_cache(
+        async () => {
+            return await prisma.project.findMany({
+                where: {
+                    userId: user.id
+                },
+                orderBy: {
+                    sortOrder: 'asc'
+                }
+            })
         },
-        // Select all fields to avoid type mismatches with the frontend components
-        /* select: {
-            id: true,
-            name: true,
-            description: true,
-            color: true,
-            icon: true,
-            areaId: true,
-            sortOrder: true,
-            isArchived: true,
-            createdAt: true,
-            updatedAt: true,
-        }, */
-        orderBy: {
-            sortOrder: 'asc'
+        [`projects-${user.id}`],
+        {
+            tags: [`projects-${user.id}`],
+            revalidate: 3600
         }
-    })
+    )
 
-    return projects
+    return await getCachedProjects()
 }
 
 export async function getProjectsForBoard() {
@@ -157,6 +153,7 @@ export async function createProject(data: CreateProjectInput) {
             return newProject
         })
 
+            ; (revalidateTag as any)(`projects-${user.id}`)
         revalidatePath('/', 'layout')
         revalidatePath('/projects')
         revalidatePath('/dashboard')
@@ -286,6 +283,7 @@ export async function deleteProject(id: string) {
             }
         })
 
+            ; (revalidateTag as any)(`projects-${user.id}`)
         revalidatePath('/', 'layout')
         return { success: true }
     } catch (error: any) {
@@ -340,6 +338,7 @@ export async function updateProject(id: string, data: Partial<CreateProjectInput
             data: updateData
         })
 
+            ; (revalidateTag as any)(`projects-${user.id}`)
         revalidatePath('/', 'layout')
         return { success: true, data: project }
     } catch (error: any) {

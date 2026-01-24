@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 
@@ -32,26 +32,37 @@ export async function getPages() {
             return { success: false, error: 'Unauthorized', pages: [] }
         }
 
-        const pages = await prisma.page.findMany({
-            where: {
-                userId: user.id,
+        const getCachedPages = unstable_cache(
+            async () => {
+                return await prisma.page.findMany({
+                    where: {
+                        userId: user.id,
+                    },
+                    select: {
+                        id: true,
+                        title: true,
+                        icon: true,
+                        parentPageId: true,
+                        isFavorited: true,
+                        sortOrder: true,
+                        createdAt: true,
+                        updatedAt: true,
+                    },
+                    orderBy: [
+                        { isFavorited: 'desc' },
+                        { sortOrder: 'asc' },
+                        { createdAt: 'desc' },
+                    ],
+                })
             },
-            select: {
-                id: true,
-                title: true,
-                icon: true,
-                parentPageId: true,
-                isFavorited: true,
-                sortOrder: true,
-                createdAt: true,
-                updatedAt: true,
-            },
-            orderBy: [
-                { isFavorited: 'desc' },
-                { sortOrder: 'asc' },
-                { createdAt: 'desc' },
-            ],
-        })
+            [`pages-${user.id}`],
+            {
+                tags: [`pages-${user.id}`],
+                revalidate: 3600
+            }
+        )
+
+        const pages = await getCachedPages()
 
         return { success: true, pages }
     } catch (error) {
@@ -142,6 +153,7 @@ export async function createPage(data: CreatePageInput = {}) {
             },
         })
 
+            ; (revalidateTag as any)(`pages-${user.id}`)
         // Note: revalidatePath moved to caller to avoid Next.js 16 render issues
         return { success: true, page }
     } catch (error) {
@@ -188,6 +200,7 @@ export async function updatePage(id: string, data: UpdatePageInput) {
             },
         })
 
+            ; (revalidateTag as any)(`pages-${user.id}`)
         revalidatePath('/', 'layout')
         revalidatePath(`/private/${id}`)
 
@@ -229,6 +242,7 @@ export async function deletePage(id: string) {
             where: { id },
         })
 
+            ; (revalidateTag as any)(`pages-${user.id}`)
         revalidatePath('/', 'layout')
 
         return { success: true }
@@ -260,6 +274,7 @@ export async function reorderPages(pageIds: string[]) {
             )
         )
 
+            ; (revalidateTag as any)(`pages-${user.id}`)
         revalidatePath('/', 'layout')
 
         return { success: true }
@@ -295,6 +310,7 @@ export async function togglePageFavorite(id: string) {
             data: { isFavorited: !page.isFavorited },
         })
 
+        revalidateTag(`pages-${user.id}`)
         revalidatePath('/', 'layout')
 
         return { success: true, isFavorited: updated.isFavorited }

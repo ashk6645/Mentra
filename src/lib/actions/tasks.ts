@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
@@ -41,80 +41,91 @@ export interface GetTasksOptions {
 }
 
 export async function getTasks(options: GetTasksOptions = {}) {
-    try {
-        const supabase = await createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) {
-            return { success: false, error: 'Unauthorized', data: [] }
-        }
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        return { success: false, error: 'Unauthorized', data: [] }
+    }
 
-        const where: any = {
-            userId: user.id,
-        }
-
-        // Apply filters
-        if (options.projectId !== undefined) {
-            where.projectId = options.projectId
-        }
-
-        if (options.completed !== undefined) {
-            where.completed = options.completed
-        }
-
-        if (options.dateRange) {
-            where.dueDate = {
-                gte: options.dateRange.start,
-                lte: options.dateRange.end,
+    // Wrap the database query with unstable_cache
+    const getCachedTasks = unstable_cache(
+        async () => {
+            const where: any = {
+                userId: user.id,
             }
-        }
 
-        const tasks = await prisma.task.findMany({
-            where,
-            select: {
-                id: true,
-                userId: true,
-                title: true,
-                description: true,
-                priority: true,
-                dueDate: true,
-                completed: true,
-                completedAt: true,
-                projectId: true,
-                sectionId: true,
-                scheduledStart: true,
-                scheduledEnd: true,
-                durationMinutes: true,
-                xpEarned: true,
-                sortOrder: true,
-                createdAt: true,
-                updatedAt: true,
-                tags: {
-                    select: {
-                        tag: {
-                            select: {
-                                id: true,
-                                name: true,
-                                color: true,
+            // Apply filters
+            if (options.projectId !== undefined) {
+                where.projectId = options.projectId
+            }
+
+            if (options.completed !== undefined) {
+                where.completed = options.completed
+            }
+
+            if (options.dateRange) {
+                where.dueDate = {
+                    gte: options.dateRange.start,
+                    lte: options.dateRange.end,
+                }
+            }
+
+            return await prisma.task.findMany({
+                where,
+                select: {
+                    id: true,
+                    userId: true,
+                    title: true,
+                    description: true,
+                    priority: true,
+                    dueDate: true,
+                    completed: true,
+                    completedAt: true,
+                    projectId: true,
+                    sectionId: true,
+                    scheduledStart: true,
+                    scheduledEnd: true,
+                    durationMinutes: true,
+                    xpEarned: true,
+                    sortOrder: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    tags: {
+                        select: {
+                            tag: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    color: true,
+                                }
                             }
+                        }
+                    },
+                    project: {
+                        select: {
+                            id: true,
+                            name: true,
+                            color: true,
                         }
                     }
                 },
-                project: {
-                    select: {
-                        id: true,
-                        name: true,
-                        color: true,
-                    }
-                }
-            },
-            orderBy: [
-                { completed: 'asc' },
-                { sortOrder: 'asc' },
-                { createdAt: 'desc' }
-            ],
-            take: options.limit,
-        })
+                orderBy: [
+                    { completed: 'asc' },
+                    { sortOrder: 'asc' },
+                    { createdAt: 'desc' }
+                ],
+                take: options.limit,
+            })
+        },
+        [`tasks-${user.id}-${JSON.stringify(options)}`], // Cache key based on user and options
+        {
+            tags: [`tasks-${user.id}`], // Invalidate all task variants for this user
+            revalidate: 3600 // Revalidate at least every hour
+        }
+    )
 
+    try {
+        const tasks = await getCachedTasks()
         return { success: true, data: tasks }
     } catch (error) {
         console.error('getTasks: Database error', error)
@@ -167,6 +178,7 @@ export async function createTask(data: CreateTaskInput) {
         })
 
         console.log('createTask: Success', task)
+            ; (revalidateTag as any)(`tasks-${user.id}`) // Invalidate cache
         revalidatePath('/', 'layout')
         return { success: true, data: task }
     } catch (error) {
@@ -228,6 +240,7 @@ export async function updateTask(data: UpdateTaskInput) {
             ])
         }
 
+        ; (revalidateTag as any)(`tasks-${user.id}`)
         revalidatePath('/', 'layout')
         return { success: true, data: task }
     } catch (error: any) {
@@ -270,6 +283,7 @@ export async function updateTaskOrder(tasks: { id: string; sortOrder: number; se
             )
         )
 
+            ; (revalidateTag as any)(`tasks-${user.id}`)
         revalidatePath('/', 'layout')
         return { success: true }
     } catch (error: any) {
@@ -303,6 +317,7 @@ export async function toggleTaskCompletion(id: string, completed: boolean) {
             ])
         }
 
+        ; (revalidateTag as any)(`tasks-${user.id}`)
         revalidatePath('/', 'layout')
         return { success: true, data: task }
     } catch (error: any) {
@@ -331,6 +346,7 @@ export async function deleteTask(id: string) {
             where: { id, userId: user.id }
         })
 
+            ; (revalidateTag as any)(`tasks-${user.id}`)
         revalidatePath('/', 'layout')
         return { success: true }
     } catch (error: any) {
@@ -480,6 +496,7 @@ export async function createTaskFromNaturalLanguage(input: string) {
             },
         })
 
+            ; (revalidateTag as any)(`tasks-${user.id}`)
         revalidatePath('/', 'layout')
         return { success: true, data: task }
     } catch (error) {

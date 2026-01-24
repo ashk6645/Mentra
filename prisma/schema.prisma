@@ -140,6 +140,9 @@ model Task {
   @@index([userId])
   @@index([projectId])
   @@index([sectionId])
+  @@index([userId, projectId]) // Optimized for Inbox (projectId: null)
+  @@index([userId, completed]) // Optimized for Dashboard (active tasks)
+  @@index([userId, completed, completedAt]) // Optimized for Stats/History
   @@map("tasks")
 }
 
