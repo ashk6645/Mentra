@@ -106,13 +106,13 @@ export type DatabaseView = typeof DATABASE_VIEWS[keyof typeof DATABASE_VIEWS]
 // COLUMN DEFINITIONS
 // ========================================
 
-export type ColumnType = 
-  | 'title' 
-  | 'status' 
-  | 'priority' 
-  | 'area' 
-  | 'date' 
-  | 'progress' 
+export type ColumnType =
+  | 'title'
+  | 'status'
+  | 'priority'
+  | 'area'
+  | 'date'
+  | 'progress'
   | 'text'
   | 'number'
 
@@ -144,12 +144,12 @@ export const DEFAULT_COLUMNS: ColumnDefinition[] = [
 // FILTER & SORT TYPES
 // ========================================
 
-export type FilterOperator = 
-  | 'is' 
-  | 'is_not' 
-  | 'contains' 
-  | 'does_not_contain' 
-  | 'is_empty' 
+export type FilterOperator =
+  | 'is'
+  | 'is_not'
+  | 'contains'
+  | 'does_not_contain'
+  | 'is_empty'
   | 'is_not_empty'
   | 'before'
   | 'after'
@@ -189,10 +189,10 @@ export interface ProjectDatabaseItem {
   icon: string | null
   createdAt: Date
   updatedAt: Date
-  
+
   // Relations
   area?: AreaOfLife | null
-  tasks?: Task[]
+  tasks?: Partial<Task>[]
   taskCount?: number
   completedTaskCount?: number
 }
@@ -242,7 +242,7 @@ export interface ProjectDatabaseActions {
   updateProject: (id: string, data: Partial<ProjectDatabaseItem>) => Promise<ProjectDatabaseItem | null>
   deleteProject: (id: string) => Promise<boolean>
   deleteProjects: (ids: string[]) => Promise<boolean>
-  
+
   // View
   setView: (view: DatabaseView) => void
   setFilters: (filters: Filter[]) => void
@@ -251,18 +251,18 @@ export interface ProjectDatabaseActions {
   setSorts: (sorts: Sort[]) => void
   toggleColumn: (columnId: string) => void
   reorderColumns: (columnOrder: string[]) => void
-  
+
   // Selection
   selectProject: (id: string) => void
   deselectProject: (id: string) => void
   toggleProjectSelection: (id: string) => void
   selectAll: () => void
   clearSelection: () => void
-  
+
   // Editing
   startEditing: (projectId: string, columnId: string) => void
   stopEditing: () => void
-  
+
   // Refresh
   refreshProjects: () => Promise<void>
 }

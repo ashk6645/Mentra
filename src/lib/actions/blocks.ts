@@ -409,7 +409,7 @@ export async function duplicateBlock(id: string) {
                     data: {
                         blockId: block.id,
                         name: view.name,
-                        sourceType: view.sourceType,
+                        // sourceType: view.sourceType,
                         viewType: view.viewType,
                         filters: view.filters as object | undefined,
                         sorts: view.sorts as object | undefined,

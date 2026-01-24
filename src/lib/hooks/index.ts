@@ -262,7 +262,7 @@ export function useInfiniteScroll(
   callback: () => void,
   options?: IntersectionObserverInit
 ) {
-  const observer = useRef<IntersectionObserver>()
+  const observer = useRef<IntersectionObserver | null>(null)
   const elementRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -293,7 +293,7 @@ export function useInfiniteScroll(
  * Hook for previous value
  */
 export function usePrevious<T>(value: T): T | undefined {
-  const ref = useRef<T>()
+  const ref = useRef<T | undefined>(undefined)
 
   useEffect(() => {
     ref.current = value
@@ -364,7 +364,7 @@ export function useOnlineStatus() {
  * Hook for interval with cleanup
  */
 export function useInterval(callback: () => void, delay: number | null) {
-  const savedCallback = useRef<() => void>()
+  const savedCallback = useRef<() => void | undefined>(undefined)
 
   useEffect(() => {
     savedCallback.current = callback

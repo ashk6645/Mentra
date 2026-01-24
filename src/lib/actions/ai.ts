@@ -2,13 +2,12 @@
 
 import { geminiModel } from '@/lib/gemini'
 import { createClient } from '@/lib/supabase/server'
-import { Priority } from '@prisma/client'
 import prisma from '@/lib/prisma'
 
 export interface ParsedTask {
     title: string
     description?: string
-    priority?: Priority
+    priority?: string
     dueDate?: string // ISO string
     projectId?: string // We might try to match this by name later, but for now let's just extract intent
 }
@@ -18,9 +17,9 @@ async function logAIActivity(userId: string, prompt: string, response: string, a
         await prisma.aIActivityLog.create({
             data: {
                 userId,
-                prompt,
-                response,
-                actionTaken: action,
+                inputData: { prompt },
+                outputData: { response },
+                actionType: action,
             }
         })
     } catch (error) {
@@ -112,7 +111,7 @@ export async function getTaskSuggestions(
     description: string | undefined,
     availableProjects: { id: string, name: string }[],
     availableTags: { id: string, name: string }[]
-): Promise<{ priority?: Priority; projectId?: string; tagIds?: string[] }> {
+): Promise<{ priority?: string; projectId?: string; tagIds?: string[] }> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 

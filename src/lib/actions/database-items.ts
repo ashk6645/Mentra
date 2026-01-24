@@ -91,7 +91,7 @@ export async function createDatabaseItem(data: CreateDatabaseItemInput) {
                 blockId: data.blockId,
                 title: data.title || 'Untitled',
                 icon: data.icon,
-                properties: data.properties || {},
+                properties: (data.properties || {}) as any,
                 sortOrder,
             },
         })
@@ -135,7 +135,7 @@ export async function updateDatabaseItem(id: string, data: UpdateDatabaseItemInp
                 ...(data.title !== undefined && { title: data.title }),
                 ...(data.icon !== undefined && { icon: data.icon }),
                 ...(data.coverImage !== undefined && { coverImage: data.coverImage }),
-                ...(data.properties !== undefined && { properties: data.properties }),
+                ...(data.properties !== undefined && { properties: data.properties as any }),
                 ...(data.sortOrder !== undefined && { sortOrder: data.sortOrder }),
             },
         })

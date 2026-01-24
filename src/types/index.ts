@@ -399,20 +399,20 @@ export interface UserPreferences {
   weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6 // 0 = Sunday
   timeFormat: '12h' | '24h'
   dateFormat: 'MM/DD/YYYY' | 'DD/MM/YYYY' | 'YYYY-MM-DD'
-  
+
   // Notifications
   enableNotifications: boolean
   notifyOnTaskDue: boolean
   notifyOnTaskAssigned: boolean
   emailDigest: 'daily' | 'weekly' | 'never'
-  
+
   // Gamification
   showXP: boolean
   showStreaks: boolean
-  
+
   // Focus
   pomodoroSettings: PomodoroSettings
-  
+
   // AI
   enableAISuggestions: boolean
   autoParseNaturalLanguage: boolean
@@ -562,10 +562,4 @@ export interface HabitCompletion {
   completedAt: Date
 }
 
-export interface Section {
-  id: string
-  projectId: string
-  name: string
-  sortOrder: number
-  createdAt: Date
-}
+

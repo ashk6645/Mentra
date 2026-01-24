@@ -126,7 +126,7 @@ export function EditTaskDialog({ task, trigger }: EditTaskDialogProps) {
                 id: task.id,
                 ...values,
                 dueDate: values.dueDate ? values.dueDate.toISOString() : null,
-                projectId: values.projectId === 'none' ? undefined : values.projectId,
+                projectId: (values.projectId === 'none' || !values.projectId) ? undefined : values.projectId,
                 scheduledStart,
                 scheduledEnd,
             })

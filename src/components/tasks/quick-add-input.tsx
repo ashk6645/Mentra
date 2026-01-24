@@ -36,7 +36,7 @@ export function QuickAddInput({
     const [showTagAutocomplete, setShowTagAutocomplete] = useState(false)
     const [autocompleteQuery, setAutocompleteQuery] = useState('')
     const inputRef = useRef<HTMLInputElement>(null)
-    const debounceTimerRef = useRef<NodeJS.Timeout>()
+    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
     // Parse input with debouncing
     useEffect(() => {
