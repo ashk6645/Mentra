@@ -46,7 +46,13 @@ export function CreateTaskDialog({
         }
     }
 
-    const [projects, setProjects] = useState<Project[]>([])
+    const [projects, setProjects] = useState<Array<{
+        id: string
+        name: string
+        color: string | null
+        icon: string | null
+        sortOrder: number
+    }>>([])
     const [tags, setTags] = useState<Tag[]>([])
     const [isSubmitting, setIsSubmitting] = useState(false)
 

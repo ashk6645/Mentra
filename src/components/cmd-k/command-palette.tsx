@@ -28,16 +28,21 @@ import {
     CommandSeparator,
     CommandShortcut,
 } from "@/components/ui/command"
-import { Project, Task } from "@prisma/client"
 import { searchTasks } from "@/lib/actions/tasks"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 
-export function CommandPalette({ projects, onOpenChange }: { projects: Project[], onOpenChange?: (open: boolean) => void }) {
+interface Project {
+    id: string
+    name: string
+    color: string | null
+}
+
+export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean) => void }) {
     const [open, setOpen] = React.useState(false)
     const router = useRouter()
     const { setTheme } = useTheme()
     const [query, setQuery] = React.useState("")
+    const [projects, setProjects] = React.useState<Project[]>([])
     const [tasks, setTasks] = React.useState<{
         id: string
         title: string
@@ -53,6 +58,16 @@ export function CommandPalette({ projects, onOpenChange }: { projects: Project[]
         setOpen(newOpen)
         onOpenChange?.(newOpen)
     }
+
+    // Fetch projects when command palette opens
+    React.useEffect(() => {
+        if (open && projects.length === 0) {
+            fetch('/api/projects')
+                .then(res => res.json())
+                .then(data => setProjects(data))
+                .catch(err => console.error('Failed to fetch projects:', err))
+        }
+    }, [open])
 
     React.useEffect(() => {
         const down = (e: KeyboardEvent) => {

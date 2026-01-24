@@ -54,14 +54,12 @@ interface PageItem {
 }
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
-    projects: Project[]
-    pages?: PageItem[]
     user: any
     onOpenCommand?: () => void
 }
 
 // Change to non-exported function, exported as memo at bottom
-function SidebarComponent({ className, projects, pages = [], user, onOpenCommand }: SidebarProps) {
+function SidebarComponent({ className, user, onOpenCommand }: SidebarProps) {
     const pathname = usePathname()
     const router = useRouter()
     const supabase = createClient()
@@ -71,6 +69,8 @@ function SidebarComponent({ className, projects, pages = [], user, onOpenCommand
     const [projectsExpanded, setProjectsExpanded] = useState(true)
     const [pagesExpanded, setPagesExpanded] = useState(true)
     const [showCreateDialog, setShowCreateDialog] = useState(false)
+    const [projects, setProjects] = useState<Project[]>([])
+    const [pages, setPages] = useState<PageItem[]>([])
 
     // Reset expanded states when sidebar collapses to keep UI clean
     useEffect(() => {
@@ -83,6 +83,8 @@ function SidebarComponent({ className, projects, pages = [], user, onOpenCommand
     useEffect(() => {
         if (user?.id) {
             fetchProfile()
+            fetchProjects()
+            fetchPages()
         }
     }, [user?.id])
 
@@ -103,6 +105,38 @@ function SidebarComponent({ className, projects, pages = [], user, onOpenCommand
             }
         } catch (error) {
             console.error('Error fetching profile:', error)
+        }
+    }
+
+    async function fetchProjects() {
+        try {
+            const { data } = await supabase
+                .from('projects')
+                .select('*')
+                .eq('userId', user?.id)
+                .order('createdAt', { ascending: false })
+
+            if (data) {
+                setProjects(data as Project[])
+            }
+        } catch (error) {
+            console.error('Error fetching projects:', error)
+        }
+    }
+
+    async function fetchPages() {
+        try {
+            const { data } = await supabase
+                .from('pages')
+                .select('id, title, icon, parentPageId, isFavorited')
+                .eq('userId', user?.id)
+                .order('createdAt', { ascending: false })
+
+            if (data) {
+                setPages(data as PageItem[])
+            }
+        } catch (error) {
+            console.error('Error fetching pages:', error)
         }
     }
 

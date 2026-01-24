@@ -47,85 +47,74 @@ export async function getTasks(options: GetTasksOptions = {}) {
         return { success: false, error: 'Unauthorized', data: [] }
     }
 
-    // Wrap the database query with unstable_cache
-    const getCachedTasks = unstable_cache(
-        async () => {
-            const where: any = {
-                userId: user.id,
-            }
+    try {
+        const where: any = {
+            userId: user.id,
+        }
 
-            // Apply filters
-            if (options.projectId !== undefined) {
-                where.projectId = options.projectId
-            }
+        // Apply filters
+        if (options.projectId !== undefined) {
+            where.projectId = options.projectId
+        }
 
-            if (options.completed !== undefined) {
-                where.completed = options.completed
-            }
+        if (options.completed !== undefined) {
+            where.completed = options.completed
+        }
 
-            if (options.dateRange) {
-                where.dueDate = {
-                    gte: options.dateRange.start,
-                    lte: options.dateRange.end,
-                }
+        if (options.dateRange) {
+            where.dueDate = {
+                gte: options.dateRange.start,
+                lte: options.dateRange.end,
             }
+        }
 
-            return await prisma.task.findMany({
-                where,
-                select: {
-                    id: true,
-                    userId: true,
-                    title: true,
-                    description: true,
-                    priority: true,
-                    dueDate: true,
-                    completed: true,
-                    completedAt: true,
-                    projectId: true,
-                    sectionId: true,
-                    scheduledStart: true,
-                    scheduledEnd: true,
-                    durationMinutes: true,
-                    xpEarned: true,
-                    sortOrder: true,
-                    createdAt: true,
-                    updatedAt: true,
-                    tags: {
-                        select: {
-                            tag: {
-                                select: {
-                                    id: true,
-                                    name: true,
-                                    color: true,
-                                }
+        const tasks = await prisma.task.findMany({
+            where,
+            select: {
+                id: true,
+                userId: true,
+                title: true,
+                description: true,
+                priority: true,
+                dueDate: true,
+                completed: true,
+                completedAt: true,
+                projectId: true,
+                sectionId: true,
+                scheduledStart: true,
+                scheduledEnd: true,
+                durationMinutes: true,
+                xpEarned: true,
+                sortOrder: true,
+                createdAt: true,
+                updatedAt: true,
+                tags: {
+                    select: {
+                        tag: {
+                            select: {
+                                id: true,
+                                name: true,
+                                color: true,
                             }
-                        }
-                    },
-                    project: {
-                        select: {
-                            id: true,
-                            name: true,
-                            color: true,
                         }
                     }
                 },
-                orderBy: [
-                    { completed: 'asc' },
-                    { sortOrder: 'asc' },
-                    { createdAt: 'desc' }
-                ],
-                take: options.limit,
-            })
-        },
-        [`tasks-${user.id}-${JSON.stringify(options)}`], // Cache key based on user and options
-        {
-            tags: [`tasks-${user.id}`], // Invalidate all task variants for this user
-            revalidate: 3600 // Revalidate at least every hour
-        }
-    )
+                project: {
+                    select: {
+                        id: true,
+                        name: true,
+                        color: true,
+                    }
+                }
+            },
+            orderBy: [
+                { completed: 'asc' },
+                { sortOrder: 'asc' },
+                { createdAt: 'desc' }
+            ],
+            take: options.limit,
+        })
 
-    try {
-        const tasks = await getCachedTasks()
         return { success: true, data: tasks }
     } catch (error) {
         console.error('getTasks: Database error', error)

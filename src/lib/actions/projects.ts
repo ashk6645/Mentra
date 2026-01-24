@@ -26,25 +26,21 @@ export async function getProjects() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return []
 
-    const getCachedProjects = unstable_cache(
-        async () => {
-            return await prisma.project.findMany({
-                where: {
-                    userId: user.id
-                },
-                orderBy: {
-                    sortOrder: 'asc'
-                }
-            })
+    return await prisma.project.findMany({
+        where: {
+            userId: user.id
         },
-        [`projects-${user.id}`],
-        {
-            tags: [`projects-${user.id}`],
-            revalidate: 3600
+        select: {
+            id: true,
+            name: true,
+            color: true,
+            icon: true,
+            sortOrder: true,
+        },
+        orderBy: {
+            sortOrder: 'asc'
         }
-    )
-
-    return await getCachedProjects()
+    })
 }
 
 export async function getProjectsForBoard() {

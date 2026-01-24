@@ -32,37 +32,26 @@ export async function getPages() {
             return { success: false, error: 'Unauthorized', pages: [] }
         }
 
-        const getCachedPages = unstable_cache(
-            async () => {
-                return await prisma.page.findMany({
-                    where: {
-                        userId: user.id,
-                    },
-                    select: {
-                        id: true,
-                        title: true,
-                        icon: true,
-                        parentPageId: true,
-                        isFavorited: true,
-                        sortOrder: true,
-                        createdAt: true,
-                        updatedAt: true,
-                    },
-                    orderBy: [
-                        { isFavorited: 'desc' },
-                        { sortOrder: 'asc' },
-                        { createdAt: 'desc' },
-                    ],
-                })
+        const pages = await prisma.page.findMany({
+            where: {
+                userId: user.id,
             },
-            [`pages-${user.id}`],
-            {
-                tags: [`pages-${user.id}`],
-                revalidate: 3600
-            }
-        )
-
-        const pages = await getCachedPages()
+            select: {
+                id: true,
+                title: true,
+                icon: true,
+                parentPageId: true,
+                isFavorited: true,
+                sortOrder: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+            orderBy: [
+                { isFavorited: 'desc' },
+                { sortOrder: 'asc' },
+                { createdAt: 'desc' },
+            ],
+        })
 
         return { success: true, pages }
     } catch (error) {

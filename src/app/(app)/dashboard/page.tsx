@@ -19,33 +19,50 @@ export default async function DashboardPage() {
 
         const today = new Date()
         today.setHours(0, 0, 0, 0)
+        const tomorrow = new Date(today.getTime() + 86400000)
 
-        // Fetch only necessary data in parallel
+        // Optimized: Fetch only what's needed in parallel
         const [
-            todayTasksResult,
+            activeTasks,
             profile,
-            stats,
+            totalXP,
             recentActivity,
             habits,
-            totalCompletedTasks
+            completedTodayCount
         ] = await Promise.all([
-            // 1. Get ONLY today's tasks + overdue (simplified for now to just all active tasks for filtering)
-            // Ideally we'd filter by date in DB, but due date handling can be complex with timezones.
-            // For now, let's at least filter out completed tasks
-            getTasks({ completed: false }),
-
-            // 2. Profile
-            prisma.profile.findUnique({
-                where: { id: user.id },
+            // Only active tasks
+            prisma.task.findMany({
+                where: {
+                    userId: user.id,
+                    completed: false,
+                    dueDate: { lte: today }
+                },
+                select: {
+                    id: true,
+                    title: true,
+                    priority: true,
+                    dueDate: true,
+                    completed: true,
+                },
+                take: 50
             }),
 
-            // 3. XP Stats
+            // Profile
+            prisma.profile.findUnique({
+                where: { id: user.id },
+                select: {
+                    displayName: true,
+                    currentStreak: true,
+                }
+            }),
+
+            // XP total
             prisma.xPLog.aggregate({
                 where: { userId: user.id },
                 _sum: { amount: true }
             }),
 
-            // 4. Recent Activity (Completed tasks limit 10)
+            // Recent activity (limit 10)
             prisma.task.findMany({
                 where: {
                     userId: user.id,
@@ -62,46 +79,28 @@ export default async function DashboardPage() {
                 }
             }),
 
-            // 5. Active Habits
+            // Active habits (limit 5)
             prisma.habit.findMany({
                 where: { userId: user.id, isActive: true },
                 take: 5
             }),
 
-            // 6. Total Completed Count
+            // Completed today count
             prisma.task.count({
                 where: {
                     userId: user.id,
-                    completed: true
+                    completed: true,
+                    completedAt: {
+                        gte: today,
+                        lt: tomorrow
+                    }
                 }
             })
         ])
 
-        const tasks = todayTasksResult.success && todayTasksResult.data ? todayTasksResult.data : []
-        const totalXP = stats._sum.amount || 0
+        const totalXPValue = totalXP._sum.amount || 0
 
-        // In-memory date filtering for today's view (safe because dataset is now smaller - only active tasks)
-        const todayTasks = tasks.filter((task: any) => {
-            if (!task.dueDate) return false
-            const due = new Date(task.dueDate)
-            due.setHours(0, 0, 0, 0)
-            return due.getTime() <= today.getTime() // Today or Overdue
-        })
-
-        // For "Completed Today" count, we ran a count query? No, we didn't. 
-        // Let's run a specific count query for today's completions to be accurate and fast
-        const completedTodayCount = await prisma.task.count({
-            where: {
-                userId: user.id,
-                completed: true,
-                completedAt: {
-                    gte: today,
-                    lt: new Date(today.getTime() + 86400000)
-                }
-            }
-        })
-
-        // Map recent activity for widget
+        // Map activity
         const activityItems = recentActivity.map((task: any) => ({
             id: task.id,
             type: 'task' as const,
@@ -114,32 +113,25 @@ export default async function DashboardPage() {
         const displayName = profile?.displayName || user?.user_metadata?.display_name || 'User'
 
         return (
-            <div className="flex-1 p-6 md:p-8 pt-6 max-w-[1600px] mx-auto animate-in fade-in duration-500 space-y-8">
-                {/* Header Section */}
-                <DashboardHeader
-                    displayName={displayName}
-                />
+            <div className="flex-1 p-6 md:p-8 pt-6 max-w-[1600px] mx-auto space-y-8">
+                <DashboardHeader displayName={displayName} />
 
-                {/* Main Bento Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                    {/* Left Column (Main Content) */}
                     <div className="md:col-span-8 lg:col-span-9 space-y-6">
                         <StatsRow
                             completedTasks={completedTodayCount}
-                            totalTasks={todayTasks.length + completedTodayCount} // Simple logic for daily progress
+                            totalTasks={activeTasks.length + completedTodayCount}
                             streak={profile?.currentStreak || 0}
-                            xp={totalXP}
-                            totalCompleted={Number(totalCompletedTasks) || 0}
+                            xp={totalXPValue}
+                            totalCompleted={completedTodayCount}
                         />
 
-                        {/* Focus & Activity Split */}
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[400px]">
-                            <FocusWidget tasks={todayTasks} />
+                            <FocusWidget tasks={activeTasks} />
                             <ActivityWidget activities={activityItems} />
                         </div>
                     </div>
 
-                    {/* Right Column (Sidebar Widgets) */}
                     <div className="md:col-span-4 lg:col-span-3 space-y-6">
                         <DateWidget />
                         <HabitsWidget habits={habits} />
