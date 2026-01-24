@@ -14,6 +14,7 @@ export type BlockType =
     | 'DATABASE_BOARD'
     | 'DATABASE_GALLERY'
     | 'DATABASE_CALENDAR'
+    | 'TOGGLE_LIST'
 
 
 export type BlockContent = Record<string, any>

@@ -11,6 +11,7 @@ import { ListBlock } from './blocks/list-block'
 import { TodoBlock } from './blocks/todo-block'
 import { DividerBlock } from './blocks/divider-block'
 import { CodeBlock } from './blocks/code-block'
+import { ToggleBlock } from './blocks/toggle-block'
 
 // Map block types to components
 const BLOCK_COMPONENTS: Partial<Record<BlockType, React.ComponentType<any>>> = {
@@ -23,6 +24,7 @@ const BLOCK_COMPONENTS: Partial<Record<BlockType, React.ComponentType<any>>> = {
     TODO_LIST: TodoBlock,
     DIVIDER: DividerBlock,
     CODE: CodeBlock,
+    TOGGLE_LIST: ToggleBlock,
     DATABASE_BOARD: DatabaseBlock,
     DATABASE_TABLE: DatabaseBlock,
     DATABASE_GALLERY: DatabaseBlock,

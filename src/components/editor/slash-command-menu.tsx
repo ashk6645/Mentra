@@ -15,7 +15,8 @@ import {
     Table,
     KanbanSquare,
     LayoutGrid,
-    CalendarDays
+    CalendarDays,
+    ChevronRight,
 } from 'lucide-react'
 
 interface CommandItem {
@@ -93,6 +94,12 @@ const COMMAND_CATEGORIES: CommandCategory[] = [
                 label: 'Divider',
                 description: 'Visually divide blocks.',
                 icon: Minus
+            },
+            {
+                type: 'TOGGLE_LIST',
+                label: 'Toggle List',
+                description: 'Toggles can hide and show content inside.',
+                icon: ChevronRight
             },
         ]
     },
