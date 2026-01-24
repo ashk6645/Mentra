@@ -54,6 +54,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 {/* Pass all project tasks (from all sections and uncategorized) to ProjectTasksContainer */}
                 <ProjectTasksContainer
                     projectId={project.id}
+                    sections={project.sections}
                     tasks={[
                         ...project.sections.flatMap((section: any) => section.tasks.map((t: any) => ({ ...t, sectionId: section.id }))),
                         ...project.tasks

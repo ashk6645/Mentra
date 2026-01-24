@@ -7,6 +7,7 @@ import {
     Dialog,
     DialogContent,
     DialogTrigger,
+    DialogTitle,
 } from '@/components/ui/dialog'
 import { createTask } from '@/lib/actions/tasks'
 import { getProjects } from '@/lib/actions/projects'
@@ -28,10 +29,11 @@ export function CreateTaskDialog({
     projectId,
     open: controlledOpen,
     onOpenChange: controlledOnOpenChange,
-    defaultStatus,
+    defaultStatus, // Keeping for backward compatibility or changing meaning
+    defaultSectionId,
     onTaskCreated,
     trigger
-}: CreateTaskDialogProps) {
+}: CreateTaskDialogProps & { defaultSectionId?: string }) {
     const [internalOpen, setInternalOpen] = useState(false)
     const isControlled = controlledOpen !== undefined
     const open = isControlled ? controlledOpen : internalOpen
@@ -56,7 +58,6 @@ export function CreateTaskDialog({
             getTags().then(setTags)
         }
     }, [open])
-
     async function handleTaskSubmit(data: {
         title: string
         description?: string
@@ -65,19 +66,17 @@ export function CreateTaskDialog({
         projectId?: string
         tagIds?: string[]
         scheduledTime?: string
+        sectionId?: string
     }) {
         try {
             setIsSubmitting(true)
 
-            // Handle scheduled time if present (Todoist editor separates date and time, 
-            // but for now we might only get date from the picker, unless we enhance TaskEditor later)
             const result = await createTask({
-                ...data, // spread the strict types
-                priority: data.priority || undefined, // convert null to undefined for API if needed
+                ...data,
+                priority: data.priority || undefined,
                 dueDate: data.dueDate ? data.dueDate.toISOString() : undefined,
                 projectId: data.projectId,
-                // Add default duration if scheduled time is present? 
-                // For now keep it simple as per image.
+                sectionId: data.sectionId || defaultSectionId, // Use editor data or default prop
             })
 
             if (result.success) {
@@ -107,6 +106,7 @@ export function CreateTaskDialog({
                 )}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px] p-0 gap-0 bg-transparent border-none shadow-none">
+                <DialogTitle className="sr-only">Create New Task</DialogTitle>
                 {/* 
                     Using transparent/border-none dialog content because TaskEditor 
                     handles the "Card" look ourselves. 

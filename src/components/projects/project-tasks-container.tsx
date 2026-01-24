@@ -10,10 +10,11 @@ import { Card } from '@/components/ui/card' // Placeholder for now
 
 interface ProjectTasksContainerProps {
     tasks: any[] // Using any for now to handle relations if needed, typically (Task & { tags: ... })[]
+    sections: any[]
     projectId: string
 }
 
-export function ProjectTasksContainer({ tasks, projectId }: ProjectTasksContainerProps) {
+export function ProjectTasksContainer({ tasks, sections, projectId }: ProjectTasksContainerProps) {
     const [view, setView] = useState<TaskViewType>('board')
 
     return (
@@ -27,7 +28,7 @@ export function ProjectTasksContainer({ tasks, projectId }: ProjectTasksContaine
             {/* Content */}
             <div className="flex-1 overflow-hidden min-h-0">
                 {view === 'board' && (
-                    <TaskBoard tasks={tasks} />
+                    <TaskBoard tasks={tasks} sections={sections} projectId={projectId} />
                 )}
 
                 {view === 'table' && (
