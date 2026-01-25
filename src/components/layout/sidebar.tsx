@@ -21,7 +21,8 @@ import {
     ChevronRight,
     Plus,
     Search,
-    Folder
+    Folder,
+    CheckCircle2
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -152,6 +153,7 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
         { label: 'Inbox', icon: Inbox, href: '/inbox' },
         { label: 'Today', icon: Sun, href: '/today' },
         { label: 'Upcoming', icon: CalendarDays, href: '/upcoming' },
+        { label: 'Completed', icon: CheckCircle2, href: '/completed' },
         { label: 'My Tasks', icon: CheckSquare, href: '/tasks' },
         { label: 'Calendar', icon: Calendar, href: '/calendar' },
         { label: 'Projects', icon: Folder, href: '/project-database' },

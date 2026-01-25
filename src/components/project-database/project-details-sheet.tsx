@@ -26,6 +26,7 @@ import {
   Sheet,
   SheetContent,
   SheetHeader,
+  SheetTitle,
 } from '@/components/ui/sheet'
 import {
   DropdownMenu,
@@ -59,6 +60,9 @@ export function ProjectDetailsSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-2xl p-0">
+        <SheetTitle className="sr-only">
+          {project.name} - Project Details
+        </SheetTitle>
         <ProjectDetailsContent project={project} onClose={() => onOpenChange(false)} />
       </SheetContent>
     </Sheet>
