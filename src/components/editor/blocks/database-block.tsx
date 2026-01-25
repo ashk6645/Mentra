@@ -134,17 +134,17 @@ export function DatabaseBlock({ block, isFocused, onChange }: DatabaseBlockProps
             {/* Header / Tabs */}
             <div className="flex items-center justify-between border-b border-gray-200 dark:border-zinc-800 pb-0.5 mb-2">
                 <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-2 px-2 py-1 bg-gray-100 dark:bg-zinc-800 rounded-t-md text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {effectiveView === 'table' && <TableIcon className="w-4 h-4" />}
-                        {effectiveView === 'board' && <KanbanSquare className="w-4 h-4" />}
-                        {effectiveView === 'gallery' && <LayoutGrid className="w-4 h-4" />}
-                        {effectiveView === 'calendar' && <CalendarDays className="w-4 h-4" />}
+                    <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 dark:bg-zinc-800 rounded-t-lg text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {effectiveView === 'table' && <TableIcon className="w-5 h-5" />}
+                        {effectiveView === 'board' && <KanbanSquare className="w-5 h-5" />}
+                        {effectiveView === 'gallery' && <LayoutGrid className="w-5 h-5" />}
+                        {effectiveView === 'calendar' && <CalendarDays className="w-5 h-5" />}
                         <input
                             type="text"
                             value={block.content.title || ''}
                             onChange={(e) => onChange({ ...block.content, title: e.target.value })}
                             placeholder="Database"
-                            className="bg-transparent border-none outline-none font-medium placeholder:text-gray-400 focus:ring-0 p-0 m-0 min-w-[80px]"
+                            className="bg-transparent border-none outline-none font-semibold text-xl placeholder:text-gray-400 focus:ring-0 p-0 m-0 min-w-[120px]"
                         />
                     </div>
                     {/* Add View Button (Visual only) */}
