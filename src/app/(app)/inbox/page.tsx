@@ -35,8 +35,8 @@ export default async function InboxPage() {
             sortOrder: true,
         },
         orderBy: [
-            { completed: 'asc' },
-            { sortOrder: 'asc' }
+            { sortOrder: 'asc' },  // User's manual order
+            { createdAt: 'desc' }  // Newest first for new tasks
         ],
         take: 100
     })

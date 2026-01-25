@@ -37,10 +37,11 @@ export default async function TodayPage() {
             dueDate: true,
             completed: true,
             completedAt: true,
+            sortOrder: true,  // Required for drag-and-drop
         },
         orderBy: [
-            { completed: 'asc' },
-            { priority: 'desc' }
+            { sortOrder: 'asc' },  // Primary: User's manual order
+            { createdAt: 'desc' }  // Fallback: Newest first for new tasks
         ]
     })
 

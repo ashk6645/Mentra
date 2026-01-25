@@ -18,7 +18,7 @@ import {
     verticalListSortingStrategy
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useId } from 'react'
 import { TaskRow } from './task-row'
 import { updateTaskOrder } from '@/lib/actions/tasks'
 import { GripVertical } from 'lucide-react'
@@ -72,6 +72,7 @@ export function SortableTaskList({ tasks: initialTasks }: SortableTaskListProps)
     const [tasks, setTasks] = useState(initialTasks)
     const [activeId, setActiveId] = useState<string | null>(null)
     const pendingUpdateRef = useRef<{ id: string; sortOrder: number; sectionId?: string | null }[] | null>(null)
+    const contextId = useId() // Generate unique ID for this component instance
 
     useEffect(() => {
         setTasks(initialTasks)
@@ -134,7 +135,7 @@ export function SortableTaskList({ tasks: initialTasks }: SortableTaskListProps)
 
     return (
         <DndContext
-            id="sortable-task-list"
+            id={contextId}
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}
