@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { BlockType } from './types'
 import { cn } from '@/lib/utils'
 import {
@@ -150,6 +151,7 @@ const COMMAND_CATEGORIES: CommandCategory[] = [
     }
 ]
 
+
 interface SlashCommandMenuProps {
     position: { top: number; left: number } | null
     onSelect: (type: BlockType) => void
@@ -160,9 +162,15 @@ interface SlashCommandMenuProps {
 
 export function SlashCommandMenu({ position, onSelect, onClose, query, placement = 'bottom' }: SlashCommandMenuProps) {
     const [selectedIndex, setSelectedIndex] = useState(0)
+    const [mounted, setMounted] = useState(false)
     const menuRef = useRef<HTMLDivElement>(null)
 
-    // Flatten commands for indexing while keeping category structure for rendering
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    // ... existing filtering logic (filteredCategories, flatCommands) ...
+    // Copy the filtering logic from original file lines 166-179
     const filteredCategories = COMMAND_CATEGORIES.map(category => ({
         ...category,
         items: category.items.filter(command => {
@@ -174,15 +182,15 @@ export function SlashCommandMenu({ position, onSelect, onClose, query, placement
             )
         })
     })).filter(category => category.items.length > 0)
-
     const flatCommands = filteredCategories.flatMap(c => c.items)
 
-    // Reset selection when query changes
+
+    // ... existing useEffects for keydown and click outside ...
+    // Copy useEffects lines 181-220
     useEffect(() => {
         setSelectedIndex(0)
     }, [query])
 
-    // Handle keyboard navigation
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (!position) return
@@ -208,7 +216,6 @@ export function SlashCommandMenu({ position, onSelect, onClose, query, placement
         return () => document.removeEventListener('keydown', handleKeyDown)
     }, [position, flatCommands, selectedIndex, onSelect, onClose])
 
-    // Click outside to close
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -219,100 +226,104 @@ export function SlashCommandMenu({ position, onSelect, onClose, query, placement
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [onClose])
 
+
     if (!position) return null
 
-    // Calculate styles based on placement
-    // If placement is 'top', the 'position.top' value is actually the bottom edge anchor
+    // Calculate smart positioning
+    const MENU_HEIGHT = 320
+    const spaceBelow = window.innerHeight - position.top
+    const shouldFlip = spaceBelow < MENU_HEIGHT
+
+    // We can use the portal to render fixed relative to viewport
     const style: React.CSSProperties = {
         left: position.left,
+        maxHeight: `${MENU_HEIGHT}px`,
     }
 
-    if (placement === 'top') {
-        style.bottom = window.innerHeight - position.top // Convert top coordinate to bottom offset
-        style.maxHeight = '300px'
+    if (shouldFlip) {
+        style.bottom = window.innerHeight - position.top + 24 // Render above, 24px gap
     } else {
-        style.top = position.top
-        style.maxHeight = '300px'
+        style.top = position.top + 24 // Render below, 24px gap
     }
 
-    if (flatCommands.length === 0) {
-        return (
-            <div
-                ref={menuRef}
-                className="fixed z-50 w-72 bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-gray-200 dark:border-zinc-800 overflow-hidden"
-                style={style}
-            >
+    // Portal Content
+    const content = (
+        <div
+            ref={menuRef}
+            className="fixed z-[9999] w-80 overflow-y-auto bg-white dark:bg-zinc-900 rounded-lg shadow-2xl border border-gray-200 dark:border-zinc-800 flex flex-col py-1 animate-in fade-in zoom-in-95 duration-75"
+            style={style}
+        >
+            {flatCommands.length === 0 ? (
                 <div className="p-3 text-sm text-gray-500 text-center">
                     No commands match
                 </div>
-            </div>
-        )
-    }
-
-    let currentIndex = 0
-
-    return (
-        <div
-            ref={menuRef}
-            className="fixed z-50 w-80 overflow-y-auto bg-white dark:bg-zinc-900 rounded-lg shadow-2xl border border-gray-200 dark:border-zinc-800 flex flex-col py-1"
-            style={style}
-        >
-            <div className="flex-1 overflow-y-auto min-h-0">
-                {query && filteredCategories.length > 0 && (
-                    <div className="text-xs font-semibold text-gray-500 px-3 py-2 uppercase tracking-wider select-none bg-gray-50/50 dark:bg-zinc-900/50 border-b border-gray-100 dark:border-zinc-800">
-                        Filtered results
-                    </div>
-                )}
-
-                {filteredCategories.map((category) => (
-                    <div key={category.label}>
-                        {/* Only show category label if not searching/filtering, to reduce noise */}
-                        {!query && (
-                            <div className="text-xs font-semibold text-gray-500 px-3 py-2 uppercase tracking-wider select-none">
-                                {category.label}
+            ) : (
+                <>
+                    <div className="flex-1 overflow-y-auto min-h-0">
+                        {/* ... filtering UI same as before ... */}
+                        {query && filteredCategories.length > 0 && (
+                            <div className="text-xs font-semibold text-gray-500 px-3 py-2 uppercase tracking-wider select-none bg-gray-50/50 dark:bg-zinc-900/50 border-b border-gray-100 dark:border-zinc-800">
+                                Filtered results
                             </div>
                         )}
-                        {category.items.map((command) => {
-                            const isSelected = currentIndex === selectedIndex
-                            currentIndex++
 
-                            return (
-                                <button
-                                    key={command.type}
-                                    ref={el => {
-                                        if (isSelected && el) {
-                                            el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-                                        }
-                                    }}
-                                    className={cn(
-                                        "flex items-center gap-3 px-3 py-2 w-full text-left transition-colors mx-1 rounded-md max-w-[calc(100%-8px)]",
-                                        isSelected ? "bg-blue-50 dark:bg-blue-900/20" : "hover:bg-gray-50 dark:hover:bg-zinc-800"
-                                    )}
-                                    onClick={() => onSelect(command.type)}
-                                >
-                                    <div className="w-10 h-10 flex items-center justify-center rounded border bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 shrink-0 shadow-sm">
-                                        <command.icon className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                        {filteredCategories.map((category) => (
+                            <div key={category.label}>
+                                {!query && (
+                                    <div className="text-xs font-semibold text-gray-500 px-3 py-2 uppercase tracking-wider select-none">
+                                        {category.label}
                                     </div>
-                                    <div className="flex flex-col overflow-hidden">
-                                        <span className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">{command.label}</span>
-                                        <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{command.description}</span>
-                                    </div>
-                                </button>
-                            )
-                        })}
+                                )}
+                                {category.items.map((command) => {
+                                    // Calculate precise index within flatCommands for selection
+                                    // Actually we need to track global index for selection highlight
+                                    // Let's find the index in flatCommands
+                                    const itemIndex = flatCommands.indexOf(command);
+                                    const isSelected = itemIndex === selectedIndex
+
+                                    return (
+                                        <button
+                                            key={command.type}
+                                            ref={el => {
+                                                if (isSelected && el) {
+                                                    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+                                                }
+                                            }}
+                                            className={cn(
+                                                "flex items-center gap-3 px-3 py-2 w-full text-left transition-colors mx-1 rounded-md max-w-[calc(100%-8px)]",
+                                                isSelected ? "bg-blue-50 dark:bg-blue-900/20" : "hover:bg-gray-50 dark:hover:bg-zinc-800"
+                                            )}
+                                            onClick={() => onSelect(command.type)}
+                                        >
+                                            <div className="w-10 h-10 flex items-center justify-center rounded border bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 shrink-0 shadow-sm">
+                                                <command.icon className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                                            </div>
+                                            <div className="flex flex-col overflow-hidden">
+                                                <span className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">{command.label}</span>
+                                                <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{command.description}</span>
+                                            </div>
+                                        </button>
+                                    )
+                                })}
+                            </div>
+                        ))}
                     </div>
-                ))}
-            </div>
 
-            {/* Footer */}
-            {query && (
-                <div className="border-t border-gray-100 dark:border-zinc-800 px-3 py-2 text-xs text-gray-400 flex justify-between items-center bg-gray-50/30 dark:bg-zinc-900/30">
-                    <span>
-                        Type <span className="font-mono text-gray-600 dark:text-gray-300">{'/' + query}</span> on the page
-                    </span>
-                    <span className="text-[10px] uppercase tracking-wider opacity-60">ESC</span>
-                </div>
+                    {/* Footer */}
+                    {query && (
+                        <div className="border-t border-gray-100 dark:border-zinc-800 px-3 py-2 text-xs text-gray-400 flex justify-between items-center bg-gray-50/30 dark:bg-zinc-900/30">
+                            <span>
+                                Type <span className="font-mono text-gray-600 dark:text-gray-300">{'/' + query}</span> on the page
+                            </span>
+                            <span className="text-[10px] uppercase tracking-wider opacity-60">ESC</span>
+                        </div>
+                    )}
+                </>
             )}
         </div>
     )
+
+    if (!mounted) return null
+
+    return createPortal(content, document.body)
 }
