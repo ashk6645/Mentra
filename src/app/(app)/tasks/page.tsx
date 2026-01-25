@@ -1,39 +1,14 @@
-import { Suspense } from 'react'
 import { getTasks } from '@/lib/actions/tasks'
 import { CreateTaskDialog } from '@/components/tasks/create-task-dialog'
-import { TaskRow } from '@/components/tasks/task-row'
-import { CheckCircle2, ListTodo, Plus } from 'lucide-react'
+import { MyTasksList } from '@/components/tasks/my-tasks-list'
+import { ListTodo, Plus } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
-async function TaskList() {
+export default async function TasksPage() {
     const tasksResult = await getTasks()
     const tasks = tasksResult.success ? tasksResult.data : []
 
-    if (tasks.length === 0) {
-        return (
-            <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-                <div className="bg-muted/50 p-4 rounded-full">
-                    <CheckCircle2 className="h-8 w-8 text-muted-foreground/50" />
-                </div>
-                <div className="space-y-1">
-                    <p className="font-medium text-foreground">No tasks yet</p>
-                    <p className="text-sm text-muted-foreground">Add a task to get started on your journey.</p>
-                </div>
-            </div>
-        )
-    }
-
-    return (
-        <div className="space-y-3">
-            {tasks.map((task: any) => (
-                <TaskRow key={task.id} task={task} />
-            ))}
-        </div>
-    )
-}
-
-export default function TasksPage() {
     return (
         <div className="flex-1 overflow-y-auto bg-muted/5 min-h-full">
             <div className="max-w-3xl mx-auto px-6 pb-20 pt-8">
@@ -52,9 +27,7 @@ export default function TasksPage() {
                 </div>
 
                 <div className="mt-8 space-y-3">
-                    <Suspense fallback={<div className="text-center py-10 text-muted-foreground">Loading tasks...</div>}>
-                        <TaskList />
-                    </Suspense>
+                    <MyTasksList tasks={tasks} />
 
                     {/* Add Task Button Row */}
                     <CreateTaskDialog

@@ -1,32 +1,51 @@
-import { getTasks } from '@/lib/actions/tasks'
 import { CreateTaskDialog } from '@/components/tasks/create-task-dialog'
-import { TaskRow } from '@/components/tasks/task-row'
+import { SortableTaskList } from '@/components/tasks/sortable-task-list'
 import { UpcomingHeader } from '@/components/upcoming/upcoming-header'
-import { isAfter, startOfDay, addDays, isSameDay, format, isBefore } from 'date-fns'
+import { format } from 'date-fns'
 import { Plus } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
+import prisma from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
 export default async function UpcomingPage() {
-    const tasksResult = await getTasks()
-    const allTasks = tasksResult.success ? tasksResult.data : []
-    const today = startOfDay(new Date())
-    const nextWeek = addDays(today, 7)
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
 
-    // Filter tasks for the next 7 days
-    const upcomingTasks = allTasks.filter((task: any) => {
-        if (!task.dueDate) return false
-        const date = new Date(task.dueDate)
-        // Include tasks strictly after today (tomorrow onwards)
-        // OR include today's tasks if we want (usually "Upcoming" means future)
-        // Let's include today as well depending on interpretation, 
-        // but typically "Today" view handles today.
-        // The original code used isAfter(date, today).
-        // Let's stick to future dates or check if "Today" is meant to be separate.
-        // Usually "Upcoming" includes Today + next 7 days or just Next 7 days.
-        // Assuming "Upcoming" = Future 7 days.
-        return isAfter(date, today) && !isSameDay(date, today) && isBefore(date, nextWeek)
-    }).sort((a: any, b: any) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime())
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+
+    const nextWeek = new Date(today)
+    nextWeek.setDate(nextWeek.getDate() + 7)
+
+    // Direct query - fetch tasks from tomorrow to next 7 days
+    const upcomingTasks = await prisma.task.findMany({
+        where: {
+            userId: user.id,
+            dueDate: {
+                gte: tomorrow,  // Tomorrow onwards
+                lt: nextWeek    // Within next 7 days
+            },
+            completed: false
+        },
+        select: {
+            id: true,
+            title: true,
+            description: true,
+            priority: true,
+            dueDate: true,
+            completed: true,
+            sortOrder: true,
+        },
+        orderBy: [
+            { dueDate: 'asc' },
+            { sortOrder: 'asc' }
+        ]
+    })
 
     // Group by date
     const groupedTasks: Record<string, typeof upcomingTasks> = {}
@@ -45,7 +64,7 @@ export default async function UpcomingPage() {
             <div className="max-w-3xl mx-auto px-6 pb-20 pt-8">
 
                 <UpcomingHeader
-                    start={addDays(today, 1)}
+                    start={tomorrow}
                     end={nextWeek}
                     totalTasks={upcomingTasks.length}
                 />
@@ -61,11 +80,7 @@ export default async function UpcomingPage() {
                                 <h3 className="font-medium text-sm text-muted-foreground ml-1">
                                     {format(new Date(dateKey), 'EEEE, MMMM d')}
                                 </h3>
-                                <div className="space-y-3">
-                                    {groupedTasks[dateKey].map((task: any) => (
-                                        <TaskRow key={task.id} task={task} />
-                                    ))}
-                                </div>
+                                <SortableTaskList tasks={groupedTasks[dateKey]} />
                             </div>
                         ))
                     )}

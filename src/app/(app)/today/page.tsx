@@ -1,6 +1,6 @@
 import { CreateTaskDialog } from '@/components/tasks/create-task-dialog'
 import { TodayHeader } from '@/components/today/today-header'
-import { TodayTaskRow } from '@/components/today/today-task-row'
+import { TodayTaskList } from '@/components/today/today-task-list'
 import { Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
@@ -55,15 +55,7 @@ export default async function TodayPage() {
                 />
 
                 <div className="mt-8 space-y-3">
-                    {todayTasks.length > 0 ? (
-                        todayTasks.map((task: any) => (
-                            <TodayTaskRow key={task.id} task={task} />
-                        ))
-                    ) : (
-                        <div className="text-center py-12 text-muted-foreground bg-card rounded-lg border border-dashed">
-                            No tasks scheduled for today.
-                        </div>
-                    )}
+                    <TodayTaskList tasks={todayTasks} />
 
                     <CreateTaskDialog
                         trigger={

@@ -4,13 +4,35 @@ import { createClient } from '@/lib/supabase/server'
 import { InboxTaskList } from '@/components/inbox/inbox-task-list'
 import { InboxSkeleton } from '@/components/inbox/inbox-skeleton'
 import { Suspense } from 'react'
+import prisma from '@/lib/prisma'
 
 export default async function InboxPage() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return null
 
-
+    // Fetch inbox tasks in server component
+    const inboxTasks = await prisma.task.findMany({
+        where: {
+            userId: user.id,
+            projectId: null,
+            dueDate: null  // Only show tasks without due dates
+        },
+        select: {
+            id: true,
+            title: true,
+            description: true,
+            priority: true,
+            dueDate: true,
+            completed: true,
+            sortOrder: true,
+        },
+        orderBy: [
+            { completed: 'asc' },
+            { sortOrder: 'asc' }
+        ],
+        take: 100
+    })
 
     return (
         <div className="flex-1 overflow-y-auto bg-muted/5 min-h-full">
@@ -30,9 +52,7 @@ export default async function InboxPage() {
                 </div>
 
                 <div className="mt-8 space-y-3">
-                    <Suspense fallback={<InboxSkeleton />}>
-                        <InboxTaskList userId={user.id} />
-                    </Suspense>
+                    <InboxTaskList tasks={inboxTasks} />
 
                     <CreateTaskDialog
                         projectId="none"
