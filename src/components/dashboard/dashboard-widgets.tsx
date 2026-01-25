@@ -28,7 +28,7 @@ export async function DashboardWidgets({ userId }: DashboardWidgetsProps) {
             where: {
                 userId: userId,
                 completed: false,
-                dueDate: { lte: today }
+                dueDate: { lt: tomorrow }
             },
             select: {
                 id: true,
