@@ -69,26 +69,29 @@ export default async function UpcomingPage() {
                     totalTasks={upcomingTasks.length}
                 />
 
-                <div className="mt-8 space-y-8">
+
+                <div className="mt-8 space-y-3">
                     {sortedDates.length === 0 ? (
                         <div className="text-center py-12 text-muted-foreground bg-card rounded-lg border border-dashed">
                             No upcoming tasks for the next 7 days.
                         </div>
                     ) : (
-                        sortedDates.map(dateKey => (
-                            <div key={dateKey} className="space-y-3">
-                                <h3 className="font-medium text-sm text-muted-foreground ml-1">
-                                    {format(new Date(dateKey), 'EEEE, MMMM d')}
-                                </h3>
-                                <SortableTaskList tasks={groupedTasks[dateKey]} />
-                            </div>
-                        ))
+                        <>
+                            {sortedDates.map((dateKey, index) => (
+                                <div key={dateKey} className={`space-y-3 ${index > 0 ? 'mt-6' : ''}`}>
+                                    <h3 className="font-medium text-sm text-muted-foreground ml-1">
+                                        {format(new Date(dateKey), 'EEEE, MMMM d')}
+                                    </h3>
+                                    <SortableTaskList tasks={groupedTasks[dateKey]} />
+                                </div>
+                            ))}
+                        </>
                     )}
 
                     {/* Add Task Button Row */}
                     <CreateTaskDialog
                         trigger={
-                            <div className="w-full flex items-center gap-3 p-4 rounded-lg border border-dashed border-muted-foreground/30 hover:bg-muted/50 transition-colors cursor-pointer text-muted-foreground hover:text-foreground group">
+                            <div className="ml-6 flex-1 flex items-center gap-3 p-4 rounded-lg border border-dashed border-muted-foreground/30 hover:bg-muted/50 transition-colors cursor-pointer text-muted-foreground hover:text-foreground group">
                                 <div className="h-5 w-5 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center group-hover:border-primary/50 group-hover:bg-primary/10 transition-colors">
                                     <Plus className="h-3 w-3 group-hover:text-primary transition-colors" />
                                 </div>
