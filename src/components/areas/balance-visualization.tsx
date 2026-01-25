@@ -167,8 +167,8 @@ export function BalanceVisualization({ data }: BalanceVisualizationProps) {
                 <CardTitle className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">
                     Life Balance Matrix
                 </CardTitle>
-                <p className="text-xs text-muted-foreground">
-                    Visualizing your progress across all areas
+                <p className="text-xs text-muted-foreground mt-1">
+                    Based on completed tasks
                 </p>
             </CardHeader>
             <CardContent className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
@@ -329,45 +329,91 @@ export function BalanceVisualization({ data }: BalanceVisualizationProps) {
                     </svg>
                 </div>
 
-                {/* Legend & Stats */}
-                <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {data.map((area, i) => (
-                        <motion.div
-                            key={area.name}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.3 + i * 0.1 }}
-                            className={`p-3 rounded-lg border border-transparent transition-all duration-300 ${hoveredArea === area.name
-                                ? 'bg-muted border-muted-foreground/20 scale-[1.02]'
-                                : 'hover:bg-muted/50'
-                                }`}
-                            onMouseEnter={() => setHoveredArea(area.name)}
-                            onMouseLeave={() => setHoveredArea(null)}
-                        >
-                            <div className="flex items-center gap-3 mb-2">
-                                <div
-                                    className="w-2 h-8 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.1)]"
-                                    style={{ backgroundColor: getColorHex(area.color) }}
-                                />
-                                <div>
-                                    <h4 className="font-semibold text-sm leading-none mb-1">{area.name}</h4>
-                                    <p className="text-xs text-muted-foreground">{area.taskCount} tasks</p>
+                {/* Intelligent Insight Summary */}
+                <div className="flex-1 w-full">
+                    <h3 className="text-sm font-medium text-muted-foreground mb-4">
+                        This Week
+                    </h3>
+
+                    {(() => {
+                        // Calculate overall health
+                        const onTrackCount = data.filter(a => a.percentage >= 70).length
+                        const needsAttentionCount = data.filter(a => a.percentage >= 40 && a.percentage < 70).length
+                        const neglectedCount = data.filter(a => a.percentage < 40).length
+                        const totalAreas = data.length
+
+                        // Generate intelligent insight
+                        let insight = { icon: '🟢', text: 'All areas are on track', color: 'text-green-600 dark:text-green-500', bg: 'bg-green-500/10' }
+
+                        if (neglectedCount > 0) {
+                            const neglectedAreas = data.filter(a => a.percentage < 40).map(a => a.name)
+                            insight = {
+                                icon: '🔴',
+                                text: neglectedCount === 1
+                                    ? `${neglectedAreas[0]} needs immediate attention`
+                                    : `${neglectedCount} areas need immediate attention`,
+                                color: 'text-red-600 dark:text-red-500',
+                                bg: 'bg-red-500/10'
+                            }
+                        } else if (needsAttentionCount > 0) {
+                            const attentionAreas = data.filter(a => a.percentage >= 40 && a.percentage < 70).map(a => a.name)
+                            insight = {
+                                icon: '🟡',
+                                text: needsAttentionCount === 1
+                                    ? `${attentionAreas[0]} could use more focus`
+                                    : `${needsAttentionCount} areas could use more focus`,
+                                color: 'text-yellow-600 dark:text-yellow-500',
+                                bg: 'bg-yellow-500/10'
+                            }
+                        }
+
+                        return (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.3 }}
+                                className={`p-4 rounded-lg ${insight.bg} border border-transparent`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <span className="text-2xl">{insight.icon}</span>
+                                    <p className={`text-sm font-medium ${insight.color}`}>
+                                        {insight.text}
+                                    </p>
                                 </div>
-                                <div className="ml-auto text-right">
-                                    <span className="text-xl font-bold">{area.percentage}%</span>
+                            </motion.div>
+                        )
+                    })()}
+
+                    {/* Area List - Compact, no redundant status */}
+                    <div className="mt-4 space-y-2">
+                        {data.map((area, i) => (
+                            <motion.div
+                                key={area.name}
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.4 + i * 0.05 }}
+                                className={`p-2.5 rounded-md transition-all duration-200 ${hoveredArea === area.name
+                                    ? 'bg-muted/70'
+                                    : 'hover:bg-muted/40'
+                                    }`}
+                                onMouseEnter={() => setHoveredArea(area.name)}
+                                onMouseLeave={() => setHoveredArea(null)}
+                            >
+                                <div className="flex items-center gap-2.5">
+                                    <div
+                                        className="w-1.5 h-6 rounded-full"
+                                        style={{ backgroundColor: getColorHex(area.color) }}
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="font-medium text-sm leading-tight truncate">{area.name}</h4>
+                                    </div>
+                                    <span className="text-xs text-muted-foreground tabular-nums">
+                                        {area.taskCount} tasks
+                                    </span>
                                 </div>
-                            </div>
-                            <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                                <motion.div
-                                    className="h-full rounded-full"
-                                    style={{ backgroundColor: getColorHex(area.color) }}
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${area.percentage}%` }}
-                                    transition={{ duration: 1, delay: 0.5 }}
-                                />
-                            </div>
-                        </motion.div>
-                    ))}
+                            </motion.div>
+                        ))}
+                    </div>
                 </div>
             </CardContent>
         </Card>

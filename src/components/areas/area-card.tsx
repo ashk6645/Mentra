@@ -81,7 +81,7 @@ export function AreaCard({ area, stats, index = 0 }: AreaCardProps) {
         >
             <div className="h-full relative group">
                 <Link href={`/areas/${area.id}`} className="block h-full">
-                    <Card className="h-full border-0 bg-white/5 backdrop-blur-md hover:bg-white/10 transition-all overflow-hidden relative cursor-pointer ring-1 ring-white/10 hover:ring-primary/50">
+                    <Card className="h-full border-0 bg-white/5 backdrop-blur-md hover:bg-white/10 transition-all duration-300 overflow-hidden relative cursor-pointer ring-1 ring-white/10 hover:ring-primary/50 hover:shadow-lg hover:-translate-y-0.5">
                         {/* Top Color Accent Line */}
                         <div className={`absolute top-0 left-0 right-0 h-1 ${bgColorClass} opacity-80`} />
 
@@ -121,7 +121,7 @@ export function AreaCard({ area, stats, index = 0 }: AreaCardProps) {
 
                                 <div className="pt-2 flex items-center justify-between text-xs text-muted-foreground opacity-60 group-hover:opacity-100 transition-opacity">
                                     <span>{taskCount} Tasks total</span>
-                                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform duration-300" />
                                 </div>
                             </div>
                         </CardContent>

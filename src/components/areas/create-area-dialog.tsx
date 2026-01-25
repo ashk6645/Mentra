@@ -135,14 +135,16 @@ export function CreateAreaDialog({ area, open: controlledOpen, onOpenChange: set
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                {trigger || (
-                    <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        New Area
-                    </Button>
-                )}
-            </DialogTrigger>
+            {!isControlled && (
+                <DialogTrigger asChild>
+                    {trigger || (
+                        <Button>
+                            <Plus className="mr-2 h-4 w-4" />
+                            New Area
+                        </Button>
+                    )}
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-[425px] bg-background/80 backdrop-blur-xl border-white/10">
                 <DialogHeader>
                     <DialogTitle>{area ? 'Edit Area' : 'Create Area of Life'}</DialogTitle>
