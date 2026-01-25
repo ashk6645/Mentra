@@ -78,7 +78,7 @@ export function BlockWrapper({
             {...wrapperProps}
             className={cn(
                 "group relative flex items-start gap-1 py-0.5 -ml-12 pl-12 rounded transition-colors",
-                isHovered && "bg-accent/20",
+                isHovered && "bg-zinc-100 dark:bg-zinc-800/50",
                 isDragging && "opacity-50 blur-[1px]", // Visual feedback for original item
                 isOverlayDragging && "bg-background shadow-xl border border-border opacity-100 blur-none z-50 overflow-hidden" // Mobile overlay style
             )}

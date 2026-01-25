@@ -32,7 +32,7 @@ export const TodoBlock = React.forwardRef<HTMLElement, TodoBlockProps>(
         return (
             <div className="flex items-start gap-2 py-1">
                 <div
-                    className="mt-1 cursor-pointer text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors select-none flex-shrink-0"
+                    className="mt-1 cursor-pointer text-muted-foreground hover:text-foreground transition-colors select-none flex-shrink-0"
                     onClick={toggleChecked}
                     contentEditable={false} // Prevent cursor entering
                 >
@@ -52,8 +52,8 @@ export const TodoBlock = React.forwardRef<HTMLElement, TodoBlockProps>(
                     onBlur={onBlur}
                     className={cn(
                         "flex-1 outline-none break-words whitespace-pre-wrap min-h-[1.5em] py-0.5",
-                        checked && "line-through text-gray-400",
-                        !text && "empty:before:content-['To-do'] empty:before:text-gray-300 empty:before:pointer-events-none"
+                        checked && "line-through text-muted-foreground",
+                        !text && "empty:before:content-['To-do'] empty:before:text-muted-foreground/40 empty:before:pointer-events-none"
                     )}
                     tagName="div"
                 />

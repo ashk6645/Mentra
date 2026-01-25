@@ -79,7 +79,7 @@ export function BlockRenderer({
 
     return (
         <div
-            className={cn("group relative flex items-start -ml-2 pl-2 rounded-md hover:bg-gray-50/50 transition-colors")}
+            className={cn("group relative flex items-start -ml-2 pl-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors")}
             data-block-id={block.id}
         >
             {/* Drag Handle / Menu Trigger could go here */}
