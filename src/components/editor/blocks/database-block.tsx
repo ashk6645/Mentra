@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Block, BlockType } from '../types'
 import { BoardView } from '../views/board-view'
 import { TableView } from '../views/table-view'
@@ -19,6 +20,23 @@ interface DatabaseBlockProps {
 export function DatabaseBlock({ block, isFocused, onChange }: DatabaseBlockProps) {
     const items: DatabaseItem[] = block.content.items || SHARED_DATABASE_ITEMS
     const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    // Lock body scroll when popup is open
+    useEffect(() => {
+        if (selectedItemId) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = 'unset'
+        }
+        return () => {
+            document.body.style.overflow = 'unset'
+        }
+    }, [selectedItemId])
 
     // Derived selected item
     const selectedItem = items.find(i => i.id === selectedItemId)
@@ -202,9 +220,9 @@ export function DatabaseBlock({ block, isFocused, onChange }: DatabaseBlockProps
                 )}
             </div>
 
-            {/* PAGE POPUP OVERLAY */}
-            {selectedItemId && selectedItem && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 md:p-12 animate-in fade-in duration-200" onClick={() => setSelectedItemId(null)}>
+            {/* PAGE POPUP OVERLAY (PORTAL) */}
+            {mounted && selectedItemId && selectedItem && createPortal(
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 md:p-12 animate-in fade-in duration-200" onClick={() => setSelectedItemId(null)}>
                     <div
                         className="bg-background w-full max-w-4xl h-full max-h-[90vh] rounded-xl shadow-2xl border border-border flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
                         onClick={(e) => e.stopPropagation()}
@@ -252,13 +270,14 @@ export function DatabaseBlock({ block, isFocused, onChange }: DatabaseBlockProps
                                 <div className="-mt-10 mb-8 relative">
                                     <div className="text-6xl mb-4 select-none cursor-pointer hover:opacity-80 transition-opacity w-fit">
                                         {/* Fallback Icon */}
-                                        📄
+                                        {selectedItem.icon || '📄'}
                                     </div>
                                     <input
                                         className="text-4xl font-bold bg-transparent border-none outline-none w-full placeholder:text-muted-foreground/40"
                                         placeholder="Untitled"
                                         value={selectedItem.title}
                                         onChange={(e) => updateItem(selectedItem.id, { title: e.target.value })}
+                                        onClick={(e) => e.stopPropagation()}
                                     />
                                 </div>
 
@@ -322,7 +341,8 @@ export function DatabaseBlock({ block, isFocused, onChange }: DatabaseBlockProps
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     )
