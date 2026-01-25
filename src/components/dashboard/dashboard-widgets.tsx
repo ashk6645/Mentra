@@ -23,12 +23,15 @@ export async function DashboardWidgets({ userId }: DashboardWidgetsProps) {
         habits,
         completedTodayCount
     ] = await Promise.all([
-        // Only active tasks
+        // Only active tasks for TODAY (not all past tasks)
         prisma.task.findMany({
             where: {
                 userId: userId,
                 completed: false,
-                dueDate: { lt: tomorrow }
+                dueDate: {
+                    gte: today,    // Start of today (inclusive)
+                    lt: tomorrow   // Before tomorrow (exclusive)
+                }
             },
             select: {
                 id: true,

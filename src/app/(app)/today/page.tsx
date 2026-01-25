@@ -17,10 +17,14 @@ export default async function TodayPage() {
     tomorrow.setDate(tomorrow.getDate() + 1)
 
     // Direct query - much faster
+    // CRITICAL: Only show tasks with dueDate === current local date
     const todayTasks = await prisma.task.findMany({
         where: {
             userId: user.id,
-            dueDate: { lt: tomorrow },
+            dueDate: {
+                gte: today,    // Start of today (inclusive)
+                lt: tomorrow   // Before tomorrow (exclusive)
+            },
             OR: [
                 { completed: false },
                 { completedAt: { gte: today } }

@@ -11,12 +11,19 @@ export default async function InboxPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return null
 
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
     // Fetch inbox tasks in server component
+    // CRITICAL: Inbox contains undated tasks AND past-due tasks
     const inboxTasks = await prisma.task.findMany({
         where: {
             userId: user.id,
             projectId: null,
-            dueDate: null  // Only show tasks without due dates
+            OR: [
+                { dueDate: null },           // Undated tasks
+                { dueDate: { lt: today } }   // Past-due tasks (before today)
+            ]
         },
         select: {
             id: true,
