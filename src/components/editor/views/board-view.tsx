@@ -1,12 +1,27 @@
 import React from 'react'
-import { Plus, MoreHorizontal } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { DatabaseItem } from './mock-data'
 
 const COLUMNS = [
-    { id: 'Not started', label: 'Not started', color: 'bg-gray-100 text-gray-700' },
-    { id: 'In progress', label: 'In progress', color: 'bg-blue-50 text-blue-700' },
-    { id: 'Done', label: 'Done', color: 'bg-green-50 text-green-700' }
+    {
+        id: 'Not started',
+        label: 'Not started',
+        bg: 'bg-gray-50/80 dark:bg-zinc-900/50',
+        headerColor: 'bg-gray-200/50 text-gray-700 dark:bg-zinc-800 dark:text-gray-400'
+    },
+    {
+        id: 'In progress',
+        label: 'In progress',
+        bg: 'bg-blue-50/50 dark:bg-blue-900/10',
+        headerColor: 'bg-blue-100/50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+    },
+    {
+        id: 'Done',
+        label: 'Done',
+        bg: 'bg-green-50/50 dark:bg-green-900/10',
+        headerColor: 'bg-green-100/50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+    }
 ]
 
 interface BoardViewProps {
@@ -19,84 +34,51 @@ interface BoardViewProps {
 
 export function BoardView({ items, onUpdateItem, onAddItem, onDeleteItem, onOpenItem }: BoardViewProps) {
     return (
-        <div className="flex gap-4 overflow-x-auto pb-4 h-full">
+        <div className="grid grid-cols-3 gap-4 h-full pb-4 items-start">
             {COLUMNS.map(col => {
                 const colItems = items.filter(i => i.status === col.id)
 
                 return (
-                    <div key={col.id} className="flex-none w-[260px] flex flex-col h-full">
+                    <div key={col.id} className={cn("flex flex-col h-full rounded-lg p-2 transition-colors", col.bg)}>
                         {/* Column Header */}
-                        <div className="flex items-center justify-between mb-3 px-1">
-                            <div className="flex items-center gap-2">
-                                <span className={cn("px-2 py-0.5 rounded text-xs font-semibold", col.color)}>
-                                    {colItems.length}
-                                </span>
-                                <span className="text-sm font-medium text-foreground">{col.label}</span>
-                            </div>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onClick={() => onAddItem(col.id)} className="p-1 hover:bg-accent rounded text-muted-foreground hover:text-foreground">
-                                    <Plus className="w-4 h-4" />
-                                </button>
-                                <button className="p-1 hover:bg-accent rounded text-muted-foreground hover:text-foreground">
-                                    <MoreHorizontal className="w-4 h-4" />
-                                </button>
-                            </div>
+                        <div className="flex items-center gap-2 mb-3 px-1 pt-1">
+                            <span className={cn("px-2 py-0.5 rounded-sm text-xs font-semibold select-none", col.headerColor)}>
+                                {col.label}
+                            </span>
+                            <span className="text-xs text-muted-foreground font-medium">{colItems.length}</span>
                         </div>
 
                         {/* Column Content */}
-                        <div className="space-y-2">
+                        <div className="space-y-2 flex-1 overflow-y-auto min-h-[100px]">
                             {colItems.map(item => (
                                 <div
                                     key={item.id}
                                     onClick={() => onOpenItem(item.id)}
-                                    className="group bg-background p-3 rounded-md shadow-sm border border-border/40 hover:bg-neutral-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer select-none"
+                                    className="group bg-white dark:bg-zinc-900 p-3 rounded-md shadow-sm border border-border/20 hover:border-border/40 hover:shadow-md transition-all cursor-pointer select-none relative"
                                 >
-                                    <div className="flex items-start gap-2 mb-2">
-                                        <div className="mt-0.5">📄</div>
-                                        <div className="font-medium text-sm text-foreground leading-snug">
-                                            {item.title || "Untitled"}
+                                    <div className="flex items-start gap-2.5">
+                                        <div className="mt-0.5 text-base sm:text-lg opacity-80 select-none">📄</div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="font-medium text-sm text-foreground leading-snug truncate">
+                                                {item.title || "Untitled"}
+                                            </div>
                                         </div>
                                     </div>
-
-                                    {/* Footer Metadata */}
-                                    {(item.priority || item.date) && (
-                                        <div className="flex items-center gap-2 mt-2">
-                                            {item.priority && (
-                                                <span className={cn(
-                                                    "text-[10px] px-1.5 py-0.5 rounded border bg-muted/30 text-muted-foreground",
-                                                )}>
-                                                    {item.priority}
-                                                </span>
-                                            )}
-                                            {item.date && (
-                                                <span className="text-[10px] text-muted-foreground">
-                                                    {item.date}
-                                                </span>
-                                            )}
-                                        </div>
-                                    )}
                                 </div>
                             ))}
 
                             {/* New Item Button */}
                             <button
                                 onClick={() => onAddItem(col.id)}
-                                className="flex items-center gap-2 text-muted-foreground hover:text-foreground px-2 py-1.5 text-sm w-full text-left hover:bg-accent rounded-md transition-colors"
+                                className="flex items-center gap-2 text-muted-foreground/70 hover:text-foreground px-2 py-2 text-sm w-full text-left hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition-colors mt-auto"
                             >
                                 <Plus className="w-4 h-4" />
-                                <span>New</span>
+                                <span>New page</span>
                             </button>
                         </div>
                     </div>
                 )
             })}
-            {/* New Group Button */}
-            <div className="flex-none w-[200px] pt-1 opacity-60 hover:opacity-100 transition-opacity">
-                <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground px-3 py-2 text-sm w-full text-left rounded-md hover:bg-accent">
-                    <Plus className="w-4 h-4" />
-                    <span>Add group</span>
-                </button>
-            </div>
         </div>
     )
 }
