@@ -108,18 +108,17 @@ export function TaskRow({ task }: TaskRowProps) {
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
+                {task.dueDate && (
+                    <div className="text-sm text-muted-foreground font-medium whitespace-nowrap">
+                        {formatDueDate(task.dueDate)}
+                    </div>
+                )}
                 {hasPriority && (
                     <div className={cn(
                         "px-2.5 py-0.5 rounded text-xs font-semibold",
                         getPriorityColor(task.priority)
                     )}>
                         {getPriorityLabel(task.priority)}
-                    </div>
-                )}
-
-                {task.dueDate && (
-                    <div className="text-sm text-muted-foreground font-medium whitespace-nowrap">
-                        {formatDueDate(task.dueDate)}
                     </div>
                 )}
 
