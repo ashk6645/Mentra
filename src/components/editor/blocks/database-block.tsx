@@ -187,7 +187,7 @@ export function DatabaseBlock({ block, isFocused, onChange }: DatabaseBlockProps
                     <BoardView
                         items={items}
                         onUpdateItem={updateItem}
-                        onAddItem={(colId) => addItem({ status: colId })}
+                        onAddItem={(colId) => addItem({ status: colId as DatabaseItem['status'] })}
                         onDeleteItem={deleteItem}
                         onOpenItem={setSelectedItemId}
                     />

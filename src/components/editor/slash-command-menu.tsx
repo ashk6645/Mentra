@@ -151,7 +151,6 @@ const COMMAND_CATEGORIES: CommandCategory[] = [
     }
 ]
 
-
 interface SlashCommandMenuProps {
     position: { top: number; left: number } | null
     onSelect: (type: BlockType) => void
@@ -169,8 +168,6 @@ export function SlashCommandMenu({ position, onSelect, onClose, query, placement
         setMounted(true)
     }, [])
 
-    // ... existing filtering logic (filteredCategories, flatCommands) ...
-    // Copy the filtering logic from original file lines 166-179
     const filteredCategories = COMMAND_CATEGORIES.map(category => ({
         ...category,
         items: category.items.filter(command => {
@@ -182,11 +179,9 @@ export function SlashCommandMenu({ position, onSelect, onClose, query, placement
             )
         })
     })).filter(category => category.items.length > 0)
+
     const flatCommands = filteredCategories.flatMap(c => c.items)
 
-
-    // ... existing useEffects for keydown and click outside ...
-    // Copy useEffects lines 181-220
     useEffect(() => {
         setSelectedIndex(0)
     }, [query])
@@ -226,27 +221,23 @@ export function SlashCommandMenu({ position, onSelect, onClose, query, placement
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [onClose])
 
-
     if (!position) return null
 
-    // Calculate smart positioning
     const MENU_HEIGHT = 320
     const spaceBelow = window.innerHeight - position.top
     const shouldFlip = spaceBelow < MENU_HEIGHT
 
-    // We can use the portal to render fixed relative to viewport
     const style: React.CSSProperties = {
         left: position.left,
         maxHeight: `${MENU_HEIGHT}px`,
     }
 
     if (shouldFlip) {
-        style.bottom = window.innerHeight - position.top + 24 // Render above, 24px gap
+        style.bottom = window.innerHeight - position.top + 24
     } else {
-        style.top = position.top + 24 // Render below, 24px gap
+        style.top = position.top + 24
     }
 
-    // Portal Content
     const content = (
         <div
             ref={menuRef}
@@ -260,7 +251,6 @@ export function SlashCommandMenu({ position, onSelect, onClose, query, placement
             ) : (
                 <>
                     <div className="flex-1 overflow-y-auto min-h-0">
-                        {/* ... filtering UI same as before ... */}
                         {query && filteredCategories.length > 0 && (
                             <div className="text-xs font-semibold text-gray-500 px-3 py-2 uppercase tracking-wider select-none bg-gray-50/50 dark:bg-zinc-900/50 border-b border-gray-100 dark:border-zinc-800">
                                 Filtered results
@@ -275,9 +265,6 @@ export function SlashCommandMenu({ position, onSelect, onClose, query, placement
                                     </div>
                                 )}
                                 {category.items.map((command) => {
-                                    // Calculate precise index within flatCommands for selection
-                                    // Actually we need to track global index for selection highlight
-                                    // Let's find the index in flatCommands
                                     const itemIndex = flatCommands.indexOf(command);
                                     const isSelected = itemIndex === selectedIndex
 
@@ -309,7 +296,6 @@ export function SlashCommandMenu({ position, onSelect, onClose, query, placement
                         ))}
                     </div>
 
-                    {/* Footer */}
                     {query && (
                         <div className="border-t border-gray-100 dark:border-zinc-800 px-3 py-2 text-xs text-gray-400 flex justify-between items-center bg-gray-50/30 dark:bg-zinc-900/30">
                             <span>
@@ -324,6 +310,5 @@ export function SlashCommandMenu({ position, onSelect, onClose, query, placement
     )
 
     if (!mounted) return null
-
     return createPortal(content, document.body)
 }
