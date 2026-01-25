@@ -4,8 +4,11 @@ import { BoardView } from '../views/board-view'
 import { TableView } from '../views/table-view'
 import { GalleryView } from '../views/gallery-view'
 import { CalendarView } from '../views/calendar-view'
-import { KanbanSquare, Table as TableIcon, LayoutGrid, CalendarDays } from 'lucide-react'
+import { KanbanSquare, Table as TableIcon, LayoutGrid, CalendarDays, X, Maximize2, MoreHorizontal, ImageIcon, Clock, Hash, Tag, CheckCircle2, Circle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { v4 as uuidv4 } from 'uuid'
+import { SHARED_DATABASE_ITEMS, DatabaseItem } from '../views/mock-data'
+import { BlockEditor } from '../block-editor'
 
 interface DatabaseBlockProps {
     block: Block
@@ -13,56 +16,87 @@ interface DatabaseBlockProps {
     onChange: (content: any) => void
 }
 
-import { SHARED_DATABASE_ITEMS, DatabaseItem } from '../views/mock-data'
-import { v4 as uuidv4 } from 'uuid'
-
 export function DatabaseBlock({ block, isFocused, onChange }: DatabaseBlockProps) {
-    // Initialize items from content or seed with mock data
-    // We use a local state to ensure immediate UI feedback, 
-    // but we MUST sync to block.content via onChange.
-
-    // If block.content.items is missing, we should probably initialize it.
-    // However, we want to do this only once.
-    // BUT, since we are in a render function, we can't side-effect easily.
-    // We'll derive the items to display.
-
     const items: DatabaseItem[] = block.content.items || SHARED_DATABASE_ITEMS
+    const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+
+    // Derived selected item
+    const selectedItem = items.find(i => i.id === selectedItemId)
 
     // Handler to update an individual item
     const updateItem = (itemId: string, updates: Partial<DatabaseItem>) => {
         const newItems = items.map(item =>
             item.id === itemId ? { ...item, ...updates } : item
         )
-        // Persist to block content
         onChange({ ...block.content, items: newItems })
     }
 
     // Handler to add a new item
-    const addItem = () => {
+    const addItem = (overrides?: Partial<DatabaseItem>) => {
         const newItem: DatabaseItem = {
             id: uuidv4(),
             title: '',
-            status: 'Not started',
+            status: 'Not started' as 'Not started',
             priority: 'Medium',
-            date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            blocks: [], // Empty blocks for new page
+            ...overrides
         }
         const newItems = [...items, newItem]
         onChange({ ...block.content, items: newItems })
+        // Optional: Auto-open the new item?
+        // setSelectedItemId(newItem.id)
     }
 
-    // Handler to delete an item (optional, but good for completeness)
     const deleteItem = (itemId: string) => {
         const newItems = items.filter(item => item.id !== itemId)
         onChange({ ...block.content, items: newItems })
+        if (selectedItemId === itemId) setSelectedItemId(null)
     }
-    // Determine active view from block type if not overridden by local state
-    // Actually, distinct block types mean distinct blocks. 
-    // But we might want to switch view TYPE within the same block, 
-    // OR just use local state for "view mode" while the block type remains semantic?
-    // Notion changes the block type or view type when you switch views.
-    // Let's rely on block.type.
 
-    // Map internal view to block type for switching
+    // Handlers for nested BlockEditor inside the popup
+    const handlePopupCreateBlock = (newBlock: Block, afterBlockId?: string) => {
+        if (!selectedItem) return
+        // Use a simple local helper to simulate block creation in the item's block list
+        // In a real app, this would use the same actions as the main editor, 
+        // but scoped to this item's data.
+        // For now, we'll just update the item's 'blocks' array directly.
+        const currentBlocks = selectedItem.blocks || []
+        let newBlocks = [...currentBlocks]
+
+        if (afterBlockId) {
+            const index = newBlocks.findIndex(b => b.id === afterBlockId)
+            if (index !== -1) {
+                newBlocks.splice(index + 1, 0, newBlock)
+            } else {
+                newBlocks.push(newBlock)
+            }
+        } else {
+            newBlocks.push(newBlock)
+        }
+        updateItem(selectedItem.id, { blocks: newBlocks })
+    }
+
+    const handlePopupUpdateBlock = (blockId: string, updates: any) => {
+        if (!selectedItem) return
+        const currentBlocks = selectedItem.blocks || []
+        const newBlocks = currentBlocks.map(b => b.id === blockId ? { ...b, ...updates } : b)
+        updateItem(selectedItem.id, { blocks: newBlocks })
+    }
+
+    const handlePopupDeleteBlock = (blockId: string) => {
+        if (!selectedItem) return
+        const currentBlocks = selectedItem.blocks || []
+        const newBlocks = currentBlocks.filter(b => b.id !== blockId)
+        updateItem(selectedItem.id, { blocks: newBlocks })
+    }
+
+    const handlePopupReorderBlocks = (newBlocks: Block[]) => {
+        if (!selectedItem) return
+        updateItem(selectedItem.id, { blocks: newBlocks })
+    }
+
+
     const getViewType = (type: BlockType) => {
         if (type === 'DATABASE_BOARD') return 'board'
         if (type === 'DATABASE_GALLERY') return 'gallery'
@@ -71,131 +105,225 @@ export function DatabaseBlock({ block, isFocused, onChange }: DatabaseBlockProps
     }
 
     const activeView = getViewType(block.type)
+    const effectiveView = (block.content.view as string) || activeView
 
     const handleViewChange = (view: 'table' | 'board' | 'gallery' | 'calendar') => {
-        // We update the block TYPE itself to persist the view choice
-        let newType: BlockType = 'DATABASE_TABLE'
-        if (view === 'board') newType = 'DATABASE_BOARD'
-        if (view === 'gallery') newType = 'DATABASE_GALLERY'
-        if (view === 'calendar') newType = 'DATABASE_CALENDAR'
-
-        // This relies on the Editor handling type updates (which we fixed!)
-        // However, we need to call a prop that supports type update not just content.
-        // The updateBlock prop from BlockRenderer calls updateBlock(id, {content}).
-        // It does NOT support type change directly usually unless we pass it up.
-        // BUT, we can use the `onUpdateBlock` we added to BlockEditor which calls `updateBlock`
-        // which calls `useBlockEditor`'s `updateBlock`. 
-        // `useBlockEditor`'s `updateBlock` takes Partial<Block>, so it CAN update type!
-        // We just need to check if the `updateBlock` passed here supports Partial<Block>.
-        // Looking at BlockRenderer, it passes `onUpdate`.
-        // `BlockRenderer` definition: `onUpdate: (content: BlockContent) => void`.
-        // So we are limited to Content updates only here :(
-
-        // Hack: We can use a special content field `viewType` if we can't change block type.
-        // OR we just ask the parent to change type.
-        // But `updateBlock` here is typed as `(id, content)`.
-
-        // Let's look at `BlockRenderer` implementation again.
-        // It calls `updateBlock(block.id, { content: ... })`.
-        // Wait, `onUpdate` in `BlockRenderer` props is `(content: any) => void`.
-
-        // So we can't change type easily from here without refactoring `BlockRenderer` or `DatabaseBlock`.
-        // User wants "smooth".
-        // Since we can't easily change the block TYPE from here (BlockRenderer constraint),
-        // we update the content.view property.
-        // The onChange prop from BlockRenderer handles calling updateBlock for us.
-
         onChange({ ...block.content, view })
     }
 
-    // Determine effective view
-    const effectiveView = (block.content.view as string) || activeView
-
     return (
-        <div className="flex flex-col space-y-4 my-4 w-full group/db">
-            <div className="flex items-center justify-between border-b pb-2 mb-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-gray-500">
-                    {effectiveView === 'table' && <TableIcon className="w-4 h-4" />}
-                    {effectiveView === 'board' && <KanbanSquare className="w-4 h-4" />}
-                    {effectiveView === 'gallery' && <LayoutGrid className="w-4 h-4" />}
-                    {effectiveView === 'calendar' && <CalendarDays className="w-4 h-4" />}
-                    <input
-                        type="text"
-                        value={block.content.title || ''}
-                        onChange={(e) => onChange({ ...block.content, title: e.target.value })}
-                        placeholder="Database"
-                        className="bg-transparent border-none outline-none font-medium placeholder:text-gray-400 focus:ring-0 p-0 m-0 w-full"
+        <div className="flex flex-col space-y-4 my-6 w-full group/db select-none">
+            {/* Header / Tabs */}
+            <div className="flex items-center justify-between border-b border-gray-200 dark:border-zinc-800 pb-0.5 mb-2">
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 px-2 py-1 bg-gray-100 dark:bg-zinc-800 rounded-t-md text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {effectiveView === 'table' && <TableIcon className="w-4 h-4" />}
+                        {effectiveView === 'board' && <KanbanSquare className="w-4 h-4" />}
+                        {effectiveView === 'gallery' && <LayoutGrid className="w-4 h-4" />}
+                        {effectiveView === 'calendar' && <CalendarDays className="w-4 h-4" />}
+                        <input
+                            type="text"
+                            value={block.content.title || ''}
+                            onChange={(e) => onChange({ ...block.content, title: e.target.value })}
+                            placeholder="Database"
+                            className="bg-transparent border-none outline-none font-medium placeholder:text-gray-400 focus:ring-0 p-0 m-0 min-w-[80px]"
+                        />
+                    </div>
+                    {/* Add View Button (Visual only) */}
+                    <button className="p-1 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded text-gray-400">
+                        <MoreHorizontal className="w-4 h-4" />
+                    </button>
+                </div>
+
+                <div className="flex items-center gap-1 text-gray-500">
+                    {/* View Switchers */}
+                    <div className="flex bg-gray-50 dark:bg-zinc-900 rounded-md p-0.5 border border-gray-200 dark:border-zinc-800">
+                        <button
+                            onClick={() => handleViewChange('table')}
+                            className={cn("p-1.5 rounded-sm hover:bg-white dark:hover:bg-zinc-800 transition-all", effectiveView === 'table' && "bg-white dark:bg-zinc-700 text-foreground shadow-sm")}
+                            title="Table View"
+                        >
+                            <TableIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => handleViewChange('board')}
+                            className={cn("p-1.5 rounded-sm hover:bg-white dark:hover:bg-zinc-800 transition-all", effectiveView === 'board' && "bg-white dark:bg-zinc-700 text-foreground shadow-sm")}
+                            title="Board View"
+                        >
+                            <KanbanSquare className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => handleViewChange('gallery')}
+                            className={cn("p-1.5 rounded-sm hover:bg-white dark:hover:bg-zinc-800 transition-all", effectiveView === 'gallery' && "bg-white dark:bg-zinc-700 text-foreground shadow-sm")}
+                            title="Gallery View"
+                        >
+                            <LayoutGrid className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* View Content */}
+            <div className="min-h-[200px] overflow-hidden">
+                {effectiveView === 'board' && (
+                    <BoardView
+                        items={items}
+                        onUpdateItem={updateItem}
+                        onAddItem={(colId) => addItem({ status: colId })}
+                        onDeleteItem={deleteItem}
+                        onOpenItem={setSelectedItemId}
                     />
-                </div>
-
-                <div className="flex bg-gray-100 dark:bg-zinc-800 rounded-lg p-1 gap-1 opacity-0 group-hover/db:opacity-100 transition-opacity">
-                    <button
-                        onClick={() => handleViewChange('table')}
-                        className={cn("p-1 rounded hover:bg-white dark:hover:bg-zinc-700 shadow-sm transition-all", effectiveView === 'table' && "bg-white dark:bg-zinc-700 text-blue-500")}
-                        title="Table View"
-                    >
-                        <TableIcon className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => handleViewChange('board')}
-                        className={cn("p-1 rounded hover:bg-white dark:hover:bg-zinc-700 shadow-sm transition-all", effectiveView === 'board' && "bg-white dark:bg-zinc-700 text-blue-500")}
-                        title="Board View"
-                    >
-                        <KanbanSquare className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => handleViewChange('gallery')}
-                        className={cn("p-1 rounded hover:bg-white dark:hover:bg-zinc-700 shadow-sm transition-all", effectiveView === 'gallery' && "bg-white dark:bg-zinc-700 text-blue-500")}
-                        title="Gallery View"
-                    >
-                        <LayoutGrid className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => handleViewChange('calendar')}
-                        className={cn("p-1 rounded hover:bg-white dark:hover:bg-zinc-700 shadow-sm transition-all", effectiveView === 'calendar' && "bg-white dark:bg-zinc-700 text-blue-500")}
-                        title="Calendar View"
-                    >
-                        <CalendarDays className="w-4 h-4" />
-                    </button>
-                </div>
+                )}
+                {effectiveView === 'table' && (
+                    <TableView
+                        items={items}
+                        onUpdateItem={updateItem}
+                        onAddItem={() => addItem()}
+                        onDeleteItem={deleteItem}
+                        onOpenItem={setSelectedItemId}
+                    />
+                )}
+                {effectiveView === 'gallery' && (
+                    <GalleryView
+                        items={items}
+                        onUpdateItem={updateItem}
+                        onAddItem={() => addItem()}
+                        onDeleteItem={deleteItem}
+                        onOpenItem={setSelectedItemId}
+                    />
+                )}
+                {effectiveView === 'calendar' && (
+                    <CalendarView
+                        items={items}
+                        onUpdateItem={updateItem}
+                        onAddItem={() => addItem()}
+                        onDeleteItem={deleteItem}
+                    />
+                )}
             </div>
 
-            <div className="min-h-[200px] overflow-x-auto">
-                <div className="min-h-[200px] overflow-x-auto">
-                    {effectiveView === 'board' && (
-                        <BoardView
-                            items={items}
-                            onUpdateItem={updateItem}
-                            onAddItem={addItem}
-                            onDeleteItem={deleteItem}
-                        />
-                    )}
-                    {effectiveView === 'table' && (
-                        <TableView
-                            items={items}
-                            onUpdateItem={updateItem}
-                            onAddItem={addItem}
-                            onDeleteItem={deleteItem}
-                        />
-                    )}
-                    {effectiveView === 'gallery' && (
-                        <GalleryView
-                            items={items}
-                            onUpdateItem={updateItem}
-                            onAddItem={addItem}
-                            onDeleteItem={deleteItem}
-                        />
-                    )}
-                    {effectiveView === 'calendar' && (
-                        <CalendarView
-                            items={items}
-                            onUpdateItem={updateItem}
-                            onAddItem={addItem}
-                            onDeleteItem={deleteItem}
-                        />
-                    )}
+            {/* PAGE POPUP OVERLAY */}
+            {selectedItemId && selectedItem && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 md:p-12 animate-in fade-in duration-200" onClick={() => setSelectedItemId(null)}>
+                    <div
+                        className="bg-background w-full max-w-4xl h-full max-h-[90vh] rounded-xl shadow-2xl border border-border flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Popup Header Actions */}
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 shrink-0">
+                            <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                                <Maximize2 className="w-4 h-4" />
+                                <span>Open as page</span>
+                            </button>
+                            <div className="flex items-center gap-2">
+                                <button className="p-1.5 hover:bg-accent rounded text-muted-foreground">
+                                    <MoreHorizontal className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={() => setSelectedItemId(null)}
+                                    className="p-1.5 hover:bg-accent rounded text-muted-foreground hover:text-foreground"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Popup Scrollable Content */}
+                        <div className="flex-1 overflow-y-auto">
+                            {/* Cover Image */}
+                            <div className="group relative w-full h-48 bg-muted">
+                                {selectedItem.cover ? (
+                                    <img src={selectedItem.cover} className="w-full h-full object-cover" alt="Cover" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-muted-foreground/20">
+                                        <ImageIcon className="w-12 h12" />
+                                    </div>
+                                )}
+                                <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button className="text-xs bg-background/80 hover:bg-background border border-border px-2 py-1 rounded shadow-sm backdrop-blur">
+                                        Change cover
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Page Content Container */}
+                            <div className="max-w-3xl mx-auto w-full px-8 pb-16">
+                                {/* Icon & Title */}
+                                <div className="-mt-10 mb-8 relative">
+                                    <div className="text-6xl mb-4 select-none cursor-pointer hover:opacity-80 transition-opacity w-fit">
+                                        {/* Fallback Icon */}
+                                        📄
+                                    </div>
+                                    <input
+                                        className="text-4xl font-bold bg-transparent border-none outline-none w-full placeholder:text-muted-foreground/40"
+                                        placeholder="Untitled"
+                                        value={selectedItem.title}
+                                        onChange={(e) => updateItem(selectedItem.id, { title: e.target.value })}
+                                    />
+                                </div>
+
+                                {/* Properties */}
+                                <div className="space-y-1 mb-8">
+                                    {/* Status */}
+                                    <div className="flex items-center py-1">
+                                        <div className="w-32 flex items-center gap-2 text-muted-foreground text-sm">
+                                            <CheckCircle2 className="w-4 h-4" />
+                                            <span>Status</span>
+                                        </div>
+                                        <div className="flex-1">
+                                            <span className={cn(
+                                                "px-2 py-0.5 rounded text-sm bg-accent/50 text-foreground w-fit block",
+                                                selectedItem.status === 'Done' && "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+                                                selectedItem.status === 'In progress' && "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+                                            )}>
+                                                {selectedItem.status}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {/* Priority */}
+                                    <div className="flex items-center py-1">
+                                        <div className="w-32 flex items-center gap-2 text-muted-foreground text-sm">
+                                            <Tag className="w-4 h-4" />
+                                            <span>Priority</span>
+                                        </div>
+                                        <div className="flex-1">
+                                            <span className="text-sm px-2 py-0.5 rounded bg-accent/50 text-foreground w-fit block">
+                                                {selectedItem.priority}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {/* Date */}
+                                    <div className="flex items-center py-1">
+                                        <div className="w-32 flex items-center gap-2 text-muted-foreground text-sm">
+                                            <Clock className="w-4 h-4" />
+                                            <span>Date</span>
+                                        </div>
+                                        <div className="flex-1">
+                                            <span className="text-sm text-foreground/80 hover:bg-accent px-1.5 -ml-1.5 py-0.5 rounded cursor-pointer transition-colors block w-fit">
+                                                {selectedItem.date || 'Empty'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="h-px bg-border my-6" />
+
+                                {/* Nested Block Editor */}
+                                <div className="min-h-[200px]">
+                                    <BlockEditor
+                                        initialBlocks={selectedItem.blocks || []}
+                                        onCreateBlock={handlePopupCreateBlock}
+                                        onUpdateBlock={handlePopupUpdateBlock}
+                                        onDeleteBlock={handlePopupDeleteBlock}
+                                        onReorderBlocks={handlePopupReorderBlocks}
+                                        isNested
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     )
 }

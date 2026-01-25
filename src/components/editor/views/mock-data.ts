@@ -1,3 +1,5 @@
+import { Block } from '../types'
+
 export interface DatabaseItem {
     id: string
     title: string
@@ -7,6 +9,7 @@ export interface DatabaseItem {
     progress?: number
     cover?: string
     tags?: string[]
+    blocks?: Block[]
 }
 
 export const SHARED_DATABASE_ITEMS: DatabaseItem[] = [

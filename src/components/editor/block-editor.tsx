@@ -18,6 +18,7 @@ import { Block, BlockType } from './types'
 import { useBlockEditor } from './use-block-editor'
 import { SortableBlock } from './sortable-block'
 import { SlashCommandMenu } from './slash-command-menu'
+import { cn } from '@/lib/utils'
 
 interface BlockEditorProps {
     initialBlocks?: Block[]
@@ -26,6 +27,7 @@ interface BlockEditorProps {
     onCreateBlock?: (block: Block, afterBlockId?: string) => void
     onDeleteBlock?: (id: string) => void
     onReorderBlocks?: (blocks: Block[]) => void
+    isNested?: boolean
 }
 
 export function BlockEditor({
@@ -34,7 +36,8 @@ export function BlockEditor({
     onUpdateBlock,
     onCreateBlock,
     onDeleteBlock,
-    onReorderBlocks
+    onReorderBlocks,
+    isNested = false
 }: BlockEditorProps) {
     const { blocks, addBlock, updateBlock, removeBlock, setBlocks } = useBlockEditor({
         initialBlocks,
@@ -447,7 +450,10 @@ export function BlockEditor({
     }, [slashMenuState.blockId, updateBlock, closeSlashMenu, onUpdateBlock])
 
     return (
-        <div className="w-full max-w-3xl mx-auto min-h-[500px]">
+        <div className={cn(
+            "w-full mx-auto px-4 sm:px-0",
+            isNested ? "" : "min-h-[500px]"
+        )}>
             <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}

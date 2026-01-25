@@ -1,5 +1,5 @@
 import React from 'react'
-import { Plus, FileText, Calendar, Hash, Tag, Trash2 } from 'lucide-react'
+import { Plus, FileText, Calendar, Hash, Tag, Trash2, MoreHorizontal } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { DatabaseItem } from './mock-data'
 import {
@@ -14,60 +14,64 @@ interface TableViewProps {
     onUpdateItem: (id: string, updates: Partial<DatabaseItem>) => void
     onAddItem: () => void
     onDeleteItem: (id: string) => void
+    onOpenItem: (id: string) => void
 }
 
-export function TableView({ items, onUpdateItem, onAddItem, onDeleteItem }: TableViewProps) {
+export function TableView({ items, onUpdateItem, onAddItem, onDeleteItem, onOpenItem }: TableViewProps) {
     return (
-        <div className="w-full overflow-x-auto border-t border-gray-200 dark:border-zinc-800">
+        <div className="w-full overflow-x-auto border-t border-border/40">
             <table className="w-full min-w-[600px] border-collapse text-sm">
                 <thead>
-                    <tr className="border-b border-gray-200 dark:border-zinc-800 text-gray-500">
-                        <th className="w-[300px] py-2 px-3 text-left font-normal border-r border-gray-200 dark:border-zinc-800">
+                    <tr className="border-b border-border/40 text-muted-foreground/80">
+                        <th className="w-[300px] py-1.5 px-3 text-left font-normal border-r border-border/40 hover:bg-accent/20 cursor-pointer transition-colors">
                             <div className="flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-gray-400" />
-                                <span>Name</span>
+                                <FileText className="w-3.5 h-3.5" />
+                                <span className="text-xs">Name</span>
                             </div>
                         </th>
-                        <th className="w-[150px] py-2 px-3 text-left font-normal border-r border-gray-200 dark:border-zinc-800">
+                        <th className="w-[150px] py-1.5 px-3 text-left font-normal border-r border-border/40 hover:bg-accent/20 cursor-pointer transition-colors">
                             <div className="flex items-center gap-2">
-                                <Hash className="w-4 h-4 text-gray-400" />
-                                <span>Status</span>
+                                <Hash className="w-3.5 h-3.5" />
+                                <span className="text-xs">Status</span>
                             </div>
                         </th>
-                        <th className="w-[150px] py-2 px-3 text-left font-normal border-r border-gray-200 dark:border-zinc-800">
+                        <th className="w-[150px] py-1.5 px-3 text-left font-normal border-r border-border/40 hover:bg-accent/20 cursor-pointer transition-colors">
                             <div className="flex items-center gap-2">
-                                <Tag className="w-4 h-4 text-gray-400" />
-                                <span>Priority</span>
+                                <Tag className="w-3.5 h-3.5" />
+                                <span className="text-xs">Priority</span>
                             </div>
                         </th>
-                        <th className="py-2 px-3 text-left font-normal">
+                        <th className="py-1.5 px-3 text-left font-normal hover:bg-accent/20 cursor-pointer transition-colors">
                             <div className="flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-gray-400" />
-                                <span>Date</span>
+                                <Calendar className="w-3.5 h-3.5" />
+                                <span className="text-xs">Date</span>
                             </div>
                         </th>
-                        <th className="w-[40px] py-2 px-3"></th>
+                        <th className="w-[40px] py-1.5 px-3"></th>
                     </tr>
                 </thead>
                 <tbody>
                     {items.map((item) => (
-                        <tr key={item.id} className="group hover:bg-gray-50 dark:hover:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 last:border-0 transition-colors">
-                            <td className="py-2 px-3 border-r border-gray-200 dark:border-zinc-800 group-hover:dark:border-zinc-800">
-                                <input
-                                    className="font-medium bg-transparent outline-none w-full block text-gray-900 dark:text-gray-100 placeholder:text-gray-400"
-                                    value={item.title}
-                                    placeholder="Untitled"
-                                    onChange={(e) => onUpdateItem(item.id, { title: e.target.value })}
-                                />
+                        <tr
+                            key={item.id}
+                            className="group hover:bg-muted/30 border-b border-border/20 last:border-0 transition-colors"
+                        >
+                            <td className="py-1.5 px-3 border-r border-border/20 cursor-pointer" onClick={() => onOpenItem(item.id)}>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-base">📄</span>
+                                    <span className="font-medium text-foreground truncate block w-full">
+                                        {item.title || "Untitled"}
+                                    </span>
+                                </div>
                             </td>
-                            <td className="py-2 px-3 border-r border-gray-200 dark:border-zinc-800">
+                            <td className="py-1.5 px-3 border-r border-border/20">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <span className={cn(
-                                            "px-2 py-0.5 rounded-sm text-xs cursor-pointer hover:opacity-80 block w-fit",
-                                            item.status === 'Not started' && "bg-gray-200 text-gray-700",
-                                            item.status === 'In progress' && "bg-blue-100 text-blue-700",
-                                            item.status === 'Done' && "bg-green-100 text-green-700"
+                                            "px-2 py-0.5 rounded-sm text-xs cursor-pointer hover:opacity-80 block w-fit truncate",
+                                            item.status === 'Not started' && "bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-gray-300",
+                                            item.status === 'In progress' && "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+                                            item.status === 'Done' && "bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                                         )}>
                                             {item.status}
                                         </span>
@@ -88,21 +92,21 @@ export function TableView({ items, onUpdateItem, onAddItem, onDeleteItem }: Tabl
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </td>
-                            <td className="py-2 px-3 border-r border-gray-200 dark:border-zinc-800">
+                            <td className="py-1.5 px-3 border-r border-border/20">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <span className={cn(
                                             "px-2 py-0.5 rounded-sm text-xs cursor-pointer hover:opacity-80 block w-fit",
-                                            (!item.priority || item.priority === 'Low') && "bg-gray-100 text-gray-700",
-                                            item.priority === 'High' && "bg-red-100 text-red-700",
-                                            item.priority === 'Medium' && "bg-yellow-100 text-yellow-700",
+                                            (!item.priority || item.priority === 'Low') && "bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-gray-300",
+                                            item.priority === 'High' && "bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+                                            item.priority === 'Medium' && "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
                                         )}>
                                             {item.priority || 'Low'}
                                         </span>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent>
                                         <DropdownMenuItem onClick={() => onUpdateItem(item.id, { priority: 'High' })}>
-                                            <span className="text-red-500 bg-red-50 px-1 rounded text-xs mr-2">High</span>
+                                            <span className="text-orange-500 bg-orange-50 px-1 rounded text-xs mr-2">High</span>
                                             High Priority
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => onUpdateItem(item.id, { priority: 'Medium' })}>
@@ -116,18 +120,13 @@ export function TableView({ items, onUpdateItem, onAddItem, onDeleteItem }: Tabl
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </td>
-                            <td className="py-2 px-3 text-gray-500">
-                                <input
-                                    className="bg-transparent outline-none w-full text-gray-500"
-                                    value={item.date || ''}
-                                    onChange={(e) => onUpdateItem(item.id, { date: e.target.value })}
-                                    placeholder="No date"
-                                />
+                            <td className="py-1.5 px-3 text-muted-foreground text-xs">
+                                {item.date || <span className="text-muted-foreground/30">No date</span>}
                             </td>
-                            <td className="py-2 px-3 text-right">
+                            <td className="py-1.5 px-3 text-right">
                                 <button
                                     onClick={() => onDeleteItem(item.id)}
-                                    className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity"
+                                    className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
                                 >
                                     <Trash2 className="w-3.5 h-3.5" />
                                 </button>
@@ -135,12 +134,12 @@ export function TableView({ items, onUpdateItem, onAddItem, onDeleteItem }: Tabl
                         </tr>
                     ))}
                     <tr>
-                        <td colSpan={5} className="py-1 px-3 text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer transition-colors border-t border-transparent"
+                        <td colSpan={5} className="py-1.5 px-3 text-muted-foreground hover:bg-muted/30 cursor-pointer transition-colors border-t border-transparent"
                             onClick={onAddItem}
                         >
                             <div className="flex items-center gap-2 py-1">
                                 <Plus className="w-4 h-4" />
-                                <span>New</span>
+                                <span className="text-sm">New</span>
                             </div>
                         </td>
                     </tr>

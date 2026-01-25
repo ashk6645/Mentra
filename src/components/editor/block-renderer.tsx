@@ -77,9 +77,14 @@ export function BlockRenderer({
         return <div className="p-4 text-red-500">Unknown block type: {block.type}</div>
     }
 
+    const isDatabase = ['DATABASE_TABLE', 'DATABASE_BOARD', 'DATABASE_GALLERY', 'DATABASE_CALENDAR'].includes(block.type)
+
     return (
         <div
-            className={cn("group relative flex items-start -ml-2 pl-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors")}
+            className={cn(
+                "group relative flex items-start -ml-2 pl-2 rounded-md transition-colors",
+                !isDatabase && "hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
+            )}
             data-block-id={block.id}
         >
             {/* Drag Handle / Menu Trigger could go here */}
