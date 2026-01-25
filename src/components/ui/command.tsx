@@ -46,7 +46,6 @@ const CommandDialog = ({ children, shouldFilter, filter, value, onValueChange, l
                     value={value}
                     onValueChange={onValueChange}
                     loop={loop}
-                    disablePointerSelection={false}
                 >
                     {children}
                 </Command>
@@ -133,37 +132,31 @@ const CommandItem = React.forwardRef<
     React.ElementRef<typeof CommandPrimitive.Item>,
     React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
 >(({ className, onSelect, children, ...props }, ref) => {
-    // Use CMDK's setSelected to sync pointer hover with selection
-    const itemRef = React.useRef<HTMLDivElement>(null);
-    React.useImperativeHandle(ref, () => itemRef.current as HTMLDivElement);
+    const handleClick = React.useCallback((e: React.MouseEvent) => {
+        if (onSelect && !props.disabled) {
+            onSelect(props.value || '');
+        }
+    }, [onSelect, props.disabled, props.value]);
+
     return (
         <CommandPrimitive.Item
-            ref={itemRef}
+            ref={ref}
             className={cn(
                 "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-accent aria-selected:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
                 className
             )}
             onSelect={onSelect}
-            onClick={() => {
-                if (onSelect) {
-                    onSelect(props.value || '')
-                }
-            }}
-            onMouseMove={e => {
-                if (itemRef.current && typeof window !== 'undefined') {
-                    // @ts-ignore
-                    if (window.CMDK && typeof window.CMDK.setSelected === 'function') {
-                        // @ts-ignore
-                        window.CMDK.setSelected(itemRef.current);
-                    } else {
-                        itemRef.current.focus();
-                    }
-                }
-            }}
-            tabIndex={-1}
             {...props}
         >
-            {children}
+            {/* Clickable overlay to capture mouse events */}
+            <div
+                onClick={handleClick}
+                className="absolute inset-0 z-10 cursor-pointer"
+            />
+            {/* Content layer - allow pointer events for interactive children */}
+            <div className="relative z-20 flex items-center w-full [&>*]:pointer-events-auto">
+                {children}
+            </div>
         </CommandPrimitive.Item>
     )
 })
