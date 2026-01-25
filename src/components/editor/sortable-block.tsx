@@ -42,16 +42,11 @@ export function SortableBlock({ block, removeBlock, ...props }: SortableBlockPro
         opacity: isDragging ? 0.5 : 1,
     }
 
-    const isFullWidth = ['DATABASE_TABLE', 'DATABASE_BOARD', 'DATABASE_GALLERY', 'DATABASE_CALENDAR'].includes(block.type)
-
     return (
         <div
             ref={setNodeRef}
             style={style}
-            className={cn(
-                "group flex items-start relative -ml-8 pl-8",
-                isFullWidth ? "w-full max-w-none" : "max-w-3xl mx-auto"
-            )}
+            className="group flex items-start relative -ml-8 pl-8 w-full max-w-none"
         >
             {/* Gutter Actions */}
             <div
