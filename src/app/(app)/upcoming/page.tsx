@@ -25,7 +25,7 @@ export default async function UpcomingPage() {
         // Let's stick to future dates or check if "Today" is meant to be separate.
         // Usually "Upcoming" includes Today + next 7 days or just Next 7 days.
         // Assuming "Upcoming" = Future 7 days.
-        return isAfter(date, today) && isBefore(date, nextWeek)
+        return isAfter(date, today) && !isSameDay(date, today) && isBefore(date, nextWeek)
     }).sort((a: any, b: any) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime())
 
     // Group by date
