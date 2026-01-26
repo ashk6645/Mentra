@@ -122,7 +122,7 @@ export function CreateTaskDialog({
                 {trigger ? (
                     trigger
                 ) : (
-                    <Button className="shadow-sm">
+                    <Button className="shadow-sm" suppressHydrationWarning={true}>
                         <Plus className="mr-2 h-4 w-4" />
                         New Task
                     </Button>

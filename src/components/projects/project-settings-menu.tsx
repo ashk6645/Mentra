@@ -46,7 +46,7 @@ export function ProjectSettingsMenu({ project }: ProjectSettingsMenuProps) {
     const [isEditOpen, setIsEditOpen] = useState(false)
     const [isDeleteOpen, setIsDeleteOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
-    
+
     const [name, setName] = useState(project.name)
     const [description, setDescription] = useState(project.description || '')
 
@@ -115,7 +115,7 @@ export function ProjectSettingsMenu({ project }: ProjectSettingsMenuProps) {
         <>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" suppressHydrationWarning={true}>
                         <MoreVertical className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
@@ -186,7 +186,7 @@ export function ProjectSettingsMenu({ project }: ProjectSettingsMenuProps) {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently delete the project "{project.name}" and all its tasks and sections. 
+                            This will permanently delete the project "{project.name}" and all its tasks and sections.
                             This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
