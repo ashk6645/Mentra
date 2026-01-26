@@ -231,7 +231,8 @@ export function TableView({ onRowClick }: TableViewProps) {
                           column={column}
                           areas={areas}
                           onSave={(value: unknown) => {
-                            updateProject(project.id, { [column.id]: value })
+                            const field = column.id === 'area' ? 'areaId' : column.id
+                            updateProject(project.id, { [field]: value })
                             stopEditing()
                           }}
                           onCancel={stopEditing}
