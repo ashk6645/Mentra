@@ -67,7 +67,7 @@ export function TaskBoard({ tasks, sections = [], projectId, onTaskCreated }: Ta
               defaultSectionId={col.id === 'uncategorized' ? undefined : col.id}
               onOpenChange={() => setShowCreateForSection(null)}
               onTaskCreated={onTaskCreated}
-              trigger={<></>}
+              trigger={<span className="hidden" />}
             />
           )}
         </TaskBoardColumn>
