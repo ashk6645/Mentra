@@ -136,10 +136,10 @@ export async function updateStreak() {
 
         const profile = await prisma.profile.findUnique({
             where: { id: user.id },
-            select: { 
-                currentStreak: true, 
-                longestStreak: true, 
-                updatedAt: true 
+            select: {
+                currentStreak: true,
+                longestStreak: true,
+                updatedAt: true
             }
         })
 
@@ -163,13 +163,21 @@ export async function updateStreak() {
             const diffDays = Math.floor((today.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24))
 
             if (diffDays === 0) {
-                // Same day, no change - return current streak
-                return { 
-                    success: true, 
-                    data: { 
-                        streakCount: newStreakCount, 
-                        streakBonus: false 
-                    } 
+                // Same day activity
+
+                // CRITICAL FIX: If streak is 0 (e.g. new profile or just reset), 
+                // we treat this as the first activity to start the streak.
+                if (profile.currentStreak === 0) {
+                    newStreakCount = 1
+                } else {
+                    // Already have a streak for today, no change
+                    return {
+                        success: true,
+                        data: {
+                            streakCount: newStreakCount,
+                            streakBonus: false
+                        }
+                    }
                 }
             } else if (diffDays === 1) {
                 // Consecutive day - increment streak
@@ -198,12 +206,12 @@ export async function updateStreak() {
             await awardXP('STREAK_BONUS', XP_STREAK_BONUS)
         }
 
-        return { 
-            success: true, 
-            data: { 
-                streakCount: newStreakCount, 
-                streakBonus 
-            } 
+        return {
+            success: true,
+            data: {
+                streakCount: newStreakCount,
+                streakBonus
+            }
         }
     } catch (error) {
         console.error('Failed to update streak:', error)
