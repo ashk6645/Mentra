@@ -46,13 +46,14 @@ export function TaskRow({ task }: TaskRowProps) {
 
     const getPriorityColor = (priority?: string | null) => {
         switch (priority?.toLowerCase()) {
-            case 'high':
             case 'urgent':
-                return 'bg-red-500 text-white'
+                return 'bg-red-600 text-white'
+            case 'high':
+                return 'bg-orange-500 text-white'
             case 'medium':
-                return 'bg-orange-400 text-white'
-            case 'low':
                 return 'bg-blue-500 text-white'
+            case 'low':
+                return 'bg-slate-500 text-white'
             default:
                 return 'bg-gray-500 text-white'
         }

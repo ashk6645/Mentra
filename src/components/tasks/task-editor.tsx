@@ -41,10 +41,10 @@ export interface TaskEditorProps {
 }
 
 const priorities = [
-    { value: 'urgent', label: 'Priority 1', color: 'text-red-600', fill: 'fill-red-600' },
-    { value: 'high', label: 'Priority 2', color: 'text-orange-500', fill: 'fill-orange-500' },
-    { value: 'medium', label: 'Priority 3', color: 'text-blue-500', fill: 'fill-blue-500' },
-    { value: 'low', label: 'Priority 4', color: 'text-slate-500', fill: 'fill-white' }, // Default looks
+    { value: 'low', label: 'Low', color: 'text-slate-500', fill: 'fill-slate-500' },
+    { value: 'medium', label: 'Medium', color: 'text-blue-500', fill: 'fill-blue-500' },
+    { value: 'high', label: 'High', color: 'text-orange-500', fill: 'fill-orange-500' },
+    { value: 'urgent', label: 'Urgent', color: 'text-red-600', fill: 'fill-red-600' },
 ] as const
 
 export function TaskEditor({
