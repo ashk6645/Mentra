@@ -348,4 +348,4 @@ This project is built as a production SaaS application.
 
 ---
 
-**Built with ❤️ for productivity and mental well-being**
+**Built for productivity and mental well-being**
