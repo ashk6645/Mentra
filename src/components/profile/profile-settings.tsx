@@ -10,7 +10,7 @@ import { Trash2, LogOut, Loader2, Moon, Bell, Calendar, Trophy, Sparkles } from 
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useTheme } from 'next-themes'
-import { deleteUserAccount } from '@/lib/actions/user'
+import { deleteUserAccount, resetUserAccount } from '@/lib/actions/user'
 import { useToast } from '@/components/ui/use-toast'
 import {
   AlertDialog,
@@ -38,7 +38,9 @@ export function ProfileSettings() {
   const [showStreaks, setShowStreaks] = useState(true)
   const [enableAI, setEnableAI] = useState(true)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showResetDialog, setShowResetDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isResetting, setIsResetting] = useState(false)
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -75,6 +77,41 @@ export function ProfileSettings() {
     } finally {
       setIsDeleting(false)
       setShowDeleteDialog(false)
+    }
+  }
+
+  async function handleResetAccount() {
+    setIsResetting(true)
+    try {
+      const result = await resetUserAccount()
+      if (result.error) {
+        toast({
+          title: 'Error',
+          description: result.error,
+          variant: 'destructive',
+        })
+      } else {
+        toast({
+          title: 'Account Reset',
+          description: 'Your account data has been cleared successfully.',
+        })
+        // Refresh to reflect empty state
+        router.refresh()
+        // Optional: redirect to dashboard to show it's empty
+        setTimeout(() => {
+          router.push('/dashboard')
+        }, 1000)
+      }
+    } catch (error) {
+      console.error('Error resetting account:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to reset account.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsResetting(false)
+      setShowResetDialog(false)
     }
   }
 
@@ -240,6 +277,18 @@ export function ProfileSettings() {
 
             <div className="flex items-center justify-between">
               <div>
+                <h4 className="font-medium text-amber-600 dark:text-amber-500">Reset Account</h4>
+                <p className="text-sm text-muted-foreground">Clear all data but keep your account.</p>
+              </div>
+              <Button variant="outline" className="text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-900/50 dark:hover:bg-amber-950/30" size="sm" onClick={() => setShowResetDialog(true)} disabled={isResetting || isDeleting}>
+                Reset Data
+              </Button>
+            </div>
+
+            <Separator className="bg-destructive/10" />
+
+            <div className="flex items-center justify-between">
+              <div>
                 <h4 className="font-medium text-destructive">Delete Account</h4>
                 <p className="text-sm text-muted-foreground">Permanently delete your account and all data.</p>
               </div>
@@ -264,6 +313,28 @@ export function ProfileSettings() {
             <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteAccount} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90">
               {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Delete My Account'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Reset Dialog */}
+      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Account Data?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all your Tasks, Projects, Habits, and XP.
+              <br /><br />
+              <strong>Your account login will remain active</strong>, but you will start from scratch like a new user.
+              <br /><br />
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isResetting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleResetAccount} disabled={isResetting} className="bg-amber-600 hover:bg-amber-700 text-white">
+              {isResetting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Yes, Clear All Data'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
