@@ -130,20 +130,14 @@ export function CreateTaskInline({
                 transition={{ duration: 0.2, ease: "easeOut" }}
                 className={cn("w-full overflow-hidden", className)}
             >
-                {isLoadingData ? (
-                    <div className="bg-background border rounded-lg p-6 flex items-center justify-center h-[140px] shadow-sm">
-                        <InlineLoader text="Loading editor..." />
-                    </div>
-                ) : (
-                    <TaskEditor
-                        projects={projects.map(p => ({ id: p.id, name: p.name }))}
-                        availableTags={tags.map(t => ({ id: t.id, name: t.name }))}
-                        defaultProjectId={projectId}
-                        onCancel={() => setIsExpanded(false)}
-                        onSubmit={handleTaskSubmit}
-                        isSubmitting={isSubmitting}
-                    />
-                )}
+                <TaskEditor
+                    projects={projects.map(p => ({ id: p.id, name: p.name }))}
+                    availableTags={tags.map(t => ({ id: t.id, name: t.name }))}
+                    defaultProjectId={projectId}
+                    onCancel={() => setIsExpanded(false)}
+                    onSubmit={handleTaskSubmit}
+                    isSubmitting={isSubmitting}
+                />
             </motion.div>
         </AnimatePresence>
     )
