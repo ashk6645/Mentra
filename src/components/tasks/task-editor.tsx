@@ -145,7 +145,7 @@ export function TaskEditor({
 
                 {/* Description Input */}
                 <Textarea
-                    className="w-full min-h-[24px] bg-transparent border-none p-0 resize-none focus-visible:ring-0 placeholder:text-muted-foreground/60 text-sm"
+                    className="w-full min-h-[24px] bg-transparent border-none shadow-none pl-1 resize-none focus-visible:ring-0 placeholder:text-muted-foreground/60 text-sm"
                     placeholder="Description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}

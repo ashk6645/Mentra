@@ -45,7 +45,7 @@ export async function getTasks(options: GetTasksOptions = {}) {
     try {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
-        
+
         if (!user) {
             throw new AppError(
                 ErrorMessages.UNAUTHORIZED,
@@ -125,11 +125,11 @@ export async function getTasks(options: GetTasksOptions = {}) {
         return { success: true, data: tasks }
     } catch (error) {
         console.error('getTasks error:', error)
-        
+
         if (error instanceof AppError) {
             return { success: false, error: error.userMessage || error.message, data: [] }
         }
-        
+
         return { success: false, error: ErrorMessages.DATABASE_ERROR, data: [] }
     }
 }
@@ -188,16 +188,16 @@ export async function createTask(data: CreateTaskInput) {
         })
 
         console.log('createTask: Success', task)
-        ; (revalidateTag as any)(`tasks-${user.id}`)
+            ; (revalidateTag as any)(`tasks-${user.id}`)
         revalidatePath('/', 'layout')
         return { success: true, data: task }
     } catch (error) {
         console.error('createTask error:', error)
-        
+
         if (error instanceof AppError) {
             return { success: false, error: error.userMessage || error.message }
         }
-        
+
         return { success: false, error: 'Failed to create task. Please try again.' }
     }
 }
