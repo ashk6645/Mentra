@@ -1,5 +1,5 @@
 import { getTasks } from '@/lib/actions/tasks'
-import { CreateTaskDialog } from '@/components/tasks/create-task-dialog'
+import { CreateTaskInline } from '@/components/tasks/create-task-inline'
 import { MyTasksList } from '@/components/tasks/my-tasks-list'
 import { ListTodo, Plus } from 'lucide-react'
 
@@ -30,7 +30,7 @@ export default async function TasksPage() {
                     <MyTasksList tasks={tasks} />
 
                     {/* Add Task Button Row */}
-                    <CreateTaskDialog
+                    <CreateTaskInline
                         trigger={
                             <div suppressHydrationWarning={true} className="ml-6 flex-1 flex items-center gap-3 p-4 rounded-lg border border-dashed border-muted-foreground/30 hover:bg-muted/50 transition-colors cursor-pointer text-muted-foreground hover:text-foreground group">
                                 <div className="h-5 w-5 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center group-hover:border-primary/50 group-hover:bg-primary/10 transition-colors">

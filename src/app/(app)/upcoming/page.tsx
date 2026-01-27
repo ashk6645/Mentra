@@ -1,4 +1,4 @@
-import { CreateTaskDialog } from '@/components/tasks/create-task-dialog'
+import { CreateTaskInline } from '@/components/tasks/create-task-inline'
 import { SortableTaskList } from '@/components/tasks/sortable-task-list'
 import { UpcomingHeader } from '@/components/upcoming/upcoming-header'
 import { format } from 'date-fns'
@@ -89,7 +89,7 @@ export default async function UpcomingPage() {
                     )}
 
                     {/* Add Task Button Row */}
-                    <CreateTaskDialog
+                    <CreateTaskInline
                         trigger={
                             <div suppressHydrationWarning={true} className="ml-6 flex-1 flex items-center gap-3 p-4 rounded-lg border border-dashed border-muted-foreground/30 hover:bg-muted/50 transition-colors cursor-pointer text-muted-foreground hover:text-foreground group">
                                 <div className="h-5 w-5 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center group-hover:border-primary/50 group-hover:bg-primary/10 transition-colors">
