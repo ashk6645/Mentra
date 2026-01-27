@@ -62,9 +62,7 @@ export default async function TodayPage() {
                 <div className="mt-8 space-y-3">
                     <TodayTaskList tasks={todayTasks} />
 
-                    <CreateTaskInline
-                        className="ml-6 mr-6"
-                    />
+                    <CreateTaskInline className="ml-6" />
                 </div>
             </div>
         </div>

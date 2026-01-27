@@ -63,7 +63,7 @@ export default async function InboxPage() {
 
                     <CreateTaskInline
                         projectId="none"
-                        className="ml-6 mr-6"
+                        className="ml-6"
                         label="Add task to Inbox..."
                     />
                 </div>

@@ -107,7 +107,7 @@ export function CreateTaskInline({
 
     if (!isExpanded) {
         return (
-            <div className={cn("w-full transition-all duration-300", className)}>
+            <div className={cn("transition-all duration-300", className)}>
                 <AddTaskTrigger
                     onClick={() => setIsExpanded(true)}
                     variant={variant}
@@ -124,7 +124,7 @@ export function CreateTaskInline({
                 animate={{ opacity: 1, height: 'auto', scale: 1 }}
                 exit={{ opacity: 0, height: 0, scale: 0.98 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className={cn("w-full overflow-hidden", className)}
+                className={cn("overflow-hidden", className)}
             >
                 <TaskEditor
                     projects={projects.map(p => ({ id: p.id, name: p.name }))}

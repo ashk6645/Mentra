@@ -30,9 +30,7 @@ export default async function TasksPage() {
                     <MyTasksList tasks={tasks} />
 
                     {/* Add Task Button Row */}
-                    <CreateTaskInline
-                        className="ml-6 mr-6"
-                    />
+                    <CreateTaskInline className="ml-6" />
                 </div>
             </div>
         </div>
