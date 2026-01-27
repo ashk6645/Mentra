@@ -32,14 +32,6 @@ export default async function TasksPage() {
                     {/* Add Task Button Row */}
                     <CreateTaskInline
                         className="ml-6 mr-6"
-                        trigger={
-                            <div suppressHydrationWarning={true} className="flex-1 flex items-center gap-3 p-4 rounded-lg border border-dashed border-muted-foreground/30 hover:bg-muted/50 transition-colors cursor-pointer text-muted-foreground hover:text-foreground group">
-                                <div className="h-5 w-5 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center group-hover:border-primary/50 group-hover:bg-primary/10 transition-colors">
-                                    <Plus className="h-3 w-3 group-hover:text-primary transition-colors" />
-                                </div>
-                                <span className="font-medium">Add task...</span>
-                            </div>
-                        }
                     />
                 </div>
             </div>

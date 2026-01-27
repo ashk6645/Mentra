@@ -14,13 +14,16 @@ import { InlineLoader } from '@/components/shared/loading-spinner'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
+import { AddTaskTrigger } from './add-task-trigger'
+
 interface CreateTaskInlineProps {
     projectId?: string
     defaultStatus?: string
     defaultSectionId?: string
     onTaskCreated?: (task: any) => void
-    trigger?: React.ReactNode
     className?: string
+    variant?: 'inline' | 'compact'
+    label?: string
 }
 
 export function CreateTaskInline({
@@ -28,8 +31,9 @@ export function CreateTaskInline({
     defaultStatus,
     defaultSectionId,
     onTaskCreated,
-    trigger,
-    className
+    className,
+    variant = 'inline',
+    label
 }: CreateTaskInlineProps) {
     const [isExpanded, setIsExpanded] = useState(false)
     const [projects, setProjects] = useState<Array<{
@@ -104,19 +108,11 @@ export function CreateTaskInline({
     if (!isExpanded) {
         return (
             <div className={cn("w-full transition-all duration-300", className)}>
-                <div onClick={() => setIsExpanded(true)}>
-                    {trigger ? (
-                        trigger
-                    ) : (
-                        <Button
-                            variant="ghost"
-                            className="w-full justify-start text-muted-foreground hover:text-foreground pl-2"
-                        >
-                            <Plus className="mr-2 h-4 w-4" />
-                            Add task...
-                        </Button>
-                    )}
-                </div>
+                <AddTaskTrigger
+                    onClick={() => setIsExpanded(true)}
+                    variant={variant}
+                    label={label}
+                />
             </div>
         )
     }

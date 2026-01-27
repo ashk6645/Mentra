@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Task } from "@prisma/client";
 import { TaskBoardColumn } from "./TaskBoardColumn";
-import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
+import { CreateTaskInline } from "@/components/tasks/create-task-inline";
 
 interface Section {
   id: string;
@@ -61,14 +61,27 @@ export function TaskBoard({ tasks, sections = [], projectId, onTaskCreated }: Ta
           onAddTask={() => setShowCreateForSection(col.id)}
         >
           {showCreateForSection === col.id && (
-            <CreateTaskDialog
-              open={true}
-              projectId={projectId}
-              defaultSectionId={col.id === 'uncategorized' ? undefined : col.id}
-              onOpenChange={() => setShowCreateForSection(null)}
-              onTaskCreated={onTaskCreated}
-              trigger={<span className="hidden" />}
-            />
+
+            <div className="mt-2">
+              <CreateTaskInline
+                projectId={projectId}
+                defaultSectionId={col.id === 'uncategorized' ? undefined : col.id}
+                onTaskCreated={() => {
+                  onTaskCreated && onTaskCreated({} as any) // Trigger refresh via parent or callback
+                  setShowCreateForSection(null)
+                }}
+                // We want it to be expanded immediately since the user clicked "Add Task" on the column header
+                // But CreateTaskInline manages its own state.
+                // We might need to adjust CreateTaskInline to accept 'autoFocus' or 'defaultExpanded'?
+                // For now, let's just render it. The user will see "Add task..." button unless we trigger it.
+                // Actually, if we render it inside the column, it acts as a permanent footer or temporary item.
+                // If showCreateForSection is true, we probably want to show the EDITOR immediately.
+                // But CreateTaskInline encapsulates that. 
+                // Let's just render it as a standard inline creator at the bottom of the list.
+                variant="inline"
+                className="w-full"
+              />
+            </div>
           )}
         </TaskBoardColumn>
       ))}
