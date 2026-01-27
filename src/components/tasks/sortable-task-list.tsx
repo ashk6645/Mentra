@@ -26,9 +26,11 @@ import { cn } from '@/lib/utils'
 
 interface SortableTaskListProps {
     tasks: any[]
+    selectedTaskId?: string | null
+    onSelectTask?: (id: string) => void
 }
 
-function SortableTaskItem({ task }: { task: any }) {
+function SortableTaskItem({ task, isSelected, onSelect }: { task: any, isSelected?: boolean, onSelect?: () => void }) {
     const {
         attributes,
         listeners,
@@ -48,8 +50,8 @@ function SortableTaskItem({ task }: { task: any }) {
             ref={setNodeRef}
             style={style}
             className={cn(
-                "group flex items-center gap-2 transition-opacity",
-                isDragging && "opacity-50"
+                "group flex items-center gap-2 transition-all p-1 -ml-1 rounded-md", // Added padding for drag handle area
+                isDragging && "opacity-50",
             )}
         >
             {/* 6-dot drag handle - hidden by default, visible on hover */}
@@ -62,13 +64,17 @@ function SortableTaskItem({ task }: { task: any }) {
             </div>
 
             <div className="flex-1 min-w-0">
-                <TaskRow task={task} />
+                <TaskRow
+                    task={task}
+                    isSelected={isSelected}
+                    onSelect={onSelect}
+                />
             </div>
         </div>
     )
 }
 
-export function SortableTaskList({ tasks: initialTasks }: SortableTaskListProps) {
+export function SortableTaskList({ tasks: initialTasks, selectedTaskId, onSelectTask }: SortableTaskListProps) {
     const [tasks, setTasks] = useState(initialTasks)
     const [activeId, setActiveId] = useState<string | null>(null)
     const pendingUpdateRef = useRef<{ id: string; sortOrder: number; sectionId?: string | null }[] | null>(null)
@@ -148,7 +154,12 @@ export function SortableTaskList({ tasks: initialTasks }: SortableTaskListProps)
             >
                 <div className="space-y-3">
                     {tasks.map((task) => (
-                        <SortableTaskItem key={task.id} task={task} />
+                        <SortableTaskItem
+                            key={task.id}
+                            task={task}
+                            isSelected={task.id === selectedTaskId}
+                            onSelect={() => onSelectTask?.(task.id)}
+                        />
                     ))}
                 </div>
             </SortableContext>

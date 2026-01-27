@@ -5,9 +5,11 @@ import { CheckCircle2 } from 'lucide-react'
 
 interface MyTasksListProps {
     tasks: any[]
+    selectedTaskId?: string | null
+    onSelectTask?: (taskId: string) => void
 }
 
-export function MyTasksList({ tasks }: MyTasksListProps) {
+export function MyTasksList({ tasks, selectedTaskId, onSelectTask }: MyTasksListProps) {
     if (tasks.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
@@ -22,5 +24,11 @@ export function MyTasksList({ tasks }: MyTasksListProps) {
         )
     }
 
-    return <SortableTaskList tasks={tasks} />
+    return (
+        <SortableTaskList
+            tasks={tasks}
+            selectedTaskId={selectedTaskId}
+            onSelectTask={onSelectTask}
+        />
+    )
 }

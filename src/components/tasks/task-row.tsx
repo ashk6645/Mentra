@@ -14,15 +14,17 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { EditTaskDialog } from './edit-task-dialog'
+// import { EditTaskDialog } from './edit-task-dialog'  -- Removed as redundant
 
 import { DeleteTaskDialog } from './delete-task-dialog'
 
 interface TaskRowProps {
     task: any // Using any to avoid type conflicts with shared components for now
+    isSelected?: boolean
+    onSelect?: () => void
 }
 
-export function TaskRow({ task }: TaskRowProps) {
+export function TaskRow({ task, isSelected, onSelect }: TaskRowProps) {
     const router = useRouter()
     const [isPending, setIsPending] = useState(false)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -81,21 +83,31 @@ export function TaskRow({ task }: TaskRowProps) {
     const priority = task.priority?.toLowerCase() || 'none'
     const hasPriority = priority !== 'none'
 
+    // Prevent event propagation for row click
+    const handleRowClick = () => {
+        if (onSelect) onSelect()
+    }
+
     return (
-        <div className={cn(
-            "group flex items-center gap-4 p-4 bg-card border rounded-lg shadow-sm transition-all hover:shadow-md",
-            task.completed && "opacity-60 bg-muted/20"
-        )}>
-            <Checkbox
-                checked={task.completed}
-                onCheckedChange={handleToggle}
-                disabled={isPending}
-                className="h-5 w-5 rounded-sm border-2 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-            />
+        <div
+            onClick={handleRowClick}
+            className={cn(
+                "group flex items-center gap-4 p-4 bg-card border rounded-lg shadow-sm transition-all hover:bg-accent/50 cursor-pointer",
+                isSelected && "bg-accent border-primary/20",
+                task.completed && "opacity-60 bg-muted/20 hover:bg-muted/30"
+            )}>
+            <div onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                    checked={task.completed}
+                    onCheckedChange={handleToggle}
+                    disabled={isPending}
+                    className="h-5 w-5 rounded-sm border-2 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                />
+            </div>
 
             <div className="flex-1 min-w-0">
                 <p className={cn(
-                    "font-semibold text-base leading-none truncate cursor-pointer hover:text-primary transition-colors",
+                    "font-semibold text-base leading-none truncate transition-colors",
                     task.completed && "line-through text-muted-foreground"
                 )}>
                     {task.title}
@@ -122,42 +134,35 @@ export function TaskRow({ task }: TaskRowProps) {
                     </div>
                 )}
 
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Menu</span>
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <EditTaskDialog
-                            task={task}
-                            trigger={
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Edit
-                                </DropdownMenuItem>
-                            }
-                        />
-                        <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onSelect={(e) => {
-                                e.preventDefault()
-                                setShowDeleteDialog(true)
-                            }}
-                        >
-                            <Trash className="mr-2 h-4 w-4" />
-                            Delete
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <div onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Menu</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onSelect={(e) => {
+                                    e.preventDefault()
+                                    setShowDeleteDialog(true)
+                                }}
+                            >
+                                <Trash className="mr-2 h-4 w-4" />
+                                Delete
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
 
-                <DeleteTaskDialog
-                    open={showDeleteDialog}
-                    onOpenChange={setShowDeleteDialog}
-                    onConfirm={handleDelete}
-                    taskTitle={task.title}
-                />
+                    <DeleteTaskDialog
+                        open={showDeleteDialog}
+                        onOpenChange={setShowDeleteDialog}
+                        onConfirm={handleDelete}
+                        taskTitle={task.title}
+                    />
+                </div>
             </div>
         </div>
     )

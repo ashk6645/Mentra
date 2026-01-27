@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
-  
+
   // Security headers
   async headers() {
     return [
@@ -42,7 +42,7 @@ const nextConfig: NextConfig = {
       }
     ]
   },
-  
+
   // Image optimization
   images: {
     formats: ['image/avif', 'image/webp'],
