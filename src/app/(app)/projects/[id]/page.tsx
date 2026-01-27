@@ -1,6 +1,6 @@
 import { getProject } from '@/lib/actions/projects'
 import { notFound } from 'next/navigation'
-import { CreateTaskDialog } from '@/components/tasks/create-task-dialog'
+import { CreateTaskInline } from '@/components/tasks/create-task-inline'
 import { ProjectTasksContainer } from '@/components/projects/project-tasks-container'
 import { ProjectSettingsMenu } from '@/components/projects/project-settings-menu'
 import { Badge } from '@/components/ui/badge'
@@ -43,7 +43,14 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                         )}
                     </div>
                     <div className="flex items-center space-x-2">
-                        <CreateTaskDialog projectId={project.id} />
+                        <CreateTaskInline
+                            projectId={project.id}
+                            trigger={
+                                <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2">
+                                    Add Task
+                                </button>
+                            }
+                        />
                         <ProjectSettingsMenu project={project} />
                     </div>
                 </div>

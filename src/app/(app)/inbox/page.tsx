@@ -1,4 +1,4 @@
-import { CreateTaskDialog } from '@/components/tasks/create-task-dialog'
+import { CreateTaskInline } from '@/components/tasks/create-task-inline'
 import { Inbox as InboxIcon, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { InboxTaskList } from '@/components/inbox/inbox-task-list'
@@ -61,7 +61,7 @@ export default async function InboxPage() {
                 <div className="mt-8 space-y-3">
                     <InboxTaskList tasks={inboxTasks} />
 
-                    <CreateTaskDialog
+                    <CreateTaskInline
                         projectId="none"
                         trigger={
                             <div suppressHydrationWarning={true} className="ml-6 flex-1 flex items-center gap-3 p-4 rounded-lg border border-dashed border-muted-foreground/30 hover:bg-muted/50 transition-colors cursor-pointer text-muted-foreground hover:text-foreground group">
