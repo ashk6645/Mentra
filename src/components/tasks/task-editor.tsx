@@ -127,11 +127,11 @@ export function TaskEditor({
 
     return (
         <div className="flex flex-col w-full bg-background border rounded-lg shadow-sm overflow-hidden">
-            <div className="p-3 space-y-2">
+            <div className="p-2 space-y-2">
                 {/* Title Input */}
                 <input
                     ref={titleInputRef}
-                    className="w-full bg-transparent text-lg font-semibold placeholder:text-muted-foreground/60 focus:outline-none"
+                    className="w-full bg-transparent text-base font-semibold placeholder:text-muted-foreground/60 focus:outline-none"
                     placeholder="Task name"
                     value={title}
                     onChange={(e) => handleTitleChange(e.target.value)}
@@ -145,7 +145,7 @@ export function TaskEditor({
 
                 {/* Description Input */}
                 <Textarea
-                    className="w-full min-h-[60px] bg-transparent border-none p-0 resize-none focus-visible:ring-0 placeholder:text-muted-foreground/60 text-sm"
+                    className="w-full min-h-[24px] bg-transparent border-none p-0 resize-none focus-visible:ring-0 placeholder:text-muted-foreground/60 text-sm"
                     placeholder="Description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
