@@ -72,7 +72,7 @@ export default async function UpcomingPage() {
 
                 <div className="mt-8 space-y-3">
                     {sortedDates.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground bg-card rounded-lg border border-dashed">
+                        <div className="text-center py-8 text-muted-foreground bg-card rounded-lg border border-dashed">
                             No upcoming tasks for the next 7 days.
                         </div>
                     ) : (

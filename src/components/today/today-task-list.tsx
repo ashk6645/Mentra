@@ -10,7 +10,7 @@ interface TodayTaskListProps {
 export function TodayTaskList({ tasks }: TodayTaskListProps) {
     if (tasks.length === 0) {
         return (
-            <div className="text-center py-12 text-muted-foreground bg-card rounded-lg border border-dashed">
+            <div className="text-center py-8 text-muted-foreground bg-card rounded-lg border border-dashed">
                 No tasks scheduled for today.
             </div>
         )
