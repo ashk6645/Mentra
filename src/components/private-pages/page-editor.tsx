@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { Block, BlockType } from '@/components/editor/types'
 import { BlockEditor } from '@/components/editor/block-editor'
+import { IconPicker } from '@/components/private-pages/icon-picker'
 
 // ========================================
 // TYPES
@@ -258,18 +259,14 @@ export function PageEditor({ page }: PageEditorProps) {
                         <div className="flex items-center gap-2">
                             {/* Icon Button */}
                             <div className="relative group/icon">
-                                <button
-                                    onClick={() => {
-                                        const emojis = ['📄', '📝', '📋', '📊', '🎯', '💡', '🚀', '⭐', '📌', '🔖', '📚', '🎨']
-                                        const currentIndex = emojis.indexOf(icon)
-                                        const nextIndex = (currentIndex + 1) % emojis.length
-                                        handleIconChange(emojis[nextIndex])
-                                    }}
-                                    className="text-4xl hover:bg-accent/50 rounded-lg p-2 transition-colors"
-                                    title="Click to change icon"
-                                >
-                                    {icon}
-                                </button>
+                                <IconPicker onIconSelect={handleIconChange} currentIcon={icon}>
+                                    <button
+                                        className="text-4xl hover:bg-accent/50 rounded-lg p-2 transition-colors"
+                                        title="Click to change icon"
+                                    >
+                                        {icon}
+                                    </button>
+                                </IconPicker>
                             </div>
                         </div>
 
