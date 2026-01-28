@@ -203,7 +203,7 @@ export async function updateStreak() {
         // Award streak bonus XP if applicable (prevent recursion by checking streak count)
         if (streakBonus && newStreakCount > 1 && newStreakCount % 7 === 0) {
             // Only award bonus every 7 days to prevent spam
-            await awardXP('STREAK_BONUS', XP_STREAK_BONUS)
+            await awardXP('streak', XP_STREAK_BONUS)
         }
 
         return {

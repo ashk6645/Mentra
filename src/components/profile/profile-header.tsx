@@ -249,7 +249,7 @@ export function ProfileHeader() {
             </div>
             <div className="text-left">
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">XP</p>
-              <p className="font-semibold leading-none">{profile?.xp || 0}</p>
+              <p className="font-semibold leading-none">{profile?.total_xp || 0}</p>
             </div>
           </div>
 
@@ -261,7 +261,7 @@ export function ProfileHeader() {
             </div>
             <div className="text-left">
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Streak</p>
-              <p className="font-semibold leading-none">{profile?.streak_count || 0} Days</p>
+              <p className="font-semibold leading-none">{profile?.current_streak || 0} Days</p>
             </div>
           </div>
         </div>

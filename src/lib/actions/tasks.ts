@@ -250,7 +250,7 @@ export async function updateTask(data: UpdateTaskInput) {
         // Award XP if task was just completed
         if (result.data.completed === true) {
             await Promise.all([
-                awardXP('TASK_COMPLETION', 10),
+                awardXP('task', 10),
                 updateStreak()
             ])
         }
@@ -327,7 +327,7 @@ export async function toggleTaskCompletion(id: string, completed: boolean) {
         // Award XP and update streak if task was just completed
         if (completed) {
             await Promise.all([
-                awardXP('TASK_COMPLETION', 10),
+                awardXP('task', 10),
                 updateStreak()
             ])
         }
