@@ -57,7 +57,7 @@ export function PageEditor({ page }: PageEditorProps) {
     const titleRef = useRef<HTMLInputElement>(null)
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-    const canEdit = page.currentUserPermission !== 'view'
+    const canEdit = page.currentUserPermission === 'edit' || page.currentUserPermission === 'admin' || page.currentUserPermission === 'owner'
     const isOwner = page.currentUserPermission === 'owner'
     const isAdmin = page.currentUserPermission === 'admin'
     const canShare = isOwner || isAdmin

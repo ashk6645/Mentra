@@ -25,6 +25,9 @@ export const ParagraphBlock = React.forwardRef<HTMLElement, ParagraphBlockProps>
         React.useImperativeHandle(ref, () => innerRef.current!)
 
         const handleChange = (e: ContentEditableEvent) => {
+            if (readOnly) {
+                return
+            }
             onChange({ ...content, text: e.target.value })
         }
 

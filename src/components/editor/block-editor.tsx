@@ -488,6 +488,7 @@ export function BlockEditor({
                                         // No wait, better to pass a specific handler?
                                         // Let's pass updateBlock but wrapper it
                                         updateBlock={(id, updates) => {
+                                            if (readOnly) return
                                             // If it's a content update, check specifically
                                             if (updates.content) {
                                                 handleBlockChange(id, updates.content)
