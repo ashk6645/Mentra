@@ -258,3 +258,36 @@ export async function updateCollaboratorPermission(
         return { success: false, error: 'Failed to update permission' }
     }
 }
+
+/**
+ * Check if a user has a specific permission level for a project
+ */
+export async function hasProjectPermission(
+    projectId: string,
+    userId: string,
+    minPermission: 'view' | 'edit' | 'admin'
+) {
+    const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        include: {
+            sharedWith: {
+                where: { sharedWithUserId: userId }
+            }
+        }
+    })
+
+    if (!project) return false
+
+    // Owner has all permissions
+    if (project.userId === userId) return true
+
+    // Check shared permissions
+    const share = project.sharedWith[0]
+    if (!share) return false
+
+    const levels = { 'view': 1, 'edit': 2, 'admin': 3 }
+    const userLevel = levels[share.permission as keyof typeof levels] || 0
+    const requiredLevel = levels[minPermission]
+
+    return userLevel >= requiredLevel
+}

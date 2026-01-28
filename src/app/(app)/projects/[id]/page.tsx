@@ -86,6 +86,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                         ...project.sections.flatMap((section: any) => section.tasks.map((t: any) => ({ ...t, sectionId: section.id }))),
                         ...project.tasks
                     ]}
+                    canEdit={canEdit}
                 />
             </div>
         </div>

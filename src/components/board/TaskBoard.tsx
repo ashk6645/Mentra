@@ -15,9 +15,10 @@ interface TaskBoardProps {
   sections?: Section[];
   projectId: string;
   onTaskCreated?: (task: Task) => void;
+  canEdit: boolean;
 }
 
-export function TaskBoard({ tasks, sections = [], projectId, onTaskCreated }: TaskBoardProps) {
+export function TaskBoard({ tasks, sections = [], projectId, onTaskCreated, canEdit }: TaskBoardProps) {
   const [showCreateForSection, setShowCreateForSection] = useState<string | null>(null);
 
   // If no sections exist, create default view or just one column
@@ -58,9 +59,9 @@ export function TaskBoard({ tasks, sections = [], projectId, onTaskCreated }: Ta
           key={col.id}
           title={col.title}
           tasks={getTasksForColumn(col.id)}
-          onAddTask={() => setShowCreateForSection(col.id)}
+          onAddTask={canEdit ? () => setShowCreateForSection(col.id) : undefined}
         >
-          {showCreateForSection === col.id && (
+          {canEdit && showCreateForSection === col.id && (
 
             <div className="mt-2">
               <CreateTaskInline
