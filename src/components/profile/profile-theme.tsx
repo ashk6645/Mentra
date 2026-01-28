@@ -2,7 +2,7 @@
 
 import { useTheme } from 'next-themes'
 import { Card } from '@/components/ui/card'
-import { Check, Monitor, Moon, Sun } from 'lucide-react'
+import { Check, Monitor, Moon, Sun, Smartphone, Flower2, SunMoon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function ProfileTheme() {
@@ -24,6 +24,27 @@ export function ProfileTheme() {
             color: 'bg-zinc-950 border-zinc-800'
         },
         {
+            value: 'amoled',
+            label: 'AMOLED',
+            icon: Smartphone,
+            description: 'True black for OLED',
+            color: 'bg-black border-zinc-800'
+        },
+        {
+            value: 'solarized',
+            label: 'Solarized',
+            icon: SunMoon,
+            description: 'Warm and high contrast',
+            color: 'bg-[#FDF6E3] border-[#EEE8D5]'
+        },
+        {
+            value: 'rose',
+            label: 'Rose',
+            icon: Flower2,
+            description: 'Soft pink aesthetic',
+            color: 'bg-[#FFF1F2] border-[#FECDD3]'
+        },
+        {
             value: 'system',
             label: 'System',
             icon: Monitor,
@@ -41,7 +62,7 @@ export function ProfileTheme() {
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {themes.map((item) => {
                     const isActive = theme === item.value
 
@@ -57,7 +78,11 @@ export function ProfileTheme() {
                                     <item.icon className={cn(
                                         "w-8 h-8",
                                         item.value === 'light' ? "text-zinc-900" :
-                                            item.value === 'dark' ? "text-white" : "text-zinc-500"
+                                            item.value === 'dark' ? "text-white" :
+                                                item.value === 'amoled' ? "text-white" :
+                                                    item.value === 'solarized' ? "text-[#268BD2]" :
+                                                        item.value === 'rose' ? "text-[#E11D48]" :
+                                                            "text-zinc-500"
                                     )} />
                                 </div>
 
