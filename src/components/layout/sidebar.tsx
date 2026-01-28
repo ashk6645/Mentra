@@ -45,6 +45,7 @@ import {
     DropdownMenuTrigger,
     DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu'
+import { ProfileDialog } from '@/components/profile/profile-dialog'
 
 interface PageItem {
     id: string
@@ -76,7 +77,9 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
     const [profile, setProfile] = useState<any>(null)
     const [projectsExpanded, setProjectsExpanded] = useState(true)
     const [pagesExpanded, setPagesExpanded] = useState(true)
+
     const [showCreateDialog, setShowCreateDialog] = useState(false)
+    const [showProfileDialog, setShowProfileDialog] = useState(false)
     // We use the prop directly, but if we need local optimistic updates we could use state. 
     // For now, let's rely on the prop which comes from server (fresh on refresh).
     // Actually, to support seamless optimistic updates from the create dialog without full page reload feels (though router.refresh behaves like one),
@@ -212,12 +215,14 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
                         sideOffset={12}
                     >
                         <div className="space-y-0.5">
-                            <Link href="/profile">
-                                <Button variant="ghost" className="w-full justify-start h-8 px-2 text-sm font-normal">
-                                    <UserIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                                    Profile
-                                </Button>
-                            </Link>
+                            <Button
+                                variant="ghost"
+                                className="w-full justify-start h-8 px-2 text-sm font-normal"
+                                onClick={() => setShowProfileDialog(true)}
+                            >
+                                <UserIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                                Profile
+                            </Button>
 
                             <Separator className="my-1 bg-border/50" />
                             <Button
@@ -504,6 +509,10 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
             <CreateProjectDialog
                 open={showCreateDialog}
                 onOpenChange={setShowCreateDialog}
+            />
+            <ProfileDialog
+                open={showProfileDialog}
+                onOpenChange={setShowProfileDialog}
             />
         </div>
     )

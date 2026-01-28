@@ -1,66 +1,59 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+'use client'
+
+import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Badge } from '@/components/ui/badge'
-import { createClient } from '@/lib/supabase/server'
-import { CheckCircle2, Zap, Target, Trophy, Clock } from 'lucide-react'
-import prisma from '@/lib/prisma'
+import { getActivityLog } from '@/lib/actions/gamification'
+import { CheckCircle2, Zap, Target, Clock, Loader2 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import { useState, useEffect } from 'react'
 
-export async function ProfileActivity() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+export function ProfileActivity() {
+  const [data, setData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
-  if (!user) return null
-
-  // Get recent XP logs
-  const xpLogs = await prisma.xPLog.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: 'desc' },
-    take: 20
-  })
-
-  // Get recent completed tasks
-  const recentTasks = await prisma.task.findMany({
-    where: {
-      userId: user.id,
-      completed: true,
-      completedAt: { not: null }
-    },
-    orderBy: { completedAt: 'desc' },
-    take: 10,
-    include: {
-      project: true
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const result = await getActivityLog()
+        if (result.success) {
+          setData(result.data)
+        }
+      } catch (error) {
+        console.error('Error fetching activity log:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  })
+    fetchData()
+  }, [])
 
-  // Get recent focus sessions
-  const recentSessions = await prisma.focusSession.findMany({
-    where: {
-      userId: user.id,
-      endedAt: { not: null }
-    },
-    orderBy: { startedAt: 'desc' },
-    take: 10,
-    include: {
-      task: true
-    }
-  })
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  const xpLogs = data?.xpLogs || []
+  const recentTasks = data?.recentTasks || []
+  const recentSessions = data?.recentSessions || []
 
   // Combine and sort all activities
   const activities = [
-    ...xpLogs.map(log => ({
+    ...xpLogs.map((log: any) => ({
       type: 'xp' as const,
-      date: log.createdAt,
+      date: new Date(log.createdAt),
       data: log
     })),
-    ...recentTasks.map(task => ({
+    ...recentTasks.map((task: any) => ({
       type: 'task' as const,
-      date: task.completedAt!,
+      date: new Date(task.completedAt!),
       data: task
     })),
-    ...recentSessions.map(session => ({
+    ...recentSessions.map((session: any) => ({
       type: 'focus' as const,
-      date: session.startedAt,
+      date: new Date(session.startedAt),
       data: session
     }))
   ].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 30)
@@ -106,7 +99,7 @@ export async function ProfileActivity() {
         <h3 className="text-lg font-semibold mb-1">Recent Activity</h3>
         <p className="text-sm text-muted-foreground">Your recent accomplishments and actions</p>
       </div>
-      
+
       <ScrollArea className="h-[600px] pr-4">
         <div className="space-y-3">
           {activities.length === 0 ? (

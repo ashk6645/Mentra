@@ -1,51 +1,61 @@
+'use client'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { createClient } from '@/lib/supabase/server'
-import { getUserStats } from '@/lib/actions/gamification'
-import { CheckCircle2, Clock, TrendingUp, Trophy, Flame, Calendar, Activity } from 'lucide-react'
-import prisma from '@/lib/prisma'
+import { getUserStats, getAchievementStats } from '@/lib/actions/gamification'
+import { CheckCircle2, Clock, Activity, Trophy, Flame } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useState, useEffect } from 'react'
 
-export async function ProfileStats() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+export function ProfileStats() {
+  const [stats, setStats] = useState<any>(null)
+  const [achievementStats, setAchievementStats] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
-  if (!user) return null
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [statsResult, achievementResult] = await Promise.all([
+          getUserStats(),
+          getAchievementStats()
+        ])
 
-  // Get stats
-  const { data: stats } = await getUserStats()
-
-  // Get task statistics
-  const [totalTasks, completedTasks, todayTasks] = await Promise.all([
-    prisma.task.count({ where: { userId: user.id } }),
-    prisma.task.count({ where: { userId: user.id, completed: true } }),
-    prisma.task.count({
-      where: {
-        userId: user.id,
-        dueDate: {
-          gte: new Date(new Date().setHours(0, 0, 0, 0)),
-          lt: new Date(new Date().setHours(23, 59, 59, 999))
+        if (statsResult.success) {
+          setStats(statsResult.data)
         }
+
+        if (achievementResult.success) {
+          setAchievementStats(achievementResult.data)
+        }
+      } catch (error) {
+        console.error('Error fetching profile stats:', error)
+      } finally {
+        setLoading(false)
       }
-    }),
-  ])
-
-  // Get focus time (last 7 days)
-  const sevenDaysAgo = new Date()
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-
-  const focusSessions = await prisma.focusSession.aggregate({
-    where: {
-      userId: user.id,
-      startedAt: { gte: sevenDaysAgo }
-    },
-    _sum: {
-      durationMinutes: true
     }
-  })
 
-  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
-  const focusMinutes = focusSessions._sum.durationMinutes || 0
+    fetchData()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i} className="border shadow-none bg-card/50">
+            <CardContent className="h-32 flex items-center justify-center animate-pulse">
+              <div className="h-2 w-20 bg-muted rounded"></div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    )
+  }
+
+  const completionRate = achievementStats?.totalTasks > 0
+    ? Math.round((achievementStats?.completedTasks / achievementStats?.totalTasks) * 100)
+    : 0
+
+  const focusMinutes = achievementStats?.recentFocusMinutes || 0
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -102,7 +112,7 @@ export async function ProfileStats() {
           <CheckCircle2 className="h-4 w-4 text-green-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold tracking-tight">{completedTasks}</div>
+          <div className="text-2xl font-bold tracking-tight">{achievementStats?.completedTasks || 0}</div>
           <p className="text-xs text-muted-foreground mb-3">
             Completed All Time
           </p>

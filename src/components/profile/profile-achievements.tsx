@@ -1,31 +1,46 @@
-import { createClient } from '@/lib/supabase/server'
-import { Trophy, Star, Target, Zap, Flame, CheckCircle2, Calendar, Clock } from 'lucide-react'
-import prisma from '@/lib/prisma'
+'use client'
+
+import { Trophy, Star, Target, Zap, Flame, CheckCircle2, Clock } from 'lucide-react'
 import { AchievementsClient, type Achievement } from './achievements-client'
+import { getUserStats, getAchievementStats } from '@/lib/actions/gamification'
+import { useState, useEffect } from 'react'
 
-export async function ProfileAchievements() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+export function ProfileAchievements() {
+  const [stats, setStats] = useState<any>(null)
+  const [achievementStats, setAchievementStats] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
-  if (!user) return null
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [statsResult, achievementResult] = await Promise.all([
+          getUserStats(),
+          getAchievementStats()
+        ])
 
-  // Get user stats
-  const profile = await prisma.profile.findUnique({
-    where: { id: user.id }
-  })
+        if (statsResult.success) {
+          setStats(statsResult.data)
+        }
 
-  const completedTasks = await prisma.task.count({
-    where: { userId: user.id, completed: true }
-  })
+        if (achievementResult.success) {
+          setAchievementStats(achievementResult.data)
+        }
+      } catch (error) {
+        console.error('Error fetching achievement data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
 
-  const focusSessions = await prisma.focusSession.count({
-    where: { userId: user.id }
-  })
+  if (loading) {
+    return <div className="p-12 text-center text-muted-foreground">Loading achievements...</div>
+  }
 
-  const totalFocusMinutes = await prisma.focusSession.aggregate({
-    where: { userId: user.id },
-    _sum: { durationMinutes: true }
-  })
+  const completedTasks = achievementStats?.completedTasks || 0
+  const focusSessions = achievementStats?.focusSessions || 0
+  const totalFocusMinutes = achievementStats?.totalFocusMinutes || 0
 
   // Define achievements
   const achievements: Achievement[] = [
@@ -77,9 +92,9 @@ export async function ProfileAchievements() {
       title: 'On a Roll',
       description: 'Maintain a 3-day streak',
       icon: <Flame className="h-6 w-6" />,
-      progress: Math.min(profile?.currentStreak || 0, 3),
+      progress: Math.min(stats?.streakCount || 0, 3),
       max: 3,
-      unlocked: (profile?.currentStreak || 0) >= 3,
+      unlocked: (stats?.streakCount || 0) >= 3,
       category: 'streak'
     },
     {
@@ -87,9 +102,9 @@ export async function ProfileAchievements() {
       title: 'Week Warrior',
       description: 'Maintain a 7-day streak',
       icon: <Flame className="h-6 w-6" />,
-      progress: Math.min(profile?.currentStreak || 0, 7),
+      progress: Math.min(stats?.streakCount || 0, 7),
       max: 7,
-      unlocked: (profile?.currentStreak || 0) >= 7,
+      unlocked: (stats?.streakCount || 0) >= 7,
       category: 'streak'
     },
     {
@@ -97,9 +112,9 @@ export async function ProfileAchievements() {
       title: 'Monthly Master',
       description: 'Maintain a 30-day streak',
       icon: <Flame className="h-6 w-6" />,
-      progress: Math.min(profile?.currentStreak || 0, 30),
+      progress: Math.min(stats?.streakCount || 0, 30),
       max: 30,
-      unlocked: (profile?.currentStreak || 0) >= 30,
+      unlocked: (stats?.streakCount || 0) >= 30,
       category: 'streak'
     },
 
@@ -109,9 +124,9 @@ export async function ProfileAchievements() {
       title: 'Beginner',
       description: 'Earn 100 XP',
       icon: <Zap className="h-6 w-6" />,
-      progress: Math.min(profile?.totalXp || 0, 100),
+      progress: Math.min(stats?.xp || 0, 100),
       max: 100,
-      unlocked: (profile?.totalXp || 0) >= 100,
+      unlocked: (stats?.xp || 0) >= 100,
       category: 'xp'
     },
     {
@@ -119,9 +134,9 @@ export async function ProfileAchievements() {
       title: 'Experienced',
       description: 'Earn 500 XP',
       icon: <Zap className="h-6 w-6" />,
-      progress: Math.min(profile?.totalXp || 0, 500),
+      progress: Math.min(stats?.xp || 0, 500),
       max: 500,
-      unlocked: (profile?.totalXp || 0) >= 500,
+      unlocked: (stats?.xp || 0) >= 500,
       category: 'xp'
     },
     {
@@ -129,9 +144,9 @@ export async function ProfileAchievements() {
       title: 'Expert',
       description: 'Earn 1,000 XP',
       icon: <Zap className="h-6 w-6" />,
-      progress: Math.min(profile?.totalXp || 0, 1000),
+      progress: Math.min(stats?.xp || 0, 1000),
       max: 1000,
-      unlocked: (profile?.totalXp || 0) >= 1000,
+      unlocked: (stats?.xp || 0) >= 1000,
       category: 'xp'
     },
 
@@ -151,9 +166,9 @@ export async function ProfileAchievements() {
       title: 'Deep Worker',
       description: 'Focus for 10 hours total',
       icon: <Clock className="h-6 w-6" />,
-      progress: Math.min(totalFocusMinutes._sum.durationMinutes || 0, 600),
+      progress: Math.min(totalFocusMinutes, 600),
       max: 600,
-      unlocked: (totalFocusMinutes._sum.durationMinutes || 0) >= 600,
+      unlocked: totalFocusMinutes >= 600,
       category: 'focus'
     },
   ]

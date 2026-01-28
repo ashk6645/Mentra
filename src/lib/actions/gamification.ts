@@ -218,3 +218,119 @@ export async function updateStreak() {
         return { success: false, error: 'Failed to update streak', data: null }
     }
 }
+
+export async function getAchievementStats() {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            return { success: false, error: 'Unauthorized', data: null }
+        }
+
+        const [completedTasks, focusSessions, totalFocusMinutes, totalTasks, todayTasks] = await Promise.all([
+            prisma.task.count({ where: { userId: user.id, completed: true } }),
+            prisma.focusSession.count({ where: { userId: user.id } }),
+            prisma.focusSession.aggregate({
+                where: { userId: user.id },
+                _sum: { durationMinutes: true }
+            }),
+            prisma.task.count({ where: { userId: user.id } }),
+            prisma.task.count({
+                where: {
+                    userId: user.id,
+                    dueDate: {
+                        gte: new Date(new Date().setHours(0, 0, 0, 0)),
+                        lt: new Date(new Date().setHours(23, 59, 59, 999))
+                    }
+                }
+            })
+        ])
+
+        // Get focus time (last 7 days) for stats
+        const sevenDaysAgo = new Date()
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
+        const recentFocusMinutes = await prisma.focusSession.aggregate({
+            where: {
+                userId: user.id,
+                startedAt: { gte: sevenDaysAgo }
+            },
+            _sum: {
+                durationMinutes: true
+            }
+        })
+
+        return {
+            success: true,
+            data: {
+                completedTasks,
+                focusSessions,
+                totalFocusMinutes: totalFocusMinutes._sum.durationMinutes || 0,
+                totalTasks,
+                todayTasks,
+                recentFocusMinutes: recentFocusMinutes._sum.durationMinutes || 0
+            }
+        }
+    } catch (error) {
+        console.error('Failed to get achievement stats:', error)
+        return { success: false, error: 'Failed to get achievement stats', data: null }
+    }
+}
+
+export async function getActivityLog() {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            return { success: false, error: 'Unauthorized', data: null }
+        }
+
+        // Get recent XP logs
+        const xpLogs = await prisma.xPLog.findMany({
+            where: { userId: user.id },
+            orderBy: { createdAt: 'desc' },
+            take: 20
+        })
+
+        // Get recent completed tasks
+        const recentTasks = await prisma.task.findMany({
+            where: {
+                userId: user.id,
+                completed: true,
+                completedAt: { not: null }
+            },
+            orderBy: { completedAt: 'desc' },
+            take: 10,
+            include: {
+                project: true
+            }
+        })
+
+        // Get recent focus sessions
+        const recentSessions = await prisma.focusSession.findMany({
+            where: {
+                userId: user.id,
+                endedAt: { not: null }
+            },
+            orderBy: { startedAt: 'desc' },
+            take: 10,
+            include: {
+                task: true
+            }
+        })
+
+        return {
+            success: true,
+            data: {
+                xpLogs,
+                recentTasks,
+                recentSessions
+            }
+        }
+    } catch (error) {
+        console.error('Failed to get activity log:', error)
+        return { success: false, error: 'Failed to get activity log', data: null }
+    }
+}
