@@ -49,7 +49,10 @@ export async function getPages() {
                 sortOrder: true,
                 createdAt: true,
                 updatedAt: true,
-                userId: true, // Needed to distinguish ownership
+                userId: true,
+                _count: {
+                    select: { sharedWith: true }
+                },
             },
             orderBy: [
                 { isFavorited: 'desc' },
@@ -58,7 +61,12 @@ export async function getPages() {
             ],
         })
 
-        return { success: true, pages }
+        const detailedPages = pages.map(page => ({
+            ...page,
+            isShared: page.userId !== user.id || page._count.sharedWith > 0
+        }))
+
+        return { success: true, pages: detailedPages }
     } catch (error) {
         console.error('Error fetching pages:', error)
         return { success: false, error: 'Failed to fetch pages', pages: [] }
