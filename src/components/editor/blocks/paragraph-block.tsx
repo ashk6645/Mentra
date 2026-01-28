@@ -84,7 +84,7 @@ export const ParagraphBlock = React.forwardRef<HTMLElement, ParagraphBlockProps>
                 onBlur={() => onBlur(block.id)} // Fixed sig
                 className={cn(
                     "min-h-[1.5em] outline-none break-words whitespace-pre-wrap py-1",
-                    !text && "empty:before:content-['Type_''_for_commands'] empty:before:text-muted-foreground/50 empty:before:pointer-events-none"
+                    !text && "empty:before:content-['Type,_press_/_for_commands'] empty:before:text-muted-foreground/50 empty:before:pointer-events-none"
                 )}
                 tagName="div"
             />
