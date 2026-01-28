@@ -3,6 +3,7 @@
 import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
+import { hasPagePermission } from './page-sharing'
 
 // ========================================
 // TYPES
@@ -34,7 +35,10 @@ export async function getPages() {
 
         const pages = await prisma.page.findMany({
             where: {
-                userId: user.id,
+                OR: [
+                    { userId: user.id },
+                    { sharedWith: { some: { sharedWithUserId: user.id } } }
+                ]
             },
             select: {
                 id: true,
@@ -45,6 +49,10 @@ export async function getPages() {
                 sortOrder: true,
                 createdAt: true,
                 updatedAt: true,
+                userId: true,
+                _count: {
+                    select: { sharedWith: true }
+                },
             },
             orderBy: [
                 { isFavorited: 'desc' },
@@ -53,7 +61,12 @@ export async function getPages() {
             ],
         })
 
-        return { success: true, pages }
+        const detailedPages = pages.map(page => ({
+            ...page,
+            isShared: page.userId !== user.id || page._count.sharedWith > 0
+        }))
+
+        return { success: true, pages: detailedPages }
     } catch (error) {
         console.error('Error fetching pages:', error)
         return { success: false, error: 'Failed to fetch pages', pages: [] }
@@ -79,9 +92,16 @@ export async function getPageById(id: string) {
         const page = await prisma.page.findFirst({
             where: {
                 id,
-                userId: user.id,
+                OR: [
+                    { userId: user.id },
+                    { sharedWith: { some: { sharedWithUserId: user.id } } }
+                ]
             },
             include: {
+                sharedWith: {
+                    where: { sharedWithUserId: user.id },
+                    select: { permission: true }
+                },
                 blocks: {
                     orderBy: { sortOrder: 'asc' },
                     include: {
@@ -106,7 +126,15 @@ export async function getPageById(id: string) {
             return { success: false, error: 'Page not found', page: null }
         }
 
-        return { success: true, page }
+        // Calculate permission
+        let currentUserPermission = 'view'
+        if (page.userId === user.id) {
+            currentUserPermission = 'owner'
+        } else if (page.sharedWith.length > 0) {
+            currentUserPermission = page.sharedWith[0].permission
+        }
+
+        return { success: true, page: { ...page, currentUserPermission } }
     } catch (error) {
         console.error('Error fetching page:', error)
         return { success: false, error: 'Failed to fetch page', page: null }
@@ -167,14 +195,11 @@ export async function updatePage(id: string, data: UpdatePageInput) {
             return { success: false, error: 'Invalid page ID', page: null }
         }
 
-        // Verify ownership
-        const existing = await prisma.page.findFirst({
-            where: { id, userId: user.id },
-            select: { id: true },
-        })
+        // Verify edit permission
+        const canEdit = await hasPagePermission(id, user.id, 'edit')
 
-        if (!existing) {
-            return { success: false, error: 'Page not found or access denied', page: null }
+        if (!canEdit) {
+            return { success: false, error: 'Permission denied', page: null }
         }
 
         const page = await prisma.page.update({

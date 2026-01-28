@@ -161,6 +161,20 @@ export async function createTask(data: CreateTaskInput) {
             )
         }
 
+        // Permission Check for Shared Projects
+        if (result.data.projectId) {
+            const { hasProjectPermission } = await import('@/lib/actions/sharing')
+            const hasPermission = await hasProjectPermission(result.data.projectId, user.id, 'edit')
+            if (!hasPermission) {
+                throw new AppError(
+                    'You do not have permission to add tasks to this project',
+                    ErrorCodes.FORBIDDEN,
+                    403,
+                    'Permission denied'
+                )
+            }
+        }
+
         // Ensure profile exists before creating task
         await prisma.profile.upsert({
             where: { id: user.id },
@@ -239,10 +253,38 @@ export async function updateTask(data: UpdateTaskInput) {
         }
         if (result.data.durationMinutes !== undefined) updateData.durationMinutes = result.data.durationMinutes
 
+        const currentTask = await prisma.task.findUnique({
+            where: { id: result.data.id },
+            select: { userId: true, projectId: true }
+        })
+
+        if (!currentTask) {
+            return { success: false, error: 'Task not found' }
+        }
+
+        let hasPermission = false
+        if (currentTask.projectId) {
+            const { hasProjectPermission } = await import('@/lib/actions/sharing')
+            hasPermission = await hasProjectPermission(currentTask.projectId, user.id, 'edit')
+        } else {
+            // Personal task
+            hasPermission = currentTask.userId === user.id
+        }
+
+        if (!hasPermission) {
+            return { success: false, error: 'Permission denied' }
+        }
+
+        // If moving to a new project, check permission for that project too
+        if (result.data.projectId && result.data.projectId !== currentTask.projectId) {
+            const { hasProjectPermission } = await import('@/lib/actions/sharing')
+            const canMoveTo = await hasProjectPermission(result.data.projectId, user.id, 'edit')
+            if (!canMoveTo) return { success: false, error: 'Cannot move to target project: Permission denied' }
+        }
+
         const task = await prisma.task.update({
             where: {
                 id: result.data.id,
-                userId: user.id // Ensure ownership
             },
             data: updateData,
         })
@@ -316,8 +358,25 @@ export async function toggleTaskCompletion(id: string, completed: boolean) {
             return { success: false, error: 'Unauthorized' }
         }
 
+        const currentTask = await prisma.task.findUnique({
+            where: { id },
+            select: { userId: true, projectId: true }
+        })
+
+        if (!currentTask) return { success: false, error: 'Task not found' }
+
+        let hasPermission = false
+        if (currentTask.projectId) {
+            const { hasProjectPermission } = await import('@/lib/actions/sharing')
+            hasPermission = await hasProjectPermission(currentTask.projectId, user.id, 'edit')
+        } else {
+            hasPermission = currentTask.userId === user.id
+        }
+
+        if (!hasPermission) return { success: false, error: 'Permission denied' }
+
         const task = await prisma.task.update({
-            where: { id, userId: user.id },
+            where: { id },
             data: {
                 completed,
                 completedAt: completed ? new Date() : null,
@@ -357,8 +416,25 @@ export async function deleteTask(id: string) {
 
         // Delete task. Subtasks aren't implemented in the schema yet, 
         // but if they were, they'd be handled here.
+        const currentTask = await prisma.task.findUnique({
+            where: { id },
+            select: { userId: true, projectId: true }
+        })
+
+        if (!currentTask) return { success: false, error: 'Task not found' }
+
+        let hasPermission = false
+        if (currentTask.projectId) {
+            const { hasProjectPermission } = await import('@/lib/actions/sharing')
+            hasPermission = await hasProjectPermission(currentTask.projectId, user.id, 'edit')
+        } else {
+            hasPermission = currentTask.userId === user.id
+        }
+
+        if (!hasPermission) return { success: false, error: 'Permission denied' }
+
         await prisma.task.delete({
-            where: { id, userId: user.id }
+            where: { id }
         })
 
             ; (revalidateTag as any)(`tasks-${user.id}`)

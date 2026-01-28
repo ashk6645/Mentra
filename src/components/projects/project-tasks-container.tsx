@@ -9,12 +9,13 @@ import { TaskGallery } from './task-gallery'
 import { Card } from '@/components/ui/card' // Placeholder for now
 
 interface ProjectTasksContainerProps {
-    tasks: any[] // Using any for now to handle relations if needed, typically (Task & { tags: ... })[]
+    tasks: any[]
     sections: any[]
     projectId: string
+    canEdit: boolean
 }
 
-export function ProjectTasksContainer({ tasks, sections, projectId }: ProjectTasksContainerProps) {
+export function ProjectTasksContainer({ tasks, sections, projectId, canEdit }: ProjectTasksContainerProps) {
     const [view, setView] = useState<TaskViewType>('board')
 
     return (
@@ -28,7 +29,7 @@ export function ProjectTasksContainer({ tasks, sections, projectId }: ProjectTas
             {/* Content */}
             <div className="flex-1 overflow-hidden min-h-0">
                 {view === 'board' && (
-                    <TaskBoard tasks={tasks} sections={sections} projectId={projectId} />
+                    <TaskBoard tasks={tasks} sections={sections} projectId={projectId} canEdit={canEdit} />
                 )}
 
                 {view === 'table' && (

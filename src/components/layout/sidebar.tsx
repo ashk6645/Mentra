@@ -22,7 +22,8 @@ import {
     Plus,
     Search,
     Folder,
-    CheckCircle2
+    CheckCircle2,
+    Users2
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -53,6 +54,7 @@ interface PageItem {
     icon: string | null
     parentPageId: string | null
     isFavorited: boolean
+    isShared?: boolean
 }
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -76,6 +78,7 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
 
     const [profile, setProfile] = useState<any>(null)
     const [projectsExpanded, setProjectsExpanded] = useState(true)
+    const [sharedExpanded, setSharedExpanded] = useState(true)
     const [pagesExpanded, setPagesExpanded] = useState(true)
 
     const [showCreateDialog, setShowCreateDialog] = useState(false)
@@ -91,6 +94,7 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
     useEffect(() => {
         if (isSidebarCollapsed) {
             setProjectsExpanded(false)
+            setSharedExpanded(false)
             setPagesExpanded(false)
         }
     }, [isSidebarCollapsed])
@@ -405,6 +409,91 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
                     </div>
                 )}
 
+                {/* Shared Pages Section */}
+                {!isSidebarCollapsed && pages.some(p => p.isShared) && (
+                    <div className="px-3 mb-2">
+                        <div className="flex items-center justify-between group mb-2">
+                            <span className="text-sm font-medium text-muted-foreground">
+                                Shared
+                            </span>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <button
+                                    onClick={() => setSharedExpanded(!sharedExpanded)}
+                                    className="p-1 hover:bg-accent rounded-sm transition-all duration-200"
+                                    aria-label={sharedExpanded ? "Collapse shared pages" : "Expand shared pages"}
+                                >
+                                    <motion.div
+                                        animate={{ rotate: sharedExpanded ? 90 : 0 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                                    </motion.div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <AnimatePresence initial={false}>
+                            {sharedExpanded && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: "auto", opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{ duration: 0.3, ease: "circOut" }}
+                                    className="space-y-0.5 overflow-hidden pl-2"
+                                >
+                                    {pages.filter(p => p.isShared).map((page, index) => (
+                                        <motion.div
+                                            key={page.id}
+                                            initial={{ x: -10, opacity: 0 }}
+                                            animate={{ x: 0, opacity: 1 }}
+                                            transition={{ delay: index * 0.05 }}
+                                            className="group/item flex items-center pr-2"
+                                        >
+                                            <Link
+                                                href={`/private/${page.id}`}
+                                                className={cn(
+                                                    "flex-1 flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors",
+                                                    pathname === `/private/${page.id}`
+                                                        ? "text-foreground bg-accent/60 font-medium"
+                                                        : "text-muted-foreground hover:text-foreground hover:bg-accent/30"
+                                                )}
+                                            >
+                                                <span className="text-base shrink-0">{page.icon || '📄'}</span>
+                                                <span className="truncate">{page.title}</span>
+                                                <Users2 className="h-3 w-3 text-muted-foreground ml-auto" />
+                                            </Link>
+
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <button
+                                                        className="opacity-0 group-hover/item:opacity-100 p-0.5 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-opacity"
+                                                        aria-label="Page actions"
+                                                        suppressHydrationWarning
+                                                    >
+                                                        <MoreHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
+                                                    </button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            deletePage(page.id)
+                                                        }}
+                                                        className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/10 gap-2"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                        Delete Page
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </motion.div>
+                                    ))}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                )}
+
                 {/* Private Pages Section */}
                 {!isSidebarCollapsed && (
                     <div className="px-3 mb-2">
@@ -444,7 +533,7 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
                                     transition={{ duration: 0.3, ease: "circOut" }}
                                     className="space-y-0.5 overflow-hidden pl-2"
                                 >
-                                    {pages.map((page, index) => (
+                                    {pages.filter(p => !p.isShared).map((page, index) => (
                                         <motion.div
                                             key={page.id}
                                             initial={{ x: -10, opacity: 0 }}
@@ -490,7 +579,7 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
                                             </DropdownMenu>
                                         </motion.div>
                                     ))}
-                                    {pages.length === 0 && (
+                                    {pages.filter(p => !p.isShared).length === 0 && (
                                         <Link
                                             href="/private/new"
                                             className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors"

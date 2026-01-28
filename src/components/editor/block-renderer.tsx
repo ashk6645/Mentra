@@ -46,6 +46,7 @@ interface BlockRendererProps {
     onKeyDown: (e: React.KeyboardEvent, blockId: string) => void
     numberedListIndex?: number
     cursorOffset?: number | null
+    readOnly?: boolean
 }
 
 export function BlockRenderer({
@@ -101,6 +102,7 @@ export function BlockRenderer({
                     onBlur={() => onBlur(block.id)}
                     numberedListIndex={props.numberedListIndex}
                     cursorOffset={props.cursorOffset}
+                    readOnly={props.readOnly}
                 />
             </div>
         </div>

@@ -33,6 +33,8 @@ model Profile {
   pages                Page[]
   sharedProjectsOwned  SharedProject[] @relation("SharedByUser")
   sharedProjectsAccess SharedProject[] @relation("SharedWithUser")
+  sharedPagesOwned     SharedPage[]    @relation("SharedPageByUser")
+  sharedPagesAccess    SharedPage[]    @relation("SharedPageWithUser")
 
   @@map("profiles")
 }
@@ -319,6 +321,24 @@ model SharedProject {
   @@map("shared_projects")
 }
 
+// 15. Shared Pages
+model SharedPage {
+  id               String   @id @default(uuid())
+  pageId           String   @map("page_id")
+  sharedByUserId   String   @map("shared_by_user_id")
+  sharedWithUserId String   @map("shared_with_user_id")
+  permission       String   @default("view") // 'view', 'edit', 'admin'
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  // Relations
+  page       Page    @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  sharedBy   Profile @relation("SharedPageByUser", fields: [sharedByUserId], references: [id], onDelete: Cascade)
+  sharedWith Profile @relation("SharedPageWithUser", fields: [sharedWithUserId], references: [id], onDelete: Cascade)
+
+  @@unique([pageId, sharedWithUserId])
+  @@map("shared_pages")
+}
+
 // ========================================
 // PRIVATE PAGES SYSTEM (OPTIMIZED)
 // ========================================
@@ -343,6 +363,7 @@ model Page {
   parentPage Page?   @relation("PageHierarchy", fields: [parentPageId], references: [id], onDelete: Cascade)
   childPages Page[]  @relation("PageHierarchy")
   blocks     Block[]
+  sharedWith SharedPage[]
 
   @@index([userId])
   @@index([parentPageId])

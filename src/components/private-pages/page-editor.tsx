@@ -34,6 +34,7 @@ interface PageData {
     coverImage: string | null
     isFavorited: boolean
     blocks: any[] // We cast this to Block[] for the editor
+    currentUserPermission?: string // 'view', 'edit', 'admin', 'owner'
 }
 
 interface PageEditorProps {
@@ -43,6 +44,8 @@ interface PageEditorProps {
 // ========================================
 // PAGE EDITOR COMPONENT
 // ========================================
+
+import { SharePageDialog } from '@/components/private-pages/share-page-dialog'
 
 export function PageEditor({ page }: PageEditorProps) {
     const router = useRouter()
@@ -54,8 +57,15 @@ export function PageEditor({ page }: PageEditorProps) {
     const titleRef = useRef<HTMLInputElement>(null)
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+    const canEdit = page.currentUserPermission === 'edit' || page.currentUserPermission === 'admin' || page.currentUserPermission === 'owner'
+    const isOwner = page.currentUserPermission === 'owner'
+    const isAdmin = page.currentUserPermission === 'admin'
+    const canShare = isOwner || isAdmin
+
     // Autosave title changes
     const saveTitle = useCallback(async (newTitle: string) => {
+        if (!canEdit) return
+
         if (saveTimeoutRef.current) {
             clearTimeout(saveTimeoutRef.current)
         }
@@ -71,9 +81,10 @@ export function PageEditor({ page }: PageEditorProps) {
                 setIsSaving(false)
             }
         }, 1000) // Increased from 200ms to 1000ms (1 second)
-    }, [page.id])
+    }, [page.id, canEdit])
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!canEdit) return
         const newTitle = e.target.value
         setTitle(newTitle)
         saveTitle(newTitle)
@@ -94,6 +105,7 @@ export function PageEditor({ page }: PageEditorProps) {
     }
 
     const handleDelete = async () => {
+        if (!isOwner) return
         if (confirm('Are you sure you want to delete this page?')) {
             await deletePage(page.id)
             router.push('/dashboard')
@@ -102,12 +114,14 @@ export function PageEditor({ page }: PageEditorProps) {
     }
 
     const handleIconChange = async (newIcon: string) => {
+        if (!canEdit) return
         setIcon(newIcon)
         await updatePage(page.id, { icon: newIcon })
         router.refresh()
     }
 
     const handleAddCover = async () => {
+        if (!canEdit) return
         const defaultCover = 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
         setCoverImage(defaultCover)
         await updatePage(page.id, { coverImage: defaultCover })
@@ -115,12 +129,14 @@ export function PageEditor({ page }: PageEditorProps) {
     }
 
     const handleRemoveCover = async () => {
+        if (!canEdit) return
         setCoverImage(null)
         await updatePage(page.id, { coverImage: null })
         router.refresh()
     }
 
     const handleChangeCover = async () => {
+        if (!canEdit) return
         const url = prompt('Enter image URL (Unsplash, etc):', coverImage || '')
         if (url) {
             setCoverImage(url)
@@ -132,6 +148,7 @@ export function PageEditor({ page }: PageEditorProps) {
     // Persistence Handlers for BlockEditor
 
     const handleCreateBlock = async (block: Block, afterBlockId?: string) => {
+        if (!canEdit) return
         setIsSaving(true)
         try {
             if (afterBlockId) {
@@ -164,6 +181,7 @@ export function PageEditor({ page }: PageEditorProps) {
     }
 
     const handleUpdateBlock = async (id: string, updates: any) => {
+        if (!canEdit) return
         console.log('PageEditor handleUpdateBlock called:', id, updates)
         // Debounced save for content updates
         if (saveTimeoutRef.current) {
@@ -190,6 +208,7 @@ export function PageEditor({ page }: PageEditorProps) {
     }
 
     const handleDeleteBlock = async (id: string) => {
+        if (!canEdit) return
         setIsSaving(true)
         try {
             await deleteBlock(id)
@@ -205,6 +224,7 @@ export function PageEditor({ page }: PageEditorProps) {
     }
 
     const handleReorderBlocks = async (newBlocks: Block[]) => {
+        if (!canEdit) return
         setIsSaving(true)
         try {
             // Update sortOrder for each block based on its new position
@@ -239,14 +259,16 @@ export function PageEditor({ page }: PageEditorProps) {
                         alt="Cover"
                         className="w-full h-full object-cover"
                     />
-                    <div className="absolute bottom-4 right-8 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                        <Button variant="secondary" size="sm" onClick={handleChangeCover} className="text-xs h-7">
-                            Change cover
-                        </Button>
-                        <Button variant="secondary" size="sm" onClick={handleRemoveCover} className="text-xs h-7">
-                            Remove
-                        </Button>
-                    </div>
+                    {canEdit && (
+                        <div className="absolute bottom-4 right-8 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                            <Button variant="secondary" size="sm" onClick={handleChangeCover} className="text-xs h-7">
+                                Change cover
+                            </Button>
+                            <Button variant="secondary" size="sm" onClick={handleRemoveCover} className="text-xs h-7">
+                                Remove
+                            </Button>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -259,14 +281,18 @@ export function PageEditor({ page }: PageEditorProps) {
                         <div className="flex items-center gap-2">
                             {/* Icon Button */}
                             <div className="relative group/icon">
-                                <IconPicker onIconSelect={handleIconChange} currentIcon={icon}>
-                                    <button
-                                        className="text-4xl hover:bg-accent/50 rounded-lg p-2 transition-colors"
-                                        title="Click to change icon"
-                                    >
-                                        {icon}
-                                    </button>
-                                </IconPicker>
+                                {canEdit ? (
+                                    <IconPicker onIconSelect={handleIconChange} currentIcon={icon}>
+                                        <button
+                                            className="text-4xl hover:bg-accent/50 rounded-lg p-2 transition-colors"
+                                            title="Click to change icon"
+                                        >
+                                            {icon}
+                                        </button>
+                                    </IconPicker>
+                                ) : (
+                                    <div className="text-4xl p-2">{icon}</div>
+                                )}
                             </div>
                         </div>
 
@@ -274,6 +300,15 @@ export function PageEditor({ page }: PageEditorProps) {
                             {isSaving && (
                                 <span className="text-xs text-muted-foreground mr-2">Saving...</span>
                             )}
+
+                            {canShare && (
+                                <SharePageDialog
+                                    pageId={page.id}
+                                    pageTitle={page.title}
+                                    isOwner={isOwner}
+                                />
+                            )}
+
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -282,31 +317,38 @@ export function PageEditor({ page }: PageEditorProps) {
                             >
                                 <Star className={cn("h-4 w-4", isFavorited && "fill-current")} />
                             </Button>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" suppressHydrationWarning>
-                                        <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={handleToggleFavorite}>
-                                        <Star className="h-4 w-4 mr-2" />
-                                        {isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={handleAddCover}>
-                                        <ImageIcon className="h-4 w-4 mr-2" />
-                                        Add cover image
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem
-                                        className="text-destructive focus:text-destructive"
-                                        onClick={handleDelete}
-                                    >
-                                        <Trash2 className="h-4 w-4 mr-2" />
-                                        Delete page
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+
+                            {(isOwner || canEdit) && (
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" suppressHydrationWarning>
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={handleToggleFavorite}>
+                                            <Star className="h-4 w-4 mr-2" />
+                                            {isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                                        </DropdownMenuItem>
+                                        {canEdit && (
+                                            <DropdownMenuItem onClick={handleAddCover}>
+                                                <ImageIcon className="h-4 w-4 mr-2" />
+                                                Add cover image
+                                            </DropdownMenuItem>
+                                        )}
+                                        <DropdownMenuSeparator />
+                                        {isOwner && (
+                                            <DropdownMenuItem
+                                                className="text-destructive focus:text-destructive"
+                                                onClick={handleDelete}
+                                            >
+                                                <Trash2 className="h-4 w-4 mr-2" />
+                                                Delete page
+                                            </DropdownMenuItem>
+                                        )}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            )}
                         </div>
                     </div>
 
@@ -318,7 +360,8 @@ export function PageEditor({ page }: PageEditorProps) {
                         onChange={handleTitleChange}
                         onKeyDown={handleTitleKeyDown}
                         placeholder="Untitled"
-                        className="w-full text-4xl font-bold bg-transparent border-none outline-none placeholder:text-muted-foreground/50 focus:ring-0"
+                        disabled={!canEdit}
+                        className="w-full text-4xl font-bold bg-transparent border-none outline-none placeholder:text-muted-foreground/50 focus:ring-0 disabled:cursor-not-allowed disabled:opacity-80"
                     />
                 </div>
 
@@ -330,6 +373,7 @@ export function PageEditor({ page }: PageEditorProps) {
                         onUpdateBlock={handleUpdateBlock}
                         onDeleteBlock={handleDeleteBlock}
                         onReorderBlocks={handleReorderBlocks}
+                        readOnly={!canEdit}
                     />
                 </div>
             </div>

@@ -38,7 +38,10 @@ export async function getProjects(userId?: string) {
 
     return await prisma.project.findMany({
         where: {
-            userId: userId
+            OR: [
+                { userId: userId }, // Owned
+                { sharedWith: { some: { sharedWithUserId: userId } } } // Shared
+            ]
         },
         select: {
             id: true,
@@ -46,6 +49,7 @@ export async function getProjects(userId?: string) {
             color: true,
             icon: true,
             sortOrder: true,
+            userId: true, // Needed to distinguish ownership
         },
         orderBy: {
             sortOrder: 'asc'
@@ -60,7 +64,10 @@ export async function getProjectsForBoard() {
 
     const projects = await prisma.project.findMany({
         where: {
-            userId: user.id
+            OR: [
+                { userId: user.id },
+                { sharedWith: { some: { sharedWithUserId: user.id } } }
+            ]
         },
         include: {
             tasks: {
@@ -179,7 +186,7 @@ export async function createProject(data: CreateProjectInput) {
             return newProject
         })
 
-        ; (revalidateTag as any)(`projects-${user.id}`)
+            ; (revalidateTag as any)(`projects-${user.id}`)
         revalidatePath('/', 'layout')
         revalidatePath('/projects')
         revalidatePath('/dashboard')
@@ -210,7 +217,10 @@ export async function getProject(id: string) {
     const project = await prisma.project.findUnique({
         where: {
             id,
-            userId: user.id
+            OR: [
+                { userId: user.id },
+                { sharedWith: { some: { sharedWithUserId: user.id } } }
+            ]
         },
         select: {
             id: true,
@@ -228,6 +238,10 @@ export async function getProject(id: string) {
             isArchived: true,
             createdAt: true,
             updatedAt: true,
+            sharedWith: {
+                where: { sharedWithUserId: user.id },
+                select: { permission: true }
+            },
             sections: {
                 select: {
                     id: true,
@@ -289,8 +303,18 @@ export async function getProject(id: string) {
             }
         }
     })
+
     if (!project) return null
-    return project
+
+    // Calculate permission
+    let currentUserPermission = 'view'
+    if (project.userId === user.id) {
+        currentUserPermission = 'owner'
+    } else if (project.sharedWith.length > 0) {
+        currentUserPermission = project.sharedWith[0].permission
+    }
+
+    return { ...project, currentUserPermission }
 }
 
 export async function deleteProject(id: string) {

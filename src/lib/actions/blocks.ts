@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { BlockType } from '@prisma/client'
+import { hasPagePermission } from './page-sharing'
 
 // ========================================
 // TYPES
@@ -36,14 +37,11 @@ export async function getBlocksForPage(pageId: string) {
             return { success: false, error: 'Unauthorized', blocks: [] }
         }
 
-        // Verify page ownership
-        const page = await prisma.page.findFirst({
-            where: { id: pageId, userId: user.id },
-            select: { id: true },
-        })
+        // Verify access (view or higher)
+        const hasAccess = await hasPagePermission(pageId, user.id, 'view')
 
-        if (!page) {
-            return { success: false, error: 'Page not found', blocks: [] }
+        if (!hasAccess) {
+            return { success: false, error: 'Page not found or access denied', blocks: [] }
         }
 
         const blocks = await prisma.block.findMany({
@@ -82,14 +80,11 @@ export async function createBlock(data: CreateBlockInput) {
             return { success: false, error: 'Unauthorized', block: null }
         }
 
-        // Verify page ownership
-        const page = await prisma.page.findFirst({
-            where: { id: data.pageId, userId: user.id },
-            select: { id: true },
-        })
+        // Verify edit permission
+        const canEdit = await hasPagePermission(data.pageId, user.id, 'edit')
 
-        if (!page) {
-            return { success: false, error: 'Page not found', block: null }
+        if (!canEdit) {
+            return { success: false, error: 'Permission denied', block: null }
         }
 
         // Get max sort order if not provided
@@ -137,14 +132,21 @@ export async function updateBlock(id: string, data: UpdateBlockInput) {
             return { success: false, error: 'Unauthorized', block: null }
         }
 
-        // Verify ownership via page
-        const existing = await prisma.block.findFirst({
+        // Get block to find pageId
+        const existing = await prisma.block.findUnique({
             where: { id },
-            include: { page: { select: { userId: true } } },
+            select: { pageId: true }
         })
 
-        if (!existing || existing.page.userId !== user.id) {
-            return { success: false, error: 'Block not found or access denied', block: null }
+        if (!existing) {
+            return { success: false, error: 'Block not found', block: null }
+        }
+
+        // Verify edit permission
+        const canEdit = await hasPagePermission(existing.pageId, user.id, 'edit')
+
+        if (!canEdit) {
+            return { success: false, error: 'Permission denied', block: null }
         }
 
         const block = await prisma.block.update({
@@ -180,21 +182,28 @@ export async function deleteBlock(id: string) {
             return { success: false, error: 'Unauthorized' }
         }
 
-        // Verify ownership via page
-        const existing = await prisma.block.findFirst({
+        // Get block to find pageId
+        const existing = await prisma.block.findUnique({
             where: { id },
-            include: { page: { select: { userId: true, id: true } } },
+            select: { pageId: true }
         })
 
-        if (!existing || existing.page.userId !== user.id) {
-            return { success: false, error: 'Block not found or access denied' }
+        if (!existing) {
+            return { success: false, error: 'Block not found' }
+        }
+
+        // Verify edit permission
+        const canEdit = await hasPagePermission(existing.pageId, user.id, 'edit')
+
+        if (!canEdit) {
+            return { success: false, error: 'Permission denied' }
         }
 
         await prisma.block.delete({
             where: { id },
         })
 
-        revalidatePath(`/private/${existing.page.id}`)
+        revalidatePath(`/private/${existing.pageId}`)
 
         return { success: true }
     } catch (error) {
@@ -221,14 +230,11 @@ export async function insertBlockAt(
             return { success: false, error: 'Unauthorized', block: null }
         }
 
-        // Verify page ownership
-        const page = await prisma.page.findFirst({
-            where: { id: pageId, userId: user.id },
-            select: { id: true },
-        })
+        // Verify edit permission
+        const canEdit = await hasPagePermission(pageId, user.id, 'edit')
 
-        if (!page) {
-            return { success: false, error: 'Page not found', block: null }
+        if (!canEdit) {
+            return { success: false, error: 'Permission denied', block: null }
         }
 
         let sortOrder = 0
@@ -340,14 +346,11 @@ export async function reorderBlocks(pageId: string, blockIds: string[]) {
             return { success: false, error: 'Unauthorized' }
         }
 
-        // Verify page ownership
-        const page = await prisma.page.findFirst({
-            where: { id: pageId, userId: user.id },
-            select: { id: true },
-        })
+        // Verify edit permission
+        const canEdit = await hasPagePermission(pageId, user.id, 'edit')
 
-        if (!page) {
-            return { success: false, error: 'Page not found' }
+        if (!canEdit) {
+            return { success: false, error: 'Permission denied' }
         }
 
         // Update sort order for each block
@@ -382,16 +385,20 @@ export async function duplicateBlock(id: string) {
         }
 
         // Get original block
-        const original = await prisma.block.findFirst({
+        const original = await prisma.block.findUnique({
             where: { id },
-            include: {
-                page: { select: { userId: true } },
-                databaseViews: true,
-            },
+            include: { databaseViews: true }
         })
 
-        if (!original || original.page.userId !== user.id) {
+        if (!original) {
             return { success: false, error: 'Block not found', block: null }
+        }
+
+        // Verify edit permission
+        const canEdit = await hasPagePermission(original.pageId, user.id, 'edit')
+
+        if (!canEdit) {
+            return { success: false, error: 'Permission denied', block: null }
         }
 
         // Create duplicate with slightly higher sort order

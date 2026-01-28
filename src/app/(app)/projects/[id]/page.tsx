@@ -5,6 +5,9 @@ import { ProjectTasksContainer } from '@/components/projects/project-tasks-conta
 import { ProjectSettingsMenu } from '@/components/projects/project-settings-menu'
 import { Badge } from '@/components/ui/badge'
 
+import { ShareProjectDialog } from '@/components/projects/share-project-dialog'
+import { createClient } from '@/lib/supabase/server'
+
 interface ProjectPageProps {
     params: Promise<{
         id: string
@@ -18,6 +21,13 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     if (!project) {
         notFound()
     }
+
+    const permission = project.currentUserPermission
+    const canEdit = permission === 'owner' || permission === 'admin' || permission === 'edit'
+    const isOwnerOrAdmin = permission === 'owner' || permission === 'admin'
+
+    // We remove the explicit supabase call since permission is already computed
+    const isOwner = permission === 'owner'
 
     return (
         <div className="flex-1 h-full flex flex-col animate-in-fade">
@@ -35,6 +45,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                                 ${(!project.color || project.color === 'neutral') ? 'bg-zinc-400' : ''}
                              `} />
                             <h2 className="text-2xl font-semibold tracking-tight">{project.name}</h2>
+                            {permission !== 'owner' && (
+                                <Badge variant="outline" className="text-xs uppercase ml-2 bg-muted/50">
+                                    {permission}
+                                </Badge>
+                            )}
                         </div>
                         {project.description && (
                             <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
@@ -43,12 +58,14 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                         )}
                     </div>
                     <div className="flex items-center space-x-2">
-                        <CreateTaskInline
+
+                        <ShareProjectDialog
                             projectId={project.id}
-                            variant="compact"
-                            label="Add Task"
+                            projectName={project.name}
+                            isOwner={isOwnerOrAdmin}
                         />
-                        <ProjectSettingsMenu project={project} />
+                        {/* Only owner/admin can access settings */}
+                        {isOwnerOrAdmin && <ProjectSettingsMenu project={project} />}
                     </div>
                 </div>
             </div>
@@ -63,6 +80,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                         ...project.sections.flatMap((section: any) => section.tasks.map((t: any) => ({ ...t, sectionId: section.id }))),
                         ...project.tasks
                     ]}
+                    canEdit={canEdit}
                 />
             </div>
         </div>

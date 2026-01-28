@@ -28,6 +28,7 @@ interface BlockEditorProps {
     onDeleteBlock?: (id: string) => void
     onReorderBlocks?: (blocks: Block[]) => void
     isNested?: boolean
+    readOnly?: boolean
 }
 
 export function BlockEditor({
@@ -37,7 +38,8 @@ export function BlockEditor({
     onCreateBlock,
     onDeleteBlock,
     onReorderBlocks,
-    isNested = false
+    isNested = false,
+    readOnly = false
 }: BlockEditorProps) {
     const { blocks, addBlock, updateBlock, removeBlock, setBlocks } = useBlockEditor({
         initialBlocks,
@@ -486,6 +488,7 @@ export function BlockEditor({
                                         // No wait, better to pass a specific handler?
                                         // Let's pass updateBlock but wrapper it
                                         updateBlock={(id, updates) => {
+                                            if (readOnly) return
                                             // If it's a content update, check specifically
                                             if (updates.content) {
                                                 handleBlockChange(id, updates.content)
@@ -501,6 +504,7 @@ export function BlockEditor({
                                         onFocus={handleFocus}
                                         onBlur={handleBlur}
                                         onKeyDown={handleKeyDown}
+                                        readOnly={readOnly}
                                     />
                                 )
                             })
@@ -508,31 +512,33 @@ export function BlockEditor({
                     </SortableContext>
 
                     {/* Empty State / Click to add at bottom */}
-                    <div
-                        className="min-h-[100px] cursor-text -ml-2 pl-2 mt-4"
-                        onClick={() => {
-                            // Always add a new block at the end
-                            const id = addBlock()
-                            setFocusedBlockId(id)
+                    {!readOnly && (
+                        <div
+                            className="min-h-[100px] cursor-text -ml-2 pl-2 mt-4"
+                            onClick={() => {
+                                // Always add a new block at the end
+                                const id = addBlock()
+                                setFocusedBlockId(id)
 
-                            // Fix: Persist to server
-                            if (onCreateBlock) {
-                                const createdBlock: Block = {
-                                    id,
-                                    type: 'TEXT',
-                                    content: {},
-                                    sortOrder: blocks.length, // Rough sort order, server will recalculate or use end
-                                    createdAt: new Date(),
-                                    updatedAt: new Date()
+                                // Fix: Persist to server
+                                if (onCreateBlock) {
+                                    const createdBlock: Block = {
+                                        id,
+                                        type: 'TEXT',
+                                        content: {},
+                                        sortOrder: blocks.length, // Rough sort order, server will recalculate or use end
+                                        createdAt: new Date(),
+                                        updatedAt: new Date()
+                                    }
+                                    onCreateBlock(createdBlock)
                                 }
-                                onCreateBlock(createdBlock)
-                            }
-                        }}
-                    >
-                        {blocks.length === 0 && (
-                            <div className="text-gray-400">Click to add a block...</div>
-                        )}
-                    </div>
+                            }}
+                        >
+                            {blocks.length === 0 && (
+                                <div className="text-gray-400">Click to add a block...</div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </DndContext>
 
