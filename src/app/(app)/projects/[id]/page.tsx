@@ -5,6 +5,9 @@ import { ProjectTasksContainer } from '@/components/projects/project-tasks-conta
 import { ProjectSettingsMenu } from '@/components/projects/project-settings-menu'
 import { Badge } from '@/components/ui/badge'
 
+import { ShareProjectDialog } from '@/components/projects/share-project-dialog'
+import { createClient } from '@/lib/supabase/server'
+
 interface ProjectPageProps {
     params: Promise<{
         id: string
@@ -14,6 +17,13 @@ interface ProjectPageProps {
 export default async function ProjectPage({ params }: ProjectPageProps) {
     const { id } = await params
     const project = await getProject(id)
+
+    const permission = project.currentUserPermission
+    const canEdit = permission === 'owner' || permission === 'admin' || permission === 'edit'
+    const isOwnerOrAdmin = permission === 'owner' || permission === 'admin'
+
+    // We remove the explicit supabase call since permission is already computed
+    const isOwner = permission === 'owner'
 
     if (!project) {
         notFound()
@@ -35,6 +45,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                                 ${(!project.color || project.color === 'neutral') ? 'bg-zinc-400' : ''}
                              `} />
                             <h2 className="text-2xl font-semibold tracking-tight">{project.name}</h2>
+                            {permission !== 'owner' && (
+                                <Badge variant="outline" className="text-xs uppercase ml-2 bg-muted/50">
+                                    {permission}
+                                </Badge>
+                            )}
                         </div>
                         {project.description && (
                             <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
@@ -43,12 +58,20 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                         )}
                     </div>
                     <div className="flex items-center space-x-2">
-                        <CreateTaskInline
+                        {canEdit && (
+                            <CreateTaskInline
+                                projectId={project.id}
+                                variant="compact"
+                                label="Add Task"
+                            />
+                        )}
+                        <ShareProjectDialog
                             projectId={project.id}
-                            variant="compact"
-                            label="Add Task"
+                            projectName={project.name}
+                            isOwner={isOwnerOrAdmin}
                         />
-                        <ProjectSettingsMenu project={project} />
+                        {/* Only owner/admin can access settings */}
+                        {isOwnerOrAdmin && <ProjectSettingsMenu project={project} />}
                     </div>
                 </div>
             </div>
