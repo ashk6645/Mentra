@@ -218,10 +218,10 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent
-                        className="w-64 p-1 mt-2 bg-popover/95 backdrop-blur-xl border-border/50 shadow-xl"
+                        className="w-52 p-1 mt-1 bg-popover/95 backdrop-blur-xl border-border/50 shadow-xl"
                         align="start"
-                        side="right"
-                        sideOffset={12}
+                        side="bottom"
+                        sideOffset={0}
                     >
                         <div className="flex items-center gap-2 p-2 mb-1">
                             <Avatar className="h-8 w-8 border border-border/20">
