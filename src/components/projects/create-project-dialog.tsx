@@ -62,9 +62,17 @@ interface CreateProjectDialogProps {
     open?: boolean
     onOpenChange?: (open: boolean) => void
     onProjectCreated?: () => void
+    defaultAreaId?: string
+    trigger?: React.ReactNode
 }
 
-export function CreateProjectDialog({ open: externalOpen, onOpenChange: externalOnOpenChange, onProjectCreated }: CreateProjectDialogProps = {}) {
+export function CreateProjectDialog({
+    open: externalOpen,
+    onOpenChange: externalOnOpenChange,
+    onProjectCreated,
+    defaultAreaId,
+    trigger
+}: CreateProjectDialogProps = {}) {
     const [internalOpen, setInternalOpen] = useState(false)
     const [step, setStep] = useState<'template' | 'details'>('template')
     const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplate | null>(null)
@@ -80,7 +88,7 @@ export function CreateProjectDialog({ open: externalOpen, onOpenChange: external
             name: '',
             description: '',
             color: 'neutral',
-            areaId: 'none',
+            areaId: defaultAreaId || 'none',
             templateId: 'blank',
         },
     })
@@ -117,7 +125,7 @@ export function CreateProjectDialog({ open: externalOpen, onOpenChange: external
                 name: '',
                 description: '',
                 color: 'neutral',
-                areaId: 'none',
+                areaId: defaultAreaId || 'none',
                 templateId: 'blank',
             })
             router.refresh()
@@ -144,14 +152,23 @@ export function CreateProjectDialog({ open: externalOpen, onOpenChange: external
             if (!o) {
                 setStep('template')
                 setSelectedTemplate(null)
+                form.reset({
+                    name: '',
+                    description: '',
+                    color: 'neutral',
+                    areaId: defaultAreaId || 'none',
+                    templateId: 'blank',
+                })
             }
         }}>
             {externalOpen === undefined && (
                 <DialogTrigger asChild>
-                    <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground hover:text-primary">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Project
-                    </Button>
+                    {trigger ? trigger : (
+                        <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground hover:text-primary">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Add Project
+                        </Button>
+                    )}
                 </DialogTrigger>
             )}
             <DialogContent className="sm:max-w-[650px] max-h-[90vh]">

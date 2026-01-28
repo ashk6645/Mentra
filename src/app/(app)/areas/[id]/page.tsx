@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Folder, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { CreateProjectDialog } from '@/components/projects/create-project-dialog'
 
 interface AreaPageProps {
     params: Promise<{
@@ -80,9 +81,10 @@ export default async function AreaPage({ params }: AreaPageProps) {
                     {area.projects.length === 0 ? (
                         <div className="col-span-full flex flex-col items-center justify-center p-20 border-2 border-dashed border-white/10 rounded-xl bg-white/5">
                             <p className="text-muted-foreground mb-4">No projects in this area yet.</p>
-                            <Button asChild variant="outline">
-                                <Link href="/projects/new">Create Project</Link>
-                            </Button>
+                            <CreateProjectDialog
+                                defaultAreaId={area.id}
+                                trigger={<Button variant="outline">Create Project</Button>}
+                            />
                         </div>
                     ) : (
                         area.projects.map(project => (

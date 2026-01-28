@@ -203,7 +203,7 @@ export async function createProject(data: CreateProjectInput) {
             return { success: false, error: 'Invalid area selected' }
         }
 
-        return { success: false, error: 'Failed to create project. Please try again.' }
+        return { success: false, error: `Failed to create project: ${error.message}` }
     }
 }
 
