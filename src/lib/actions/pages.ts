@@ -34,7 +34,10 @@ export async function getPages() {
 
         const pages = await prisma.page.findMany({
             where: {
-                userId: user.id,
+                OR: [
+                    { userId: user.id },
+                    { sharedWith: { some: { sharedWithUserId: user.id } } }
+                ]
             },
             select: {
                 id: true,
@@ -45,6 +48,7 @@ export async function getPages() {
                 sortOrder: true,
                 createdAt: true,
                 updatedAt: true,
+                userId: true, // Needed to distinguish ownership
             },
             orderBy: [
                 { isFavorited: 'desc' },
@@ -79,9 +83,16 @@ export async function getPageById(id: string) {
         const page = await prisma.page.findFirst({
             where: {
                 id,
-                userId: user.id,
+                OR: [
+                    { userId: user.id },
+                    { sharedWith: { some: { sharedWithUserId: user.id } } }
+                ]
             },
             include: {
+                sharedWith: {
+                    where: { sharedWithUserId: user.id },
+                    select: { permission: true }
+                },
                 blocks: {
                     orderBy: { sortOrder: 'asc' },
                     include: {
@@ -106,7 +117,15 @@ export async function getPageById(id: string) {
             return { success: false, error: 'Page not found', page: null }
         }
 
-        return { success: true, page }
+        // Calculate permission
+        let currentUserPermission = 'view'
+        if (page.userId === user.id) {
+            currentUserPermission = 'owner'
+        } else if (page.sharedWith.length > 0) {
+            currentUserPermission = page.sharedWith[0].permission
+        }
+
+        return { success: true, page: { ...page, currentUserPermission } }
     } catch (error) {
         console.error('Error fetching page:', error)
         return { success: false, error: 'Failed to fetch page', page: null }

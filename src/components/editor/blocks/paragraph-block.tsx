@@ -11,10 +11,11 @@ interface ParagraphBlockProps {
     onFocus: () => void
     onBlur: (id: string) => void
     cursorOffset?: number | null // Optional cursor position to set on focus
+    readOnly?: boolean
 }
 
 export const ParagraphBlock = React.forwardRef<HTMLElement, ParagraphBlockProps>(
-    ({ block, content, onChange, onKeyDown, onFocus, onBlur, cursorOffset }, ref) => {
+    ({ block, content, onChange, onKeyDown, onFocus, onBlur, cursorOffset, readOnly }, ref) => {
         const text = content.text || ''
 
         // Use a local ref if one isn't provided, to manage focus
@@ -77,7 +78,7 @@ export const ParagraphBlock = React.forwardRef<HTMLElement, ParagraphBlockProps>
             <ContentEditable
                 innerRef={innerRef}
                 html={text}
-                disabled={false}
+                disabled={readOnly || false}
                 onChange={handleChange}
                 onKeyDown={onKeyDown}
                 onFocus={onFocus}

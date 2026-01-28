@@ -23,6 +23,7 @@ interface SortableBlockProps {
     onKeyDown: (e: React.KeyboardEvent, blockId: string) => void
     numberedListIndex?: number
     cursorOffset?: number | null
+    readOnly?: boolean
 }
 
 export function SortableBlock({ block, removeBlock, ...props }: SortableBlockProps) {
@@ -49,41 +50,43 @@ export function SortableBlock({ block, removeBlock, ...props }: SortableBlockPro
             className="group flex items-start relative -ml-8 pl-8 w-full max-w-none"
         >
             {/* Gutter Actions */}
-            <div
-                className={cn(
-                    "absolute left-0 top-1.5 flex items-center justify-center w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity",
-                    isDragging && "opacity-100"
-                )}
-                contentEditable={false}
-            >
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <div
-                            {...attributes}
-                            {...listeners}
-                            suppressHydrationWarning
-                            className={cn(
-                                "p-0.5 rounded cursor-grab hover:bg-gray-200 dark:hover:bg-zinc-800 text-gray-400 focus:outline-none",
-                                isDragging && "cursor-grabbing bg-gray-200 dark:bg-zinc-800"
-                            )}
-                        >
-                            <GripVertical className="w-4 h-4" />
-                        </div>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start">
-                        <DropdownMenuItem
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                removeBlock(block.id)
-                            }}
-                            className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/10"
-                        >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Delete
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
+            {!props.readOnly && (
+                <div
+                    className={cn(
+                        "absolute left-0 top-1.5 flex items-center justify-center w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity",
+                        isDragging && "opacity-100"
+                    )}
+                    contentEditable={false}
+                >
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <div
+                                {...attributes}
+                                {...listeners}
+                                suppressHydrationWarning
+                                className={cn(
+                                    "p-0.5 rounded cursor-grab hover:bg-gray-200 dark:hover:bg-zinc-800 text-gray-400 focus:outline-none",
+                                    isDragging && "cursor-grabbing bg-gray-200 dark:bg-zinc-800"
+                                )}
+                            >
+                                <GripVertical className="w-4 h-4" />
+                            </div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                            <DropdownMenuItem
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    removeBlock(block.id)
+                                }}
+                                className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/10"
+                            >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            )}
 
             <div className="flex-1 min-w-0">
                 <BlockRenderer
