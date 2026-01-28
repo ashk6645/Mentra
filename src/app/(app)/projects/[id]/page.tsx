@@ -58,13 +58,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                         )}
                     </div>
                     <div className="flex items-center space-x-2">
-                        {canEdit && (
-                            <CreateTaskInline
-                                projectId={project.id}
-                                variant="compact"
-                                label="Add Task"
-                            />
-                        )}
+
                         <ShareProjectDialog
                             projectId={project.id}
                             projectName={project.name}
