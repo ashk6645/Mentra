@@ -196,7 +196,7 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
                                 isSidebarCollapsed && "px-0 justify-center"
                             )}
                         >
-                            <div className="flex items-center gap-2 w-full">
+                            <div className={cn("flex items-center gap-2 w-full", isSidebarCollapsed && "justify-center")}>
                                 <Avatar className="h-5 w-5 border border-border/20 shadow-sm shrink-0">
                                     <AvatarImage src={avatarUrl} />
                                     <AvatarFallback className="bg-orange-500/10 text-orange-600 text-[10px] font-medium">
