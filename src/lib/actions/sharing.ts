@@ -90,7 +90,7 @@ export async function shareProject(data: ShareProjectInput) {
         })
 
         revalidatePath(`/projects/${projectId}`)
-        revalidateTag(`projects-${targetUser.id}`) // Invalidate for the recipient
+        revalidateTag(`projects-${targetUser.id}`, {}) // Invalidate for the recipient
 
         return { success: true }
     } catch (error) {
@@ -144,7 +144,7 @@ export async function unshareProject(projectId: string, collaboratorId: string) 
         })
 
         revalidatePath(`/projects/${projectId}`)
-        revalidateTag(`projects-${collaboratorId}`)
+        revalidateTag(`projects-${collaboratorId}`, {})
 
         return { success: true }
     } catch (error) {
