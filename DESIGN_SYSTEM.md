@@ -321,7 +321,7 @@ className={cn(
 3. Add optional confetti effect for task completion
 4. Implement keyboard shortcuts (Cmd+K for quick add)
 5. Add loading skeletons for perceived performance
-6. Create onboarding for first-time users (optional, skippable)
+6. Create onboarding for first-time users (skippable)
 
 ## References
 
