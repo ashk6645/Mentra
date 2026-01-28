@@ -24,7 +24,8 @@ import {
     Calendar,
     Trophy,
     Zap,
-    Flame
+    Flame,
+    Upload
 } from 'lucide-react'
 import {
     AlertDialog,
@@ -58,6 +59,8 @@ export function ProfileAccount() {
     const avatarUrl = user?.user_metadata?.avatar_url
     const initials = (displayName || email || 'U').substring(0, 2).toUpperCase()
     const memberSince = user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Unknown'
+
+    const [uploading, setUploading] = useState(false)
 
     useEffect(() => {
         if (user) {
@@ -104,6 +107,66 @@ export function ProfileAccount() {
             })
         } finally {
             setIsUpdating(false)
+        }
+    }
+
+    async function handleAvatarUpload(event: React.ChangeEvent<HTMLInputElement>) {
+        try {
+            setUploading(true)
+            if (!event.target.files || event.target.files.length === 0) {
+                setUploading(false)
+                return
+            }
+
+            const file = event.target.files[0]
+            if (file.size > 5 * 1024 * 1024) {
+                toast({ title: 'Error', description: 'Image must be less than 5MB', variant: 'destructive' })
+                setUploading(false)
+                return
+            }
+
+            if (!file.type.startsWith('image/')) {
+                toast({ title: 'Error', description: 'Please upload an image file', variant: 'destructive' })
+                setUploading(false)
+                return
+            }
+
+            const fileExt = file.name.split('.').pop()
+            const fileName = `${user?.id}-${Date.now()}.${fileExt}`
+            const filePath = `avatars/${fileName}`
+
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(filePath, file, { cacheControl: '3600', upsert: true })
+
+            if (uploadError) {
+                if (uploadError.message.includes('not found') || uploadError.message.includes('Bucket')) {
+                    toast({ title: 'Storage not configured', description: 'Please create an "avatars" bucket', variant: 'destructive' })
+                } else {
+                    throw uploadError
+                }
+                setUploading(false)
+                return
+            }
+
+            const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath)
+
+            const { error: updateError } = await supabase
+                .from('profiles')
+                .update({ avatar_url: publicUrl })
+                .eq('id', user?.id)
+
+            if (updateError) throw updateError
+
+            toast({ title: 'Success', description: 'Avatar updated successfully' })
+            // Refresh stats to get new profile data if needed, or just router refresh
+            await fetchStats()
+            router.refresh()
+            setUploading(false)
+        } catch (error: any) {
+            console.error('Error uploading avatar:', error)
+            toast({ title: 'Error', description: error?.message || 'Failed to upload avatar', variant: 'destructive' })
+            setUploading(false)
         }
     }
 
@@ -177,20 +240,21 @@ export function ProfileAccount() {
             <div className="flex items-start gap-6">
                 <div className="relative group cursor-pointer">
                     <Avatar className="h-24 w-24 rounded-full border border-border/50">
-                        <AvatarImage src={avatarUrl} />
+                        <AvatarImage src={profile?.avatar_url || avatarUrl} />
                         <AvatarFallback className="text-2xl bg-muted text-muted-foreground">
                             {initials}
                         </AvatarFallback>
                     </Avatar>
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Camera className="w-6 h-6 text-white" />
-                    </div>
-                    {/* Stub for photo upload */}
+                    <label htmlFor="account-avatar-upload" className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                        {uploading ? <Loader2 className="w-6 h-6 text-white animate-spin" /> : <Camera className="w-6 h-6 text-white" />}
+                    </label>
                     <input
+                        id="account-avatar-upload"
                         type="file"
-                        className="absolute inset-0 opacity-0 cursor-pointer"
-                        disabled
-                        title="Photo upload coming soon"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleAvatarUpload}
+                        disabled={uploading}
                     />
                 </div>
 

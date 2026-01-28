@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { Activity, Trophy, Settings, User } from 'lucide-react'
+import { Activity, Trophy, Settings, User, Palette } from 'lucide-react'
 import { ProfileHeader } from '@/components/profile/profile-header'
 import { ProfileStats } from '@/components/profile/profile-stats'
 import { ProfileActivity } from '@/components/profile/profile-activity'
@@ -24,7 +24,7 @@ export function ProfileView() {
 
     return (
         <div className="flex-1 h-full flex flex-col md:flex-row overflow-hidden w-full bg-background">
-            <Tabs defaultValue="activity" className="flex-1 flex flex-col md:flex-row h-full">
+            <Tabs defaultValue="account" className="flex-1 flex flex-col md:flex-row h-full">
 
                 {/* Notion-style Sidebar */}
                 <div className="w-full md:w-[240px] border-r border-[#E9E9E8] dark:border-[#2C2C2C] bg-[#F7F7F5] dark:bg-[#1F1F1F] flex-shrink-0 flex flex-col">
@@ -65,7 +65,7 @@ export function ProfileView() {
                                 My Account
                             </TabsTrigger>
                             <TabsTrigger
-                                value="theme"
+                                value="settings"
                                 className={cn(
                                     "w-full justify-start px-2 py-1 h-[28px] text-sm rounded-sm font-normal",
                                     "text-[#37352F] dark:text-[#D4D4D4]",
@@ -77,10 +77,10 @@ export function ProfileView() {
                                 )}
                             >
                                 <Settings className="h-4 w-4 mr-2.5 text-[#91918E] dark:text-[#818181]" />
-                                Theme
+                                Settings
                             </TabsTrigger>
                             <TabsTrigger
-                                value="activity"
+                                value="theme"
                                 className={cn(
                                     "w-full justify-start px-2 py-1 h-[28px] text-sm rounded-sm font-normal",
                                     "text-[#37352F] dark:text-[#D4D4D4]",
@@ -91,8 +91,8 @@ export function ProfileView() {
                                     "data-[state=active]:shadow-none"
                                 )}
                             >
-                                <Activity className="h-4 w-4 mr-2.5 text-[#91918E] dark:text-[#818181]" />
-                                Activity
+                                <Palette className="h-4 w-4 mr-2.5 text-[#91918E] dark:text-[#818181]" />
+                                Theme
                             </TabsTrigger>
                             <TabsTrigger
                                 value="achievements"
@@ -110,7 +110,7 @@ export function ProfileView() {
                                 Achievements
                             </TabsTrigger>
                             <TabsTrigger
-                                value="settings"
+                                value="activity"
                                 className={cn(
                                     "w-full justify-start px-2 py-1 h-[28px] text-sm rounded-sm font-normal",
                                     "text-[#37352F] dark:text-[#D4D4D4]",
@@ -121,8 +121,8 @@ export function ProfileView() {
                                     "data-[state=active]:shadow-none"
                                 )}
                             >
-                                <Settings className="h-4 w-4 mr-2.5 text-[#91918E] dark:text-[#818181]" />
-                                Settings
+                                <Activity className="h-4 w-4 mr-2.5 text-[#91918E] dark:text-[#818181]" />
+                                Activity
                             </TabsTrigger>
                         </TabsList>
                     </div>
@@ -140,13 +140,12 @@ export function ProfileView() {
                                 <ProfileAccount />
                             </TabsContent>
 
-                            <TabsContent value="activity" className="space-y-6 mt-0 animate-in fade-in-50 duration-200">
-                                <div>
-                                    <h3 className="text-base font-medium mb-4 text-[#37352F] dark:text-[#D4D4D4]">Recent Activity</h3>
-                                    <Suspense fallback={<div className="h-32 bg-muted/50 animate-pulse rounded-md" />}>
-                                        <ProfileActivity />
-                                    </Suspense>
-                                </div>
+                            <TabsContent value="settings" className="space-y-6 mt-0 animate-in fade-in-50 duration-200">
+                                <ProfileSettings />
+                            </TabsContent>
+
+                            <TabsContent value="theme" className="space-y-6 mt-0 animate-in fade-in-50 duration-200">
+                                <ProfileTheme />
                             </TabsContent>
 
                             <TabsContent value="achievements" className="space-y-6 mt-0 animate-in fade-in-50 duration-200">
@@ -158,12 +157,13 @@ export function ProfileView() {
                                 </div>
                             </TabsContent>
 
-                            <TabsContent value="theme" className="space-y-6 mt-0 animate-in fade-in-50 duration-200">
-                                <ProfileTheme />
-                            </TabsContent>
-
-                            <TabsContent value="settings" className="space-y-6 mt-0 animate-in fade-in-50 duration-200">
-                                <ProfileSettings />
+                            <TabsContent value="activity" className="space-y-6 mt-0 animate-in fade-in-50 duration-200">
+                                <div>
+                                    <h3 className="text-base font-medium mb-4 text-[#37352F] dark:text-[#D4D4D4]">Recent Activity</h3>
+                                    <Suspense fallback={<div className="h-32 bg-muted/50 animate-pulse rounded-md" />}>
+                                        <ProfileActivity />
+                                    </Suspense>
+                                </div>
                             </TabsContent>
                         </div>
                     </div>
