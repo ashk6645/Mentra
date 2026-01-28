@@ -315,29 +315,31 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
                 {/* Projects Section */}
                 {!isSidebarCollapsed && (
                     <div className="px-2 mb-2">
-                        <div className="flex items-center justify-between group mb-1 mt-4 px-2">
-                            <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">
+                        <div
+                            className="flex items-center justify-between group mb-1 mt-4 px-2 py-1 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 rounded-sm cursor-pointer transition-colors"
+                            onClick={() => setProjectsExpanded(!projectsExpanded)}
+                        >
+                            <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider select-none">
                                 Projects
                             </span>
                             <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                <button
-                                    onClick={() => setProjectsExpanded(!projectsExpanded)}
-                                    className="p-0.5 hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50 rounded-sm transition-all duration-200"
-                                    aria-label={projectsExpanded ? "Collapse projects" : "Expand projects"}
-                                >
+                                <div className="p-0.5 text-muted-foreground">
                                     <motion.div
                                         animate={{ rotate: projectsExpanded ? 90 : 0 }}
                                         transition={{ duration: 0.2 }}
                                     >
-                                        <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                                        <ChevronRight className="h-3 w-3" />
                                     </motion.div>
-                                </button>
+                                </div>
                                 <button
-                                    onClick={() => setShowCreateDialog(true)}
-                                    className="p-0.5 hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50 rounded-sm transition-all duration-200"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        setShowCreateDialog(true)
+                                    }}
+                                    className="p-0.5 hover:bg-zinc-300/50 dark:hover:bg-zinc-700/50 rounded-sm transition-all duration-200 text-muted-foreground"
                                     aria-label="Add project"
                                 >
-                                    <Plus className="h-3 w-3 text-muted-foreground" />
+                                    <Plus className="h-3 w-3" />
                                 </button>
                             </div>
                         </div>
@@ -419,23 +421,22 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
                 {/* Shared Pages Section */}
                 {!isSidebarCollapsed && pages.some(p => p.isShared) && (
                     <div className="px-2 mb-2">
-                        <div className="flex items-center justify-between group mb-1 mt-4 px-2">
-                            <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">
+                        <div
+                            className="flex items-center justify-between group mb-1 mt-4 px-2 py-1 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 rounded-sm cursor-pointer transition-colors"
+                            onClick={() => setSharedExpanded(!sharedExpanded)}
+                        >
+                            <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider select-none">
                                 Shared
                             </span>
                             <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                <button
-                                    onClick={() => setSharedExpanded(!sharedExpanded)}
-                                    className="p-0.5 hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50 rounded-sm transition-all duration-200"
-                                    aria-label={sharedExpanded ? "Collapse shared pages" : "Expand shared pages"}
-                                >
+                                <div className="p-0.5 text-muted-foreground">
                                     <motion.div
                                         animate={{ rotate: sharedExpanded ? 90 : 0 }}
                                         transition={{ duration: 0.2 }}
                                     >
-                                        <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                                        <ChevronRight className="h-3 w-3" />
                                     </motion.div>
-                                </button>
+                                </div>
                             </div>
                         </div>
 
@@ -504,29 +505,29 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
                 {/* Private Pages Section */}
                 {!isSidebarCollapsed && (
                     <div className="px-2 mb-2">
-                        <div className="flex items-center justify-between group mb-1 mt-4 px-2">
-                            <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">
+                        <div
+                            className="flex items-center justify-between group mb-1 mt-4 px-2 py-1 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 rounded-sm cursor-pointer transition-colors"
+                            onClick={() => setPagesExpanded(!pagesExpanded)}
+                        >
+                            <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider select-none">
                                 Private
                             </span>
                             <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                <button
-                                    onClick={() => setPagesExpanded(!pagesExpanded)}
-                                    className="p-0.5 hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50 rounded-sm transition-all duration-200"
-                                    aria-label={pagesExpanded ? "Collapse private pages" : "Expand private pages"}
-                                >
+                                <div className="p-0.5 text-muted-foreground">
                                     <motion.div
                                         animate={{ rotate: pagesExpanded ? 90 : 0 }}
                                         transition={{ duration: 0.2 }}
                                     >
-                                        <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                                        <ChevronRight className="h-3 w-3" />
                                     </motion.div>
-                                </button>
+                                </div>
                                 <Link
                                     href="/private/new"
-                                    className="p-0.5 hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50 rounded-sm transition-all duration-200"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="p-0.5 hover:bg-zinc-300/50 dark:hover:bg-zinc-700/50 rounded-sm transition-all duration-200 text-muted-foreground"
                                     aria-label="Add private page"
                                 >
-                                    <Plus className="h-3 w-3 text-muted-foreground" />
+                                    <Plus className="h-3 w-3" />
                                 </Link>
                             </div>
                         </div>
