@@ -60,7 +60,7 @@ export default async function UpcomingPage() {
     const sortedDates = Object.keys(groupedTasks).sort()
 
     return (
-        <div className="flex-1 overflow-y-auto bg-muted/5 min-h-full">
+        <div className="flex-1 overflow-y-auto min-h-full">
             <div className="max-w-3xl mx-auto px-6 pb-20 pt-8">
 
                 <UpcomingHeader
