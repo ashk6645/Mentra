@@ -8,6 +8,7 @@ import { ProfileAchievements } from '@/components/profile/profile-achievements'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageLoadingSkeleton } from '@/components/shared/loading-states'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { ProfileAccount } from '@/components/profile/profile-account'
 import { useUser } from '@/lib/hooks'
 import { cn } from '@/lib/utils'
 
@@ -45,6 +46,21 @@ export function ProfileView() {
                             Account
                         </div>
                         <TabsList className="flex flex-col items-start h-auto p-0 bg-transparent w-full space-y-[1px]">
+                            <TabsTrigger
+                                value="account"
+                                className={cn(
+                                    "w-full justify-start px-2 py-1 h-[28px] text-sm rounded-sm font-normal",
+                                    "text-[#37352F] dark:text-[#D4D4D4]",
+                                    "hover:bg-[#EFEFEF] dark:hover:bg-[#2C2C2C] transition-colors",
+                                    "data-[state=active]:bg-[#EFEFEF] dark:data-[state=active]:bg-[#2C2C2C]",
+                                    "data-[state=active]:text-[#37352F] dark:data-[state=active]:text-[#D4D4D4]",
+                                    "data-[state=active]:font-medium",
+                                    "data-[state=active]:shadow-none"
+                                )}
+                            >
+                                <User className="h-4 w-4 mr-2.5 text-[#91918E] dark:text-[#818181]" />
+                                My Account
+                            </TabsTrigger>
                             <TabsTrigger
                                 value="activity"
                                 className={cn(
@@ -104,6 +120,10 @@ export function ProfileView() {
                         </Suspense>
 
                         <div className="mt-8">
+                            <TabsContent value="account" className="space-y-6 mt-0 animate-in fade-in-50 duration-200">
+                                <ProfileAccount />
+                            </TabsContent>
+
                             <TabsContent value="activity" className="space-y-6 mt-0 animate-in fade-in-50 duration-200">
                                 <div>
                                     <h3 className="text-base font-medium mb-4 text-[#37352F] dark:text-[#D4D4D4]">Recent Activity</h3>

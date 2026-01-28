@@ -3,25 +3,13 @@
 import { useState } from 'react'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { Trash2, LogOut, Loader2, Moon, Bell, Calendar, Trophy, Sparkles } from 'lucide-react'
+import { Moon, Bell, Calendar, Sparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useTheme } from 'next-themes'
-import { deleteUserAccount, resetUserAccount } from '@/lib/actions/user'
 import { useToast } from '@/components/ui/use-toast'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 
 export function ProfileSettings() {
   const router = useRouter()
@@ -37,83 +25,6 @@ export function ProfileSettings() {
   const [showXP, setShowXP] = useState(true)
   const [showStreaks, setShowStreaks] = useState(true)
   const [enableAI, setEnableAI] = useState(true)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [showResetDialog, setShowResetDialog] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [isResetting, setIsResetting] = useState(false)
-
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
-
-  async function handleDeleteAccount() {
-    setIsDeleting(true)
-    try {
-      const result = await deleteUserAccount()
-      if (result.error) {
-        toast({
-          title: 'Error',
-          description: result.error,
-          variant: 'destructive',
-        })
-      } else {
-        toast({
-          title: 'Account Deleted',
-          description: 'Your account has been permanently deleted.',
-        })
-        setTimeout(() => {
-          router.push('/signup?deleted=true')
-        }, 1000)
-      }
-    } catch (error) {
-      console.error('Error deleting account:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to delete account.',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsDeleting(false)
-      setShowDeleteDialog(false)
-    }
-  }
-
-  async function handleResetAccount() {
-    setIsResetting(true)
-    try {
-      const result = await resetUserAccount()
-      if (result.error) {
-        toast({
-          title: 'Error',
-          description: result.error,
-          variant: 'destructive',
-        })
-      } else {
-        toast({
-          title: 'Account Reset',
-          description: 'Your account data has been cleared successfully.',
-        })
-        // Refresh to reflect empty state
-        router.refresh()
-        // Optional: redirect to dashboard to show it's empty
-        setTimeout(() => {
-          router.push('/dashboard')
-        }, 1000)
-      }
-    } catch (error) {
-      console.error('Error resetting account:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to reset account.',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsResetting(false)
-      setShowResetDialog(false)
-    }
-  }
 
   return (
     <div className="max-w-4xl space-y-10 pb-10">
@@ -256,89 +167,6 @@ export function ProfileSettings() {
           </div>
         </div>
       </section>
-
-      {/* Danger Zone */}
-      <section className="space-y-4 pt-4">
-        <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4">
-          <h3 className="text-lg font-medium text-destructive mb-4">Danger Zone</h3>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium">Sign Out</h4>
-                <p className="text-sm text-muted-foreground">Log out of your account on this device.</p>
-              </div>
-              <Button variant="outline" size="sm" onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" /> Sign Out
-              </Button>
-            </div>
-
-            <Separator className="bg-destructive/10" />
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium text-amber-600 dark:text-amber-500">Reset Account</h4>
-                <p className="text-sm text-muted-foreground">Clear all data but keep your account.</p>
-              </div>
-              <Button variant="outline" className="text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-900/50 dark:hover:bg-amber-950/30" size="sm" onClick={() => setShowResetDialog(true)} disabled={isResetting || isDeleting}>
-                Reset Data
-              </Button>
-            </div>
-
-            <Separator className="bg-destructive/10" />
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium text-destructive">Delete Account</h4>
-                <p className="text-sm text-muted-foreground">Permanently delete your account and all data.</p>
-              </div>
-              <Button variant="destructive" size="sm" onClick={() => setShowDeleteDialog(true)} disabled={isDeleting}>
-                <Trash2 className="mr-2 h-4 w-4" /> Delete Account
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Delete Dialog - (Unchanged logic, just structure) */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. All your data will be permanently deleted.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteAccount} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90">
-              {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Delete My Account'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Reset Dialog */}
-      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reset Account Data?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete all your Tasks, Projects, Habits, and XP.
-              <br /><br />
-              <strong>Your account login will remain active</strong>, but you will start from scratch like a new user.
-              <br /><br />
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isResetting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleResetAccount} disabled={isResetting} className="bg-amber-600 hover:bg-amber-700 text-white">
-              {isResetting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Yes, Clear All Data'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   )
 }

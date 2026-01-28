@@ -6,6 +6,48 @@ import { revalidatePath } from 'next/cache'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 
 /**
+ * Update user profile information (display name, email, etc.)
+ * Note: Email update usually requires a separate process with verification,
+ * so we'll often just update the display name here.
+ */
+export async function updateUserProfile(data: { displayName?: string }) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: 'Unauthorized - No user logged in' }
+    }
+
+    try {
+        const userId = user.id
+
+        // Update in Database
+        await prisma.profile.update({
+            where: { id: userId },
+            data: {
+                displayName: data.displayName
+            }
+        })
+
+        // Update in Supabase Auth Metadata (optional but good for consistency)
+        if (data.displayName) {
+            await supabase.auth.updateUser({
+                data: { display_name: data.displayName }
+            })
+        }
+
+        revalidatePath('/')
+        return { success: true, message: 'Profile updated successfully' }
+    } catch (error) {
+        console.error('Error updating profile:', error)
+        if (error instanceof Error) {
+            return { error: `Failed to update profile: ${error.message}` }
+        }
+        return { error: 'Failed to update profile' }
+    }
+}
+
+/**
  * Permanently delete the current user's account and all associated data
  * This action is irreversible and will:
  * - Delete all tasks, projects, habits, focus sessions, etc. (CASCADE)
