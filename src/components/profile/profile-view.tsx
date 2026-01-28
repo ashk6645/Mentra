@@ -115,9 +115,7 @@ export function ProfileView() {
                     <div className="px-8 py-10 md:px-12 md:py-12 space-y-8 max-w-4xl mx-auto">
                         {/* We keep the header but maybe simplify it if needed. 
                             For now, kept as is but inside the spacious container. */}
-                        <Suspense fallback={<PageLoadingSkeleton />}>
-                            <ProfileHeader />
-                        </Suspense>
+
 
                         <div className="mt-8">
                             <TabsContent value="account" className="space-y-6 mt-0 animate-in fade-in-50 duration-200">

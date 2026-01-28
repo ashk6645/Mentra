@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,7 +20,11 @@ import {
     LogOut,
     Trash2,
     Camera,
-    AlertTriangle
+    AlertTriangle,
+    Calendar,
+    Trophy,
+    Zap,
+    Flame
 } from 'lucide-react'
 import {
     AlertDialog,
@@ -44,6 +48,7 @@ export function ProfileAccount() {
     const [isUpdating, setIsUpdating] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
     const [isResetting, setIsResetting] = useState(false)
+    const [profile, setProfile] = useState<any>(null)
 
     // Dialog states
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -52,6 +57,27 @@ export function ProfileAccount() {
     const email = user?.email
     const avatarUrl = user?.user_metadata?.avatar_url
     const initials = (displayName || email || 'U').substring(0, 2).toUpperCase()
+    const memberSince = user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Unknown'
+
+    useEffect(() => {
+        if (user) {
+            fetchStats()
+        }
+    }, [user])
+
+    async function fetchStats() {
+        try {
+            const { data } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user?.id)
+                .single()
+
+            if (data) setProfile(data)
+        } catch (error) {
+            console.error(error)
+        }
+    }
 
     async function handleUpdateProfile() {
         setIsUpdating(true)
@@ -191,13 +217,57 @@ export function ProfileAccount() {
                         </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                        <Label className="text-xs font-semibold text-[#91918E] dark:text-[#818181] uppercase tracking-wide">
-                            Email
-                        </Label>
-                        <div className="text-sm text-[#37352F] dark:text-[#D4D4D4] font-medium py-1.5 px-3 bg-[#F7F7F5] dark:bg-[#2C2C2C] rounded-sm border border-[#E9E9E8] dark:border-[#2C2C2C/50]">
-                            {email}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-semibold text-[#91918E] dark:text-[#818181] uppercase tracking-wide">
+                                Email
+                            </Label>
+                            <div className="text-sm text-[#37352F] dark:text-[#D4D4D4] font-medium py-1.5 truncate">
+                                {email}
+                            </div>
                         </div>
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-semibold text-[#91918E] dark:text-[#818181] uppercase tracking-wide">
+                                Joined
+                            </Label>
+                            <div className="flex items-center gap-1.5 text-sm text-[#37352F] dark:text-[#D4D4D4] font-medium py-1.5">
+                                <Calendar className="w-3.5 h-3.5 text-[#91918E]" />
+                                {memberSince}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-4">
+                <div className="flex items-center gap-3 p-3 rounded-lg border border-[#E9E9E8] dark:border-[#2C2C2C] bg-[#F7F7F5] dark:bg-[#191919]">
+                    <div className="p-2 bg-yellow-500/10 rounded-full text-yellow-600 dark:text-yellow-400">
+                        <Trophy className="h-4 w-4" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] text-[#91918E] dark:text-[#818181] font-semibold uppercase tracking-wider">Level</p>
+                        <p className="text-lg font-bold leading-none text-[#37352F] dark:text-[#D4D4D4]">{profile?.level || 1}</p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 rounded-lg border border-[#E9E9E8] dark:border-[#2C2C2C] bg-[#F7F7F5] dark:bg-[#191919]">
+                    <div className="p-2 bg-blue-500/10 rounded-full text-blue-600 dark:text-blue-400">
+                        <Zap className="h-4 w-4" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] text-[#91918E] dark:text-[#818181] font-semibold uppercase tracking-wider">Total XP</p>
+                        <p className="text-lg font-bold leading-none text-[#37352F] dark:text-[#D4D4D4]">{profile?.total_xp || 0}</p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 rounded-lg border border-[#E9E9E8] dark:border-[#2C2C2C] bg-[#F7F7F5] dark:bg-[#191919]">
+                    <div className="p-2 bg-orange-500/10 rounded-full text-orange-600 dark:text-orange-400">
+                        <Flame className="h-4 w-4" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] text-[#91918E] dark:text-[#818181] font-semibold uppercase tracking-wider">Streak</p>
+                        <p className="text-lg font-bold leading-none text-[#37352F] dark:text-[#D4D4D4]">{profile?.current_streak || 0} Days</p>
                     </div>
                 </div>
             </div>
