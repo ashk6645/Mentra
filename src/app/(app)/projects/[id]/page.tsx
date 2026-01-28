@@ -18,16 +18,16 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     const { id } = await params
     const project = await getProject(id)
 
+    if (!project) {
+        notFound()
+    }
+
     const permission = project.currentUserPermission
     const canEdit = permission === 'owner' || permission === 'admin' || permission === 'edit'
     const isOwnerOrAdmin = permission === 'owner' || permission === 'admin'
 
     // We remove the explicit supabase call since permission is already computed
     const isOwner = permission === 'owner'
-
-    if (!project) {
-        notFound()
-    }
 
     return (
         <div className="flex-1 h-full flex flex-col animate-in-fade">

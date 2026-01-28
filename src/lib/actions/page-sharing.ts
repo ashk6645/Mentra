@@ -90,7 +90,7 @@ export async function sharePage(data: SharePageInput) {
         })
 
         revalidatePath(`/private/${pageId}`)
-        revalidateTag(`pages-${targetUser.id}`) // Invalidate for the recipient
+        revalidateTag(`pages-${targetUser.id}`, {}) // Invalidate for the recipient
 
         return { success: true }
     } catch (error) {
@@ -144,7 +144,7 @@ export async function unsharePage(pageId: string, collaboratorId: string) {
         })
 
         revalidatePath(`/private/${pageId}`)
-        revalidateTag(`pages-${collaboratorId}`)
+        revalidateTag(`pages-${collaboratorId}`, {})
 
         return { success: true }
     } catch (error) {
