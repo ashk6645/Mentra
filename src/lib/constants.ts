@@ -6,7 +6,7 @@
 // APP CONFIGURATION
 // ========================================
 
-export const APP_NAME = 'TaskFlow'
+export const APP_NAME = 'Mentra'
 export const APP_DESCRIPTION = 'Premium Task & Life Management'
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 

@@ -58,7 +58,7 @@ export function ProfileTheme() {
             <div>
                 <h2 className="text-lg font-medium text-[#37352F] dark:text-[#D4D4D4] mb-1">Appearance</h2>
                 <p className="text-sm text-[#91918E] dark:text-[#818181]">
-                    Customize how TaskFlow looks on your device.
+                    Customize how Mentra looks on your device.
                 </p>
             </div>
 

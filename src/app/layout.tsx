@@ -17,26 +17,26 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "TaskFlow - Premium Task & Life Management",
-    template: "%s | TaskFlow",
+    default: "Mentra - Premium Task & Life Management",
+    template: "%s | Mentra",
   },
   description: "A production-grade task management application with AI-powered features, gamification, and mental health-friendly design. Achieve more with less stress.",
-  keywords: ["task management", "productivity", "todo", "GTD", "project management", "AI assistant"],
-  authors: [{ name: "TaskFlow Team" }],
-  creator: "TaskFlow",
+  keywords: ["task management", "productivity", "todo", "GTD", "project management", "AI assistant", "Mentra"],
+  authors: [{ name: "Mentra Team" }],
+  creator: "Mentra",
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://taskflow.app",
-    title: "TaskFlow - Premium Task & Life Management",
+    url: "https://mentra.app",
+    title: "Mentra - Premium Task & Life Management",
     description: "Transform your productivity with AI-powered task management",
-    siteName: "TaskFlow",
+    siteName: "Mentra",
   },
   twitter: {
     card: "summary_large_image",
-    title: "TaskFlow - Premium Task & Life Management",
+    title: "Mentra - Premium Task & Life Management",
     description: "Transform your productivity with AI-powered task management",
-    creator: "@taskflow",
+    creator: "@mentra",
   },
   robots: {
     index: true,

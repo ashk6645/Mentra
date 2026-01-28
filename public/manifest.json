@@ -1,6 +1,6 @@
 {
-  "name": "TaskFlow - Premium Task & Life Management",
-  "short_name": "TaskFlow",
+  "name": "Mentra - Premium Task & Life Management",
+  "short_name": "Mentra",
   "description": "A production-grade task management application with AI-powered features",
   "start_url": "/",
   "display": "standalone",
@@ -30,28 +30,46 @@
       "type": "image/png"
     }
   ],
-  "categories": ["productivity", "utilities"],
+  "categories": [
+    "productivity",
+    "utilities"
+  ],
   "shortcuts": [
     {
       "name": "Create Task",
       "short_name": "New Task",
       "description": "Create a new task",
       "url": "/inbox?action=create",
-      "icons": [{ "src": "/icons/task.png", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/icons/task.png",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "Today",
       "short_name": "Today",
       "description": "View today's tasks",
       "url": "/today",
-      "icons": [{ "src": "/icons/today.png", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/icons/today.png",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "Focus Mode",
       "short_name": "Focus",
       "description": "Start a focus session",
       "url": "/focus",
-      "icons": [{ "src": "/icons/focus.png", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/icons/focus.png",
+          "sizes": "96x96"
+        }
+      ]
     }
   ]
 }
