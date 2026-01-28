@@ -3,6 +3,7 @@
 import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache'
 import prisma from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
+import { hasPagePermission } from './page-sharing'
 
 // ========================================
 // TYPES
@@ -186,14 +187,11 @@ export async function updatePage(id: string, data: UpdatePageInput) {
             return { success: false, error: 'Invalid page ID', page: null }
         }
 
-        // Verify ownership
-        const existing = await prisma.page.findFirst({
-            where: { id, userId: user.id },
-            select: { id: true },
-        })
+        // Verify edit permission
+        const canEdit = await hasPagePermission(id, user.id, 'edit')
 
-        if (!existing) {
-            return { success: false, error: 'Page not found or access denied', page: null }
+        if (!canEdit) {
+            return { success: false, error: 'Permission denied', page: null }
         }
 
         const page = await prisma.page.update({
