@@ -23,6 +23,21 @@ export const CalloutBlock = React.forwardRef<HTMLElement, CalloutBlockProps>(
             onChange({ ...content, text: e.target.value })
         }
 
+        const handleKeyDown = (e: React.KeyboardEvent) => {
+            if (e.key === 'Enter') {
+                if (e.shiftKey) {
+                    // Shift+Enter: Exit the block (trigger parent logic)
+                    onKeyDown(e)
+                    return
+                }
+                // Regular Enter: Insert new line (stay inside)
+                e.stopPropagation()
+                return
+            }
+            // Pass other keys to parent
+            onKeyDown(e)
+        }
+
         return (
             <div className="flex p-4 bg-muted/50 rounded-md gap-3 my-2 border border-border/50">
                 <div className="select-none text-xl leading-snug">💡</div>
@@ -32,7 +47,7 @@ export const CalloutBlock = React.forwardRef<HTMLElement, CalloutBlockProps>(
                         html={text}
                         disabled={false}
                         onChange={handleChange}
-                        onKeyDown={onKeyDown}
+                        onKeyDown={handleKeyDown}
                         onFocus={onFocus}
                         onBlur={() => onBlur(block.id)}
                         className={cn(
