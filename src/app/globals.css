@@ -145,7 +145,7 @@
     --text-quaternary: var(--neutral-300);
 
     /* Sidebar */
-    --sidebar: #F9F9F9;
+    --sidebar: #F7F7F5;
     --sidebar-foreground: var(--neutral-900);
     --sidebar-primary: var(--neutral-900);
     --sidebar-primary-foreground: var(--white);
