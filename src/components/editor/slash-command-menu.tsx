@@ -18,6 +18,7 @@ import {
     LayoutGrid,
     CalendarDays,
     ChevronRight,
+    Info,
 } from 'lucide-react'
 
 interface CommandItem {
@@ -113,6 +114,13 @@ const COMMAND_CATEGORIES: CommandCategory[] = [
                 description: 'Toggles can hide and show content inside.',
                 icon: ChevronRight,
                 keywords: ['accordion', 'collapse', 'expand']
+            },
+            {
+                type: 'CALLOUT',
+                label: 'Callout',
+                description: 'Make writing stand out.',
+                icon: Info,
+                keywords: ['callout', 'box', 'alert', 'note']
             },
         ]
     },

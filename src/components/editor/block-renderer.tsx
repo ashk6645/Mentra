@@ -13,6 +13,7 @@ import { DividerBlock } from './blocks/divider-block'
 import { CodeBlock } from './blocks/code-block'
 import { ToggleBlock } from './blocks/toggle-block'
 import { QuoteBlock } from './blocks/quote-block'
+import { CalloutBlock } from './blocks/callout-block'
 
 // Map block types to components
 const BLOCK_COMPONENTS: Partial<Record<BlockType, React.ComponentType<any>>> = {
@@ -27,6 +28,7 @@ const BLOCK_COMPONENTS: Partial<Record<BlockType, React.ComponentType<any>>> = {
     CODE: CodeBlock,
     TOGGLE_LIST: ToggleBlock,
     QUOTE: QuoteBlock,
+    CALLOUT: CalloutBlock,
     DATABASE_BOARD: DatabaseBlock,
     DATABASE_TABLE: DatabaseBlock,
     DATABASE_GALLERY: DatabaseBlock,

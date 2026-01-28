@@ -9,6 +9,7 @@ export type BlockType =
     | 'QUOTE'
     | 'CODE'
     | 'DIVIDER'
+    | 'CALLOUT'
     | 'IMAGE'
     | 'DATABASE_TABLE'
     | 'DATABASE_BOARD'
