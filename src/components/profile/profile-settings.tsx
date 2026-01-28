@@ -5,15 +5,13 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { Moon, Bell, Calendar, Sparkles } from 'lucide-react'
+import { Bell, Calendar, Sparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { useTheme } from 'next-themes'
 import { useToast } from '@/components/ui/use-toast'
 
 export function ProfileSettings() {
   const router = useRouter()
-  const { theme, setTheme } = useTheme()
   const supabase = createClient()
   const { toast } = useToast()
 
@@ -29,32 +27,7 @@ export function ProfileSettings() {
   return (
     <div className="max-w-4xl space-y-10 pb-10">
 
-      {/* Appearance */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-foreground/80">
-          <Moon className="h-5 w-5" />
-          <h3 className="text-lg font-medium">Appearance</h3>
-        </div>
-        <Separator className="bg-border/50" />
-        <div className="grid gap-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label className="text-base">Theme</Label>
-              <p className="text-sm text-muted-foreground">Choose your preferred visual, dark or light.</p>
-            </div>
-            <Select value={theme} onValueChange={setTheme}>
-              <SelectTrigger className="w-36 bg-background">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="light">Light</SelectItem>
-                <SelectItem value="dark">Dark</SelectItem>
-                <SelectItem value="system">System</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </section>
+
 
       {/* Notifications */}
       <section className="space-y-4">

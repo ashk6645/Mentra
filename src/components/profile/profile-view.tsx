@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageLoadingSkeleton } from '@/components/shared/loading-states'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ProfileAccount } from '@/components/profile/profile-account'
+import { ProfileTheme } from '@/components/profile/profile-theme'
 import { useUser } from '@/lib/hooks'
 import { cn } from '@/lib/utils'
 
@@ -28,7 +29,7 @@ export function ProfileView() {
                 {/* Notion-style Sidebar */}
                 <div className="w-full md:w-[240px] border-r border-[#E9E9E8] dark:border-[#2C2C2C] bg-[#F7F7F5] dark:bg-[#1F1F1F] flex-shrink-0 flex flex-col">
                     {/* User Profile Mini Header */}
-                    <div className="p-3 mb-2">
+                    <div className="p-3 mb-1">
                         <div className="flex items-center gap-3 px-2 py-1 rounded-sm hover:bg-[#EFEFEF] dark:hover:bg-[#2C2C2C] cursor-default transition-colors">
                             <Avatar className="h-5 w-5 rounded-sm">
                                 <AvatarImage src={avatarUrl} />
@@ -41,10 +42,12 @@ export function ProfileView() {
                         </div>
                     </div>
 
+                    <div className="px-5 mb-2">
+                        <div className="h-px bg-[#E9E9E8] dark:bg-[#2C2C2C]" />
+                    </div>
+
                     <div className="px-2">
-                        <div className="px-2 py-1 text-xs font-semibold text-[#91918E] dark:text-[#818181] mb-1">
-                            Account
-                        </div>
+                        {/* 'Account' Label Removed */}
                         <TabsList className="flex flex-col items-start h-auto p-0 bg-transparent w-full space-y-[1px]">
                             <TabsTrigger
                                 value="account"
@@ -60,6 +63,21 @@ export function ProfileView() {
                             >
                                 <User className="h-4 w-4 mr-2.5 text-[#91918E] dark:text-[#818181]" />
                                 My Account
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="theme"
+                                className={cn(
+                                    "w-full justify-start px-2 py-1 h-[28px] text-sm rounded-sm font-normal",
+                                    "text-[#37352F] dark:text-[#D4D4D4]",
+                                    "hover:bg-[#EFEFEF] dark:hover:bg-[#2C2C2C] transition-colors",
+                                    "data-[state=active]:bg-[#EFEFEF] dark:data-[state=active]:bg-[#2C2C2C]",
+                                    "data-[state=active]:text-[#37352F] dark:data-[state=active]:text-[#D4D4D4]",
+                                    "data-[state=active]:font-medium",
+                                    "data-[state=active]:shadow-none"
+                                )}
+                            >
+                                <Settings className="h-4 w-4 mr-2.5 text-[#91918E] dark:text-[#818181]" />
+                                Theme
                             </TabsTrigger>
                             <TabsTrigger
                                 value="activity"
@@ -112,12 +130,12 @@ export function ProfileView() {
 
                 {/* Content Area */}
                 <div className="flex-1 overflow-y-auto min-w-0 bg-background">
-                    <div className="px-8 py-10 md:px-12 md:py-12 space-y-8 max-w-4xl mx-auto">
+                    <div className="px-8 py-6 md:px-12 md:py-8 space-y-8 max-w-4xl mx-auto">
                         {/* We keep the header but maybe simplify it if needed. 
                             For now, kept as is but inside the spacious container. */}
 
 
-                        <div className="mt-8">
+                        <div>
                             <TabsContent value="account" className="space-y-6 mt-0 animate-in fade-in-50 duration-200">
                                 <ProfileAccount />
                             </TabsContent>
@@ -138,6 +156,10 @@ export function ProfileView() {
                                         <ProfileAchievements />
                                     </Suspense>
                                 </div>
+                            </TabsContent>
+
+                            <TabsContent value="theme" className="space-y-6 mt-0 animate-in fade-in-50 duration-200">
+                                <ProfileTheme />
                             </TabsContent>
 
                             <TabsContent value="settings" className="space-y-6 mt-0 animate-in fade-in-50 duration-200">
