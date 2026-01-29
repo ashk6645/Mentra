@@ -392,8 +392,8 @@ function TableView({
                 </thead>
                 <tbody>
                     {items.map((item, index) => (
-                        <tr 
-                            key={item.id} 
+                        <tr
+                            key={item.id}
                             className={cn(
                                 "border-b border-border/30 hover:bg-accent/30 group transition-colors",
                                 index % 2 === 0 ? "bg-background" : "bg-muted/10"

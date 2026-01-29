@@ -88,7 +88,7 @@ export function ItemModalImproved({
         if (item) {
             setTitle(item.title)
             setIcon(item.icon || '📄')
-            
+
             // Load blocks that belong to this database item
             // These are stored as childBlocks of the database item
             if (item.childBlocks && item.childBlocks.length > 0) {
@@ -168,14 +168,14 @@ export function ItemModalImproved({
                 type,
                 content: getDefaultBlockContent(type),
                 parentBlockId: item.id, // Important: link to database item
-                sortOrder: afterBlockId 
-                    ? blocks.findIndex(b => b.id === afterBlockId) + 1 
+                sortOrder: afterBlockId
+                    ? blocks.findIndex(b => b.id === afterBlockId) + 1
                     : blocks.length,
             })
 
             if (result.success && result.block) {
                 // Replace temp block with real block
-                setBlocks(prev => prev.map(b => 
+                setBlocks(prev => prev.map(b =>
                     b.id === tempId ? result.block as Block : b
                 ))
                 setFocusedBlockId(result.block.id)
@@ -194,7 +194,7 @@ export function ItemModalImproved({
 
     const handleUpdateBlock = useCallback(async (id: string, content: Record<string, unknown>) => {
         // Update UI immediately
-        setBlocks(prev => prev.map(b => 
+        setBlocks(prev => prev.map(b =>
             b.id === id ? { ...b, content } : b
         ))
 
@@ -255,14 +255,14 @@ export function ItemModalImproved({
                     {/* Cover Image Area */}
                     {item.coverImage ? (
                         <div className="h-48 bg-muted relative group">
-                            <img 
-                                src={item.coverImage} 
-                                alt="Cover" 
+                            <img
+                                src={item.coverImage}
+                                alt="Cover"
                                 className="w-full h-full object-cover"
                             />
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                <Button 
-                                    size="sm" 
+                                <Button
+                                    size="sm"
                                     variant="secondary"
                                     onClick={() => {
                                         const url = prompt('Enter image URL:', item.coverImage || '')
@@ -271,8 +271,8 @@ export function ItemModalImproved({
                                 >
                                     Change cover
                                 </Button>
-                                <Button 
-                                    size="sm" 
+                                <Button
+                                    size="sm"
                                     variant="secondary"
                                     onClick={() => onUpdate(item.id, { coverImage: null })}
                                 >
@@ -282,7 +282,7 @@ export function ItemModalImproved({
                         </div>
                     ) : (
                         <div className="h-32 bg-gradient-to-r from-muted/50 to-muted flex items-center justify-center group">
-                            <button 
+                            <button
                                 onClick={() => {
                                     const url = prompt('Enter image URL:')
                                     if (url) onUpdate(item.id, { coverImage: url })
@@ -339,9 +339,9 @@ export function ItemModalImproved({
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
+                        <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-8 w-8 bg-background/80 backdrop-blur"
                             onClick={onClose}
                         >
