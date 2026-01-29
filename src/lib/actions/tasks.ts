@@ -14,8 +14,6 @@ const createTaskSchema = z.object({
     description: z.string().optional(),
     priority: z.enum(['low', 'medium', 'high', 'urgent']).optional().nullable(),
     dueDate: z.string().optional().nullable(), // Passed as ISO string
-    projectId: z.string().optional(),
-    sectionId: z.string().optional(),
     scheduledStart: z.string().optional(), // ISO string for scheduled start time
     scheduledEnd: z.string().optional(), // ISO string for scheduled end time
     durationMinutes: z.number().optional(),
@@ -32,7 +30,6 @@ export type UpdateTaskInput = z.infer<typeof updateTaskSchema>
 // Actions
 
 export interface GetTasksOptions {
-    projectId?: string | null // string for specific project, null for no project (inbox)
     completed?: boolean
     dateRange?: {
         start: Date
@@ -60,9 +57,7 @@ export async function getTasks(options: GetTasksOptions = {}) {
         }
 
         // Apply filters
-        if (options.projectId !== undefined) {
-            where.projectId = options.projectId
-        }
+
 
         if (options.completed !== undefined) {
             where.completed = options.completed
@@ -86,8 +81,7 @@ export async function getTasks(options: GetTasksOptions = {}) {
                 dueDate: true,
                 completed: true,
                 completedAt: true,
-                projectId: true,
-                sectionId: true,
+
                 scheduledStart: true,
                 scheduledEnd: true,
                 durationMinutes: true,
@@ -106,13 +100,7 @@ export async function getTasks(options: GetTasksOptions = {}) {
                         }
                     }
                 },
-                project: {
-                    select: {
-                        id: true,
-                        name: true,
-                        color: true,
-                    }
-                }
+
             },
             orderBy: [
                 { completed: 'asc' },
@@ -161,19 +149,7 @@ export async function createTask(data: CreateTaskInput) {
             )
         }
 
-        // Permission Check for Shared Projects
-        if (result.data.projectId) {
-            const { hasProjectPermission } = await import('@/lib/actions/sharing')
-            const hasPermission = await hasProjectPermission(result.data.projectId, user.id, 'edit')
-            if (!hasPermission) {
-                throw new AppError(
-                    'You do not have permission to add tasks to this project',
-                    ErrorCodes.FORBIDDEN,
-                    403,
-                    'Permission denied'
-                )
-            }
-        }
+
 
         // Ensure profile exists before creating task
         await prisma.profile.upsert({
@@ -193,8 +169,6 @@ export async function createTask(data: CreateTaskInput) {
                 description: result.data.description,
                 priority: result.data.priority || null,
                 dueDate: result.data.dueDate ? new Date(result.data.dueDate) : null,
-                projectId: result.data.projectId || null,
-                sectionId: result.data.sectionId || null,
                 scheduledStart: result.data.scheduledStart ? new Date(result.data.scheduledStart) : null,
                 scheduledEnd: result.data.scheduledEnd ? new Date(result.data.scheduledEnd) : null,
                 durationMinutes: result.data.durationMinutes || null,
@@ -243,8 +217,7 @@ export async function updateTask(data: UpdateTaskInput) {
             updateData.completed = result.data.completed
             updateData.completedAt = result.data.completed ? new Date() : null
         }
-        if (result.data.projectId !== undefined) updateData.projectId = result.data.projectId
-        if (result.data.sectionId !== undefined) updateData.sectionId = result.data.sectionId
+
         if (result.data.scheduledStart !== undefined) {
             updateData.scheduledStart = result.data.scheduledStart ? new Date(result.data.scheduledStart) : null
         }
@@ -255,31 +228,11 @@ export async function updateTask(data: UpdateTaskInput) {
 
         const currentTask = await prisma.task.findUnique({
             where: { id: result.data.id },
-            select: { userId: true, projectId: true }
+            select: { userId: true }
         })
 
         if (!currentTask) {
             return { success: false, error: 'Task not found' }
-        }
-
-        let hasPermission = false
-        if (currentTask.projectId) {
-            const { hasProjectPermission } = await import('@/lib/actions/sharing')
-            hasPermission = await hasProjectPermission(currentTask.projectId, user.id, 'edit')
-        } else {
-            // Personal task
-            hasPermission = currentTask.userId === user.id
-        }
-
-        if (!hasPermission) {
-            return { success: false, error: 'Permission denied' }
-        }
-
-        // If moving to a new project, check permission for that project too
-        if (result.data.projectId && result.data.projectId !== currentTask.projectId) {
-            const { hasProjectPermission } = await import('@/lib/actions/sharing')
-            const canMoveTo = await hasProjectPermission(result.data.projectId, user.id, 'edit')
-            if (!canMoveTo) return { success: false, error: 'Cannot move to target project: Permission denied' }
         }
 
         const task = await prisma.task.update({
@@ -315,7 +268,7 @@ export async function updateTask(data: UpdateTaskInput) {
     }
 }
 
-export async function updateTaskOrder(tasks: { id: string; sortOrder: number; sectionId?: string | null }[]) {
+export async function updateTaskOrder(tasks: { id: string; sortOrder: number }[]) {
     try {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
@@ -334,7 +287,6 @@ export async function updateTaskOrder(tasks: { id: string; sortOrder: number; se
                     where: { id: task.id, userId: user.id },
                     data: {
                         sortOrder: task.sortOrder,
-                        sectionId: task.sectionId
                     }
                 })
             )
@@ -360,20 +312,11 @@ export async function toggleTaskCompletion(id: string, completed: boolean) {
 
         const currentTask = await prisma.task.findUnique({
             where: { id },
-            select: { userId: true, projectId: true }
+            select: { userId: true }
         })
 
         if (!currentTask) return { success: false, error: 'Task not found' }
-
-        let hasPermission = false
-        if (currentTask.projectId) {
-            const { hasProjectPermission } = await import('@/lib/actions/sharing')
-            hasPermission = await hasProjectPermission(currentTask.projectId, user.id, 'edit')
-        } else {
-            hasPermission = currentTask.userId === user.id
-        }
-
-        if (!hasPermission) return { success: false, error: 'Permission denied' }
+        if (currentTask.userId !== user.id) return { success: false, error: 'Permission denied' }
 
         const task = await prisma.task.update({
             where: { id },
@@ -418,20 +361,11 @@ export async function deleteTask(id: string) {
         // but if they were, they'd be handled here.
         const currentTask = await prisma.task.findUnique({
             where: { id },
-            select: { userId: true, projectId: true }
+            select: { userId: true }
         })
 
         if (!currentTask) return { success: false, error: 'Task not found' }
-
-        let hasPermission = false
-        if (currentTask.projectId) {
-            const { hasProjectPermission } = await import('@/lib/actions/sharing')
-            hasPermission = await hasProjectPermission(currentTask.projectId, user.id, 'edit')
-        } else {
-            hasPermission = currentTask.userId === user.id
-        }
-
-        if (!hasPermission) return { success: false, error: 'Permission denied' }
+        if (currentTask.userId !== user.id) return { success: false, error: 'Permission denied' }
 
         await prisma.task.delete({
             where: { id }
@@ -468,32 +402,19 @@ export async function createTaskFromNaturalLanguage(input: string) {
         const { parseTaskNaturalLanguage, calculateReminderTime } = await import('@/lib/parsers/task-parser')
 
         // Get user's projects and tags for context
-        const [projects, tags] = await Promise.all([
-            prisma.project.findMany({
-                where: { userId: user.id },
-                select: { id: true, name: true },
-            }),
-            prisma.tag.findMany({
-                where: { userId: user.id },
-                select: { id: true, name: true },
-            }),
-        ])
+        const tags = await prisma.tag.findMany({
+            where: { userId: user.id },
+            select: { id: true, name: true },
+        })
 
         // Parse the input
         const parsed = parseTaskNaturalLanguage(input, {
             currentDate: new Date(),
-            availableProjects: projects,
+            availableProjects: [],
             availableTags: tags,
         })
 
-        // Match project by name
-        let projectId: string | undefined
-        if (parsed.projectName) {
-            const project = projects.find(
-                p => p.name.toLowerCase() === parsed.projectName!.toLowerCase()
-            )
-            projectId = project?.id
-        }
+
 
         // Match tags by name and auto-create if needed
         const tagIds: string[] = []
@@ -531,7 +452,6 @@ export async function createTaskFromNaturalLanguage(input: string) {
                 title: parsed.title,
                 priority: parsed.priority,
                 dueDate: parsed.dueDate,
-                projectId,
                 tags: tagIds.length > 0
                     ? {
                         create: tagIds.map((tagId) => ({
@@ -548,7 +468,6 @@ export async function createTaskFromNaturalLanguage(input: string) {
                         tag: true,
                     },
                 },
-                project: true,
             },
         })
 
@@ -627,13 +546,6 @@ export async function searchTasks(query: string) {
                 completed: true,
                 dueDate: true,
                 priority: true,
-                project: {
-                    select: {
-                        id: true,
-                        name: true,
-                        color: true,
-                    }
-                }
             }
         })
 

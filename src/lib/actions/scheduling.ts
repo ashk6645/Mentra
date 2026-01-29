@@ -78,7 +78,7 @@ export async function getScheduledTasks(startDate: Date, endDate: Date) {
         completed: false,
       },
       include: {
-        project: true,
+
         tags: { include: { tag: true } }
       },
       orderBy: { scheduledStart: 'asc' }
@@ -105,7 +105,7 @@ export async function getUnscheduledTasks() {
         completed: false,
       },
       include: {
-        project: true,
+
         tags: { include: { tag: true } }
       },
       orderBy: { createdAt: 'desc' },

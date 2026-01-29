@@ -148,10 +148,10 @@ export async function resetUserAccount() {
 
             // 1. Core Data
             await tx.task.deleteMany({ where: { userId } })
-            await tx.project.deleteMany({ where: { userId } })
+
             await tx.habit.deleteMany({ where: { userId } })
             await tx.tag.deleteMany({ where: { userId } })
-            await tx.areaOfLife.deleteMany({ where: { userId } })
+
 
             // 2. Features
             await tx.focusSession.deleteMany({ where: { userId } })
@@ -162,7 +162,7 @@ export async function resetUserAccount() {
             await tx.aIActivityLog.deleteMany({ where: { userId } })
 
             // 4. Shared Data (Where user is the sharer)
-            await tx.sharedProject.deleteMany({ where: { sharedByUserId: userId } })
+
 
             // 5. Reset Profile Stats
             await tx.profile.update({

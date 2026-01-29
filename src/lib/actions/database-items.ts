@@ -96,7 +96,7 @@ export async function createDatabaseItem(data: CreateDatabaseItemInput) {
             },
         })
 
-        revalidatePath(`/private/${block.page.id}`)
+        revalidatePath(`/pages/${block.page.id}`)
 
         return { success: true, item }
     } catch (error) {
@@ -140,7 +140,7 @@ export async function updateDatabaseItem(id: string, data: UpdateDatabaseItemInp
             },
         })
 
-        revalidatePath(`/private/${existing.block.page.id}`)
+        revalidatePath(`/pages/${existing.block.page.id}`)
 
         return { success: true, item }
     } catch (error) {
@@ -177,7 +177,7 @@ export async function deleteDatabaseItem(id: string) {
             where: { id },
         })
 
-        revalidatePath(`/private/${existing.block.page.id}`)
+        revalidatePath(`/pages/${existing.block.page.id}`)
 
         return { success: true }
     } catch (error) {
@@ -248,7 +248,7 @@ export async function createDatabaseProperty(blockId: string, name: string, type
             },
         })
 
-        revalidatePath(`/private/${block.page.id}`)
+        revalidatePath(`/pages/${block.page.id}`)
 
         return { success: true, property }
     } catch (error) {

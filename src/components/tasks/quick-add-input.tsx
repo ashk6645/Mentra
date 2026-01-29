@@ -8,18 +8,12 @@ import { parseTaskNaturalLanguage, ParsedTaskData } from '@/lib/parsers/task-par
 import { format } from 'date-fns'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Project, Tag } from '@prisma/client'
+import { Tag } from '@prisma/client'
 
 interface QuickAddInputProps {
     onSubmit: (parsedData: ParsedTaskData) => void | Promise<void>
     onCancel?: () => void
-    availableProjects?: Array<{
-        id: string
-        name: string
-        color: string | null
-        icon: string | null
-        sortOrder: number
-    }>
+
     availableTags?: Tag[]
     placeholder?: string
     autoFocus?: boolean
@@ -29,7 +23,6 @@ interface QuickAddInputProps {
 export function QuickAddInput({
     onSubmit,
     onCancel,
-    availableProjects = [],
     availableTags = [],
     placeholder = 'Type your task... (e.g., "Buy groceries tomorrow #Personal @urgent p1")',
     autoFocus = true,
@@ -38,7 +31,6 @@ export function QuickAddInput({
     const [input, setInput] = useState('')
     const [parsedData, setParsedData] = useState<ParsedTaskData | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [showProjectAutocomplete, setShowProjectAutocomplete] = useState(false)
     const [showTagAutocomplete, setShowTagAutocomplete] = useState(false)
     const [autocompleteQuery, setAutocompleteQuery] = useState('')
     const inputRef = useRef<HTMLInputElement>(null)
@@ -54,7 +46,7 @@ export function QuickAddInput({
             if (input.trim()) {
                 const parsed = parseTaskNaturalLanguage(input, {
                     currentDate: new Date(),
-                    availableProjects: availableProjects.map(p => ({ id: p.id, name: p.name })),
+                    availableProjects: [],
                     availableTags: availableTags.map(t => ({ id: t.id, name: t.name })),
                 })
                 setParsedData(parsed)
@@ -68,33 +60,25 @@ export function QuickAddInput({
                 clearTimeout(debounceTimerRef.current)
             }
         }
-    }, [input, availableProjects, availableTags])
+    }, [input, availableTags])
 
     // Detect # or @ for autocomplete
     useEffect(() => {
         const cursorPosition = inputRef.current?.selectionStart || 0
         const textBeforeCursor = input.substring(0, cursorPosition)
 
-        // Check for # (project)
-        const projectMatch = textBeforeCursor.match(/#(\w*)$/)
-        if (projectMatch) {
-            setAutocompleteQuery(projectMatch[1])
-            setShowProjectAutocomplete(true)
-            setShowTagAutocomplete(false)
-            return
-        }
+
 
         // Check for @ (tag)
         const tagMatch = textBeforeCursor.match(/@(\w*)$/)
         if (tagMatch) {
             setAutocompleteQuery(tagMatch[1])
             setShowTagAutocomplete(true)
-            setShowProjectAutocomplete(false)
             return
         }
 
         // Hide autocomplete if no match
-        setShowProjectAutocomplete(false)
+
         setShowTagAutocomplete(false)
     }, [input])
 
@@ -118,8 +102,7 @@ export function QuickAddInput({
             e.preventDefault()
             handleSubmit()
         } else if (e.key === 'Escape') {
-            if (showProjectAutocomplete || showTagAutocomplete) {
-                setShowProjectAutocomplete(false)
+            if (showTagAutocomplete) {
                 setShowTagAutocomplete(false)
             } else if (onCancel) {
                 onCancel()
@@ -127,23 +110,7 @@ export function QuickAddInput({
         }
     }
 
-    const selectProject = (projectName: string) => {
-        const cursorPosition = inputRef.current?.selectionStart || 0
-        const textBeforeCursor = input.substring(0, cursorPosition)
-        const textAfterCursor = input.substring(cursorPosition)
 
-        // Replace the partial project name with the selected one
-        const newTextBefore = textBeforeCursor.replace(/#\w*$/, `#${projectName} `)
-        setInput(newTextBefore + textAfterCursor)
-        setShowProjectAutocomplete(false)
-
-        // Focus back on input
-        setTimeout(() => {
-            inputRef.current?.focus()
-            const newPosition = newTextBefore.length
-            inputRef.current?.setSelectionRange(newPosition, newPosition)
-        }, 0)
-    }
 
     const selectTag = (tagName: string) => {
         const cursorPosition = inputRef.current?.selectionStart || 0
@@ -164,9 +131,7 @@ export function QuickAddInput({
     }
 
     // Filter autocomplete options
-    const filteredProjects = availableProjects.filter(p =>
-        p.name.toLowerCase().includes(autocompleteQuery.toLowerCase())
-    )
+
 
     const filteredTags = availableTags.filter(t =>
         t.name.toLowerCase().includes(autocompleteQuery.toLowerCase())
@@ -196,21 +161,7 @@ export function QuickAddInput({
                     className="text-base"
                 />
 
-                {/* Project Autocomplete */}
-                {showProjectAutocomplete && filteredProjects.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-lg z-50 max-h-48 overflow-y-auto">
-                        {filteredProjects.map((project) => (
-                            <button
-                                key={project.id}
-                                onClick={() => selectProject(project.name)}
-                                className="w-full px-3 py-2 text-left text-sm hover:bg-accent transition-colors flex items-center gap-2"
-                            >
-                                {project.icon && <span>{project.icon}</span>}
-                                <span>{project.name}</span>
-                            </button>
-                        ))}
-                    </div>
-                )}
+
 
                 {/* Tag Autocomplete */}
                 {showTagAutocomplete && filteredTags.length > 0 && (
@@ -243,12 +194,7 @@ export function QuickAddInput({
                             value={format(parsedData.dueDate, 'MMM d, h:mm a')}
                         />
                     )}
-                    {parsedData.projectName && (
-                        <ParsedElementChip
-                            type="project"
-                            value={parsedData.projectName}
-                        />
-                    )}
+
                     {parsedData.tagNames.map((tag, index) => (
                         <ParsedElementChip
                             key={index}
@@ -294,7 +240,6 @@ export function QuickAddInput({
 
             {/* Helper Text */}
             <p className="text-xs text-muted-foreground">
-                Use <code className="px-1 py-0.5 bg-muted rounded">#project</code>,{' '}
                 <code className="px-1 py-0.5 bg-muted rounded">@tag</code>,{' '}
                 <code className="px-1 py-0.5 bg-muted rounded">p1-p4</code>,{' '}
                 <code className="px-1 py-0.5 bg-muted rounded">!reminder</code>, and natural dates

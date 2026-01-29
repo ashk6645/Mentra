@@ -7,11 +7,11 @@ import { useUIStore } from '@/stores/use-ui-store'
 
 interface CommandPaletteWrapperProps {
     user: any
-    projects?: any[]
+
     children: React.ReactNode
 }
 
-export function CommandPaletteWrapper({ user, projects, children }: CommandPaletteWrapperProps) {
+export function CommandPaletteWrapper({ user, children }: CommandPaletteWrapperProps) {
     const { isSidebarCollapsed } = useUIStore()
 
 
@@ -24,7 +24,7 @@ export function CommandPaletteWrapper({ user, projects, children }: CommandPalet
     return (
         <>
             <CommandPalette />
-            <Sidebar user={user} projects={projects} onOpenCommand={handleOpenCommand} />
+            <Sidebar user={user} onOpenCommand={handleOpenCommand} />
 
             <main
                 className="min-h-screen transition-[padding] duration-300 ease-in-out"

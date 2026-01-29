@@ -22,94 +22,25 @@ model Profile {
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  projects             Project[]
   tasks                Task[]
   tags                 Tag[]
   habits               Habit[]
   focusSessions        FocusSession[]
   xpLogs               XPLog[]
   aiLogs               AIActivityLog[]
-  areas                AreaOfLife[]
   pages                Page[]
-  sharedProjectsOwned  SharedProject[] @relation("SharedByUser")
-  sharedProjectsAccess SharedProject[] @relation("SharedWithUser")
   sharedPagesOwned     SharedPage[]    @relation("SharedPageByUser")
   sharedPagesAccess    SharedPage[]    @relation("SharedPageWithUser")
 
   @@map("profiles")
 }
 
-// 2. Projects
-model Project {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id")
-  name        String
-  description String?
-  color       String?
-  icon        String?
-  
-  // Project Database Fields
-  status      ProjectStatus    @default(ACTIVE)
-  priority    ProjectPriority  @default(MEDIUM)
-  startDate   DateTime?        @map("start_date") @db.Timestamptz
-  targetDate  DateTime?        @map("target_date") @db.Timestamptz
-  
-  isArchived  Boolean  @default(false) @map("is_archived")
-  sortOrder   Int      @default(0) @map("sort_order")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  // Relations
-  owner      Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sections   Section[]
-  tasks      Task[]
-  sharedWith SharedProject[]
-
-  areaId String?      @map("area_id")
-  area   AreaOfLife? @relation(fields: [areaId], references: [id], onDelete: SetNull)
-
-  @@index([userId])
-  @@index([areaId])
-  @@index([status])
-  @@map("projects")
-}
-
-enum ProjectStatus {
-  PLANNING
-  ACTIVE
-  ON_HOLD
-  COMPLETED
-}
-
-enum ProjectPriority {
-  HIGH
-  MEDIUM
-  LOW
-}
-
-// 3. Sections
-model Section {
-  id        String   @id @default(uuid())
-  projectId String   @map("project_id")
-  name      String
-  sortOrder Int      @default(0) @map("sort_order")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  tasks   Task[]
-
-  @@index([projectId])
-  @@map("sections")
-}
 
 // 4. Tasks
 model Task {
   id              String    @id @default(uuid())
   userId          String    @map("user_id")
-  projectId       String?   @map("project_id")
-  sectionId       String?   @map("section_id")
 
   title       String
   description String?
@@ -133,16 +64,12 @@ model Task {
 
   // Relations
   user          Profile        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  project       Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  section       Section?       @relation(fields: [sectionId], references: [id], onDelete: SetNull)
   tags          TaskTag[]
   reminders     Reminder[]
   focusSessions FocusSession[]
 
   @@index([userId])
-  @@index([projectId])
-  @@index([sectionId])
-  @@index([userId, projectId]) // Optimized for Inbox (projectId: null)
+
   @@index([userId, completed]) // Optimized for Dashboard (active tasks)
   @@index([userId, completed, completedAt]) // Optimized for Stats/History
   @@map("tasks")
@@ -285,41 +212,7 @@ model AIActivityLog {
   @@map("ai_activity_logs")
 }
 
-// 13. Areas of Life
-model AreaOfLife {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  name      String
-  icon      String?
-  color     String?
-  sortOrder Int      @default(0) @map("sort_order")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
 
-  // Relations
-  user     Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  projects Project[]
-
-  @@map("areas_of_life")
-}
-
-// 14. Shared Projects
-model SharedProject {
-  id               String   @id @default(uuid())
-  projectId        String   @map("project_id")
-  sharedByUserId   String   @map("shared_by_user_id")
-  sharedWithUserId String   @map("shared_with_user_id")
-  permission       String   @default("view") // 'view', 'edit', 'admin'
-  createdAt        DateTime @default(now()) @map("created_at")
-
-  // Relations
-  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  sharedBy   Profile @relation("SharedByUser", fields: [sharedByUserId], references: [id], onDelete: Cascade)
-  sharedWith Profile @relation("SharedWithUser", fields: [sharedWithUserId], references: [id], onDelete: Cascade)
-
-  @@unique([projectId, sharedWithUserId])
-  @@map("shared_projects")
-}
 
 // 15. Shared Pages
 model SharedPage {
@@ -500,7 +393,7 @@ enum BlockType {
 
 enum SourceType {
   TASKS
-  PROJECTS
+  // PROJECTS removed
   HABITS
 }
 

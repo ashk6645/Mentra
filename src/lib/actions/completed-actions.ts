@@ -9,10 +9,7 @@ interface CompletedTask {
     title: string
     completedAt: Date
     priority: string | null
-    project: {
-        name: string
-        color: string | null
-    } | null
+
 }
 
 interface GroupedCompletedTasks {
@@ -56,12 +53,7 @@ export async function getCompletedTasks(): Promise<{ success: boolean; data?: Gr
                 title: true,
                 completedAt: true,
                 priority: true,
-                project: {
-                    select: {
-                        name: true,
-                        color: true
-                    }
-                }
+
             },
             orderBy: {
                 completedAt: 'desc'

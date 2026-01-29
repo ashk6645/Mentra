@@ -13,12 +13,12 @@ interface Section {
 interface TaskBoardProps {
   tasks: any[]; // Extended task
   sections?: Section[];
-  projectId: string;
+
   onTaskCreated?: (task: Task) => void;
   canEdit: boolean;
 }
 
-export function TaskBoard({ tasks, sections = [], projectId, onTaskCreated, canEdit }: TaskBoardProps) {
+export function TaskBoard({ tasks, sections = [], onTaskCreated, canEdit }: TaskBoardProps) {
   const [showCreateForSection, setShowCreateForSection] = useState<string | null>(null);
 
   // If no sections exist, create default view or just one column
@@ -65,8 +65,7 @@ export function TaskBoard({ tasks, sections = [], projectId, onTaskCreated, canE
 
             <div className="mt-2">
               <CreateTaskInline
-                projectId={projectId}
-                defaultSectionId={col.id === 'uncategorized' ? undefined : col.id}
+
                 onTaskCreated={() => {
                   onTaskCreated && onTaskCreated({} as any) // Trigger refresh via parent or callback
                   setShowCreateForSection(null)

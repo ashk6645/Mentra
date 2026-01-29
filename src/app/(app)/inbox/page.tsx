@@ -19,7 +19,7 @@ export default async function InboxPage() {
     const inboxTasks = await prisma.task.findMany({
         where: {
             userId: user.id,
-            projectId: null,
+
             OR: [
                 { dueDate: null },           // Undated tasks
                 { dueDate: { lt: today } }   // Past-due tasks (before today)
@@ -62,7 +62,7 @@ export default async function InboxPage() {
                     <InboxTaskList tasks={inboxTasks} />
 
                     <CreateTaskInline
-                        projectId="none"
+
                         className="ml-6"
                         label="Add task to Inbox..."
                     />

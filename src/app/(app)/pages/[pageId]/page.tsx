@@ -1,7 +1,7 @@
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getPageById } from '@/lib/actions/pages'
-import { PageEditor } from '@/components/private-pages/page-editor'
+import { PageEditor } from '@/components/pages/page-editor'
 
 interface PageProps {
     params: Promise<{ pageId: string }>

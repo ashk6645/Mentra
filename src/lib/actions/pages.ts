@@ -216,7 +216,7 @@ export async function updatePage(id: string, data: UpdatePageInput) {
 
             ; (revalidateTag as any)(`pages-${user.id}`)
         revalidatePath('/', 'layout')
-        revalidatePath(`/private/${id}`)
+        revalidatePath(`/pages/${id}`)
 
         return { success: true, page }
     } catch (error) {

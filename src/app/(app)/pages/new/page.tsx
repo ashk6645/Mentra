@@ -1,18 +1,23 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createPage } from '@/lib/actions/pages'
 
 export default function NewPrivatePage() {
     const router = useRouter()
 
+    const isCreating = useRef(false)
+
     useEffect(() => {
+        if (isCreating.current) return
+        isCreating.current = true
+
         const init = async () => {
             try {
                 const result = await createPage({ title: 'Untitled' })
                 if (result.success && result.page) {
-                    router.replace(`/private/${result.page.id}`)
+                    router.replace(`/pages/${result.page.id}`)
                     router.refresh()
                 } else {
                     router.replace('/dashboard')

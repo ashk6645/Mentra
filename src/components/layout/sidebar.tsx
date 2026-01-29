@@ -30,14 +30,12 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect, memo } from 'react'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Project } from '@prisma/client'
-import { CreateProjectDialog } from '@/components/projects/create-project-dialog'
+
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUIStore } from '@/stores/use-ui-store'
 import { PanelLeftClose, MoreHorizontal, Trash2 } from 'lucide-react'
-import { deleteProject, getProjects } from '@/lib/actions/projects'
 import { deletePage, getPages } from '@/lib/actions/pages'
 import {
     DropdownMenu,
@@ -59,41 +57,26 @@ interface PageItem {
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     user: any
-    projects?: Array<{
-        id: string
-        name: string
-        color: string | null
-        icon: string | null
-        sortOrder: number
-    }>
     onOpenCommand?: () => void
 }
 
 // Change to non-exported function, exported as memo at bottom
-function SidebarComponent({ className, user, projects: initialProjects = [], onOpenCommand }: SidebarProps) {
+function SidebarComponent({ className, user, onOpenCommand }: SidebarProps) {
     const pathname = usePathname()
     const router = useRouter()
     const supabase = createClient()
     const { isSidebarCollapsed, toggleSidebarCollapsed } = useUIStore()
 
     const [profile, setProfile] = useState<any>(null)
-    const [projectsExpanded, setProjectsExpanded] = useState(true)
     const [sharedExpanded, setSharedExpanded] = useState(true)
     const [pagesExpanded, setPagesExpanded] = useState(true)
 
-    const [showCreateDialog, setShowCreateDialog] = useState(false)
     const [showProfileDialog, setShowProfileDialog] = useState(false)
-    // We use the prop directly, but if we need local optimistic updates we could use state. 
-    // For now, let's rely on the prop which comes from server (fresh on refresh).
-    // Actually, to support seamless optimistic updates from the create dialog without full page reload feels (though router.refresh behaves like one),
-    // let's just use the prop. The CreateDialog calls router.refresh() which updates the prop.
-    const projects = initialProjects
     const [pages, setPages] = useState<PageItem[]>([])
 
     // Reset expanded states when sidebar collapses to keep UI clean
     useEffect(() => {
         if (isSidebarCollapsed) {
-            setProjectsExpanded(false)
             setSharedExpanded(false)
             setPagesExpanded(false)
         }
@@ -163,8 +146,6 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
         { label: 'Completed', icon: CheckCircle2, href: '/completed' },
         { label: 'My Tasks', icon: CheckSquare, href: '/tasks' },
         { label: 'Calendar', icon: Calendar, href: '/calendar' },
-        { label: 'Projects', icon: Folder, href: '/project-database' },
-        { label: 'Areas', icon: LayoutGrid, href: '/areas' },
         { label: 'Focus', icon: Timer, href: '/focus' },
         { label: 'Habits', icon: Target, href: '/habits' },
     ]
@@ -312,111 +293,7 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
                     })}
                 </div>
 
-                {/* Projects Section */}
-                {!isSidebarCollapsed && (
-                    <div className="px-2 mb-2">
-                        <div
-                            className="flex items-center justify-between group mb-1 mt-4 px-2 py-1 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 rounded-sm cursor-pointer transition-colors"
-                            onClick={() => setProjectsExpanded(!projectsExpanded)}
-                        >
-                            <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider select-none">
-                                Projects
-                            </span>
-                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                <div className="p-0.5 text-muted-foreground">
-                                    <motion.div
-                                        animate={{ rotate: projectsExpanded ? 90 : 0 }}
-                                        transition={{ duration: 0.2 }}
-                                    >
-                                        <ChevronRight className="h-3 w-3" />
-                                    </motion.div>
-                                </div>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        setShowCreateDialog(true)
-                                    }}
-                                    className="p-0.5 hover:bg-zinc-300/50 dark:hover:bg-zinc-700/50 rounded-sm transition-all duration-200 text-muted-foreground"
-                                    aria-label="Add project"
-                                >
-                                    <Plus className="h-3 w-3" />
-                                </button>
-                            </div>
-                        </div>
 
-                        <AnimatePresence initial={false}>
-                            {projectsExpanded && (
-                                <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: "auto", opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    transition={{ duration: 0.3, ease: "circOut" }}
-                                    className="space-y-0.5 overflow-hidden"
-                                >
-                                    {projects.map((project, index) => (
-                                        <motion.div
-                                            key={project.id}
-                                            initial={{ x: -10, opacity: 0 }}
-                                            animate={{ x: 0, opacity: 1 }}
-                                            transition={{ delay: index * 0.05 }}
-                                            className="group/item flex items-center pr-2"
-                                        >
-                                            <Link
-                                                href={`/projects/${project.id}`}
-                                                className={cn(
-                                                    "flex-1 flex items-center gap-2 px-3 py-1 text-sm rounded-sm transition-colors",
-                                                    pathname === `/projects/${project.id}`
-                                                        ? "text-foreground bg-neutral-200/60 dark:bg-neutral-800/60 font-medium"
-                                                        : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50"
-                                                )}
-                                            >
-                                                <span className={cn(
-                                                    "h-1.5 w-1.5 rounded-full ring-1 ring-white/10 shrink-0",
-                                                    project.color === 'red' && "bg-red-500",
-                                                    project.color === 'blue' && "bg-blue-500",
-                                                    project.color === 'green' && "bg-green-500",
-                                                    project.color === 'purple' && "bg-purple-500",
-                                                    project.color === 'orange' && "bg-orange-500",
-                                                    (!project.color || project.color === 'neutral') && "bg-zinc-400"
-                                                )} />
-                                                <span className="truncate">{project.name}</span>
-                                            </Link>
-
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <button
-                                                        className="opacity-0 group-hover/item:opacity-100 p-0.5 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-opacity"
-                                                        aria-label="Project actions"
-                                                        suppressHydrationWarning
-                                                    >
-                                                        <MoreHorizontal className="w-3 h-3 text-muted-foreground" />
-                                                    </button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem
-                                                        onClick={(e) => {
-                                                            e.stopPropagation()
-                                                            deleteProject(project.id)
-                                                        }}
-                                                        className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/10 gap-2"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                        Delete Project
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </motion.div>
-                                    ))}
-                                    {projects.length === 0 && (
-                                        <div className="px-3 py-1.5 text-xs text-muted-foreground italic">
-                                            No projects yet
-                                        </div>
-                                    )}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                )}
 
                 {/* Shared Pages Section */}
                 {!isSidebarCollapsed && pages.some(p => p.isShared) && (
@@ -510,7 +387,7 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
                             onClick={() => setPagesExpanded(!pagesExpanded)}
                         >
                             <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider select-none">
-                                Private
+                                Workspace
                             </span>
                             <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                 <div className="p-0.5 text-muted-foreground">
@@ -522,7 +399,7 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
                                     </motion.div>
                                 </div>
                                 <Link
-                                    href="/private/new"
+                                    href="/pages/new"
                                     onClick={(e) => e.stopPropagation()}
                                     className="p-0.5 hover:bg-zinc-300/50 dark:hover:bg-zinc-700/50 rounded-sm transition-all duration-200 text-muted-foreground"
                                     aria-label="Add private page"
@@ -550,10 +427,10 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
                                             className="group/item flex items-center pr-2"
                                         >
                                             <Link
-                                                href={`/private/${page.id}`}
+                                                href={`/pages/${page.id}`}
                                                 className={cn(
                                                     "flex-1 flex items-center gap-2 px-3 py-1 text-sm rounded-sm transition-colors",
-                                                    pathname === `/private/${page.id}`
+                                                    pathname === `/pages/${page.id}`
                                                         ? "text-foreground bg-neutral-200/60 dark:bg-neutral-800/60 font-medium"
                                                         : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50"
                                                 )}
@@ -589,7 +466,7 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
                                     ))}
                                     {pages.filter(p => !p.isShared).length === 0 && (
                                         <Link
-                                            href="/private/new"
+                                            href="/pages/new"
                                             className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
                                         >
                                             <Plus className="h-3 w-3" />
@@ -603,10 +480,7 @@ function SidebarComponent({ className, user, projects: initialProjects = [], onO
                 )}
             </div>
 
-            <CreateProjectDialog
-                open={showCreateDialog}
-                onOpenChange={setShowCreateDialog}
-            />
+
             <ProfileDialog
                 open={showProfileDialog}
                 onOpenChange={setShowProfileDialog}

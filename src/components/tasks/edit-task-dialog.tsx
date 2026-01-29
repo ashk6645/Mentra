@@ -41,10 +41,9 @@ import {
 } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
 import { updateTask } from '@/lib/actions/tasks'
-import { getProjects } from '@/lib/actions/projects'
 import { getTags } from '@/lib/actions/tags'
 import { useRouter } from 'next/navigation'
-import { Project, Tag, Task } from '@prisma/client'
+import { Tag, Task } from '@prisma/client'
 
 const formSchema = z.object({
     title: z.string().min(1, 'Title is required'),
@@ -53,7 +52,7 @@ const formSchema = z.object({
     dueDate: z.date().optional().nullable(),
     scheduledTime: z.string().optional(),
     durationMinutes: z.number().optional(),
-    projectId: z.string().optional().nullable(),
+
     tagIds: z.array(z.string()).optional(),
 })
 
@@ -64,13 +63,7 @@ interface EditTaskDialogProps {
 
 export function EditTaskDialog({ task, trigger }: EditTaskDialogProps) {
     const [open, setOpen] = useState(false)
-    const [projects, setProjects] = useState<Array<{
-        id: string
-        name: string
-        color: string | null
-        icon: string | null
-        sortOrder: number
-    }>>([])
+
     const [tags, setTags] = useState<Tag[]>([])
     const [isLoading, setIsLoading] = useState(false)
 
@@ -90,7 +83,7 @@ export function EditTaskDialog({ task, trigger }: EditTaskDialogProps) {
             description: task.description || '',
             priority: task.priority as any,
             dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
-            projectId: task.projectId || undefined,
+
             tagIds: task.tags?.map(t => t.tag.id) || [],
             scheduledTime: getScheduledTime(),
             durationMinutes: task.durationMinutes || 30,
@@ -99,10 +92,11 @@ export function EditTaskDialog({ task, trigger }: EditTaskDialogProps) {
 
     useEffect(() => {
         if (open) {
-            Promise.all([getProjects(), getTags()]).then(([p, t]) => {
-                setProjects(p)
-                setTags(t)
-            })
+            if (open) {
+                getTags().then((t) => {
+                    setTags(t)
+                })
+            }
         }
     }, [open])
 
@@ -132,7 +126,6 @@ export function EditTaskDialog({ task, trigger }: EditTaskDialogProps) {
                 id: task.id,
                 ...values,
                 dueDate: values.dueDate ? values.dueDate.toISOString() : null,
-                projectId: (values.projectId === 'none' || !values.projectId) ? undefined : values.projectId,
                 scheduledStart,
                 scheduledEnd,
             })
@@ -221,31 +214,6 @@ export function EditTaskDialog({ task, trigger }: EditTaskDialogProps) {
                                 )}
                             />
 
-                            <FormField
-                                control={form.control}
-                                name="projectId"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Project</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value || 'none'}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select project" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="none">No Project</SelectItem>
-                                                {projects.map(project => (
-                                                    <SelectItem key={project.id} value={project.id}>
-                                                        {project.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
                         </div>
 
                         <FormField

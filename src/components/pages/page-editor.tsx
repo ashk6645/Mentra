@@ -21,7 +21,7 @@ import {
 } from 'lucide-react'
 import { Block, BlockType } from '@/components/editor/types'
 import { BlockEditor } from '@/components/editor/block-editor'
-import { IconPicker } from '@/components/private-pages/icon-picker'
+import { IconPicker } from '@/components/pages/icon-picker'
 
 // ========================================
 // TYPES
@@ -45,7 +45,7 @@ interface PageEditorProps {
 // PAGE EDITOR COMPONENT
 // ========================================
 
-import { SharePageDialog } from '@/components/private-pages/share-page-dialog'
+import { SharePageDialog } from '@/components/pages/share-page-dialog'
 
 export function PageEditor({ page }: PageEditorProps) {
     const router = useRouter()

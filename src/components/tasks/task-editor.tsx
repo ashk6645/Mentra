@@ -24,16 +24,16 @@ import {
 import { Badge } from '@/components/ui/badge'
 
 export interface TaskEditorProps {
-    projects: { id: string; name: string }[]
+
     availableTags?: { id: string; name: string }[]
-    defaultProjectId?: string
+
     onCancel?: () => void
     onSubmit: (data: {
         title: string
         description?: string
         dueDate?: Date
         priority?: 'low' | 'medium' | 'high' | 'urgent' | null
-        projectId?: string
+
         tagIds?: string[]
         scheduledTime?: string
     }) => void
@@ -48,9 +48,7 @@ const priorities = [
 ] as const
 
 export function TaskEditor({
-    projects,
     availableTags = [],
-    defaultProjectId,
     onCancel,
     onSubmit,
     isSubmitting = false
@@ -59,7 +57,7 @@ export function TaskEditor({
     const [description, setDescription] = useState('')
     const [date, setDate] = useState<Date | undefined>(undefined)
     const [priority, setPriority] = useState<string | null>(null)
-    const [projectId, setProjectId] = useState<string>(defaultProjectId || 'inbox')
+
 
     // Clean title for submission (without tags/dates)
     const [parsedTitle, setParsedTitle] = useState('')
@@ -87,7 +85,7 @@ export function TaskEditor({
 
                 const parsed = parseTaskNaturalLanguage(newVal, {
                     currentDate: new Date(),
-                    availableProjects: projects,
+                    availableProjects: [],
                     availableTags: availableTags,
                 })
 
@@ -95,10 +93,7 @@ export function TaskEditor({
 
                 if (parsed.dueDate) setDate(parsed.dueDate)
                 if (parsed.priority) setPriority(parsed.priority)
-                if (parsed.projectName) {
-                    const p = projects.find(proj => proj.name.toLowerCase() === parsed.projectName?.toLowerCase())
-                    if (p) setProjectId(p.id)
-                }
+                if (parsed.priority) setPriority(parsed.priority)
             } catch (err) {
                 console.error("Parsing error", err)
             }
@@ -109,20 +104,18 @@ export function TaskEditor({
         if (e) e.preventDefault()
         if (!title.trim()) return
 
-        // Verify projectId is valid (exists in projects list) or is 'inbox'
-        const isValidProject = projectId === 'inbox' || projects.some(p => p.id === projectId)
-        const finalProjectId = isValidProject ? (projectId === 'inbox' ? undefined : projectId) : undefined
+
 
         onSubmit({
             title: parsedTitle || title, // Use parsed title if available
             description,
             dueDate: date,
             priority: priority as any,
-            projectId: finalProjectId,
+
         })
     }
 
-    const currentProject = projects.find(p => p.id === projectId)
+
     const selectedPriority = priorities.find(p => p.value === priority)
 
     return (
@@ -231,30 +224,7 @@ export function TaskEditor({
 
             {/* Footer */}
             <div className="flex items-center justify-between p-3 border-t bg-muted/20">
-                {/* Project Selector */}
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 gap-2 text-muted-foreground hover:text-foreground">
-                            <Inbox className="h-4 w-4" />
-                            <span className="max-w-[100px] truncate">
-                                {currentProject ? currentProject.name : "Inbox"}
-                            </span>
-                            <ChevronDown className="h-3 w-3 opacity-50" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-[200px]">
-                        <DropdownMenuItem onClick={() => setProjectId('inbox')}>
-                            <Inbox className="mr-2 h-4 w-4" />
-                            Inbox
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        {projects.map((p) => (
-                            <DropdownMenuItem key={p.id} onClick={() => setProjectId(p.id)}>
-                                {p.name}
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+
 
                 <div className="flex items-center gap-2">
                     <Button

@@ -304,7 +304,7 @@ export async function getActivityLog() {
             orderBy: { completedAt: 'desc' },
             take: 10,
             include: {
-                project: true
+
             }
         })
 

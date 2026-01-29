@@ -89,7 +89,7 @@ export async function sharePage(data: SharePageInput) {
             }
         })
 
-        revalidatePath(`/private/${pageId}`)
+        revalidatePath(`/pages/${pageId}`)
         revalidateTag(`pages-${targetUser.id}`, {}) // Invalidate for the recipient
 
         return { success: true }
@@ -143,7 +143,7 @@ export async function unsharePage(pageId: string, collaboratorId: string) {
             }
         })
 
-        revalidatePath(`/private/${pageId}`)
+        revalidatePath(`/pages/${pageId}`)
         revalidateTag(`pages-${collaboratorId}`, {})
 
         return { success: true }
@@ -251,7 +251,7 @@ export async function updatePageCollaboratorPermission(
             data: { permission }
         })
 
-        revalidatePath(`/private/${pageId}`)
+        revalidatePath(`/pages/${pageId}`)
         return { success: true }
     } catch (error) {
         console.error('Error updating permission:', error)

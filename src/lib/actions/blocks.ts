@@ -111,7 +111,7 @@ export async function createBlock(data: CreateBlockInput) {
             },
         })
 
-        revalidatePath(`/private/${data.pageId}`)
+        revalidatePath(`/pages/${data.pageId}`)
 
         return { success: true, block }
     } catch (error) {
@@ -161,7 +161,7 @@ export async function updateBlock(id: string, data: UpdateBlockInput) {
             },
         })
 
-        revalidatePath(`/private/${existing.pageId}`)
+        revalidatePath(`/pages/${existing.pageId}`)
 
         return { success: true, block }
     } catch (error) {
@@ -203,7 +203,7 @@ export async function deleteBlock(id: string) {
             where: { id },
         })
 
-        revalidatePath(`/private/${existing.pageId}`)
+        revalidatePath(`/pages/${existing.pageId}`)
 
         return { success: true }
     } catch (error) {
@@ -325,7 +325,7 @@ export async function insertBlockAt(
             },
         })
 
-        revalidatePath(`/private/${pageId}`)
+        revalidatePath(`/pages/${pageId}`)
 
         return { success: true, block }
     } catch (error) {
@@ -363,7 +363,7 @@ export async function reorderBlocks(pageId: string, blockIds: string[]) {
             )
         )
 
-        revalidatePath(`/private/${pageId}`)
+        revalidatePath(`/pages/${pageId}`)
 
         return { success: true }
     } catch (error) {
@@ -435,7 +435,7 @@ export async function duplicateBlock(id: string) {
             }
         }
 
-        revalidatePath(`/private/${original.pageId}`)
+        revalidatePath(`/pages/${original.pageId}`)
 
         return { success: true, block }
     } catch (error) {

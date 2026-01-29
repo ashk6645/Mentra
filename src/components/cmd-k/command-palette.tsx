@@ -29,7 +29,6 @@ import {
     CommandShortcut,
 } from "@/components/ui/command"
 import { searchTasks } from "@/lib/actions/tasks"
-import { getProjects } from "@/lib/actions/projects"
 import { cn } from "@/lib/utils"
 
 interface Project {
@@ -43,13 +42,7 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
     const router = useRouter()
     const { setTheme } = useTheme()
     const [query, setQuery] = React.useState("")
-    const [projects, setProjects] = React.useState<Array<{
-        id: string
-        name: string
-        color: string | null
-        icon: string | null
-        sortOrder: number
-    }>>([])
+
     const [tasks, setTasks] = React.useState<{
         id: string
         title: string
@@ -57,7 +50,6 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
         completed: boolean
         priority: string | null
         dueDate: Date | null
-        project: { name: string; id: string; color: string | null } | null
     }[]>([])
     const [isSearching, setIsSearching] = React.useState(false)
 
@@ -66,14 +58,7 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
         onOpenChange?.(newOpen)
     }
 
-    // Fetch projects when command palette opens
-    React.useEffect(() => {
-        if (open && projects.length === 0) {
-            getProjects()
-                .then(data => setProjects(data))
-                .catch(err => console.error('Failed to fetch projects:', err))
-        }
-    }, [open])
+
 
     React.useEffect(() => {
         const down = (e: KeyboardEvent) => {
@@ -121,7 +106,7 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
         return item.toLowerCase().includes(query.toLowerCase())
     }
 
-    const filteredProjects = projects.filter(p => filterStatic(p.name))
+
     const mainNav = [
         { name: "Dashboard", icon: Layout, route: "/dashboard" },
         { name: "All Tasks", icon: CheckSquare, route: "/tasks" },
@@ -152,7 +137,7 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
                 />
                 <CommandList>
                     {/* Custom Empty State */}
-                    {query && tasks.length === 0 && filteredProjects.length === 0 && mainNav.length === 0 && themes.length === 0 && !isSearching && (
+                    {query && tasks.length === 0 && mainNav.length === 0 && themes.length === 0 && !isSearching && (
                         <CommandEmpty>No results found.</CommandEmpty>
                     )}
 
@@ -160,18 +145,15 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
                     {tasks.length > 0 && (
                         <CommandGroup heading="Tasks">
                             {tasks.map(task => (
-                                <CommandItem key={task.id} onSelect={() => runCommand(() => router.push(`/projects/${task.project?.id || 'inbox'}?taskId=${task.id}`))}>
+                                <CommandItem key={task.id} onSelect={() => runCommand(() => router.push(`/tasks?taskId=${task.id}`))}>
                                     <div className={cn("mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary", task.completed ? "bg-primary text-primary-foreground" : "opacity-50")} />
                                     <span className="truncate flex-1">{task.title}</span>
-                                    {task.project && (
-                                        <span className="ml-2 text-xs text-muted-foreground">{task.project.name}</span>
-                                    )}
                                 </CommandItem>
                             ))}
                         </CommandGroup>
                     )}
 
-                    {tasks.length > 0 && (filteredProjects.length > 0 || mainNav.length > 0) && <CommandSeparator />}
+                    {tasks.length > 0 && mainNav.length > 0 && <CommandSeparator />}
 
                     {/* Navigation */}
                     {mainNav.length > 0 && (
@@ -185,20 +167,7 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
                         </CommandGroup>
                     )}
 
-                    {/* Projects */}
-                    {filteredProjects.length > 0 && (
-                        <>
-                            <CommandSeparator />
-                            <CommandGroup heading="Projects">
-                                {filteredProjects.map(project => (
-                                    <CommandItem key={project.id} onSelect={() => runCommand(() => router.push(`/projects/${project.id}`))}>
-                                        <Home className="mr-2 h-4 w-4" />
-                                        <span>{project.name}</span>
-                                    </CommandItem>
-                                ))}
-                            </CommandGroup>
-                        </>
-                    )}
+
 
                     {/* Themes */}
                     {themes.length > 0 && (

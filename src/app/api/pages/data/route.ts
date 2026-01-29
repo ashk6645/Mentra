@@ -52,22 +52,7 @@ async function handler(request: NextRequest) {
             }))
             break
 
-        case 'PROJECTS':
-            const projects = await prisma.project.findMany({
-                where: { userId: user.id },
-                select: {
-                    id: true,
-                    name: true,
-                    description: true,
-                    status: true,
-                    color: true,
-                    icon: true,
-                },
-                orderBy: { createdAt: 'desc' },
-                take: 50,
-            })
-            data = projects.map(p => ({ ...p, title: p.name }))
-            break
+
 
         case 'HABITS':
             const habits = await prisma.habit.findMany({

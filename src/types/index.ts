@@ -3,7 +3,7 @@
  * This file defines all the types used across the application
  */
 
-import { Task, Project, Tag, Profile, Habit, FocusSession, AreaOfLife, Section } from '@prisma/client'
+import { Task, Tag, Profile, Habit, FocusSession } from '@prisma/client'
 
 // ========================================
 // TYPE DEFINITIONS
@@ -22,7 +22,7 @@ export type PermissionLevel = 'view' | 'edit' | 'admin'
  */
 export type TaskWithRelations = Task & {
   tags?: TaskTagWithTag[]
-  project?: Project | null
+
   reminders?: Reminder[]
 }
 
@@ -35,14 +35,7 @@ export type TaskTagWithTag = {
   tag: Tag
 }
 
-/**
- * Project with sections and tasks
- */
-export type ProjectWithRelations = Project & {
-  sections?: Section[]
-  tasks?: Task[]
-  area?: AreaOfLife | null
-}
+
 
 /**
  * Profile with stats and relations
@@ -71,8 +64,7 @@ export interface CreateTaskInput {
   description?: string
   priority?: Priority | null
   dueDate?: string | null // ISO string
-  projectId?: string
-  sectionId?: string
+
   tagIds?: string[]
 }
 
@@ -85,25 +77,7 @@ export interface UpdateTaskInput extends Partial<CreateTaskInput> {
   completedAt?: Date | null
 }
 
-/**
- * Input type for creating a project
- */
-export interface CreateProjectInput {
-  name: string
-  description?: string
-  color?: string
-  icon?: string
-  areaId?: string
-}
 
-/**
- * Input type for updating a project
- */
-export interface UpdateProjectInput extends Partial<CreateProjectInput> {
-  id: string
-  isArchived?: boolean
-  sortOrder?: number
-}
 
 /**
  * Input type for creating a habit
@@ -113,14 +87,7 @@ export interface CreateHabitInput {
   frequency: Frequency
 }
 
-/**
- * Input type for creating an area of life
- */
-export interface CreateAreaInput {
-  name: string
-  icon?: string
-  color?: string
-}
+
 
 // ========================================
 // AI TYPES
@@ -134,7 +101,7 @@ export interface ParsedTask {
   description?: string
   priority?: Priority | null
   dueDate?: string // ISO string
-  projectId?: string
+
 }
 
 /**
@@ -142,7 +109,7 @@ export interface ParsedTask {
  */
 export interface TaskSuggestions {
   priority?: Priority | null
-  projectId?: string
+
   tagIds?: string[]
   estimatedDuration?: number // in minutes
   bestTimeToComplete?: string // ISO string
@@ -208,7 +175,7 @@ export interface UserStats {
  * Task filter options
  */
 export interface TaskFilters {
-  projectId?: string
+
   priority?: Priority[]
   tagIds?: string[]
   isCompleted?: boolean
@@ -278,7 +245,7 @@ export interface Notification {
  */
 export interface ModalState {
   isOpen: boolean
-  type?: 'create-task' | 'edit-task' | 'create-project' | 'settings' | 'ai-breakdown'
+  type?: 'create-task' | 'edit-task' | 'settings' | 'ai-breakdown'
   data?: any
 }
 
@@ -321,29 +288,7 @@ export interface PomodoroSettings {
 // COLLABORATION TYPES
 // ========================================
 
-/**
- * Shared project with user info
- */
-export interface SharedProjectWithUser {
-  id: string
-  projectId: string
-  sharedWithUserId: string
-  permissionLevel: PermissionLevel
-  createdAt: Date
-  user?: Pick<Profile, 'id' | 'email' | 'displayName' | 'avatarUrl'>
-}
 
-/**
- * Project comment
- */
-export interface ProjectComment {
-  id: string
-  projectId: string
-  userId: string
-  content: string
-  createdAt: Date
-  user?: Pick<Profile, 'id' | 'displayName' | 'avatarUrl'>
-}
 
 // ========================================
 // ANALYTICS & INSIGHTS TYPES
@@ -372,18 +317,7 @@ export interface ProductivityTrend {
   xpEarned: number
 }
 
-/**
- * Project insights
- */
-export interface ProjectInsights {
-  projectId: string
-  projectName: string
-  totalTasks: number
-  completedTasks: number
-  completionRate: number
-  timeSpent: number // minutes
-  lastActivity: Date
-}
+
 
 // ========================================
 // SETTINGS TYPES
@@ -518,17 +452,7 @@ export const PRIORITY_COLORS: Record<Priority, string> = {
   urgent: 'red',
 }
 
-/**
- * Area of life icons (default suggestions)
- */
-export const AREA_ICONS = {
-  CAREER: '💼',
-  HEALTH: '🏃',
-  LEARNING: '📚',
-  PERSONAL: '👨‍👩‍👧',
-  FINANCE: '💰',
-  HOBBIES: '✨',
-}
+
 
 // ========================================
 // RE-EXPORTS FROM PRISMA
@@ -536,16 +460,11 @@ export const AREA_ICONS = {
 
 export type {
   Task,
-  Project,
-  Tag,
-  Profile,
-  Habit,
-  FocusSession,
-  AreaOfLife,
+
 } from '@prisma/client'
 
 // Section is imported at the top and used in types
-export type { Section } from '@prisma/client'
+
 
 // Additional types that might be missing
 export interface Reminder {

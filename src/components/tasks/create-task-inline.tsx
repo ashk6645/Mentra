@@ -1,25 +1,20 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createTask } from '@/lib/actions/tasks'
-import { getProjects } from '@/lib/actions/projects'
 import { getTags } from '@/lib/actions/tags'
 import { useRouter } from 'next/navigation'
 import { Tag } from '@prisma/client'
 import { TaskEditor } from './task-editor'
 import { showErrorToast, showSuccessToast } from '@/lib/error-handler'
-import { InlineLoader } from '@/components/shared/loading-spinner'
-import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-
+import { AnimatePresence, motion } from 'framer-motion'
 import { AddTaskTrigger } from './add-task-trigger'
 
 interface CreateTaskInlineProps {
-    projectId?: string
     defaultStatus?: string
-    defaultSectionId?: string
+
     onTaskCreated?: (task: any) => void
     className?: string
     variant?: 'inline' | 'compact'
@@ -27,22 +22,14 @@ interface CreateTaskInlineProps {
 }
 
 export function CreateTaskInline({
-    projectId,
     defaultStatus,
-    defaultSectionId,
     onTaskCreated,
     className,
     variant = 'inline',
     label
 }: CreateTaskInlineProps) {
     const [isExpanded, setIsExpanded] = useState(false)
-    const [projects, setProjects] = useState<Array<{
-        id: string
-        name: string
-        color: string | null
-        icon: string | null
-        sortOrder: number
-    }>>([])
+
     const [tags, setTags] = useState<Tag[]>([])
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isLoadingData, setIsLoadingData] = useState(false)
@@ -52,13 +39,12 @@ export function CreateTaskInline({
     useEffect(() => {
         if (isExpanded) {
             setIsLoadingData(true)
-            Promise.all([getProjects(), getTags()])
-                .then(([projectsData, tagsData]) => {
-                    setProjects(projectsData)
+            getTags()
+                .then((tagsData) => {
                     setTags(tagsData)
                 })
                 .catch((error) => {
-                    showErrorToast(error, 'Failed to load projects and tags')
+                    showErrorToast(error, 'Failed to load tags')
                 })
                 .finally(() => {
                     setIsLoadingData(false)
@@ -71,10 +57,8 @@ export function CreateTaskInline({
         description?: string
         dueDate?: Date
         priority?: 'low' | 'medium' | 'high' | 'urgent' | null
-        projectId?: string
         tagIds?: string[]
         scheduledTime?: string
-        sectionId?: string
     }) {
         try {
             setIsSubmitting(true)
@@ -83,8 +67,6 @@ export function CreateTaskInline({
                 ...data,
                 priority: data.priority || undefined,
                 dueDate: data.dueDate ? data.dueDate.toISOString() : undefined,
-                projectId: data.projectId,
-                sectionId: data.sectionId || defaultSectionId,
             })
 
             if (result.success) {
@@ -127,9 +109,7 @@ export function CreateTaskInline({
                 className={cn("overflow-hidden", className)}
             >
                 <TaskEditor
-                    projects={projects.map(p => ({ id: p.id, name: p.name }))}
                     availableTags={tags.map(t => ({ id: t.id, name: t.name }))}
-                    defaultProjectId={projectId}
                     onCancel={() => setIsExpanded(false)}
                     onSubmit={handleTaskSubmit}
                     isSubmitting={isSubmitting}

@@ -5,9 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { QuickAddInput } from './quick-add-input'
 import { createTaskFromNaturalLanguage } from '@/lib/actions/tasks'
-import { getProjects } from '@/lib/actions/projects'
 import { getTags } from '@/lib/actions/tags'
-import { Project, Tag } from '@prisma/client'
+import { Tag } from '@prisma/client'
 import { ParsedTaskData } from '@/lib/parsers/task-parser'
 import { useRouter } from 'next/navigation'
 import { Zap } from 'lucide-react'
@@ -19,20 +18,13 @@ interface GlobalQuickAddProps {
 
 export function GlobalQuickAdd({ className }: GlobalQuickAddProps) {
     const [open, setOpen] = useState(false)
-    const [projects, setProjects] = useState<Array<{
-        id: string
-        name: string
-        color: string | null
-        icon: string | null
-        sortOrder: number
-    }>>([])
+
     const [tags, setTags] = useState<Tag[]>([])
     const router = useRouter()
 
     // Fetch projects and tags when dialog opens
     useEffect(() => {
         if (open) {
-            getProjects().then(setProjects)
             getTags().then(setTags)
         }
     }, [open])
@@ -95,7 +87,6 @@ export function GlobalQuickAdd({ className }: GlobalQuickAddProps) {
                     <QuickAddInput
                         onSubmit={handleSubmit}
                         onCancel={() => setOpen(false)}
-                        availableProjects={projects}
                         availableTags={tags}
                         autoFocus
                     />

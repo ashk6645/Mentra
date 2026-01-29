@@ -393,5 +393,4 @@ export function useToggle(initialValue = false): [boolean, () => void] {
 
 // React Query hooks for data fetching and mutations
 export * from './use-tasks'
-export * from './use-projects'
 export * from './use-habits'
