@@ -343,7 +343,13 @@ function SidebarComponent({ className, user, onOpenCommand }: SidebarProps) {
                                                         : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50"
                                                 )}
                                             >
-                                                <span className="text-sm shrink-0 opacity-80">{page.icon || '📄'}</span>
+                                                <span className="shrink-0 flex items-center justify-center w-5 h-5">
+                                                    {(page.icon?.startsWith('http') || page.icon?.startsWith('data:')) ? (
+                                                        <img src={page.icon} alt="" className="w-full h-full object-cover rounded-sm" />
+                                                    ) : (
+                                                        <span className="text-sm opacity-80">{page.icon || '📄'}</span>
+                                                    )}
+                                                </span>
                                                 <span className="truncate">{page.title}</span>
                                                 <Users2 className="h-3 w-3 text-muted-foreground ml-auto" />
                                             </Link>
@@ -435,7 +441,13 @@ function SidebarComponent({ className, user, onOpenCommand }: SidebarProps) {
                                                         : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50"
                                                 )}
                                             >
-                                                <span className="text-sm shrink-0 opacity-80">{page.icon || '📄'}</span>
+                                                <span className="shrink-0 flex items-center justify-center w-5 h-5">
+                                                    {(page.icon?.startsWith('http') || page.icon?.startsWith('data:')) ? (
+                                                        <img src={page.icon} alt="" className="w-full h-full object-cover rounded-sm" />
+                                                    ) : (
+                                                        <span className="text-sm opacity-80">{page.icon || '📄'}</span>
+                                                    )}
+                                                </span>
                                                 <span className="truncate">{page.title}</span>
                                             </Link>
 

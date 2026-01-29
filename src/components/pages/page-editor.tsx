@@ -287,11 +287,19 @@ export function PageEditor({ page }: PageEditorProps) {
                                             className="text-4xl hover:bg-accent/50 rounded-lg p-2 transition-colors"
                                             title="Click to change icon"
                                         >
-                                            {icon}
+                                            {icon?.startsWith('http') || icon?.startsWith('data:') ? (
+                                                <img src={icon} alt="Page Icon" className="w-10 h-10 object-cover rounded" />
+                                            ) : (
+                                                <span className="text-4xl">{icon}</span>
+                                            )}
                                         </button>
                                     </IconPicker>
                                 ) : (
-                                    <div className="text-4xl p-2">{icon}</div>
+                                    icon?.startsWith('http') || icon?.startsWith('data:') ? (
+                                        <img src={icon} alt="Page Icon" className="w-10 h-10 object-cover rounded" />
+                                    ) : (
+                                        <div className="text-4xl p-2">{icon}</div>
+                                    )
                                 )}
                             </div>
                         </div>
