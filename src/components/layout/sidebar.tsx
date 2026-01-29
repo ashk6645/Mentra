@@ -335,10 +335,10 @@ function SidebarComponent({ className, user, onOpenCommand }: SidebarProps) {
                                             className="group/item flex items-center pr-2"
                                         >
                                             <Link
-                                                href={`/private/${page.id}`}
+                                                href={`/pages/${page.id}`}
                                                 className={cn(
                                                     "flex-1 flex items-center gap-2 px-3 py-1 text-sm rounded-sm transition-colors",
-                                                    pathname === `/private/${page.id}`
+                                                    pathname === `/pages/${page.id}`
                                                         ? "text-foreground bg-neutral-200/60 dark:bg-neutral-800/60 font-medium"
                                                         : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50"
                                                 )}
