@@ -42,7 +42,10 @@ export function TaskRow({ task }: TaskRowProps) {
 
     const handleRowClick = (e: React.MouseEvent) => {
         // Prevent opening if clicking on checkbox or menu actions
-        // This is a backup check, as those elements should stop propagation
+        if ((e.target as HTMLElement).closest('[role="menuitem"]')) return
+        if ((e.target as HTMLElement).closest('[data-radix-collection-item]')) return
+        if (e.defaultPrevented) return
+
         setShowEditDialog(true)
     }
 
@@ -143,15 +146,18 @@ export function TaskRow({ task }: TaskRowProps) {
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem onSelect={(e) => {
-                                e.preventDefault()
-                                setShowEditDialog(true)
-                            }}>
+                            <DropdownMenuItem
+                                onClick={(e) => e.stopPropagation()}
+                                onSelect={(e) => {
+                                    e.preventDefault()
+                                    setShowEditDialog(true)
+                                }}>
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Edit
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 className="text-destructive focus:text-destructive"
+                                onClick={(e) => e.stopPropagation()}
                                 onSelect={(e) => {
                                     e.preventDefault()
                                     setShowDeleteDialog(true)
