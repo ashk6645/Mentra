@@ -58,10 +58,11 @@ interface PageItem {
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     user: any
     onOpenCommand?: () => void
+    initialPages?: PageItem[]
 }
 
 // Change to non-exported function, exported as memo at bottom
-function SidebarComponent({ className, user, onOpenCommand }: SidebarProps) {
+function SidebarComponent({ className, user, onOpenCommand, initialPages }: SidebarProps) {
     const pathname = usePathname()
     const router = useRouter()
     const supabase = createClient()
@@ -72,7 +73,7 @@ function SidebarComponent({ className, user, onOpenCommand }: SidebarProps) {
     const [pagesExpanded, setPagesExpanded] = useState(true)
 
     const [showProfileDialog, setShowProfileDialog] = useState(false)
-    const [pages, setPages] = useState<PageItem[]>([])
+    const [pages, setPages] = useState<PageItem[]>(initialPages || [])
 
     // Reset expanded states when sidebar collapses to keep UI clean
     useEffect(() => {
@@ -82,6 +83,13 @@ function SidebarComponent({ className, user, onOpenCommand }: SidebarProps) {
         }
     }, [isSidebarCollapsed])
 
+    // Sync state with server-provided pages
+    useEffect(() => {
+        if (initialPages) {
+            setPages(initialPages)
+        }
+    }, [initialPages])
+
     useEffect(() => {
         if (user?.id) {
             fetchProfile()
@@ -89,10 +97,12 @@ function SidebarComponent({ className, user, onOpenCommand }: SidebarProps) {
     }, [user?.id])
 
     useEffect(() => {
-        if (user?.id) {
+        // Only fetch client-side if we don't have initial pages
+        // or if we need to refresh (though layout mostly handles this)
+        if (user?.id && !initialPages?.length) {
             fetchPages()
         }
-    }, [user?.id, pathname])
+    }, [user?.id])
 
     async function fetchProfile() {
         try {
