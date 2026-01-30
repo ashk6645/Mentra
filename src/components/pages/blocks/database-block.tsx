@@ -42,7 +42,10 @@ interface DatabaseItem {
     blockId: string
     title: string
     icon: string | null
-    coverImage: string | null
+    cover?: string
+    status: 'Not started' | 'In progress' | 'Done'
+    priority?: 'High' | 'Medium' | 'Low'
+    date?: string
     properties: Record<string, any>
     sortOrder: number
 }
@@ -101,7 +104,14 @@ export function DatabaseBlock({
             ])
 
             if (itemsResult.success) {
-                setItems(itemsResult.items as DatabaseItem[])
+                const mappedItems = (itemsResult.items as any[]).map(item => ({
+                    ...item,
+                    cover: item.coverImage || undefined,
+                    status: (item.properties as any)?.status || 'Not started',
+                    priority: (item.properties as any)?.priority,
+                    date: (item.properties as any)?.date,
+                }))
+                setItems(mappedItems as DatabaseItem[])
             }
             if (propsResult.success) {
                 setProperties(propsResult.properties as DatabaseProperty[])
@@ -134,9 +144,18 @@ export function DatabaseBlock({
         })
 
         if (result.success && result.item) {
-            setItems([...items, result.item as DatabaseItem])
+            const props = (result.item.properties as any) || {}
+            const newItem = {
+                ...(result.item as any),
+                cover: result.item.coverImage || undefined,
+                status: props.status || 'Not started',
+                priority: props.priority,
+                date: props.date,
+            } as DatabaseItem
+
+            setItems([...items, newItem])
             // Open the modal for the new item
-            setSelectedItem(result.item as DatabaseItem)
+            setSelectedItem(newItem)
             setIsModalOpen(true)
         }
     }
@@ -610,8 +629,8 @@ function GalleryView({
                     >
                         {/* Cover Image */}
                         <div className="aspect-video bg-muted flex items-center justify-center">
-                            {item.coverImage ? (
-                                <img src={item.coverImage} alt="" className="w-full h-full object-cover" />
+                            {item.cover ? (
+                                <img src={item.cover} alt="" className="w-full h-full object-cover" />
                             ) : (
                                 <span className="text-3xl">{item.icon || '📄'}</span>
                             )}

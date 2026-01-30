@@ -58,7 +58,7 @@ export function TableView({ items, onUpdateItem, onAddItem, onDeleteItem, onOpen
                         >
                             <td className="py-1.5 px-3 border-r border-border/20 cursor-pointer" onClick={() => onOpenItem(item.id)}>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-base">📄</span>
+                                    <span className="text-base">{item.icon || "📄"}</span>
                                     <span className="font-medium text-foreground truncate block w-full">
                                         {item.title || "Untitled"}
                                     </span>

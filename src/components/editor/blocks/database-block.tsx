@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 import { v4 as uuidv4 } from 'uuid'
 import { SHARED_DATABASE_ITEMS, DatabaseItem } from '../views/mock-data'
 import { BlockEditor } from '../block-editor'
-import { ItemModalImproved } from '../../pages/blocks/database/item-modal-improved'
+import { ItemModal } from '../../pages/blocks/database/item-modal'
 
 const PROPERTIES = [
     {
@@ -246,7 +246,8 @@ export function DatabaseBlock({ block, isFocused, onChange }: DatabaseBlockProps
             </div>
 
             {/* PAGE POPUP OVERLAY */}
-            <ItemModalImproved
+            {/* PAGE POPUP OVERLAY */}
+            <ItemModal
                 isOpen={!!(mounted && selectedItemId)}
                 onClose={() => setSelectedItemId(null)}
                 item={selectedItem as any} // Cast to match improved modal interface
