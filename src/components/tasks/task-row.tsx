@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { toggleTaskCompletion, deleteTask } from '@/lib/actions/tasks'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { MoreHorizontal, Pencil, Trash } from 'lucide-react'
+import { MoreHorizontal, Pencil, Trash, GitBranch } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -110,12 +110,22 @@ export function TaskRow({ task }: TaskRowProps) {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                    <p className={cn(
-                        "font-semibold text-base leading-none truncate cursor-pointer hover:text-primary transition-colors",
-                        task.completed && "line-through text-muted-foreground"
-                    )}>
-                        {task.title}
-                    </p>
+                    <div className="flex items-center gap-2">
+                        <p className={cn(
+                            "font-semibold text-base leading-none truncate cursor-pointer hover:text-primary transition-colors",
+                            task.completed && "line-through text-muted-foreground"
+                        )}>
+                            {task.title}
+                        </p>
+                        {task.subtasks && task.subtasks.length > 0 && (
+                            <div className="flex items-center gap-1 text-muted-foreground shrink-0" title={`${task.subtasks.filter((st: any) => st.completed).length}/${task.subtasks.length} subtasks`}>
+                                <GitBranch className="h-3.5 w-3.5" />
+                                <span className="text-xs font-medium">
+                                    {task.subtasks.filter((st: any) => st.completed).length}/{task.subtasks.length}
+                                </span>
+                            </div>
+                        )}
+                    </div>
                     {task.description && (
                         <p className="text-sm text-muted-foreground mt-1 truncate">
                             {task.description}
@@ -137,6 +147,8 @@ export function TaskRow({ task }: TaskRowProps) {
                             {getPriorityLabel(task.priority)}
                         </div>
                     )}
+
+
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
