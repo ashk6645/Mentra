@@ -12,9 +12,8 @@ A production-grade task management SaaS built with Next.js 15, Supabase, Prisma,
 - 🔁 Recurring tasks (daily, weekly, monthly, custom)
 - 📎 Task attachments support
 - 🏷️ Tags and labels (multi-select)
-- 📂 Projects/Lists with custom colors and icons
-- 🗂️ Sections within projects
-- 🔍 Global search and filters
+
+-  Global search and filters
 - ⌨️ Keyboard shortcuts (CMD+K)
 - 🎯 Smart lists (Today, Upcoming, Overdue)
 
@@ -180,16 +179,7 @@ task-app/
 │   │   │   ├── inbox/
 │   │   │   ├── today/
 │   │   │   ├── upcoming/
-│   │   │   ├── projects/
-│   │   │   ├── tasks/
-│   │   │   ├── habits/
-│   │   │   ├── focus/
-│   │   │   └── areas/
-│   │   └── layout.tsx
-│   ├── components/            # React components
-│   │   ├── ui/               # shadcn/ui components
-│   │   ├── tasks/            # Task-related components
-│   │   ├── projects/         # Project components
+
 │   │   ├── habits/           # Habit tracking
 │   │   ├── focus/            # Pomodoro timer
 │   │   └── gamification/     # XP badges, streaks
@@ -244,8 +234,6 @@ All database tables are protected with RLS policies ensuring users can only acce
 
 Key tables:
 - `profiles` - User profiles with XP, level, streaks
-- `projects` - Task organization
-- `sections` - Project sections
 - `tasks` - Core task data with subtasks support
 - `tags` - Task tagging system
 - `habits` - Habit tracking
@@ -308,7 +296,7 @@ Ensure all environment variables are set in your deployment platform.
 ## 📈 **Roadmap**
 
 ### **Phase 1: Core** ✅
-- Task CRUD, Projects, Smart lists, Drag-and-drop, Search
+- Task CRUD, Smart lists, Drag-and-drop, Search
 
 ### **Phase 2: Advanced** ✅
 - Recurring tasks, Tags, Real-time sync, Gamification
