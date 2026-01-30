@@ -211,7 +211,7 @@ All interactive elements must be:
 **Example**: Add button always in the same place. Brain stops hunting, enters flow state.
 
 ### Cognitive Chunking
-**Rule**: Group by project/date, not endless scrolling.
+**Rule**: Group by context/date, not endless scrolling.
 
 **Example**: "Today" separated from "Upcoming" = mental compartmentalization.
 

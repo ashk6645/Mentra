@@ -15,13 +15,10 @@
 
 ```bash
 # In your terminal
-npx prisma migrate dev --name add_project_database_fields
-
-# OR if you prefer:
-npx prisma db push
+npx prisma migrate dev
 ```
 
-✅ This adds the Project Database fields to your database!
+✅ This sets up your database schema!
 
 ---
 
@@ -32,24 +29,22 @@ npx prisma db push
 npm run dev
 
 # Open browser
-http://localhost:3000/project-database
+http://localhost:3000
 ```
 
-✅ You should see the Project Database with 4 view options!
+✅ You should see the Mentra Dashboard!
 
 ---
 
 ## 🎉 That's It!
 
-You now have a **fully functional Notion-style Project Database**!
+You now have a **fully functional Task Management app**!
 
 ### Try These Features:
-1. ✅ Click any cell to edit inline
-2. ✅ Switch between Table/Board/Timeline/Calendar views
-3. ✅ Add filters and sorts
-4. ✅ Show/hide columns via Properties
-5. ✅ Drag projects between status columns
-6. ✅ Click a project to see details
+1. ✅ Create a new task with natural language (e.g., "Buy milk tomorrow @personal")
+2. ✅ Check off completed tasks
+3. ✅ Organize tasks with tags
+4. ✅ Track your habits
 
 ---
 
@@ -58,9 +53,9 @@ You now have a **fully functional Notion-style Project Database**!
 Edit your sidebar component:
 
 ```tsx
-<Link href="/project-database">
-  <LayoutGrid className="h-4 w-4" />
-  Projects
+<Link href="/tasks">
+  <CheckSquare className="h-4 w-4" />
+  Tasks
 </Link>
 ```
 
@@ -84,12 +79,11 @@ npm install @radix-ui/react-tooltip
 
 ## 📚 Learn More
 
-- **Full Docs**: `src/components/project-database/README.md`
-- **Installation**: `INSTALLATION_PROJECT_DATABASE.md`
-- **Summary**: `PROJECT_DATABASE_SUMMARY.md`
+- **Full Docs**: `README.md`
+- **Design System**: `DESIGN_SYSTEM.md`
 
 ---
 
 ## ✨ You're Done!
 
-Start creating projects and enjoy your new Notion-style database! 🎊
+Start getting things done! 🎊

@@ -307,7 +307,7 @@ We especially welcome contributions in:
 ```typescript
 // Components: PascalCase
 TaskCard.tsx
-CreateProjectDialog.tsx
+CreateTaskDialog.tsx
 
 // Functions: camelCase
 handleSubmit()
