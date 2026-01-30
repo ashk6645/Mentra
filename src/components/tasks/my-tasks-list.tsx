@@ -16,41 +16,32 @@ export function MyTasksList({ tasks }: MyTasksListProps) {
     const [filter, setFilter] = useState<FilterType>('all')
 
     const filteredTasks = tasks.filter(task => {
-        // Always show uncompleted tasks only (assuming logic, or keep existing behavior)
-        // Adjusting based on user request "All, Today, Upcoming, Overdue"
-        // Assuming "All" means all pending tasks usually shown in My Tasks
-
-        if (task.completed) return false // Usually My Tasks shows pending
-
-        if (!task.dueDate) return filter === 'all' || filter === 'upcoming' // Treat no due date as upcoming/all? Or just All. Let's stick to strict logic.
-        // Actually, normally "No Due Date" shows in All. 
-
-        const date = new Date(task.dueDate)
+        // Filter logic based on tab selection
 
         switch (filter) {
             case 'today':
-                return isToday(date)
+                // Show tasks due today (regardless of status)
+                return task.dueDate && isToday(new Date(task.dueDate))
+
             case 'upcoming':
-                return isFuture(date) && !isToday(date)
+                // Show future tasks (regardless of status, though usually pending)
+                return task.dueDate && isFuture(new Date(task.dueDate)) && !isToday(new Date(task.dueDate))
+
             case 'overdue':
-                return isPast(date) && !isToday(date)
+                // Overdue items are strict: Past due AND Incomplete
+                return !task.completed && task.dueDate && isPast(new Date(task.dueDate)) && !isToday(new Date(task.dueDate))
+
             case 'all':
             default:
+                // Show everything
                 return true
         }
     })
 
-    // Handle "No Due Date" for specific filters if needed. 
-    // For now: 
-    // All = Everything
-    // Today = Strictly Today
-    // Upcoming = Strictly Future
-    // Overdue = Strictly Past
-
     const filters: { id: FilterType; label: string; count?: number }[] = [
-        { id: 'all', label: 'All' },
-        { id: 'today', label: 'Today', count: tasks.filter(t => !t.completed && t.dueDate && isToday(new Date(t.dueDate))).length },
-        { id: 'upcoming', label: 'Upcoming', count: tasks.filter(t => !t.completed && t.dueDate && isFuture(new Date(t.dueDate)) && !isToday(new Date(t.dueDate))).length },
+        { id: 'all', label: 'All', count: tasks.length },
+        { id: 'today', label: 'Today', count: tasks.filter(t => t.dueDate && isToday(new Date(t.dueDate))).length },
+        { id: 'upcoming', label: 'Upcoming', count: tasks.filter(t => t.dueDate && isFuture(new Date(t.dueDate)) && !isToday(new Date(t.dueDate))).length },
         { id: 'overdue', label: 'Overdue', count: tasks.filter(t => !t.completed && t.dueDate && isPast(new Date(t.dueDate)) && !isToday(new Date(t.dueDate))).length }
     ]
 
