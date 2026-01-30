@@ -16,6 +16,7 @@ export default function EditorTestPage() {
                     initialBlocks={[
                         {
                             id: uuidv4(),
+                            pageId: 'test-page',
                             type: 'TEXT',
                             content: { text: 'Welcome to the new block editor! Try typing here.' },
                             sortOrder: 0,
@@ -24,6 +25,7 @@ export default function EditorTestPage() {
                         },
                         {
                             id: uuidv4(),
+                            pageId: 'test-page',
                             type: 'TEXT',
                             content: { text: 'Press Enter to create a new block, or Backspace to delete an empty one.' },
                             sortOrder: 1,
