@@ -217,7 +217,7 @@ export function ItemModalImproved({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto p-0">
+            <DialogContent showCloseButton={false} className="sm:max-w-5xl max-h-[90vh] overflow-y-auto p-0">
                 <DialogTitle className="sr-only">Edit Item</DialogTitle>
                 {/* Header with Cover */}
                 <div className="relative">
