@@ -67,12 +67,29 @@ model Task {
   tags          TaskTag[]
   reminders     Reminder[]
   focusSessions FocusSession[]
+  subtasks      Subtask[]
 
   @@index([userId])
 
   @@index([userId, completed]) // Optimized for Dashboard (active tasks)
   @@index([userId, completed, completedAt]) // Optimized for Stats/History
   @@map("tasks")
+}
+
+// 4.1 Subtasks
+model Subtask {
+  id        String   @id @default(uuid())
+  taskId    String   @map("task_id")
+  title     String
+  completed Boolean  @default(false)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@map("subtasks")
 }
 
 // 5. Tags

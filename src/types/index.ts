@@ -3,7 +3,7 @@
  * This file defines all the types used across the application
  */
 
-import { Task, Tag, Profile, Habit, FocusSession } from '@prisma/client'
+import { Task, Tag, Profile, Habit, FocusSession, Subtask } from '@prisma/client'
 
 // ========================================
 // TYPE DEFINITIONS
@@ -24,6 +24,7 @@ export type TaskWithRelations = Task & {
   tags?: TaskTagWithTag[]
 
   reminders?: Reminder[]
+  subtasks?: Subtask[]
 }
 
 /**
@@ -460,7 +461,7 @@ export const PRIORITY_COLORS: Record<Priority, string> = {
 
 export type {
   Task,
-
+  Subtask,
 } from '@prisma/client'
 
 // Section is imported at the top and used in types

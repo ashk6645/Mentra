@@ -32,6 +32,17 @@ export default async function InboxPage() {
             dueDate: true,
             completed: true,
             sortOrder: true,
+            subtasks: {
+                select: {
+                    id: true,
+                    title: true,
+                    completed: true,
+                    sortOrder: true,
+                },
+                orderBy: {
+                    sortOrder: 'asc'
+                }
+            }
         },
         orderBy: [
             { sortOrder: 'asc' },  // User's manual order

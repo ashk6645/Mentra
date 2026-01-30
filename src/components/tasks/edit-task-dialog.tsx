@@ -8,6 +8,9 @@ import { Loader2, CalendarIcon, Pencil } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { TagManager } from '@/components/tags/tag-manager'
+import { Plus, X, Check, Trash2 } from 'lucide-react'
+import { createSubtask, updateSubtask, deleteSubtask } from '@/lib/actions/subtasks'
+import { Subtask } from '@prisma/client'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -57,7 +60,7 @@ const formSchema = z.object({
 })
 
 interface EditTaskDialogProps {
-    task: Task & { tags?: { tag: { id: string } }[] }
+    task: Task & { tags?: { tag: { id: string } }[], subtasks?: Subtask[] }
     trigger?: React.ReactNode
 }
 
@@ -90,15 +93,60 @@ export function EditTaskDialog({ task, trigger }: EditTaskDialogProps) {
         },
     })
 
+
     useEffect(() => {
         if (open) {
-            if (open) {
-                getTags().then((t) => {
-                    setTags(t)
-                })
+            getTags().then((t) => {
+                setTags(t)
+            })
+            // Reset subtasks state from props when opening
+            if (task.subtasks) {
+                setLocalSubtasks(task.subtasks)
             }
         }
-    }, [open])
+    }, [open, task.subtasks])
+
+    // Subtask State & Handlers
+    const [localSubtasks, setLocalSubtasks] = useState<Subtask[]>(task.subtasks || [])
+    const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
+    const [isAddingSubtask, setIsAddingSubtask] = useState(false)
+
+    async function handleAddSubtask(e: React.FormEvent) {
+        e.preventDefault()
+        if (!newSubtaskTitle.trim()) return
+
+        const tempId = `temp-${Date.now()}`
+        const optimsticSubtask: any = {
+            id: tempId,
+            taskId: task.id,
+            title: newSubtaskTitle,
+            completed: false,
+            createdAt: new Date(),
+            sortOrder: localSubtasks.length
+        }
+
+        setLocalSubtasks([...localSubtasks, optimsticSubtask])
+        setNewSubtaskTitle('')
+        setIsAddingSubtask(false) // Keep focus? Maybe not needed if we want to add multiple
+
+        const res = await createSubtask(task.id, optimsticSubtask.title)
+        if (res.success && res.data) {
+            setLocalSubtasks(prev => prev.map(st => st.id === tempId ? res.data : st))
+        } else {
+            // Revert on failure
+            setLocalSubtasks(prev => prev.filter(st => st.id !== tempId))
+        }
+    }
+
+    async function handleToggleSubtask(subtaskId: string, completed: boolean) {
+        setLocalSubtasks(prev => prev.map(st => st.id === subtaskId ? { ...st, completed } : st))
+        await updateSubtask(subtaskId, { completed })
+    }
+
+    async function handleDeleteSubtask(subtaskId: string) {
+        setLocalSubtasks(prev => prev.filter(st => st.id !== subtaskId))
+        await deleteSubtask(subtaskId)
+    }
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true)
@@ -188,6 +236,60 @@ export function EditTaskDialog({ task, trigger }: EditTaskDialogProps) {
                                 </FormItem>
                             )}
                         />
+
+                        {/* Subtasks Section */}
+                        <div className="space-y-3 border rounded-md p-3 bg-muted/30">
+                            <div className="flex items-center justify-between">
+                                <FormLabel className="text-sm font-medium">Subtasks</FormLabel>
+                                <span className="text-xs text-muted-foreground">
+                                    {localSubtasks.filter(st => st.completed).length}/{localSubtasks.length}
+                                </span>
+                            </div>
+
+                            <div className="space-y-2">
+                                {localSubtasks.map((subtask) => (
+                                    <div key={subtask.id} className="flex items-center gap-2 group">
+                                        <div
+                                            className={cn(
+                                                "h-4 w-4 rounded-sm border flex items-center justify-center cursor-pointer transition-colors",
+                                                subtask.completed ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/50 hover:border-primary"
+                                            )}
+                                            onClick={() => handleToggleSubtask(subtask.id, !subtask.completed)}
+                                        >
+                                            {subtask.completed && <Check className="h-3 w-3" />}
+                                        </div>
+                                        <span className={cn("text-sm flex-1", subtask.completed && "line-through text-muted-foreground")}>
+                                            {subtask.title}
+                                        </span>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                                            onClick={() => handleDeleteSubtask(subtask.id)}
+                                        >
+                                            <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                    </div>
+                                ))}
+
+                                <div className="flex items-center gap-2">
+                                    <Plus className="h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Add a subtask..."
+                                        value={newSubtaskTitle}
+                                        onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault()
+                                                handleAddSubtask(e)
+                                            }
+                                        }}
+                                        className="h-8 flex-1 bg-transparent border-0 focus-visible:ring-0 px-0 placeholder:text-muted-foreground/70"
+                                    />
+                                </div>
+                            </div>
+                        </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <FormField

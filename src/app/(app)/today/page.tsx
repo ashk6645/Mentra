@@ -37,7 +37,18 @@ export default async function TodayPage() {
             dueDate: true,
             completed: true,
             completedAt: true,
-            sortOrder: true,  // Required for drag-and-drop
+            sortOrder: true,
+            subtasks: {
+                select: {
+                    id: true,
+                    title: true,
+                    completed: true,
+                    sortOrder: true,
+                },
+                orderBy: {
+                    sortOrder: 'asc'
+                }
+            }  // Required for drag-and-drop
         },
         orderBy: [
             { sortOrder: 'asc' },  // Primary: User's manual order

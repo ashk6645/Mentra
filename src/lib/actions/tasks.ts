@@ -100,6 +100,17 @@ export async function getTasks(options: GetTasksOptions = {}) {
                         }
                     }
                 },
+                subtasks: {
+                    select: {
+                        id: true,
+                        title: true,
+                        completed: true,
+                        sortOrder: true,
+                    },
+                    orderBy: {
+                        sortOrder: 'asc'
+                    }
+                }
 
             },
             orderBy: [

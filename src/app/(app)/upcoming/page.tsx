@@ -40,6 +40,17 @@ export default async function UpcomingPage() {
             dueDate: true,
             completed: true,
             sortOrder: true,
+            subtasks: {
+                select: {
+                    id: true,
+                    title: true,
+                    completed: true,
+                    sortOrder: true,
+                },
+                orderBy: {
+                    sortOrder: 'asc'
+                }
+            }
         },
         orderBy: [
             { dueDate: 'asc' },
