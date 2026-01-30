@@ -46,7 +46,7 @@ export function QuickAddInput({
             if (input.trim()) {
                 const parsed = parseTaskNaturalLanguage(input, {
                     currentDate: new Date(),
-                    availableProjects: [],
+
                     availableTags: availableTags.map(t => ({ id: t.id, name: t.name })),
                 })
                 setParsedData(parsed)
