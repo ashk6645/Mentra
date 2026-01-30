@@ -1,14 +1,13 @@
 /**
  * Natural Language Task Parser
  * Extracts structured data from natural language task input
- * Supports Todoist-style syntax: #project @tag p1-p4 !reminder dates/times
+ * Supports Todoist-style syntax: @tag p1-p4 !reminder dates/times
  */
 
 import { addDays, addWeeks, addMonths, setHours, setMinutes, startOfDay, parse, isValid } from 'date-fns'
 
 export interface ParsedTaskData {
     title: string
-    projectName?: string
     tagNames: string[]
     priority?: 'urgent' | 'high' | 'medium' | 'low'
     dueDate?: Date
@@ -18,7 +17,6 @@ export interface ParsedTaskData {
 
 export interface ParserContext {
     currentDate: Date
-    availableProjects?: { id: string; name: string }[]
     availableTags?: { id: string; name: string }[]
 }
 
@@ -38,7 +36,6 @@ export function parseTaskNaturalLanguage(
     let workingInput = input.trim()
 
     // Extract elements in order (to avoid conflicts)
-    const project = extractProject(workingInput)
     const tags = extractTags(workingInput)
     const priority = extractPriority(workingInput)
     const reminder = extractReminder(workingInput)
@@ -47,7 +44,7 @@ export function parseTaskNaturalLanguage(
     // Remove all extracted elements to get clean title
     const elementsToRemove: ExtractedElement[] = []
 
-    if (project) elementsToRemove.push(project)
+
     if (tags.length > 0) elementsToRemove.push(...tags)
     if (priority) elementsToRemove.push(priority)
     if (reminder) elementsToRemove.push(reminder)
@@ -57,7 +54,6 @@ export function parseTaskNaturalLanguage(
 
     return {
         title: title || 'Untitled Task',
-        projectName: project?.value.substring(1), // Remove # prefix
         tagNames: tags.map(t => t.value.substring(1)), // Remove @ prefix
         priority: priority ? mapPriorityToLevel(priority.value) : undefined,
         dueDate: dateTime.date,
@@ -66,23 +62,7 @@ export function parseTaskNaturalLanguage(
     }
 }
 
-/**
- * Extract project name from #projectName pattern
- */
-export function extractProject(input: string): ExtractedElement | null {
-    const regex = /#(\w+)/
-    const match = input.match(regex)
 
-    if (match) {
-        return {
-            value: match[0],
-            startIndex: match.index!,
-            endIndex: match.index! + match[0].length,
-        }
-    }
-
-    return null
-}
 
 /**
  * Extract all tags from @tagName patterns

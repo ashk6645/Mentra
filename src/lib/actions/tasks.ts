@@ -421,7 +421,6 @@ export async function createTaskFromNaturalLanguage(input: string) {
         // Parse the input
         const parsed = parseTaskNaturalLanguage(input, {
             currentDate: new Date(),
-            availableProjects: [],
             availableTags: tags,
         })
 

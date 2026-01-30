@@ -50,7 +50,7 @@ export async function updateUserProfile(data: { displayName?: string }) {
 /**
  * Permanently delete the current user's account and all associated data
  * This action is irreversible and will:
- * - Delete all tasks, projects, habits, focus sessions, etc. (CASCADE)
+ * - Delete all tasks, habits, focus sessions, etc. (CASCADE)
  * - Delete the user's profile from the database
  * - Delete the user's auth account from Supabase
  */
@@ -66,7 +66,7 @@ export async function deleteUserAccount() {
         const userId = user.id
 
         // Step 1: Delete profile from database
-        // This will CASCADE delete all related data (tasks, projects, habits, etc.)
+        // This will CASCADE delete all related data (tasks, habits, etc.)
         // due to the onDelete: Cascade rules in the Prisma schema
         await prisma.profile.delete({
             where: { id: userId }

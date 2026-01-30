@@ -23,14 +23,12 @@ export const ROUTES = {
   TODAY: '/today',
   UPCOMING: '/upcoming',
   TASKS: '/tasks',
-  PROJECTS: '/projects',
   HABITS: '/habits',
   FOCUS: '/focus',
-  AREAS: '/areas',
 } as const
 
 export const AUTH_ROUTES = ['/login', '/signup']
-export const PROTECTED_ROUTES = ['/dashboard', '/inbox', '/today', '/upcoming', '/tasks', '/projects', '/habits', '/focus', '/areas']
+export const PROTECTED_ROUTES = ['/dashboard', '/inbox', '/today', '/upcoming', '/tasks', '/habits', '/focus']
 
 // ========================================
 // GAMIFICATION CONSTANTS
@@ -82,41 +80,9 @@ export const PRIORITY_ORDER = {
   NONE: 3,
 } as const
 
-// ========================================
-// PROJECT SETTINGS
-// ========================================
 
-export const PROJECT_LIMITS = {
-  NAME_MAX_LENGTH: 100,
-  DESCRIPTION_MAX_LENGTH: 500,
-  MAX_PROJECTS_FREE: 3,
-  MAX_PROJECTS_PREMIUM: -1, // unlimited
-  MAX_SECTIONS: 20,
-} as const
 
-export const PROJECT_COLORS = [
-  { name: 'Red', value: 'red' },
-  { name: 'Orange', value: 'orange' },
-  { name: 'Yellow', value: 'yellow' },
-  { name: 'Green', value: 'green' },
-  { name: 'Blue', value: 'blue' },
-  { name: 'Purple', value: 'purple' },
-  { name: 'Pink', value: 'pink' },
-  { name: 'Gray', value: 'gray' },
-] as const
 
-// ========================================
-// AREAS OF LIFE
-// ========================================
-
-export const DEFAULT_AREAS = [
-  { name: 'Career', icon: '💼', color: 'blue' },
-  { name: 'Health & Fitness', icon: '🏃', color: 'green' },
-  { name: 'Learning & Growth', icon: '📚', color: 'purple' },
-  { name: 'Personal & Family', icon: '👨‍👩‍👧', color: 'pink' },
-  { name: 'Finance', icon: '💰', color: 'yellow' },
-  { name: 'Hobbies & Creativity', icon: '✨', color: 'orange' },
-] as const
 
 // ========================================
 // KEYBOARD SHORTCUTS
@@ -187,7 +153,6 @@ export const STORAGE_KEYS = {
 
 export const API_ENDPOINTS = {
   TASKS: '/api/tasks',
-  PROJECTS: '/api/projects',
   TAGS: '/api/tags',
   HABITS: '/api/habits',
   PROFILE: '/api/profile',
@@ -228,7 +193,6 @@ export const SUCCESS_MESSAGES = {
   TASK_UPDATED: 'Task updated',
   TASK_DELETED: 'Task deleted',
   TASK_COMPLETED: 'Task completed! 🎉',
-  PROJECT_CREATED: 'Project created',
   PROFILE_UPDATED: 'Profile updated',
   SETTINGS_SAVED: 'Settings saved',
 } as const
@@ -239,7 +203,6 @@ export const SUCCESS_MESSAGES = {
 
 export const FREE_TIER_LIMITS = {
   MAX_TASKS: -1, // unlimited
-  MAX_PROJECTS: 3,
   MAX_HABITS: 5,
   MAX_TAGS: 10,
   MAX_ATTACHMENTS_SIZE: 10 * 1024 * 1024, // 10MB
@@ -252,7 +215,6 @@ export const FREE_TIER_LIMITS = {
 
 export const PREMIUM_TIER_LIMITS = {
   MAX_TASKS: -1, // unlimited
-  MAX_PROJECTS: -1, // unlimited
   MAX_HABITS: -1, // unlimited
   MAX_TAGS: -1, // unlimited
   MAX_ATTACHMENTS_SIZE: 100 * 1024 * 1024, // 100MB
@@ -268,7 +230,5 @@ export const VALIDATION = {
   URL_PATTERN: /^https?:\/\/.+/,
   TASK_TITLE_MIN: 1,
   TASK_TITLE_MAX: 200,
-  PROJECT_NAME_MIN: 1,
-  PROJECT_NAME_MAX: 100,
   PASSWORD_MIN: 8,
 } as const

@@ -9,7 +9,6 @@ export interface ParsedTask {
     description?: string
     priority?: string
     dueDate?: string // ISO string
-    projectId?: string // We might try to match this by name later, but for now let's just extract intent
 }
 
 async function logAIActivity(userId: string, prompt: string, response: string, action: string) {
@@ -109,9 +108,8 @@ export async function generateSubtasks(taskTitle: string, taskDescription?: stri
 export async function getTaskSuggestions(
     title: string,
     description: string | undefined,
-    availableProjects: { id: string, name: string }[],
     availableTags: { id: string, name: string }[]
-): Promise<{ priority?: string; projectId?: string; tagIds?: string[] }> {
+): Promise<{ priority?: string; tagIds?: string[] }> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -125,15 +123,13 @@ export async function getTaskSuggestions(
     Task: "${title}"
     ${description ? `Description: "${description}"` : ''}
 
-    Available Projects:
-    ${JSON.stringify(availableProjects.map(p => ({ id: p.id, name: p.name })))}
+
 
     Available Tags:
     ${JSON.stringify(availableTags.map(t => ({ id: t.id, name: t.name })))}
 
     Return a JSON object with the following optional keys:
     - priority: One of "HIGH", "MEDIUM", "LOW", "NONE"
-    - projectId: The ID of the best matching project (if any)
     - tagIds: An array of IDs for the best matching tags (if any)
 
     If no suitable match is found for a field, omit it.

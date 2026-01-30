@@ -85,7 +85,6 @@ export function TaskEditor({
 
                 const parsed = parseTaskNaturalLanguage(newVal, {
                     currentDate: new Date(),
-                    availableProjects: [],
                     availableTags: availableTags,
                 })
 
@@ -218,7 +217,7 @@ export function TaskEditor({
 
                 {/* Natural Language Tips */}
                 <div className="pt-2 text-[10px] text-muted-foreground/60 select-none">
-                    Use <span className="font-mono">#project</span>, <span className="font-mono">@tag</span>, <span className="font-mono">p1-4</span>, <span className="font-mono">!reminder</span>, or type dates like <span className="font-mono">"tomorrow at 3pm"</span>.
+                    Use <span className="font-mono">@tag</span>, <span className="font-mono">p1-4</span>, <span className="font-mono">!reminder</span>, or type dates like <span className="font-mono">"tomorrow at 3pm"</span>.
                 </div>
             </div>
 
