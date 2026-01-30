@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Check, Flame, Trash2, MoreVertical } from 'lucide-react'
+import { Card } from '@/components/ui/card'
+import { Check, Flame, Trash2, MoreVertical, Trophy, Calendar } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { completeHabit, deleteHabit } from '@/lib/actions/habits'
 import { useRouter } from 'next/navigation'
@@ -58,7 +57,7 @@ export function HabitCard({ habit }: HabitCardProps) {
 
         if (result.success) {
             setShowCheck(true)
-            setTimeout(() => setShowCheck(false), 1500)
+            setTimeout(() => setShowCheck(false), 2000)
         }
 
         setIsLoading(false)
@@ -75,93 +74,139 @@ export function HabitCard({ habit }: HabitCardProps) {
             layout
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="group"
         >
-            <Card className={cn(
-                "relative overflow-hidden transition-all",
-                isCompletedToday && "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800"
+            <div className={cn(
+                "relative overflow-hidden rounded-2xl transition-all duration-300",
+                "bg-white/60 dark:bg-neutral-900/60 backdrop-blur-xl border border-white/20 dark:border-white/10",
+                "hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20",
+                "group-hover:-translate-y-1",
+                isCompletedToday ? "ring-2 ring-green-500/20 dark:ring-green-400/20" : ""
             )}>
-                <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
+                {/* Progress Background Hint */}
+                {isCompletedToday && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-emerald-500/5 pointer-events-none"
+                    />
+                )}
+
+                <div className="p-5 flex flex-col gap-4">
+                    <div className="flex items-start justify-between">
                         <div className="flex items-center gap-4">
-                            {/* Complete Button */}
                             <motion.button
-                                whileTap={{ scale: 0.9 }}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
                                 onClick={handleComplete}
                                 disabled={isLoading || isCompletedToday}
                                 className={cn(
-                                    "w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all",
+                                    "relative w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-sm",
                                     isCompletedToday
-                                        ? "bg-green-500 border-green-500 text-white"
-                                        : "border-gray-300 hover:border-green-500 hover:bg-green-50"
+                                        ? "bg-gradient-to-br from-green-400 to-emerald-600 text-white shadow-green-500/20 shadow-lg"
+                                        : "bg-white dark:bg-neutral-800 border-2 border-dashed border-neutral-300 dark:border-neutral-700 text-neutral-400 hover:border-green-400 hover:text-green-500 dark:hover:border-green-400"
                                 )}
                             >
-                                <AnimatePresence>
-                                    {(isCompletedToday || showCheck) && (
+                                <AnimatePresence mode="wait">
+                                    {isCompletedToday ? (
                                         <motion.div
-                                            initial={{ scale: 0 }}
-                                            animate={{ scale: 1 }}
-                                            exit={{ scale: 0 }}
+                                            key="check"
+                                            initial={{ scale: 0, rotate: -45 }}
+                                            animate={{ scale: 1, rotate: 0 }}
+                                            transition={{ type: "spring", stiffness: 400, damping: 15 }}
                                         >
-                                            <Check className="h-5 w-5" />
+                                            <Check className="w-7 h-7 stroke-[3]" />
+                                        </motion.div>
+                                    ) : (
+                                        <motion.div
+                                            key="empty"
+                                            animate={{ opacity: isLoading ? 0.5 : 1 }}
+                                        >
+                                            <div className="w-4 h-4 rounded-full border-2 border-current opacity-50" />
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
+
+                                {isLoading && (
+                                    <div className="absolute inset-0 rounded-2xl border-2 border-green-500/30 border-t-green-500 animate-spin" />
+                                )}
                             </motion.button>
 
                             <div>
-                                <h3 className="font-medium">{habit.name}</h3>
-                                <div className="flex items-center gap-2 mt-1">
-                                    <Flame className={cn(
-                                        "h-4 w-4",
-                                        habit.currentStreak > 0 ? "text-orange-500" : "text-gray-400"
-                                    )} />
-                                    <span className="text-sm text-muted-foreground">
-                                        {habit.currentStreak} day streak
-                                    </span>
+                                <h3 className={cn(
+                                    "text-lg font-bold tracking-tight text-neutral-900 dark:text-neutral-100 transition-colors",
+                                    isCompletedToday && "text-green-700 dark:text-green-400"
+                                )}>
+                                    {habit.name}
+                                </h3>
+                                <div className="flex items-center gap-3 mt-1.5">
+                                    <div className={cn(
+                                        "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider",
+                                        habit.currentStreak > 0
+                                            ? "bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400"
+                                            : "bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400"
+                                    )}>
+                                        <Flame className={cn("w-3.5 h-3.5", habit.currentStreak > 0 && "fill-orange-500 text-orange-500")} />
+                                        <span>{habit.currentStreak} Streak</span>
+                                    </div>
+                                    <div className="text-xs text-neutral-400 capitalize hidden sm:block">
+                                        {habit.frequency}
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-4">
-                            {/* Streak Visualization */}
-                            <div className="flex gap-1">
-                                {last7Days.map((day, i) => (
-                                    <div
-                                        key={i}
-                                        className={cn(
-                                            "w-3 h-3 rounded-sm transition-colors",
-                                            completedDays.has(day.getTime())
-                                                ? "bg-green-500"
-                                                : "bg-gray-200 dark:bg-gray-700"
-                                        )}
-                                        title={day.toLocaleDateString()}
-                                    />
-                                ))}
-                            </div>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="p-2 -mr-2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 focus:outline-none">
+                                    <MoreVertical className="w-5 h-5" />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-40">
+                                <DropdownMenuItem
+                                    className="text-red-600 dark:text-red-400 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20"
+                                    onClick={handleDelete}
+                                >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
 
-                            {/* Actions */}
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                        <MoreVertical className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem
-                                        className="text-red-600"
-                                        onClick={handleDelete}
-                                    >
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Delete
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                    <div className="pt-2 border-t border-neutral-100 dark:border-white/5">
+                        <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-medium text-neutral-400">Last 7 Days</span>
+                            <div className="flex gap-1.5">
+                                {last7Days.map((day, i) => {
+                                    const isCompleted = completedDays.has(day.getTime())
+                                    const isToday = day.getTime() === today.getTime()
+
+                                    return (
+                                        <div
+                                            key={i}
+                                            className="group/day relative"
+                                            title={day.toLocaleDateString()}
+                                        >
+                                            <div className={cn(
+                                                "w-2.5 h-8 rounded-full transition-all duration-300",
+                                                isCompleted
+                                                    ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"
+                                                    : isToday
+                                                        ? "bg-neutral-200 dark:bg-neutral-700 ring-1 ring-neutral-300 dark:ring-neutral-600"
+                                                        : "bg-neutral-100 dark:bg-neutral-800"
+                                            )} />
+                                            {/* Tooltip on hover could go here */}
+                                        </div>
+                                    )
+                                })}
+                            </div>
                         </div>
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
         </motion.div>
     )
 }
