@@ -9,9 +9,10 @@ interface CommandPaletteWrapperProps {
     user: any
 
     children: React.ReactNode
+    initialPages?: any[]
 }
 
-export function CommandPaletteWrapper({ user, children }: CommandPaletteWrapperProps) {
+export function CommandPaletteWrapper({ user, children, initialPages }: CommandPaletteWrapperProps) {
     const { isSidebarCollapsed } = useUIStore()
 
 
@@ -24,7 +25,7 @@ export function CommandPaletteWrapper({ user, children }: CommandPaletteWrapperP
     return (
         <>
             <CommandPalette />
-            <Sidebar user={user} onOpenCommand={handleOpenCommand} />
+            <Sidebar user={user} onOpenCommand={handleOpenCommand} initialPages={initialPages} />
 
             <main
                 className="min-h-screen transition-[padding] duration-300 ease-in-out"

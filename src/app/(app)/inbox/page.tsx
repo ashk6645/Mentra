@@ -1,14 +1,13 @@
 import { CreateTaskInline } from '@/components/tasks/create-task-inline'
 import { Inbox as InboxIcon, Plus } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/user-session'
 import { InboxTaskList } from '@/components/inbox/inbox-task-list'
 import { InboxSkeleton } from '@/components/inbox/inbox-skeleton'
 import { Suspense } from 'react'
 import prisma from '@/lib/prisma'
 
 export default async function InboxPage() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) return null
 
     const today = new Date()

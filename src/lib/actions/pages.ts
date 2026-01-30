@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache'
 import prisma from '@/lib/prisma'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/user-session'
 import { hasPagePermission } from './page-sharing'
 
 // ========================================
@@ -27,8 +27,7 @@ export interface UpdatePageInput extends Partial<CreatePageInput> {
 
 export async function getPages() {
     try {
-        const supabase = await createClient()
-        const { data: { user } } = await supabase.auth.getUser()
+        const user = await getCurrentUser()
         if (!user) {
             return { success: false, error: 'Unauthorized', pages: [] }
         }
@@ -79,8 +78,7 @@ export async function getPages() {
 
 export async function getPageById(id: string) {
     try {
-        const supabase = await createClient()
-        const { data: { user } } = await supabase.auth.getUser()
+        const user = await getCurrentUser()
         if (!user) {
             return { success: false, error: 'Unauthorized', page: null }
         }
@@ -147,8 +145,7 @@ export async function getPageById(id: string) {
 
 export async function createPage(data: CreatePageInput = {}) {
     try {
-        const supabase = await createClient()
-        const { data: { user } } = await supabase.auth.getUser()
+        const user = await getCurrentUser()
         if (!user) {
             return { success: false, error: 'Unauthorized', page: null }
         }
@@ -185,8 +182,7 @@ export async function createPage(data: CreatePageInput = {}) {
 
 export async function updatePage(id: string, data: UpdatePageInput) {
     try {
-        const supabase = await createClient()
-        const { data: { user } } = await supabase.auth.getUser()
+        const user = await getCurrentUser()
         if (!user) {
             return { success: false, error: 'Unauthorized', page: null }
         }
@@ -231,8 +227,7 @@ export async function updatePage(id: string, data: UpdatePageInput) {
 
 export async function deletePage(id: string) {
     try {
-        const supabase = await createClient()
-        const { data: { user } } = await supabase.auth.getUser()
+        const user = await getCurrentUser()
         if (!user) {
             return { success: false, error: 'Unauthorized' }
         }
@@ -272,8 +267,7 @@ export async function deletePage(id: string) {
 
 export async function reorderPages(pageIds: string[]) {
     try {
-        const supabase = await createClient()
-        const { data: { user } } = await supabase.auth.getUser()
+        const user = await getCurrentUser()
         if (!user) {
             return { success: false, error: 'Unauthorized' }
         }
@@ -304,8 +298,7 @@ export async function reorderPages(pageIds: string[]) {
 
 export async function togglePageFavorite(id: string) {
     try {
-        const supabase = await createClient()
-        const { data: { user } } = await supabase.auth.getUser()
+        const user = await getCurrentUser()
         if (!user) {
             return { success: false, error: 'Unauthorized' }
         }
