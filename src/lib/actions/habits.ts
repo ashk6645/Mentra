@@ -8,7 +8,7 @@ import { AppError, ErrorCodes, ErrorMessages } from '@/lib/error-handler'
 
 const habitSchema = z.object({
     name: z.string().min(1, 'Name is required'),
-    frequency: z.enum(['daily', 'weekly', 'monthly']).default('daily'),
+    frequency: z.enum(['daily', 'weekly', 'custom']).default('daily'),
 })
 
 export async function getHabits() {
@@ -60,11 +60,11 @@ export async function getHabits() {
         return { success: true, data: habits }
     } catch (error) {
         console.error('Failed to fetch habits:', error)
-        
+
         if (error instanceof AppError) {
             return { success: false, error: error.userMessage || error.message, data: [] }
         }
-        
+
         return { success: false, error: ErrorMessages.DATABASE_ERROR, data: [] }
     }
 }
@@ -124,11 +124,11 @@ export async function createHabit(data: z.infer<typeof habitSchema>) {
         return { success: true, data: habit }
     } catch (error) {
         console.error('Failed to create habit:', error)
-        
+
         if (error instanceof AppError) {
             return { success: false, error: error.userMessage || error.message }
         }
-        
+
         return { success: false, error: 'Failed to create habit. Please try again.' }
     }
 }
