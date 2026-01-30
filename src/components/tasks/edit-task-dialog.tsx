@@ -62,10 +62,17 @@ const formSchema = z.object({
 interface EditTaskDialogProps {
     task: Task & { tags?: { tag: { id: string } }[], subtasks?: Subtask[] }
     trigger?: React.ReactNode
+    isOpen?: boolean
+    onOpenChange?: (open: boolean) => void
 }
 
-export function EditTaskDialog({ task, trigger }: EditTaskDialogProps) {
-    const [open, setOpen] = useState(false)
+export function EditTaskDialog({ task, trigger, isOpen, onOpenChange }: EditTaskDialogProps) {
+    const [internalOpen, setInternalOpen] = useState(false)
+
+    // Use controlled state if provided, otherwise internal state
+    const isControlled = isOpen !== undefined
+    const open = isControlled ? isOpen : internalOpen
+    const setOpen = isControlled ? onOpenChange! : setInternalOpen
 
     const [tags, setTags] = useState<Tag[]>([])
     const [isLoading, setIsLoading] = useState(false)
@@ -191,13 +198,11 @@ export function EditTaskDialog({ task, trigger }: EditTaskDialogProps) {
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                {trigger || (
-                    <Button variant="ghost" size="sm">
-                        <Pencil className="h-4 w-4" />
-                    </Button>
-                )}
-            </DialogTrigger>
+            {trigger && (
+                <DialogTrigger asChild>
+                    {trigger}
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Edit Task</DialogTitle>
