@@ -16,7 +16,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                 defaultTheme="system"
                 enableSystem
                 disableTransitionOnChange
-                themes={['light', 'dark', 'amoled', 'solarized', 'rose']}
+                themes={['light', 'dark', 'amoled', 'solarized', 'rose', 'midnight', 'nord', 'forest', 'paper', 'cyberpunk']}
             >
                 {children}
             </ThemeProvider>
