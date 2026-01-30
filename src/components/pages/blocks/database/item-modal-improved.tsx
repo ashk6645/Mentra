@@ -17,10 +17,8 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-import { BlockRenderer } from '../../block-renderer'
-import { BlockWrapper } from '../../block-wrapper'
-import { SlashMenu } from '../../slash-menu'
-import { Block, BlockType, getDefaultBlockContent } from '../../types'
+import { BlockEditor } from '@/components/editor/block-editor'
+import { Block, BlockType } from '@/components/editor/types'
 import { useRouter } from 'next/navigation'
 
 // ========================================
@@ -83,11 +81,6 @@ export function ItemModalImproved({
     const [icon, setIcon] = useState(item?.icon || '📄')
     const [showIconPicker, setShowIconPicker] = useState(false)
     const [blocks, setBlocks] = useState<Block[]>([])
-    const [isLoadingBlocks, setIsLoadingBlocks] = useState(false)
-    const [showSlashMenu, setShowSlashMenu] = useState(false)
-    const [slashMenuPosition, setSlashMenuPosition] = useState({ x: 0, y: 0 })
-    const [activeBlockId, setActiveBlockId] = useState<string | null>(null)
-    const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null)
 
     // Load blocks when item changes
     useEffect(() => {
@@ -141,83 +134,21 @@ export function ItemModalImproved({
     }, [item, onDelete])
 
     // ========================================
-    // BLOCK OPERATIONS (JSON-BASED)
+    // BLOCK EDITOR INTEGRATION
     // ========================================
 
-    const handleAddBlock = useCallback((type: BlockType, afterBlockId?: string) => {
-        if (!item) return
-
-        const newBlock: Block = {
-            id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            pageId,
-            type,
-            content: getDefaultBlockContent(type),
-            sortOrder: 0, // Calculated below
-            parentBlockId: item.id, // Logical link
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        }
-
-        const currentBlocks = [...blocks]
-        let newBlocks: Block[] = []
-
-        if (afterBlockId) {
-            const index = currentBlocks.findIndex(b => b.id === afterBlockId)
-            if (index !== -1) {
-                newBlocks = [...currentBlocks]
-                newBlocks.splice(index + 1, 0, newBlock)
-            } else {
-                newBlocks = [...currentBlocks, newBlock]
-            }
-        } else {
-            newBlocks = [...currentBlocks, newBlock]
-        }
-
-        // Re-index sort order
-        newBlocks = newBlocks.map((b, idx) => ({ ...b, sortOrder: idx }))
-
+    const handleBlocksChange = useCallback((newBlocks: Block[]) => {
         setBlocks(newBlocks)
-        setFocusedBlockId(newBlock.id)
-        setShowSlashMenu(false)
-
-        // Persist via onUpdate
-        onUpdate(item.id, { blocks: newBlocks })
-    }, [item, pageId, blocks, onUpdate])
-
-    const handleUpdateBlock = useCallback((id: string, content: Record<string, unknown>) => {
-        if (!item) return
-
-        const newBlocks = blocks.map(b =>
-            b.id === id ? { ...b, content } : b
-        )
-
-        setBlocks(newBlocks)
-        onUpdate(item.id, { blocks: newBlocks })
-    }, [item, blocks, onUpdate])
-
-    const handleDeleteBlock = useCallback((id: string) => {
-        if (!item) return
-        if (!confirm('Delete this block?')) return
-
-        const newBlocks = blocks.filter(b => b.id !== id)
-
-        setBlocks(newBlocks)
-        onUpdate(item.id, { blocks: newBlocks })
-    }, [item, blocks, onUpdate])
-
-    const handleOpenSlashMenu = useCallback((blockId: string | null, position?: { x: number; y: number }) => {
-        setActiveBlockId(blockId)
-        if (position) {
-            setSlashMenuPosition(position)
+        if (item) {
+            onUpdate(item.id, { blocks: newBlocks })
         }
-        setShowSlashMenu(true)
-    }, [])
+    }, [item, onUpdate])
 
     if (!item) return null
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent showCloseButton={false} className="sm:max-w-5xl max-h-[90vh] overflow-y-auto p-0">
+            <DialogContent showCloseButton={false} className="sm:max-w-3xl max-h-[90vh] overflow-y-auto p-0">
                 <DialogTitle className="sr-only">Edit Item</DialogTitle>
                 {/* Header with Cover */}
                 <div className="relative">
@@ -360,72 +291,14 @@ export function ItemModalImproved({
 
                     {/* Body - Block Editor */}
                     <div className="min-h-[300px]">
-                        {isLoadingBlocks ? (
-                            <div className="flex items-center justify-center py-12">
-                                <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
-                            </div>
-                        ) : blocks.length === 0 ? (
-                            <div className="text-muted-foreground py-8">
-                                <p className="text-sm mb-4">
-                                    Start writing or type <kbd className="font-mono bg-muted px-2 py-1 rounded text-xs">/</kbd> for commands
-                                </p>
-                                <button
-                                    onClick={() => handleAddBlock('TEXT')}
-                                    className="text-sm text-primary hover:underline"
-                                >
-                                    + Add your first block
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="space-y-1">
-                                {blocks.map((block) => (
-                                    <BlockWrapper
-                                        key={block.id}
-                                        block={block}
-                                        onDelete={() => handleDeleteBlock(block.id)}
-                                        onDuplicate={() => { /* TODO: Implement */ }}
-                                        onAddBlock={(type) => handleAddBlock(type, block.id)}
-                                        onOpenSlashMenu={() => handleOpenSlashMenu(block.id)}
-                                    >
-                                        <BlockRenderer
-                                            block={block}
-                                            onUpdate={(content) => handleUpdateBlock(block.id, content)}
-                                            onDelete={() => handleDeleteBlock(block.id)}
-                                            onAddBlock={(type, afterId) => handleAddBlock(type, afterId)}
-                                            onOpenSlashMenu={() => handleOpenSlashMenu(block.id)}
-                                            focusedBlockId={focusedBlockId}
-                                            isEditing={focusedBlockId === block.id}
-                                        />
-                                    </BlockWrapper>
-                                ))}
-                            </div>
-                        )}
+                        <BlockEditor
+                            key={item.id}
+                            initialBlocks={blocks}
+                            onChange={handleBlocksChange}
+                            readOnly={false}
+                        />
                     </div>
-
-                    {/* Add block button */}
-                    {blocks.length > 0 && (
-                        <button
-                            onClick={() => handleAddBlock('TEXT')}
-                            className="w-full mt-2 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-colors text-left px-3 flex items-center gap-2"
-                        >
-                            <span className="text-lg">+</span>
-                            Add a block
-                        </button>
-                    )}
                 </div>
-
-                {/* Slash Menu */}
-                {showSlashMenu && (
-                    <SlashMenu
-                        isOpen={showSlashMenu}
-                        position={slashMenuPosition}
-                        onSelect={(type) => {
-                            handleAddBlock(type, activeBlockId || undefined)
-                            setShowSlashMenu(false)
-                        }}
-                        onClose={() => setShowSlashMenu(false)}
-                    />
-                )}
             </DialogContent>
         </Dialog>
     )
