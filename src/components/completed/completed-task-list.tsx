@@ -1,6 +1,5 @@
 'use client'
 
-import { DateGroupHeader } from './date-group-header'
 import { CompletedTaskRow } from './completed-task-row'
 
 interface CompletedTask {
@@ -22,22 +21,33 @@ interface CompletedTaskListProps {
     }
 }
 
+function TaskGroup({ title, tasks }: { title: string, tasks: CompletedTask[] }) {
+    if (tasks.length === 0) return null
+    return (
+        <div className="space-y-3">
+            <h3 className="text-lg font-medium text-muted-foreground ml-1">{title}</h3>
+            <div className="bg-card border rounded-xl shadow-sm divide-y divide-border/50 overflow-hidden">
+                {tasks.map(task => (
+                    <CompletedTaskRow key={task.id} task={task} />
+                ))}
+            </div>
+        </div>
+    )
+}
+
 export function CompletedTaskList({ groupedTasks }: CompletedTaskListProps) {
     const { today, yesterday, older } = groupedTasks
-
-    // Get sorted older dates (most recent first)
-    const olderDates = Object.keys(older).sort((a, b) => b.localeCompare(a))
-
+    const olderDates = Object.keys(older).sort((a, b) => b.localeCompare(a)) // Sort desc
     const totalTasks = today.length + yesterday.length + olderDates.reduce((sum, date) => sum + older[date].length, 0)
 
     if (totalTasks === 0) {
         return (
-            <div className="text-center py-16 space-y-3">
-                <div className="text-4xl">🎯</div>
+            <div className="text-center py-16 space-y-4">
+                <div className="text-5xl opacity-50">✨</div>
                 <div className="space-y-1">
-                    <p className="text-sm font-medium text-foreground/80">No completed tasks yet</p>
-                    <p className="text-xs text-muted-foreground">
-                        Start checking off tasks to build your progress history!
+                    <p className="text-lg font-medium text-foreground/80">No completed tasks yet</p>
+                    <p className="text-sm text-muted-foreground">
+                        Your meaningful achievements will appear here.
                     </p>
                 </div>
             </div>
@@ -45,54 +55,15 @@ export function CompletedTaskList({ groupedTasks }: CompletedTaskListProps) {
     }
 
     return (
-        <div className="space-y-8">
-            {/* Today */}
-            {today.length > 0 && (
-                <div>
-                    <DateGroupHeader
-                        date={new Date()}
-                        type="today"
-                        taskCount={today.length}
-                    />
-                    <div className="space-y-1">
-                        {today.map(task => (
-                            <CompletedTaskRow key={task.id} task={task} />
-                        ))}
-                    </div>
-                </div>
-            )}
+        <div className="space-y-10">
+            <TaskGroup title="Today" tasks={today} />
+            <TaskGroup title="Yesterday" tasks={yesterday} />
 
-            {/* Yesterday */}
-            {yesterday.length > 0 && (
-                <div>
-                    <DateGroupHeader
-                        date={new Date(Date.now() - 86400000)}
-                        type="yesterday"
-                        taskCount={yesterday.length}
-                    />
-                    <div className="space-y-1">
-                        {yesterday.map(task => (
-                            <CompletedTaskRow key={task.id} task={task} />
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Older dates */}
-            {olderDates.map(dateKey => (
-                <div key={dateKey}>
-                    <DateGroupHeader
-                        date={new Date(dateKey)}
-                        type="date"
-                        taskCount={older[dateKey].length}
-                    />
-                    <div className="space-y-1">
-                        {older[dateKey].map(task => (
-                            <CompletedTaskRow key={task.id} task={task} />
-                        ))}
-                    </div>
-                </div>
-            ))}
+            {olderDates.map(dateKey => {
+                const date = new Date(dateKey)
+                const title = date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
+                return <TaskGroup key={dateKey} title={title} tasks={older[dateKey]} />
+            })}
         </div>
     )
 }

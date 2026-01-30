@@ -2,7 +2,7 @@
 
 import { Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { format } from 'date-fns'
+import { format, isToday, isYesterday } from 'date-fns'
 
 interface CompletedTaskRowProps {
     task: {
@@ -18,11 +18,11 @@ interface CompletedTaskRowProps {
 }
 
 export function CompletedTaskRow({ task }: CompletedTaskRowProps) {
-    const priorityColors = {
-        urgent: 'text-red-500',
-        high: 'text-orange-500',
-        medium: 'text-yellow-500',
-        low: 'text-blue-500'
+    const priorityConfig = {
+        urgent: { label: 'Urgent', className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+        high: { label: 'High', className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+        medium: { label: 'Medium', className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+        low: { label: 'Low', className: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400' }
     }
 
     const projectColors = {
@@ -34,48 +34,58 @@ export function CompletedTaskRow({ task }: CompletedTaskRowProps) {
         neutral: 'bg-zinc-400'
     }
 
-    return (
-        <div className="group flex items-center gap-3 py-2.5 px-3 rounded-md hover:bg-muted/30 transition-colors">
-            {/* Checkmark (always visible, read-only) */}
-            <div className="flex items-center justify-center h-5 w-5 rounded-full bg-green-500/10 shrink-0">
-                <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-500" />
-            </div>
+    const priority = task.priority?.toLowerCase() as keyof typeof priorityConfig | undefined
+    const priorityStyle = priority ? priorityConfig[priority] : null
 
-            {/* Task content */}
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground line-through decoration-muted-foreground/50">
+    const formattedDate = () => {
+        const date = new Date(task.completedAt)
+        if (isToday(date)) return `Today · ${format(date, 'h:mm a')}`
+        if (isYesterday(date)) return `Yesterday · ${format(date, 'h:mm a')}`
+        return format(date, 'MMM d · h:mm a')
+    }
+
+    return (
+        <div className="group flex items-center justify-between p-4 hover:bg-muted/40 transition-colors">
+            <div className="flex items-center gap-4 min-w-0 flex-1 mr-4">
+                {/* Checkmark */}
+                <div className="flex items-center justify-center h-6 w-6 rounded-full bg-green-500 text-white shrink-0 shadow-sm ring-1 ring-green-600/20">
+                    <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                </div>
+
+                {/* Title & Project */}
+                <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-medium text-foreground truncate">
                         {task.title}
                     </span>
 
-                    {/* Priority indicator */}
-                    {task.priority && task.priority !== 'low' && (
-                        <span className={cn(
-                            "text-xs",
-                            priorityColors[task.priority as keyof typeof priorityColors]
-                        )}>
-                            •
-                        </span>
-                    )}
-                </div>
-
-                {/* Metadata */}
-                <div className="flex items-center gap-2 mt-0.5">
                     {task.project && (
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 mt-0.5">
                             <span className={cn(
                                 "h-1.5 w-1.5 rounded-full",
                                 projectColors[(task.project.color || 'neutral') as keyof typeof projectColors]
                             )} />
-                            <span className="text-xs text-muted-foreground/70">
+                            <span className="text-xs text-muted-foreground">
                                 {task.project.name}
                             </span>
                         </div>
                     )}
-                    <span className="text-xs text-muted-foreground/50">
-                        {format(new Date(task.completedAt), 'h:mm a')}
-                    </span>
                 </div>
+            </div>
+
+            {/* Metadata (Right Side) */}
+            <div className="flex items-center gap-3 shrink-0">
+                <span className="text-xs text-muted-foreground/60 font-medium whitespace-nowrap">
+                    {formattedDate()}
+                </span>
+
+                {priorityStyle && (
+                    <span className={cn(
+                        "px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide",
+                        priorityStyle.className
+                    )}>
+                        {priorityStyle.label}
+                    </span>
+                )}
             </div>
         </div>
     )
