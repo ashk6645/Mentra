@@ -22,6 +22,7 @@ export type BlockContent = Record<string, any>
 
 export interface Block {
     id: string
+    pageId: string
     type: BlockType
     content: BlockContent
     parentId?: string | null

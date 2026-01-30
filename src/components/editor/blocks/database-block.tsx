@@ -10,6 +10,31 @@ import { cn } from '@/lib/utils'
 import { v4 as uuidv4 } from 'uuid'
 import { SHARED_DATABASE_ITEMS, DatabaseItem } from '../views/mock-data'
 import { BlockEditor } from '../block-editor'
+import { ItemModalImproved } from '../../pages/blocks/database/item-modal-improved'
+
+const PROPERTIES = [
+    {
+        id: 'status',
+        name: 'Status',
+        type: 'SELECT',
+        options: [
+            { id: 'Not started', name: 'Not started', color: 'gray' },
+            { id: 'In progress', name: 'In progress', color: 'blue' },
+            { id: 'Done', name: 'Done', color: 'green' }
+        ]
+    },
+    {
+        id: 'priority',
+        name: 'Priority',
+        type: 'SELECT',
+        options: [
+            { id: 'Low', name: 'Low', color: 'gray' },
+            { id: 'Medium', name: 'Medium', color: 'blue' },
+            { id: 'High', name: 'High', color: 'red' }
+        ]
+    },
+    { id: 'date', name: 'Date', type: 'DATE' }
+]
 
 interface DatabaseBlockProps {
     block: Block
@@ -220,130 +245,16 @@ export function DatabaseBlock({ block, isFocused, onChange }: DatabaseBlockProps
                 )}
             </div>
 
-            {/* PAGE POPUP OVERLAY (PORTAL) */}
-            {mounted && selectedItemId && selectedItem && createPortal(
-                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 md:p-12 animate-in fade-in duration-200" onClick={() => setSelectedItemId(null)}>
-                    <div
-                        className="bg-background w-full max-w-4xl h-full max-h-[90vh] rounded-xl shadow-2xl border border-border flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {/* Popup Header Actions */}
-                        <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 shrink-0">
-                            <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                                <Maximize2 className="w-4 h-4" />
-                                <span>Open as page</span>
-                            </button>
-                            <div className="flex items-center gap-2">
-                                <button className="p-1.5 hover:bg-accent rounded text-muted-foreground">
-                                    <MoreHorizontal className="w-4 h-4" />
-                                </button>
-                                <button
-                                    onClick={() => setSelectedItemId(null)}
-                                    className="p-1.5 hover:bg-accent rounded text-muted-foreground hover:text-foreground"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Popup Scrollable Content */}
-                        <div className="flex-1 overflow-y-auto">
-                            {/* Cover Image */}
-                            <div className="group relative w-full h-48 bg-muted">
-                                {selectedItem.cover ? (
-                                    <img src={selectedItem.cover} className="w-full h-full object-cover" alt="Cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-muted-foreground/20">
-                                        <ImageIcon className="w-12 h12" />
-                                    </div>
-                                )}
-                                <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button className="text-xs bg-background/80 hover:bg-background border border-border px-2 py-1 rounded shadow-sm backdrop-blur">
-                                        Change cover
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Page Content Container */}
-                            <div className="max-w-3xl mx-auto w-full px-8 pb-16">
-                                {/* Icon & Title */}
-                                <div className="-mt-10 mb-8 relative">
-                                    <div className="text-6xl mb-4 select-none cursor-pointer hover:opacity-80 transition-opacity w-fit">
-                                        {/* Fallback Icon */}
-                                        {selectedItem.icon || '📄'}
-                                    </div>
-                                    <input
-                                        className="text-4xl font-bold bg-transparent border-none outline-none w-full placeholder:text-muted-foreground/40"
-                                        placeholder="Untitled"
-                                        value={selectedItem.title}
-                                        onChange={(e) => updateItem(selectedItem.id, { title: e.target.value })}
-                                        onClick={(e) => e.stopPropagation()}
-                                    />
-                                </div>
-
-                                {/* Properties */}
-                                <div className="space-y-1 mb-8">
-                                    {/* Status */}
-                                    <div className="flex items-center py-1">
-                                        <div className="w-32 flex items-center gap-2 text-muted-foreground text-sm">
-                                            <CheckCircle2 className="w-4 h-4" />
-                                            <span>Status</span>
-                                        </div>
-                                        <div className="flex-1">
-                                            <span className={cn(
-                                                "px-2 py-0.5 rounded text-sm bg-accent/50 text-foreground w-fit block",
-                                                selectedItem.status === 'Done' && "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
-                                                selectedItem.status === 'In progress' && "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
-                                            )}>
-                                                {selectedItem.status}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    {/* Priority */}
-                                    <div className="flex items-center py-1">
-                                        <div className="w-32 flex items-center gap-2 text-muted-foreground text-sm">
-                                            <Tag className="w-4 h-4" />
-                                            <span>Priority</span>
-                                        </div>
-                                        <div className="flex-1">
-                                            <span className="text-sm px-2 py-0.5 rounded bg-accent/50 text-foreground w-fit block">
-                                                {selectedItem.priority}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    {/* Date */}
-                                    <div className="flex items-center py-1">
-                                        <div className="w-32 flex items-center gap-2 text-muted-foreground text-sm">
-                                            <Clock className="w-4 h-4" />
-                                            <span>Date</span>
-                                        </div>
-                                        <div className="flex-1">
-                                            <span className="text-sm text-foreground/80 hover:bg-accent px-1.5 -ml-1.5 py-0.5 rounded cursor-pointer transition-colors block w-fit">
-                                                {selectedItem.date || 'Empty'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="h-px bg-border my-6" />
-
-                                {/* Nested Block Editor */}
-                                <div className="min-h-[200px]">
-                                    <BlockEditor
-                                        initialBlocks={selectedItem.blocks || []}
-                                        onCreateBlock={handlePopupCreateBlock}
-                                        onUpdateBlock={handlePopupUpdateBlock}
-                                        onDeleteBlock={handlePopupDeleteBlock}
-                                        onReorderBlocks={handlePopupReorderBlocks}
-                                        isNested
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>,
-                document.body
-            )}
+            {/* PAGE POPUP OVERLAY */}
+            <ItemModalImproved
+                isOpen={!!(mounted && selectedItemId)}
+                onClose={() => setSelectedItemId(null)}
+                item={selectedItem as any} // Cast to match improved modal interface
+                properties={PROPERTIES}
+                pageId={block.pageId}
+                onUpdate={updateItem as any}
+                onDelete={deleteItem}
+            />
         </div>
     )
 }

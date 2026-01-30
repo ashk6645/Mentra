@@ -3,9 +3,11 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { X, Trash2, Image as ImageIcon, MoreHorizontal } from 'lucide-react'
+import { IconPicker } from '../../icon-picker'
 import {
     Dialog,
     DialogContent,
+    DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,7 +16,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { createBlock, updateBlock, deleteBlock } from '@/lib/actions/blocks'
+
 import { BlockRenderer } from '../../block-renderer'
 import { BlockWrapper } from '../../block-wrapper'
 import { SlashMenu } from '../../slash-menu'
@@ -27,13 +29,17 @@ import { useRouter } from 'next/navigation'
 
 interface DatabaseItem {
     id: string
-    blockId: string
+    blockId?: string
     title: string
     icon: string | null
-    coverImage: string | null
-    properties: Record<string, any>
-    sortOrder: number
-    childBlocks?: Block[] // Blocks that belong to this item
+    cover?: string // Changed from coverImage to cover to match mock data
+    status: 'Not started' | 'In progress' | 'Done'
+    priority?: 'High' | 'Medium' | 'Low'
+    date?: string
+    properties?: Record<string, any> // Keep for extra properties
+    sortOrder?: number
+    blocks?: Block[] // Changed from childBlocks to blocks
+    childBlocks?: Block[]
 }
 
 interface DatabaseProperty {
@@ -90,8 +96,9 @@ export function ItemModalImproved({
             setIcon(item.icon || '📄')
 
             // Load blocks that belong to this database item
-            // These are stored as childBlocks of the database item
-            if (item.childBlocks && item.childBlocks.length > 0) {
+            if (item.blocks && item.blocks.length > 0) {
+                setBlocks(item.blocks)
+            } else if (item.childBlocks && item.childBlocks.length > 0) {
                 setBlocks(item.childBlocks)
             } else {
                 setBlocks([])
@@ -116,9 +123,14 @@ export function ItemModalImproved({
 
     const handlePropertyChange = useCallback((propertyId: string, value: any) => {
         if (item) {
-            onUpdate(item.id, {
-                properties: { ...item.properties, [propertyId]: value }
-            })
+            // Check if it's a top-level property
+            if (['status', 'priority', 'date'].includes(propertyId)) {
+                onUpdate(item.id, { [propertyId]: value })
+            } else {
+                onUpdate(item.id, {
+                    properties: { ...item.properties, [propertyId]: value }
+                })
+            }
         }
     }, [item, onUpdate])
 
@@ -129,113 +141,69 @@ export function ItemModalImproved({
     }, [item, onDelete])
 
     // ========================================
-    // BLOCK OPERATIONS WITH SERVER PERSISTENCE
+    // BLOCK OPERATIONS (JSON-BASED)
     // ========================================
 
-    const handleAddBlock = useCallback(async (type: BlockType, afterBlockId?: string) => {
+    const handleAddBlock = useCallback((type: BlockType, afterBlockId?: string) => {
         if (!item) return
 
-        // Create optimistic block for immediate UI update
-        const tempId = `temp-${Date.now()}`
-        const optimisticBlock: Block = {
-            id: tempId,
+        const newBlock: Block = {
+            id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             pageId,
             type,
             content: getDefaultBlockContent(type),
-            sortOrder: blocks.length,
-            parentBlockId: item.id, // Link to database item
+            sortOrder: 0, // Calculated below
+            parentBlockId: item.id, // Logical link
             createdAt: new Date(),
             updatedAt: new Date(),
         }
 
-        // Update UI immediately
+        const currentBlocks = [...blocks]
+        let newBlocks: Block[] = []
+
         if (afterBlockId) {
-            const index = blocks.findIndex(b => b.id === afterBlockId)
-            const newBlocks = [...blocks]
-            newBlocks.splice(index + 1, 0, optimisticBlock)
-            setBlocks(newBlocks)
+            const index = currentBlocks.findIndex(b => b.id === afterBlockId)
+            if (index !== -1) {
+                newBlocks = [...currentBlocks]
+                newBlocks.splice(index + 1, 0, newBlock)
+            } else {
+                newBlocks = [...currentBlocks, newBlock]
+            }
         } else {
-            setBlocks([...blocks, optimisticBlock])
+            newBlocks = [...currentBlocks, newBlock]
         }
 
-        setFocusedBlockId(tempId)
+        // Re-index sort order
+        newBlocks = newBlocks.map((b, idx) => ({ ...b, sortOrder: idx }))
+
+        setBlocks(newBlocks)
+        setFocusedBlockId(newBlock.id)
         setShowSlashMenu(false)
 
-        // Persist to server
-        try {
-            const result = await createBlock({
-                pageId,
-                type,
-                content: getDefaultBlockContent(type),
-                parentBlockId: item.id, // Important: link to database item
-                sortOrder: afterBlockId
-                    ? blocks.findIndex(b => b.id === afterBlockId) + 1
-                    : blocks.length,
-            })
+        // Persist via onUpdate
+        onUpdate(item.id, { blocks: newBlocks })
+    }, [item, pageId, blocks, onUpdate])
 
-            if (result.success && result.block) {
-                // Replace temp block with real block
-                setBlocks(prev => prev.map(b =>
-                    b.id === tempId ? result.block as Block : b
-                ))
-                setFocusedBlockId(result.block.id)
-                router.refresh()
-            } else {
-                // Rollback on error
-                setBlocks(prev => prev.filter(b => b.id !== tempId))
-                console.error('Failed to create block:', result.error)
-            }
-        } catch (error) {
-            // Rollback on error
-            setBlocks(prev => prev.filter(b => b.id !== tempId))
-            console.error('Error creating block:', error)
-        }
-    }, [item, pageId, blocks, router])
+    const handleUpdateBlock = useCallback((id: string, content: Record<string, unknown>) => {
+        if (!item) return
 
-    const handleUpdateBlock = useCallback(async (id: string, content: Record<string, unknown>) => {
-        // Update UI immediately
-        setBlocks(prev => prev.map(b =>
+        const newBlocks = blocks.map(b =>
             b.id === id ? { ...b, content } : b
-        ))
+        )
 
-        // Debounced server update
-        try {
-            const result = await updateBlock(id, { content })
-            if (!result.success) {
-                console.error('Failed to update block:', result.error)
-            }
-        } catch (error) {
-            console.error('Error updating block:', error)
-        }
-    }, [])
+        setBlocks(newBlocks)
+        onUpdate(item.id, { blocks: newBlocks })
+    }, [item, blocks, onUpdate])
 
-    const handleDeleteBlock = useCallback(async (id: string) => {
+    const handleDeleteBlock = useCallback((id: string) => {
+        if (!item) return
         if (!confirm('Delete this block?')) return
 
-        // Update UI immediately
-        const blockToDelete = blocks.find(b => b.id === id)
-        setBlocks(prev => prev.filter(b => b.id !== id))
+        const newBlocks = blocks.filter(b => b.id !== id)
 
-        // Persist to server
-        try {
-            const result = await deleteBlock(id)
-            if (result.success) {
-                router.refresh()
-            } else {
-                // Rollback on error
-                if (blockToDelete) {
-                    setBlocks(prev => [...prev, blockToDelete])
-                }
-                console.error('Failed to delete block:', result.error)
-            }
-        } catch (error) {
-            // Rollback on error
-            if (blockToDelete) {
-                setBlocks(prev => [...prev, blockToDelete])
-            }
-            console.error('Error deleting block:', error)
-        }
-    }, [blocks, router])
+        setBlocks(newBlocks)
+        onUpdate(item.id, { blocks: newBlocks })
+    }, [item, blocks, onUpdate])
 
     const handleOpenSlashMenu = useCallback((blockId: string | null, position?: { x: number; y: number }) => {
         setActiveBlockId(blockId)
@@ -249,14 +217,15 @@ export function ItemModalImproved({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0">
+            <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto p-0">
+                <DialogTitle className="sr-only">Edit Item</DialogTitle>
                 {/* Header with Cover */}
                 <div className="relative">
                     {/* Cover Image Area */}
-                    {item.coverImage ? (
+                    {item.cover ? (
                         <div className="h-48 bg-muted relative group">
                             <img
-                                src={item.coverImage}
+                                src={item.cover}
                                 alt="Cover"
                                 className="w-full h-full object-cover"
                             />
@@ -265,8 +234,8 @@ export function ItemModalImproved({
                                     size="sm"
                                     variant="secondary"
                                     onClick={() => {
-                                        const url = prompt('Enter image URL:', item.coverImage || '')
-                                        if (url) onUpdate(item.id, { coverImage: url })
+                                        const url = prompt('Enter image URL:', item.cover || '')
+                                        if (url) onUpdate(item.id, { cover: url })
                                     }}
                                 >
                                     Change cover
@@ -274,7 +243,7 @@ export function ItemModalImproved({
                                 <Button
                                     size="sm"
                                     variant="secondary"
-                                    onClick={() => onUpdate(item.id, { coverImage: null })}
+                                    onClick={() => onUpdate(item.id, { cover: undefined })}
                                 >
                                     Remove
                                 </Button>
@@ -285,7 +254,7 @@ export function ItemModalImproved({
                             <button
                                 onClick={() => {
                                     const url = prompt('Enter image URL:')
-                                    if (url) onUpdate(item.id, { coverImage: url })
+                                    if (url) onUpdate(item.id, { cover: url })
                                 }}
                                 className="text-sm text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2"
                             >
@@ -298,26 +267,16 @@ export function ItemModalImproved({
                     {/* Icon */}
                     <div className="absolute -bottom-8 left-8">
                         <div className="relative">
-                            <button
-                                onClick={() => setShowIconPicker(!showIconPicker)}
-                                className="text-5xl hover:bg-accent/50 rounded-lg p-2 transition-colors bg-background border border-border"
+                            <IconPicker
+                                currentIcon={icon}
+                                onIconSelect={handleIconChange}
                             >
-                                {icon}
-                            </button>
-
-                            {showIconPicker && (
-                                <div className="absolute top-full left-0 mt-2 z-50 bg-popover border border-border rounded-lg shadow-xl p-3 grid grid-cols-6 gap-1">
-                                    {ICONS.map((emoji) => (
-                                        <button
-                                            key={emoji}
-                                            onClick={() => handleIconChange(emoji)}
-                                            className="text-2xl p-2 hover:bg-accent rounded transition-colors"
-                                        >
-                                            {emoji}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
+                                <button
+                                    className="text-5xl hover:bg-accent/50 rounded-lg p-2 transition-colors bg-background border border-border"
+                                >
+                                    {icon}
+                                </button>
+                            </IconPicker>
                         </div>
                     </div>
 
@@ -371,26 +330,27 @@ export function ItemModalImproved({
                                 <div className="flex-1">
                                     {prop.type === 'SELECT' && (
                                         <StatusBadge
-                                            value={item.properties[prop.id] || item.properties.status || 'not_started'}
+                                            value={(item as any)[prop.id.toLowerCase()] || item.properties?.[prop.id] || ((prop.name === 'Status') ? item.status : ((prop.name === 'Priority') ? item.priority : ''))}
                                             options={prop.options || []}
-                                            onChange={(value) => handlePropertyChange(prop.id, value)}
+                                            onChange={(value) => handlePropertyChange(prop.id.toLowerCase(), value)}
                                         />
                                     )}
                                     {prop.type === 'TEXT' && (
                                         <input
                                             type="text"
-                                            value={item.properties[prop.id] || ''}
-                                            onChange={(e) => handlePropertyChange(prop.id, e.target.value)}
+                                            value={(item as any)[prop.id.toLowerCase()] || item.properties?.[prop.id] || ''}
+                                            onChange={(e) => handlePropertyChange(prop.id.toLowerCase(), e.target.value)}
                                             placeholder="Empty"
                                             className="w-full bg-transparent border-none outline-none text-sm focus:ring-0"
                                         />
                                     )}
                                     {prop.type === 'DATE' && (
                                         <input
-                                            type="date"
-                                            value={item.properties[prop.id] || ''}
-                                            onChange={(e) => handlePropertyChange(prop.id, e.target.value)}
-                                            className="bg-transparent border-none outline-none text-sm focus:ring-0"
+                                            type="text" // Keep as text for now to match string format in mock data, or use date picker if verifying
+                                            value={item.date || ''}
+                                            onChange={(e) => handlePropertyChange('date', e.target.value)}
+                                            className="bg-transparent border-none outline-none text-sm focus:ring-0 w-full"
+                                            placeholder="Select date..."
                                         />
                                     )}
                                 </div>
