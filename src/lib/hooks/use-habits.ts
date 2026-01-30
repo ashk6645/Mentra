@@ -20,7 +20,7 @@ export function useCreateHabit() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: { name: string; frequency: 'daily' | 'weekly' | 'monthly' }) => {
+    mutationFn: async (data: { name: string; frequency: 'daily' | 'weekly' | 'custom' }) => {
       const result = await createHabit(data)
       if (!result.success) {
         throw new Error(result.error as string)
