@@ -22,33 +22,41 @@ export function useBlockEditor({ initialBlocks = [], onChange }: UseBlockEditorP
     const addBlock = useCallback((
         type: BlockType = 'TEXT',
         content: BlockContent = {},
-        afterBlockId?: string
+        afterBlockId?: string,
+        pageId?: string
     ) => {
         const currentBlocks = blocksRef.current
 
         // Calculate proper sortOrder
         let sortOrder = 0
-        
+        let resolvedPageId = pageId || ''
+
         if (afterBlockId) {
             const index = currentBlocks.findIndex(b => b.id === afterBlockId)
             if (index !== -1) {
+                // Inherit pageId from sibling if not provided
+                if (!resolvedPageId && currentBlocks[index].pageId) {
+                    resolvedPageId = currentBlocks[index].pageId
+                }
+
                 // Insert between current block and next block
                 const currentSortOrder = currentBlocks[index].sortOrder || index
                 const nextBlock = currentBlocks[index + 1]
                 const nextSortOrder = nextBlock ? (nextBlock.sortOrder || index + 1) : currentSortOrder + 1
-                
+
                 // Place new block between current and next
                 sortOrder = (currentSortOrder + nextSortOrder) / 2
-                
+
                 const newBlock: Block = {
                     id: uuidv4(),
+                    pageId: resolvedPageId,
                     type,
                     content,
                     sortOrder,
                     createdAt: new Date(),
                     updatedAt: new Date(),
                 }
-                
+
                 const newBlocks = [
                     ...currentBlocks.slice(0, index + 1),
                     newBlock,
@@ -62,9 +70,15 @@ export function useBlockEditor({ initialBlocks = [], onChange }: UseBlockEditorP
         // Default: append to end with proper sortOrder
         const lastBlock = currentBlocks[currentBlocks.length - 1]
         sortOrder = lastBlock ? (lastBlock.sortOrder || currentBlocks.length - 1) + 1 : 0
-        
+
+        // Inherit pageId from last block if not provided
+        if (!resolvedPageId && lastBlock?.pageId) {
+            resolvedPageId = lastBlock.pageId
+        }
+
         const newBlock: Block = {
             id: uuidv4(),
+            pageId: resolvedPageId,
             type,
             content,
             sortOrder,

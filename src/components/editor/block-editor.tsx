@@ -226,11 +226,13 @@ export function BlockEditor({
 
             if (e.shiftKey) {
                 // Shift+Enter: Always exit list/structure to a new Text block
-                const addedId = addBlock('TEXT', {}, blockId)
+                const pageId = currentBlock?.pageId || ''
+                const addedId = addBlock('TEXT', {}, blockId, pageId)
                 setFocusedBlockId(addedId)
                 if (onCreateBlock) {
                     const createdBlock: Block = {
                         id: addedId,
+                        pageId,
                         type: 'TEXT',
                         content: {},
                         sortOrder: 0,
@@ -239,6 +241,7 @@ export function BlockEditor({
                     }
                     onCreateBlock(createdBlock, blockId)
                 }
+
                 // Clear flag before returning
                 isHandlingEnterRef.current = false
                 return
@@ -336,12 +339,14 @@ export function BlockEditor({
                 newContent.children = []
             }
 
-            const addedId = addBlock(nextType, newContent, blockId)
+            const pageId = currentBlock?.pageId || ''
+            const addedId = addBlock(nextType, newContent, blockId, pageId)
             setFocusedBlockId(addedId)
 
             if (onCreateBlock) {
                 const createdBlock: Block = {
                     id: addedId,
+                    pageId,
                     type: nextType,
                     content: newContent,
                     sortOrder: 0,
@@ -517,13 +522,15 @@ export function BlockEditor({
                             className="min-h-[100px] cursor-text -ml-2 pl-2 mt-4"
                             onClick={() => {
                                 // Always add a new block at the end
-                                const id = addBlock()
+                                const pageId = blocks[blocks.length - 1]?.pageId || ''
+                                const id = addBlock('TEXT', {}, undefined, pageId)
                                 setFocusedBlockId(id)
 
                                 // Fix: Persist to server
                                 if (onCreateBlock) {
                                     const createdBlock: Block = {
                                         id,
+                                        pageId,
                                         type: 'TEXT',
                                         content: {},
                                         sortOrder: blocks.length, // Rough sort order, server will recalculate or use end
