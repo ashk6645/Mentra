@@ -353,9 +353,9 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages }: Side
                                                         : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50"
                                                 )}
                                             >
-                                                <span className="shrink-0 flex items-center justify-center w-5 h-5">
+                                                <span className="shrink-0 flex items-center justify-center w-5">
                                                     {(page.icon?.startsWith('http') || page.icon?.startsWith('data:')) ? (
-                                                        <img src={page.icon} alt="" className="w-full h-full object-cover rounded-sm" />
+                                                        <img src={page.icon} alt="" className="w-full h-auto object-contain" />
                                                     ) : (
                                                         <span className="text-sm opacity-80">{page.icon || '📄'}</span>
                                                     )}
@@ -451,9 +451,9 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages }: Side
                                                         : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50"
                                                 )}
                                             >
-                                                <span className="shrink-0 flex items-center justify-center w-5 h-5">
+                                                <span className="shrink-0 flex items-center justify-center w-5">
                                                     {(page.icon?.startsWith('http') || page.icon?.startsWith('data:')) ? (
-                                                        <img src={page.icon} alt="" className="w-full h-full object-cover rounded-sm" />
+                                                        <img src={page.icon} alt="" className="w-full h-auto object-contain" />
                                                     ) : (
                                                         <span className="text-sm opacity-80">{page.icon || '📄'}</span>
                                                     )}
