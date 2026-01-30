@@ -26,6 +26,7 @@ export function TaskRow({ task }: TaskRowProps) {
     const router = useRouter()
     const [isPending, setIsPending] = useState(false)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+    const [showEditDialog, setShowEditDialog] = useState(false)
 
     const handleToggle = async (checked: boolean) => {
         setIsPending(true)
@@ -37,6 +38,12 @@ export function TaskRow({ task }: TaskRowProps) {
         } finally {
             setIsPending(false)
         }
+    }
+
+    const handleRowClick = (e: React.MouseEvent) => {
+        // Prevent opening if clicking on checkbox or menu actions
+        // This is a backup check, as those elements should stop propagation
+        setShowEditDialog(true)
     }
 
     const handleDelete = async () => {
@@ -83,83 +90,94 @@ export function TaskRow({ task }: TaskRowProps) {
     const hasPriority = priority !== 'none'
 
     return (
-        <div className={cn(
-            "group flex items-center gap-4 p-4 bg-card border rounded-lg shadow-sm transition-all hover:shadow-md",
-            task.completed && "opacity-60 bg-muted/20"
-        )}>
-            <Checkbox
-                checked={task.completed}
-                onCheckedChange={handleToggle}
-                disabled={isPending}
-                className="h-5 w-5 rounded-sm border-2 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+        <>
+            <div
+                onClick={handleRowClick}
+                className={cn(
+                    "group flex items-center gap-4 p-4 bg-card border rounded-lg shadow-sm transition-all hover:shadow-md cursor-pointer",
+                    task.completed && "opacity-60 bg-muted/20"
+                )}>
+                <div onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                        checked={task.completed}
+                        onCheckedChange={handleToggle}
+                        disabled={isPending}
+                        className="h-5 w-5 rounded-sm border-2 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                    />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                    <p className={cn(
+                        "font-semibold text-base leading-none truncate cursor-pointer hover:text-primary transition-colors",
+                        task.completed && "line-through text-muted-foreground"
+                    )}>
+                        {task.title}
+                    </p>
+                    {task.description && (
+                        <p className="text-sm text-muted-foreground mt-1 truncate">
+                            {task.description}
+                        </p>
+                    )}
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                    {task.dueDate && (
+                        <div className="text-sm text-muted-foreground font-medium whitespace-nowrap">
+                            {formatDueDate(task.dueDate)}
+                        </div>
+                    )}
+                    {hasPriority && (
+                        <div className={cn(
+                            "px-2.5 py-0.5 rounded text-xs font-semibold",
+                            getPriorityColor(task.priority)
+                        )}>
+                            {getPriorityLabel(task.priority)}
+                        </div>
+                    )}
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Menu</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={(e) => {
+                                e.preventDefault()
+                                setShowEditDialog(true)
+                            }}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onSelect={(e) => {
+                                    e.preventDefault()
+                                    setShowDeleteDialog(true)
+                                }}
+                            >
+                                <Trash className="mr-2 h-4 w-4" />
+                                Delete
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                </div>
+            </div>
+
+            <DeleteTaskDialog
+                open={showDeleteDialog}
+                onOpenChange={setShowDeleteDialog}
+                onConfirm={handleDelete}
+                taskTitle={task.title}
             />
 
-            <div className="flex-1 min-w-0">
-                <p className={cn(
-                    "font-semibold text-base leading-none truncate cursor-pointer hover:text-primary transition-colors",
-                    task.completed && "line-through text-muted-foreground"
-                )}>
-                    {task.title}
-                </p>
-                {task.description && (
-                    <p className="text-sm text-muted-foreground mt-1 truncate">
-                        {task.description}
-                    </p>
-                )}
-            </div>
-
-            <div className="flex items-center gap-3 shrink-0">
-                {task.dueDate && (
-                    <div className="text-sm text-muted-foreground font-medium whitespace-nowrap">
-                        {formatDueDate(task.dueDate)}
-                    </div>
-                )}
-                {hasPriority && (
-                    <div className={cn(
-                        "px-2.5 py-0.5 rounded text-xs font-semibold",
-                        getPriorityColor(task.priority)
-                    )}>
-                        {getPriorityLabel(task.priority)}
-                    </div>
-                )}
-
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Menu</span>
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <EditTaskDialog
-                            task={task}
-                            trigger={
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Edit
-                                </DropdownMenuItem>
-                            }
-                        />
-                        <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onSelect={(e) => {
-                                e.preventDefault()
-                                setShowDeleteDialog(true)
-                            }}
-                        >
-                            <Trash className="mr-2 h-4 w-4" />
-                            Delete
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-
-                <DeleteTaskDialog
-                    open={showDeleteDialog}
-                    onOpenChange={setShowDeleteDialog}
-                    onConfirm={handleDelete}
-                    taskTitle={task.title}
-                />
-            </div>
-        </div>
+            <EditTaskDialog
+                task={task}
+                isOpen={showEditDialog}
+                onOpenChange={setShowEditDialog}
+            />
+        </>
     )
 }
