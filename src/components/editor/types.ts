@@ -37,3 +37,16 @@ export interface EditorState {
     isLoading: boolean
     activeBlockId: string | null
 }
+
+export interface DatabaseItem {
+    id: string
+    title: string
+    status: 'Not started' | 'In progress' | 'Done'
+    priority?: 'High' | 'Medium' | 'Low'
+    date?: string
+    progress?: number
+    cover?: string
+    tags?: string[]
+    blocks?: Block[]
+    icon?: string
+}

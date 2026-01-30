@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { Block, BlockType } from '../types'
+import { Block, BlockType, DatabaseItem } from '../types'
 import { BoardView } from '../views/board-view'
 import { TableView } from '../views/table-view'
 import { GalleryView } from '../views/gallery-view'
@@ -8,7 +8,6 @@ import { CalendarView } from '../views/calendar-view'
 import { KanbanSquare, Table as TableIcon, LayoutGrid, CalendarDays, X, Maximize2, MoreHorizontal, ImageIcon, Clock, Hash, Tag, CheckCircle2, Circle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { v4 as uuidv4 } from 'uuid'
-import { SHARED_DATABASE_ITEMS, DatabaseItem } from '../views/mock-data'
 import { BlockEditor } from '../block-editor'
 import { ItemModal } from '../../pages/blocks/database/item-modal'
 
@@ -43,7 +42,7 @@ interface DatabaseBlockProps {
 }
 
 export function DatabaseBlock({ block, isFocused, onChange }: DatabaseBlockProps) {
-    const items: DatabaseItem[] = block.content.items || SHARED_DATABASE_ITEMS
+    const items: DatabaseItem[] = block.content.items || []
     const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
     const [mounted, setMounted] = useState(false)
 
