@@ -1,8 +1,6 @@
-'use client'
-
 import { useTheme } from 'next-themes'
 import { Card } from '@/components/ui/card'
-import { Check, Monitor, Moon, Sun, Smartphone, Flower2, SunMoon } from 'lucide-react'
+import { Check, Monitor, Moon, Sun, Smartphone, Flower2, SunMoon, CloudMoon, Snowflake, Trees, Scroll, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function ProfileTheme() {
@@ -29,6 +27,41 @@ export function ProfileTheme() {
             icon: Smartphone,
             description: 'True black for OLED',
             color: 'bg-black border-zinc-800'
+        },
+        {
+            value: 'midnight',
+            label: 'Midnight',
+            icon: CloudMoon,
+            description: 'Deep blue night',
+            color: 'bg-[#0B1220] border-[#1F2937]'
+        },
+        {
+            value: 'nord',
+            label: 'Nord',
+            icon: Snowflake,
+            description: 'Arctic freshness',
+            color: 'bg-[#ECEFF4] border-[#D8DEE9]'
+        },
+        {
+            value: 'forest',
+            label: 'Forest',
+            icon: Trees,
+            description: 'Natural greens',
+            color: 'bg-[#0F1F17] border-[#1E4034]'
+        },
+        {
+            value: 'paper',
+            label: 'Paper',
+            icon: Scroll,
+            description: 'Warm and readable',
+            color: 'bg-[#FAFAF7] border-[#E5E7EB]'
+        },
+        {
+            value: 'cyberpunk',
+            label: 'Cyberpunk',
+            icon: Zap,
+            description: 'Neon future',
+            color: 'bg-[#050014] border-[#2E1065]'
         },
         {
             value: 'solarized',
@@ -80,9 +113,14 @@ export function ProfileTheme() {
                                         item.value === 'light' ? "text-zinc-900" :
                                             item.value === 'dark' ? "text-white" :
                                                 item.value === 'amoled' ? "text-white" :
-                                                    item.value === 'solarized' ? "text-[#268BD2]" :
-                                                        item.value === 'rose' ? "text-[#E11D48]" :
-                                                            "text-zinc-500"
+                                                    item.value === 'midnight' ? "text-[#3B82F6]" :
+                                                        item.value === 'nord' ? "text-[#5E81AC]" :
+                                                            item.value === 'forest' ? "text-[#22C55E]" :
+                                                                item.value === 'paper' ? "text-[#1F2937]" :
+                                                                    item.value === 'cyberpunk' ? "text-[#7C3AED]" :
+                                                                        item.value === 'solarized' ? "text-[#268BD2]" :
+                                                                            item.value === 'rose' ? "text-[#E11D48]" :
+                                                                                "text-zinc-500"
                                     )} />
                                 </div>
 
