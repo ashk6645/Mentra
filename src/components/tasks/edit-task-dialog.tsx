@@ -203,7 +203,7 @@ export function EditTaskDialog({ task, trigger, isOpen, onOpenChange }: EditTask
                     {trigger}
                 </DialogTrigger>
             )}
-            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 <DialogHeader>
                     <DialogTitle>Edit Task</DialogTitle>
                 </DialogHeader>
