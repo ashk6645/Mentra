@@ -5,7 +5,7 @@ import { CommandPaletteWrapper } from '@/components/cmd-k/command-palette-wrappe
 import { GlobalQuickAdd } from '@/components/tasks/global-quick-add'
 import { getCurrentUser } from '@/lib/user-session'
 import { getPages } from '@/lib/actions/pages'
-
+import { getSidebarCounts } from '@/lib/actions/tasks'
 
 export default async function AppLayout({
     children,
@@ -19,11 +19,15 @@ export default async function AppLayout({
     }
 
     const { pages } = await getPages()
-
+    const { data: sidebarCounts } = await getSidebarCounts()
 
     return (
         <div className="min-h-screen bg-background">
-            <CommandPaletteWrapper user={user} initialPages={pages || []}>
+            <CommandPaletteWrapper
+                user={user}
+                initialPages={pages || []}
+                sidebarCounts={sidebarCounts || { inbox: 0, today: 0, overdue: 0 }}
+            >
                 {children}
             </CommandPaletteWrapper>
             <GlobalQuickAdd />

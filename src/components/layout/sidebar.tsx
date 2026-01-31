@@ -59,10 +59,15 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     user: any
     onOpenCommand?: () => void
     initialPages?: PageItem[]
+    counts?: {
+        inbox: number
+        today: number
+        overdue: number
+    }
 }
 
 // Change to non-exported function, exported as memo at bottom
-function SidebarComponent({ className, user, onOpenCommand, initialPages }: SidebarProps) {
+function SidebarComponent({ className, user, onOpenCommand, initialPages, counts }: SidebarProps) {
     const pathname = usePathname()
     const router = useRouter()
     const supabase = createClient()
@@ -150,8 +155,8 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages }: Side
 
     const routes = [
         { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-        { label: 'Inbox', icon: Inbox, href: '/inbox' },
-        { label: 'Today', icon: Sun, href: '/today' },
+        { label: 'Inbox', icon: Inbox, href: '/inbox', badge: counts?.inbox },
+        { label: 'Today', icon: Sun, href: '/today', badge: counts?.today },
         { label: 'Upcoming', icon: CalendarDays, href: '/upcoming' },
         { label: 'Completed', icon: CheckCircle2, href: '/completed' },
         { label: 'My Tasks', icon: CheckSquare, href: '/tasks' },
@@ -294,9 +299,16 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages }: Side
                                     isActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
                                 )} />
                                 {!isSidebarCollapsed && (
-                                    <span className="truncate">
-                                        {route.label}
-                                    </span>
+                                    <>
+                                        <span className="truncate flex-1">
+                                            {route.label}
+                                        </span>
+                                        {(route as any).badge !== undefined && (route as any).badge > 0 && (
+                                            <span className="text-[10px] bg-neutral-200 dark:bg-neutral-800 text-muted-foreground px-1.5 py-0.5 rounded-md font-medium min-w-[18px] text-center">
+                                                {(route as any).badge}
+                                            </span>
+                                        )}
+                                    </>
                                 )}
                             </Link>
                         )

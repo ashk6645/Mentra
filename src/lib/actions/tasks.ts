@@ -565,3 +565,69 @@ export async function searchTasks(query: string) {
         return { success: false, error: 'Failed to search tasks', data: [] }
     }
 }
+
+export async function getSidebarCounts() {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            return { success: false, error: 'Unauthorized', data: { inbox: 0, today: 0, overdue: 0 } }
+        }
+
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+
+        const tomorrow = new Date(today)
+        tomorrow.setDate(tomorrow.getDate() + 1)
+
+        // Run queries in parallel for performance
+        const [inboxCount, todayCount, overdueCount] = await Promise.all([
+            // Inbox: Undated tasks or tasks before today (past due)
+            // Note: This matches the logic in src/app/(app)/inbox/page.tsx
+            prisma.task.count({
+                where: {
+                    userId: user.id,
+                    completed: false,
+                    OR: [
+                        { dueDate: null },
+                        { dueDate: { lt: today } }
+                    ]
+                }
+            }),
+
+            // Today: Due today (start of day to end of day)
+            prisma.task.count({
+                where: {
+                    userId: user.id,
+                    completed: false,
+                    dueDate: {
+                        gte: today,
+                        lt: tomorrow
+                    }
+                }
+            }),
+
+            // Overdue: Only strict overdue (before today) - kept separate just in case we need it specifically later
+            prisma.task.count({
+                where: {
+                    userId: user.id,
+                    completed: false,
+                    dueDate: { lt: today }
+                }
+            })
+        ])
+
+        return {
+            success: true,
+            data: {
+                inbox: inboxCount,
+                today: todayCount,
+                overdue: overdueCount
+            }
+        }
+    } catch (error) {
+        console.error('getSidebarCounts: Database error', error)
+        return { success: false, error: 'Failed to fetch counts', data: { inbox: 0, today: 0, overdue: 0 } }
+    }
+}

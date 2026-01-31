@@ -7,14 +7,13 @@ import { useUIStore } from '@/stores/use-ui-store'
 
 interface CommandPaletteWrapperProps {
     user: any
-
     children: React.ReactNode
     initialPages?: any[]
+    sidebarCounts?: { inbox: number, today: number, overdue: number }
 }
 
-export function CommandPaletteWrapper({ user, children, initialPages }: CommandPaletteWrapperProps) {
+export function CommandPaletteWrapper({ user, children, initialPages, sidebarCounts }: CommandPaletteWrapperProps) {
     const { isSidebarCollapsed } = useUIStore()
-
 
     const handleOpenCommand = () => {
         if (typeof window !== 'undefined') {
@@ -25,7 +24,12 @@ export function CommandPaletteWrapper({ user, children, initialPages }: CommandP
     return (
         <>
             <CommandPalette />
-            <Sidebar user={user} onOpenCommand={handleOpenCommand} initialPages={initialPages} />
+            <Sidebar
+                user={user}
+                onOpenCommand={handleOpenCommand}
+                initialPages={initialPages}
+                counts={sidebarCounts}
+            />
 
             <main
                 className="min-h-screen transition-[padding] duration-300 ease-in-out"
