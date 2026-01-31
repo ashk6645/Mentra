@@ -143,7 +143,7 @@ export async function getTaskById(taskId: string) {
                 ErrorMessages.UNAUTHORIZED,
                 ErrorCodes.UNAUTHORIZED,
                 401,
-                { action: 'getTaskById' }
+                ErrorMessages.UNAUTHORIZED
             )
         }
 
@@ -154,7 +154,7 @@ export async function getTaskById(taskId: string) {
             },
             include: {
                 subtasks: {
-                    orderBy: { order: 'asc' },
+                    orderBy: { sortOrder: 'asc' },
                 },
                 tags: {
                     include: {

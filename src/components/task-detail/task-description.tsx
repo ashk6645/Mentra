@@ -30,7 +30,7 @@ export function TaskDescription({ task }: TaskDescriptionProps) {
     try {
       const result = await updateTask({
         id: task.id,
-        description: description || null,
+        description: description || undefined,
       })
 
       if (result.success) {
