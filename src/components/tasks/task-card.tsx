@@ -18,7 +18,7 @@ import {
 import { toggleTaskCompletion, deleteTask } from '@/lib/actions/tasks'
 import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
-import { EditTaskDialog } from './edit-task-dialog'
+// import { EditTaskDialog } from './edit-task-dialog'
 
 interface TaskCardProps {
     task: Task
@@ -119,7 +119,7 @@ export function TaskCard({ task }: { task: Task & { tags?: { tag: { id: string, 
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <EditTaskDialog
+                        {/* <EditTaskDialog
                             task={task}
                             trigger={
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
@@ -127,7 +127,7 @@ export function TaskCard({ task }: { task: Task & { tags?: { tag: { id: string, 
                                     Edit
                                 </DropdownMenuItem>
                             }
-                        />
+                        /> */}
                         <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={handleDelete}>
                             <Trash className="mr-2 h-4 w-4" />
                             Delete

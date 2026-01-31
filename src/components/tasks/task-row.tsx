@@ -14,7 +14,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { EditTaskDialog } from './edit-task-dialog'
+// import { EditTaskDialog } from './edit-task-dialog'
 
 import { DeleteTaskDialog } from './delete-task-dialog'
 
@@ -26,7 +26,7 @@ export function TaskRow({ task }: TaskRowProps) {
     const router = useRouter()
     const [isPending, setIsPending] = useState(false)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-    const [showEditDialog, setShowEditDialog] = useState(false)
+    // const [showEditDialog, setShowEditDialog] = useState(false)
 
     const handleToggle = async (checked: boolean) => {
         setIsPending(true)
@@ -161,7 +161,7 @@ export function TaskRow({ task }: TaskRowProps) {
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem
+                            {/* <DropdownMenuItem
                                 onClick={(e) => e.stopPropagation()}
                                 onSelect={(e) => {
                                     e.preventDefault()
@@ -169,7 +169,7 @@ export function TaskRow({ task }: TaskRowProps) {
                                 }}>
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Edit
-                            </DropdownMenuItem>
+                            </DropdownMenuItem> */}
                             <DropdownMenuItem
                                 className="text-destructive focus:text-destructive"
                                 onClick={(e) => e.stopPropagation()}
@@ -194,11 +194,11 @@ export function TaskRow({ task }: TaskRowProps) {
                 taskTitle={task.title}
             />
 
-            <EditTaskDialog
+            {/* <EditTaskDialog
                 task={task}
                 isOpen={showEditDialog}
                 onOpenChange={setShowEditDialog}
-            />
+            /> */}
         </>
     )
 }
