@@ -44,9 +44,12 @@ export function TaskRow({ task }: TaskRowProps) {
         // Prevent opening if clicking on checkbox or menu actions
         if ((e.target as HTMLElement).closest('[role="menuitem"]')) return
         if ((e.target as HTMLElement).closest('[data-radix-collection-item]')) return
+        if ((e.target as HTMLElement).closest('button')) return
         if (e.defaultPrevented) return
 
-        setShowEditDialog(true)
+        // Open task detail panel with task data
+        const { selectTask } = require('@/stores/use-task-detail-store').useTaskDetailStore.getState()
+        selectTask(task.id, task)
     }
 
     const handleDelete = async () => {

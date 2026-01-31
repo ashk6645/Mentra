@@ -133,6 +133,53 @@ export async function getTasks(options: GetTasksOptions = {}) {
     }
 }
 
+export async function getTaskById(taskId: string) {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            throw new AppError(
+                ErrorMessages.UNAUTHORIZED,
+                ErrorCodes.UNAUTHORIZED,
+                401,
+                { action: 'getTaskById' }
+            )
+        }
+
+        const task = await prisma.task.findFirst({
+            where: {
+                id: taskId,
+                userId: user.id,
+            },
+            include: {
+                subtasks: {
+                    orderBy: { order: 'asc' },
+                },
+                tags: {
+                    include: {
+                        tag: true,
+                    },
+                },
+            },
+        })
+
+        if (!task) {
+            return { success: false, error: 'Task not found', task: null }
+        }
+
+        return { success: true, task }
+    } catch (error) {
+        console.error('getTaskById error:', error)
+
+        if (error instanceof AppError) {
+            return { success: false, error: error.userMessage || error.message, task: null }
+        }
+
+        return { success: false, error: ErrorMessages.DATABASE_ERROR, task: null }
+    }
+}
+
 export async function createTask(data: CreateTaskInput) {
     try {
         console.log('createTask called with:', data)
