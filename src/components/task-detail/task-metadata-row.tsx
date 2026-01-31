@@ -1,18 +1,24 @@
 'use client'
 
-import { useState } from 'react'
-import { Calendar, Clock, Flag, Tag } from 'lucide-react'
+import { useState, useTransition, useEffect } from 'react'
+import { Calendar, Clock, Flag, Tag, Loader2 } from 'lucide-react'
 import { format, isToday, isTomorrow } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
+import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
+import { updateTask } from '@/lib/actions/tasks'
+import { useTaskDetailStore } from '@/stores/use-task-detail-store'
+import { useToast } from '@/components/ui/use-toast'
 
 interface Task {
   id: string
-  dueDate?: Date | null
+  dueDate?: Date | string | null
   priority?: string | null
   tags?: any[]
+  scheduledStart?: Date | string | null
+  scheduledEnd?: Date | string | null
 }
 
 interface TaskMetadataRowProps {
@@ -20,8 +26,29 @@ interface TaskMetadataRowProps {
 }
 
 export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
-  const [dueDate, setDueDate] = useState<Date | null>(task.dueDate || null)
+  // Normalize dates - handle both Date objects and ISO strings
+  const normalizeDueDate = (date: Date | string | null | undefined): Date | null => {
+    if (!date) return null
+    return date instanceof Date ? date : new Date(date)
+  }
+
+  const [dueDate, setDueDate] = useState<Date | null>(normalizeDueDate(task.dueDate))
   const [priority, setPriority] = useState(task.priority || 'none')
+  const [time, setTime] = useState<string>(
+    task.scheduledStart ? format(new Date(task.scheduledStart), 'HH:mm') : ''
+  )
+  const [showTimeInput, setShowTimeInput] = useState(false)
+  const [showTagInput, setShowTagInput] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const { selectTask } = useTaskDetailStore()
+  const { toast } = useToast()
+
+  // Sync local state when task prop changes
+  useEffect(() => {
+    setDueDate(normalizeDueDate(task.dueDate))
+    setPriority(task.priority || 'none')
+    setTime(task.scheduledStart ? format(new Date(task.scheduledStart), 'HH:mm') : '')
+  }, [task.id, task.dueDate, task.priority, task.scheduledStart])
 
   const formatDueDate = (date: Date | null) => {
     if (!date) return 'Unscheduled'
@@ -49,29 +76,88 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
     const newDate = date || null
     setDueDate(newDate)
     
-    try {
-      await fetch(`/api/tasks/${task.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dueDate: newDate }),
+    startTransition(async () => {
+      const result = await updateTask({
+        id: task.id,
+        dueDate: newDate ? newDate.toISOString() : null,
       })
-    } catch (error) {
-      console.error('Failed to update due date:', error)
-    }
+
+      if (result.success) {
+        // Update the store with the new task data
+        selectTask(task.id, { ...task, dueDate: newDate })
+        toast({
+          title: 'Date updated',
+          description: newDate ? `Due date set to ${format(newDate, 'MMM d, yyyy')}` : 'Due date cleared',
+        })
+      } else {
+        setDueDate(task.dueDate || null)
+        toast({
+          title: 'Failed to update date',
+          description: result.error || 'Please try again',
+          variant: 'destructive',
+        })
+      }
+    })
   }
 
   const handlePriorityChange = async (newPriority: string) => {
+    const oldPriority = priority
     setPriority(newPriority)
     
-    try {
-      await fetch(`/api/tasks/${task.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priority: newPriority }),
+    startTransition(async () => {
+      const result = await updateTask({
+        id: task.id,
+        priority: newPriority === 'none' ? null : (newPriority as any),
       })
-    } catch (error) {
-      console.error('Failed to update priority:', error)
-    }
+
+      if (result.success) {
+        selectTask(task.id, { ...task, priority: newPriority === 'none' ? null : newPriority })
+        toast({
+          title: 'Priority updated',
+          description: `Priority set to ${newPriority === 'none' ? 'none' : newPriority}`,
+        })
+      } else {
+        setPriority(oldPriority)
+        toast({
+          title: 'Failed to update priority',
+          description: result.error || 'Please try again',
+          variant: 'destructive',
+        })
+      }
+    })
+  }
+
+  const handleTimeChange = async (timeValue: string) => {
+    if (!dueDate || !timeValue) return
+
+    const [hours, minutes] = timeValue.split(':').map(Number)
+    const scheduledStart = new Date(dueDate)
+    scheduledStart.setHours(hours, minutes, 0, 0)
+
+    setTime(timeValue)
+    setShowTimeInput(false)
+
+    startTransition(async () => {
+      const result = await updateTask({
+        id: task.id,
+        scheduledStart: scheduledStart.toISOString(),
+      })
+
+      if (result.success) {
+        selectTask(task.id, { ...task, scheduledStart })
+        toast({
+          title: 'Time added',
+          description: `Scheduled for ${format(scheduledStart, 'h:mm a')}`,
+        })
+      } else {
+        setTime(task.scheduledStart ? format(new Date(task.scheduledStart), 'HH:mm') : '')
+        toast({
+          title: 'Failed to add time',
+          description: result.error || 'Please try again',
+          variant: 'destructive',
+        })
+      }
+    })
   }
 
   return (
@@ -115,14 +201,59 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
 
       {/* Time (if date is set) */}
       {dueDate && (
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-7 px-3 rounded-full border text-xs font-medium text-muted-foreground/60 border-border/30 hover:border-border/50 transition-all"
-        >
-          <Clock className="mr-1.5 h-3 w-3" />
-          Add time
-        </Button>
+        <Popover open={showTimeInput} onOpenChange={setShowTimeInput}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={isPending}
+              className={cn(
+                'h-7 px-3 rounded-full border text-xs font-medium transition-all',
+                time
+                  ? 'text-foreground border-border/50'
+                  : 'text-muted-foreground/60 border-border/30 hover:border-border/50'
+              )}
+            >
+              {isPending ? (
+                <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+              ) : (
+                <Clock className="mr-1.5 h-3 w-3" />
+              )}
+              {time || 'Add time'}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-3" align="start">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Time</label>
+              <Input
+                type="time"
+                value={time}
+                onChange={(e) => handleTimeChange(e.target.value)}
+                className="w-full"
+              />
+              {time && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setTime('')
+                    setShowTimeInput(false)
+                    startTransition(async () => {
+                      await updateTask({
+                        id: task.id,
+                        scheduledStart: null,
+                      })
+                      selectTask(task.id, { ...task, scheduledStart: null })
+                    })
+                  }}
+                  className="w-full"
+                >
+                  Clear time
+                </Button>
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
       )}
 
       {/* Priority */}
@@ -159,14 +290,30 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
       </Popover>
 
       {/* Tags */}
-      <Button
-        variant="outline"
-        size="sm"
-        className="h-7 px-3 rounded-full border text-xs font-medium text-muted-foreground/60 border-border/30 hover:border-border/50 transition-all"
-      >
-        <Tag className="mr-1.5 h-3 w-3" />
-        Add label
-      </Button>
+      <Popover open={showTagInput} onOpenChange={setShowTagInput}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isPending}
+            className="h-7 px-3 rounded-full border text-xs font-medium text-muted-foreground/60 border-border/30 hover:border-border/50 transition-all"
+          >
+            {isPending ? (
+              <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+            ) : (
+              <Tag className="mr-1.5 h-3 w-3" />
+            )}
+            Add label
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 p-3" align="start">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Tag functionality coming soon
+            </p>
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
   )
 }
