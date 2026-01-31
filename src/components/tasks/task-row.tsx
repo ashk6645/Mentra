@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { toggleTaskCompletion, deleteTask } from '@/lib/actions/tasks'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { MoreHorizontal, Pencil, Trash, GitBranch } from 'lucide-react'
+import { MoreHorizontal, Trash, GitBranch } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -14,19 +14,20 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { EditTaskDialog } from './edit-task-dialog'
+// import { EditTaskDialog } from './edit-task-dialog'
 
 import { DeleteTaskDialog } from './delete-task-dialog'
 
 interface TaskRowProps {
-    task: any // Using any to avoid type conflicts with shared components for now
+    task: any
 }
 
 export function TaskRow({ task }: TaskRowProps) {
     const router = useRouter()
     const [isPending, setIsPending] = useState(false)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-    const [showEditDialog, setShowEditDialog] = useState(false)
+    // const [showEditDialog, setShowEditDialog] = useState(false)
+    const [isHovered, setIsHovered] = useState(false)
 
     const handleToggle = async (checked: boolean) => {
         setIsPending(true)
@@ -44,9 +45,11 @@ export function TaskRow({ task }: TaskRowProps) {
         // Prevent opening if clicking on checkbox or menu actions
         if ((e.target as HTMLElement).closest('[role="menuitem"]')) return
         if ((e.target as HTMLElement).closest('[data-radix-collection-item]')) return
+        if ((e.target as HTMLElement).closest('button')) return
         if (e.defaultPrevented) return
 
-        setShowEditDialog(true)
+        // TODO: Open task detail panel when merged from other branch
+        console.log('Task clicked:', task.id)
     }
 
     const handleDelete = async () => {
@@ -57,15 +60,15 @@ export function TaskRow({ task }: TaskRowProps) {
     const getPriorityColor = (priority?: string | null) => {
         switch (priority?.toLowerCase()) {
             case 'urgent':
-                return 'bg-red-600 text-white'
+                return 'bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400 border-red-200/50 dark:border-red-900/30'
             case 'high':
-                return 'bg-orange-500 text-white'
+                return 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border-amber-200/50 dark:border-amber-900/30'
             case 'medium':
-                return 'bg-blue-500 text-white'
+                return 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400 border-blue-200/50 dark:border-blue-900/30'
             case 'low':
-                return 'bg-slate-500 text-white'
+                return 'bg-slate-50 text-slate-600 dark:bg-slate-950/30 dark:text-slate-400 border-slate-200/50 dark:border-slate-900/30'
             default:
-                return 'bg-gray-500 text-white'
+                return 'bg-muted/50 text-muted-foreground/70 border-border/30'
         }
     }
 
@@ -96,69 +99,94 @@ export function TaskRow({ task }: TaskRowProps) {
         <>
             <div
                 onClick={handleRowClick}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
                 className={cn(
-                    "group flex items-center gap-4 p-4 bg-card border rounded-lg shadow-sm transition-all hover:shadow-md cursor-pointer",
-                    task.completed && "opacity-60 bg-muted/20"
-                )}>
+                    // Soft Card System - Default State
+                    "group relative flex items-center gap-4 px-4 py-3.5 rounded-[14px] cursor-pointer",
+                    "transition-all duration-200 ease-out",
+                    
+                    // Default: Nearly flat, subtle background
+                    "bg-card/40 dark:bg-card/20",
+                    
+                    // Hover: Slight elevation
+                    !task.completed && isHovered && [
+                        "bg-card/80 dark:bg-card/40",
+                        "shadow-sm shadow-black/5 dark:shadow-black/20",
+                        "scale-[1.005]"
+                    ],
+                    
+                    // Completed: Lower opacity, reduced contrast
+                    task.completed && [
+                        "opacity-50",
+                        "bg-muted/20 dark:bg-muted/10"
+                    ]
+                )}
+            >
                 <div onClick={(e) => e.stopPropagation()}>
                     <Checkbox
                         checked={task.completed}
                         onCheckedChange={handleToggle}
                         disabled={isPending}
-                        className="h-5 w-5 rounded-sm border-2 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                        className="h-5 w-5 rounded-md border-2 transition-all data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                     />
                 </div>
 
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5">
                         <p className={cn(
-                            "font-semibold text-base leading-none truncate cursor-pointer hover:text-primary transition-colors",
-                            task.completed && "line-through text-muted-foreground"
+                            "font-medium text-[15px] leading-snug truncate transition-colors",
+                            task.completed ? "line-through text-muted-foreground/70" : "text-foreground"
                         )}>
                             {task.title}
                         </p>
                         {task.subtasks && task.subtasks.length > 0 && (
-                            <div className="flex items-center gap-1 text-muted-foreground shrink-0" title={`${task.subtasks.filter((st: any) => st.completed).length}/${task.subtasks.length} subtasks`}>
-                                <GitBranch className="h-3.5 w-3.5" />
-                                <span className="text-xs font-medium">
+                            <div className="flex items-center gap-1 text-muted-foreground/60 shrink-0" title={`${task.subtasks.filter((st: any) => st.completed).length}/${task.subtasks.length} subtasks`}>
+                                <GitBranch className="h-3 w-3" />
+                                <span className="text-[11px] font-medium tabular-nums">
                                     {task.subtasks.filter((st: any) => st.completed).length}/{task.subtasks.length}
                                 </span>
                             </div>
                         )}
                     </div>
                     {task.description && (
-                        <p className="text-sm text-muted-foreground mt-1 truncate">
+                        <p className="text-[13px] text-muted-foreground/70 mt-1 truncate leading-relaxed">
                             {task.description}
                         </p>
                     )}
                 </div>
 
-                <div className="flex items-center gap-3 shrink-0">
+                <div className="flex items-center gap-2.5 shrink-0">
                     {task.dueDate && (
-                        <div className="text-sm text-muted-foreground font-medium whitespace-nowrap">
+                        <div className="text-[13px] text-muted-foreground/70 font-medium whitespace-nowrap">
                             {formatDueDate(task.dueDate)}
                         </div>
                     )}
                     {hasPriority && (
                         <div className={cn(
-                            "px-2.5 py-0.5 rounded text-xs font-semibold",
+                            "px-2.5 py-1 rounded-full text-[11px] font-semibold border",
                             getPriorityColor(task.priority)
                         )}>
                             {getPriorityLabel(task.priority)}
                         </div>
                     )}
 
-
-
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className={cn(
+                                    "h-7 w-7 transition-opacity",
+                                    isHovered ? "opacity-100" : "opacity-0"
+                                )}
+                            >
                                 <MoreHorizontal className="h-4 w-4" />
                                 <span className="sr-only">Menu</span>
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem
+                            {/* <DropdownMenuItem
                                 onClick={(e) => e.stopPropagation()}
                                 onSelect={(e) => {
                                     e.preventDefault()
@@ -166,7 +194,7 @@ export function TaskRow({ task }: TaskRowProps) {
                                 }}>
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Edit
-                            </DropdownMenuItem>
+                            </DropdownMenuItem> */}
                             <DropdownMenuItem
                                 className="text-destructive focus:text-destructive"
                                 onClick={(e) => e.stopPropagation()}
@@ -180,7 +208,6 @@ export function TaskRow({ task }: TaskRowProps) {
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-
                 </div>
             </div>
 
@@ -191,11 +218,11 @@ export function TaskRow({ task }: TaskRowProps) {
                 taskTitle={task.title}
             />
 
-            <EditTaskDialog
+            {/* <EditTaskDialog
                 task={task}
                 isOpen={showEditDialog}
                 onOpenChange={setShowEditDialog}
-            />
+            /> */}
         </>
     )
 }

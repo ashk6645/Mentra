@@ -30,20 +30,32 @@ export function AddTaskTrigger({
         )
     }
 
-    // Default 'inline' variant
+    // Default 'inline' variant - Ghost Card Style
     return (
         <div
             onClick={onClick}
             suppressHydrationWarning={true}
             className={cn(
-                "flex-1 flex items-center gap-3 p-4 rounded-lg border border-dashed border-muted-foreground/30 hover:bg-muted/50 transition-colors cursor-pointer text-muted-foreground hover:text-foreground group",
+                // Ghost Card - matches task card width and alignment
+                "flex items-center gap-3.5 px-4 py-3.5 rounded-[14px]",
+                "cursor-pointer transition-all duration-200 ease-out",
+                
+                // Default: Nearly invisible, subtle hint
+                "bg-transparent hover:bg-card/40 dark:hover:bg-card/20",
+                "border border-dashed border-transparent hover:border-border/30",
+                
+                // Hover: Slight elevation like task cards
+                "hover:shadow-sm hover:shadow-black/5 dark:hover:shadow-black/20",
+                
+                "text-muted-foreground/50 hover:text-muted-foreground",
+                "group",
                 className
             )}
         >
-            <div className="h-5 w-5 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center group-hover:border-primary/50 group-hover:bg-primary/10 transition-colors">
+            <div className="h-5 w-5 rounded-md border-2 border-muted-foreground/20 flex items-center justify-center group-hover:border-primary/40 group-hover:bg-primary/5 transition-all">
                 <Plus className="h-3 w-3 group-hover:text-primary transition-colors" />
             </div>
-            <span className="font-medium">{label}</span>
+            <span className="font-medium text-[15px]">{label}</span>
         </div>
     )
 }
