@@ -2,56 +2,51 @@ import Link from 'next/link'
 
 export function LandingFooter() {
   return (
-    <footer className="border-t border-border/50 bg-muted/20 py-16 px-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="grid md:grid-cols-4 gap-12 mb-12">
+    <footer className="bg-foreground text-background py-20 px-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-4 gap-12 mb-16">
           {/* Brand */}
-          <div>
-            <div className="text-2xl font-semibold text-foreground mb-2">Mentra</div>
-            <p className="text-sm text-muted-foreground">Your mind, organized.</p>
+          <div className="col-span-1 md:col-span-1">
+            <div className="text-2xl font-bold mb-4 tracking-tight">Mentra</div>
+            <p className="text-sm text-muted-foreground/80 leading-relaxed max-w-xs">
+              Designed for the way your brain actually works. Built with intention for clarity and focus.
+            </p>
           </div>
 
-          {/* Product */}
+          {/* Spacer for layout balance if needed or more cols */}
+          <div className="hidden md:block"></div>
+
+          {/* Links Section 1 */}
           <div>
-            <h4 className="font-semibold text-foreground mb-4">Product</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link href="#features" className="hover:text-foreground transition-colors">Features</Link></li>
-              <li><Link href="#pricing" className="hover:text-foreground transition-colors">Pricing</Link></li>
-              <li><Link href="#roadmap" className="hover:text-foreground transition-colors">Roadmap</Link></li>
+            <h4 className="font-semibold mb-6">Product</h4>
+            <ul className="space-y-4 text-sm text-muted-foreground/80">
+              <li><Link href="#features" className="hover:text-background transition-colors">Features</Link></li>
+              <li><Link href="#pricing" className="hover:text-background transition-colors">Pricing</Link></li>
+              <li><Link href="/changelog" className="hover:text-background transition-colors">Changelog</Link></li>
+              <li><Link href="/manifesto" className="hover:text-background transition-colors">Manifesto</Link></li>
             </ul>
           </div>
 
-          {/* Resources */}
+          {/* Links Section 2 */}
           <div>
-            <h4 className="font-semibold text-foreground mb-4">Resources</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link href="/blog" className="hover:text-foreground transition-colors">Blog</Link></li>
-              <li><Link href="/help" className="hover:text-foreground transition-colors">Help Center</Link></li>
-              <li><Link href="/api" className="hover:text-foreground transition-colors">API Docs</Link></li>
-            </ul>
-          </div>
-
-          {/* Company */}
-          <div>
-            <h4 className="font-semibold text-foreground mb-4">Company</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link href="/about" className="hover:text-foreground transition-colors">About</Link></li>
-              <li><Link href="/careers" className="hover:text-foreground transition-colors">Careers</Link></li>
-              <li><Link href="/contact" className="hover:text-foreground transition-colors">Contact</Link></li>
+            <h4 className="font-semibold mb-6">Company</h4>
+            <ul className="space-y-4 text-sm text-muted-foreground/80">
+              <li><Link href="/about" className="hover:text-background transition-colors">About</Link></li>
+              <li><Link href="/blog" className="hover:text-background transition-colors">Blog</Link></li>
+              <li><Link href="https://twitter.com/mentra" className="hover:text-background transition-colors">Twitter</Link></li>
+              <li><Link href="mailto:hello@mentra.so" className="hover:text-background transition-colors">Contact</Link></li>
             </ul>
           </div>
         </div>
 
         {/* Bottom */}
-        <div className="pt-8 border-t border-border/50 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-muted-foreground">
-            © 2026 Mentra. Built with intention.
+        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-sm text-muted-foreground/60">
+            © 2026 Mentra Inc. All rights reserved.
           </p>
-          <div className="flex gap-6 text-sm text-muted-foreground">
-            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-            <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-            <Link href="https://twitter.com/mentra" className="hover:text-foreground transition-colors">Twitter</Link>
-            <Link href="https://github.com/mentra" className="hover:text-foreground transition-colors">GitHub</Link>
+          <div className="flex gap-8 text-sm text-muted-foreground/60">
+            <Link href="/privacy" className="hover:text-background transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-background transition-colors">Terms of Service</Link>
           </div>
         </div>
       </div>
