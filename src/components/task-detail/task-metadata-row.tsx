@@ -33,15 +33,15 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
   const getPriorityColor = (priority: string) => {
     switch (priority.toLowerCase()) {
       case 'urgent':
-        return 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20'
+        return 'bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400 border-red-200/50 dark:border-red-900/30'
       case 'high':
-        return 'bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20'
+        return 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border-amber-200/50 dark:border-amber-900/30'
       case 'medium':
-        return 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20'
+        return 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400 border-blue-200/50 dark:border-blue-900/30'
       case 'low':
-        return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20'
+        return 'bg-slate-50 text-slate-600 dark:bg-slate-950/30 dark:text-slate-400 border-slate-200/50 dark:border-slate-900/30'
       default:
-        return 'bg-muted text-muted-foreground border-border/50'
+        return 'bg-muted/50 text-muted-foreground/70 border-border/30'
     }
   }
 
@@ -83,11 +83,11 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
             variant="outline"
             size="sm"
             className={cn(
-              'h-8 px-3 rounded-full border',
-              !dueDate && 'text-muted-foreground'
+              'h-7 px-3 rounded-full border text-xs font-medium transition-all',
+              !dueDate && 'text-muted-foreground/60 border-border/30 hover:border-border/50'
             )}
           >
-            <Calendar className="mr-2 h-3.5 w-3.5" />
+            <Calendar className="mr-1.5 h-3 w-3" />
             {formatDueDate(dueDate)}
           </Button>
         </PopoverTrigger>
@@ -118,9 +118,9 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
         <Button
           variant="outline"
           size="sm"
-          className="h-8 px-3 rounded-full border text-muted-foreground"
+          className="h-7 px-3 rounded-full border text-xs font-medium text-muted-foreground/60 border-border/30 hover:border-border/50 transition-all"
         >
-          <Clock className="mr-2 h-3.5 w-3.5" />
+          <Clock className="mr-1.5 h-3 w-3" />
           Add time
         </Button>
       )}
@@ -131,9 +131,9 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
           <Button
             variant="outline"
             size="sm"
-            className={cn('h-8 px-3 rounded-full border', getPriorityColor(priority))}
+            className={cn('h-7 px-3 rounded-full border text-xs font-medium transition-all', getPriorityColor(priority))}
           >
-            <Flag className="mr-2 h-3.5 w-3.5" />
+            <Flag className="mr-1.5 h-3 w-3" />
             {priority === 'none' ? 'Priority' : priority.charAt(0).toUpperCase() + priority.slice(1)}
           </Button>
         </PopoverTrigger>
@@ -162,9 +162,9 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
       <Button
         variant="outline"
         size="sm"
-        className="h-8 px-3 rounded-full border text-muted-foreground"
+        className="h-7 px-3 rounded-full border text-xs font-medium text-muted-foreground/60 border-border/30 hover:border-border/50 transition-all"
       >
-        <Tag className="mr-2 h-3.5 w-3.5" />
+        <Tag className="mr-1.5 h-3 w-3" />
         Add label
       </Button>
     </div>

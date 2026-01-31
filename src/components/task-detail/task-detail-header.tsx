@@ -112,16 +112,16 @@ export function TaskDetailHeader({ task, onClose }: TaskDetailHeaderProps) {
 
   return (
     <>
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/50 p-6">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/40 px-8 py-6">
         <div className="flex items-start gap-4">
           {/* Large Checkbox */}
           <Checkbox
             checked={isCompleted}
             onCheckedChange={handleToggleComplete}
-            className="mt-1 h-6 w-6 rounded-lg border-2 data-[state=checked]:bg-success data-[state=checked]:border-success"
+            className="mt-1.5 h-6 w-6 rounded-lg border-2 data-[state=checked]:bg-success data-[state=checked]:border-success transition-all"
           />
 
-          {/* Title */}
+          {/* Title - Stronger hierarchy */}
           <div className="flex-1 min-w-0">
             {isEditing ? (
               <input
@@ -143,27 +143,27 @@ export function TaskDetailHeader({ task, onClose }: TaskDetailHeaderProps) {
                   }
                 }}
                 autoFocus
-                className="w-full text-2xl font-semibold bg-transparent border-none outline-none focus:ring-0 p-0"
+                className="w-full text-[26px] font-bold leading-tight bg-transparent border-none outline-none focus:ring-0 p-0 text-foreground"
               />
             ) : (
-              <h2
+              <h1
                 onClick={() => setIsEditing(true)}
                 className={cn(
-                  'text-2xl font-semibold cursor-text hover:text-primary transition-colors',
-                  isCompleted && 'line-through text-muted-foreground'
+                  'text-[26px] font-bold leading-tight cursor-text transition-colors',
+                  isCompleted ? 'line-through text-muted-foreground/60' : 'text-foreground hover:text-foreground/80'
                 )}
               >
                 {title}
-              </h2>
+              </h1>
             )}
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Actions - Tighter grouping */}
+          <div className="flex items-center gap-1 shrink-0">
             {/* Delete Action */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -183,7 +183,7 @@ export function TaskDetailHeader({ task, onClose }: TaskDetailHeaderProps) {
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="h-8 w-8 hidden md:flex"
+              className="h-8 w-8 hidden md:flex text-muted-foreground hover:text-foreground"
             >
               <X className="h-4 w-4" />
             </Button>

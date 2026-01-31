@@ -35,7 +35,7 @@ export function TaskDetailPanel({ className }: TaskDetailPanelProps) {
     const mainContent = document.querySelector('main')
     if (mainContent) {
       if (isOpen) {
-        mainContent.style.marginRight = '480px'
+        mainContent.style.marginRight = '540px'
         mainContent.style.transition = 'margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
       } else {
         mainContent.style.marginRight = '0'
@@ -58,7 +58,7 @@ export function TaskDetailPanel({ className }: TaskDetailPanelProps) {
           exit={{ x: '100%' }}
           transition={{ type: 'spring', damping: 30, stiffness: 300 }}
           className={cn(
-            'fixed top-0 right-0 h-screen w-[480px] z-50',
+            'fixed top-0 right-0 h-screen w-[540px] z-50',
             'bg-background border-l border-border/50',
             'shadow-2xl',
             'flex flex-col overflow-hidden',
@@ -77,7 +77,7 @@ export function TaskDetailPanel({ className }: TaskDetailPanelProps) {
 
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto custom-scrollbar">
-              <div className="p-6 space-y-8">
+              <div className="px-8 py-6 space-y-8">
                 {/* Metadata Pills */}
                 <TaskMetadataRow task={selectedTask} />
 

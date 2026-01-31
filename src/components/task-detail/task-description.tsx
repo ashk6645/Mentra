@@ -46,32 +46,40 @@ export function TaskDescription({ task }: TaskDescriptionProps) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-muted-foreground">
+        <label className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wide">
           Description
         </label>
         {isSaving && (
-          <span className="text-xs text-muted-foreground">Saving...</span>
+          <span className="text-xs text-muted-foreground/60">Saving...</span>
         )}
       </div>
       
-      <Textarea
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={handleBlur}
-        placeholder="Add notes, context, or steps…"
-        className={cn(
-          'min-h-[120px] resize-none',
-          'border-border/50 focus:border-primary/50',
-          'bg-muted/30 focus:bg-background',
-          'transition-all duration-200',
-          !description && !isFocused && 'text-muted-foreground/50'
-        )}
-      />
+      <div className={cn(
+        'rounded-lg transition-all duration-200',
+        isFocused ? 'bg-muted/20' : 'bg-transparent'
+      )}>
+        <Textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={handleBlur}
+          placeholder="Add notes, context, or steps…"
+          className={cn(
+            'min-h-[140px] resize-none',
+            'border-0 shadow-none',
+            'bg-transparent',
+            'focus-visible:ring-0 focus-visible:ring-offset-0',
+            'placeholder:text-muted-foreground/40',
+            'text-[15px] leading-relaxed',
+            'px-3 py-2.5',
+            'transition-all duration-200'
+          )}
+        />
+      </div>
 
-      <p className="text-xs text-muted-foreground">
+      <p className="text-[11px] text-muted-foreground/50">
         Supports markdown formatting
       </p>
     </div>
