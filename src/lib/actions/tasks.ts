@@ -14,8 +14,8 @@ const createTaskSchema = z.object({
     description: z.string().optional(),
     priority: z.enum(['low', 'medium', 'high', 'urgent']).optional().nullable(),
     dueDate: z.string().optional().nullable(), // Passed as ISO string
-    scheduledStart: z.string().optional(), // ISO string for scheduled start time
-    scheduledEnd: z.string().optional(), // ISO string for scheduled end time
+    scheduledStart: z.string().optional().nullable(), // ISO string for scheduled start time
+    scheduledEnd: z.string().optional().nullable(), // ISO string for scheduled end time
     durationMinutes: z.number().optional(),
 })
 
