@@ -90,7 +90,7 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
           description: newDate ? `Due date set to ${format(newDate, 'MMM d, yyyy')}` : 'Due date cleared',
         })
       } else {
-        setDueDate(task.dueDate || null)
+        setDueDate(normalizeDueDate(task.dueDate))
         toast({
           title: 'Failed to update date',
           description: result.error || 'Please try again',
