@@ -80,6 +80,7 @@ export function TaskRow({ task }: TaskRowProps) {
         return format(d, 'MMM d')
     }
 
+
     return (
         <>
             <div
@@ -88,49 +89,53 @@ export function TaskRow({ task }: TaskRowProps) {
                 onMouseLeave={() => setIsHovered(false)}
                 className={cn(
                     // Base Layout
-                    "group relative flex items-start gap-3 py-3 px-4 rounded-lg cursor-default",
-                    "border-b border-transparent transition-all duration-200",
+                    "group relative flex items-start gap-4 py-3.5 px-4 cursor-default transition-all duration-200",
 
-                    // Hover State
-                    "hover:bg-muted/40",
+                    // Row Separation: Extremely subtle divider
+                    "border-b border-border/20 dark:border-border/10 last:border-0",
 
-                    // Completed State
-                    task.completed && "opacity-50"
+                    // Default State: Clean
+                    "bg-transparent",
+
+                    // Hover State: Subtle tint, not heavy
+                    !task.completed && "hover:bg-muted/30 dark:hover:bg-muted/10",
+
+                    // Completed State: More muted, lower contrast
+                    task.completed && "opacity-40 hover:opacity-80 bg-muted/5"
                 )}
             >
-                {/* Drag Handle (Visible on Hover from parent sortable usually, but we can add visual cue here if needed) */}
-                {/* This matches the updated plan to keep it calm and minimal. 
-                     The Sortable component handles the actual drag listeners, 
-                     but we can show a visual hint if desired. 
-                     For now, we let the Sortable wrapper handle the grip. */}
+                {/* Drag Handle - Implicitly handled by Sortable parent, but we keep space clean */}
 
-                {/* Checkbox */}
+                {/* Checkbox - Left aligned */}
                 <div onClick={(e) => e.stopPropagation()} className="pt-0.5 shrink-0">
                     <Checkbox
                         checked={task.completed}
                         onCheckedChange={handleToggle}
                         disabled={isPending}
                         className={cn(
-                            "h-5 w-5 rounded-full transition-all border-muted-foreground/40",
-                            "data-[state=checked]:bg-primary data-[state=checked]:border-primary",
-                            "hover:border-primary/60"
+                            "h-5 w-5 rounded-full transition-all duration-300",
+                            "border-muted-foreground/30 dark:border-muted-foreground/40",
+                            "data-[state=checked]:bg-primary/80 data-[state=checked]:border-primary/80",
+                            "hover:border-primary/60 dark:hover:border-primary/60"
                         )}
                     />
                 </div>
 
-                {/* Content */}
-                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                {/* Center Content */}
+                <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
                     <div className="flex items-center gap-2">
                         <span className={cn(
-                            "text-[15px] font-medium leading-snug transition-colors",
-                            task.completed ? "line-through text-muted-foreground" : "text-foreground"
+                            "text-[15px] font-medium leading-snug transition-colors duration-200",
+                            task.completed
+                                ? "line-through text-muted-foreground/70"
+                                : "text-foreground/90 group-hover:text-foreground"
                         )}>
                             {task.title}
                         </span>
 
-                        {/* Subtasks Indicator */}
+                        {/* Subtasks Indicator - Inline */}
                         {task.subtasks && task.subtasks.length > 0 && (
-                            <div className="flex items-center gap-1 text-muted-foreground/60 shrink-0"
+                            <div className="flex items-center gap-1 text-muted-foreground/40 shrink-0 select-none"
                                 title={`${task.subtasks.filter((st: any) => st.completed).length}/${task.subtasks.length} subtasks`}>
                                 <GitBranch className="h-3 w-3" />
                                 <span className="text-[11px] font-medium tabular-nums">
@@ -140,49 +145,53 @@ export function TaskRow({ task }: TaskRowProps) {
                         )}
                     </div>
 
-                    {/* Description */}
+                    {/* Description - Secondary */}
                     {task.description && (
                         <p className={cn(
-                            "text-[13px] mt-0.5 truncate leading-relaxed",
-                            task.completed ? "text-muted-foreground/60" : "text-muted-foreground/80"
+                            "text-[13px] truncate leading-relaxed transition-colors",
+                            task.completed ? "text-muted-foreground/50" : "text-muted-foreground/60 group-hover:text-muted-foreground/80"
                         )}>
                             {task.description}
                         </p>
                     )}
                 </div>
 
-                {/* Right Metadata */}
-                <div className="flex items-center gap-4 shrink-0 self-start pt-0.5">
+                {/* Right Metadata - Visual Hierarchy: Priority > Date > Actions */}
+                <div className="flex items-center gap-3 shrink-0 self-start pt-0.5 min-h-[24px]">
 
-                    {/* Priority Badge */}
-                    {task.priority && task.priority !== 'none' && (
+                    {/* Priority Badge - Most visible metadata */}
+                    {task.priority && task.priority !== 'none' && !task.completed && (
                         <div className={cn(
-                            "px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide",
+                            "px-2 py-[2px] rounded text-[10px] font-semibold tracking-wide uppercase select-none",
                             getPriorityColor(task.priority)
                         )}>
                             {task.priority}
                         </div>
                     )}
 
-                    {/* Due Date */}
-                    {task.dueDate && (
+                    {/* Due Date - Subtle, secondary */}
+                    {task.dueDate && !task.completed && (
                         <div className={cn(
-                            "text-[12px] tabular-nums font-medium",
-                            task.dueDate < new Date() && !task.completed ? "text-red-500" : "text-muted-foreground/70"
+                            "text-[12px] tabular-nums font-medium transition-colors select-none",
+                            // Red if overdue, otherwise very muted
+                            task.dueDate < new Date()
+                                ? "text-red-500/80 dark:text-red-400"
+                                : "text-muted-foreground/40 group-hover:text-muted-foreground/70"
                         )}>
                             {formatDueDate(task.dueDate)}
                         </div>
                     )}
 
-                    {/* Actions Menu */}
+                    {/* Actions Menu - Only visible on hover */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                             <Button
                                 variant="ghost"
                                 size="icon"
                                 className={cn(
-                                    "h-6 w-6 text-muted-foreground/50 hover:text-foreground hover:bg-transparent",
-                                    isHovered ? "opacity-100" : "opacity-0"
+                                    "h-6 w-6 transition-all duration-200",
+                                    "text-muted-foreground/40 hover:text-foreground hover:bg-muted/50",
+                                    isHovered ? "opacity-100 scale-100" : "opacity-0 scale-90"
                                 )}
                             >
                                 <MoreHorizontal className="h-4 w-4" />
