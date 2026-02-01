@@ -68,13 +68,16 @@ export default async function TodayPage() {
                 description={
                     <span className="flex items-center gap-2">
                         <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
-                        <span className="text-muted-foreground/50">•</span>
-                        <span>{todayTasks.length} tasks</span>
                     </span>
                 }
                 actions={
-                    <div className="text-sm font-medium text-orange-600 bg-orange-50 dark:bg-orange-950/30 px-3 py-1 rounded-full">
-                        {highPriorityCount > 0 ? `${highPriorityCount} High Priority` : 'All clear'}
+                    <div className="flex flex-col items-end gap-2">
+                        <div className="text-sm font-medium text-blue-600 bg-blue-50 dark:bg-blue-950/30 px-3 py-1 rounded-full">
+                            {todayTasks.length} {todayTasks.length === 1 ? 'Task' : 'Tasks'}
+                        </div>
+                        <div className="text-sm font-medium text-orange-600 bg-orange-50 dark:bg-orange-950/30 px-3 py-1 rounded-full">
+                            {highPriorityCount > 0 ? `${highPriorityCount} High Priority` : 'All clear'}
+                        </div>
                     </div>
                 }
             />
