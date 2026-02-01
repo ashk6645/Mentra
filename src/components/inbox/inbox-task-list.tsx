@@ -1,6 +1,5 @@
 'use client'
 
-import { TaskRow } from '@/components/tasks/task-row'
 import { SortableTaskList } from '@/components/tasks/sortable-task-list'
 
 interface InboxTaskListProps {
@@ -10,8 +9,9 @@ interface InboxTaskListProps {
 export function InboxTaskList({ tasks }: InboxTaskListProps) {
     if (tasks.length === 0) {
         return (
-            <div className="text-center py-8 text-muted-foreground bg-card rounded-lg border border-dashed">
-                Your inbox is empty. Great job!
+            <div className="text-center py-12 text-muted-foreground">
+                <p className="text-base font-medium">Your inbox is empty</p>
+                <p className="text-sm mt-1 opacity-70">New tasks will appear here</p>
             </div>
         )
     }

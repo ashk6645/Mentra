@@ -36,15 +36,17 @@ export function TaskDetailPanel({ className }: TaskDetailPanelProps) {
     if (mainContent) {
       if (isOpen) {
         mainContent.style.marginRight = '540px'
-        mainContent.style.transition = 'margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+        mainContent.style.transition = 'margin-right 300ms cubic-bezier(0.4, 0, 0.2, 1)'
       } else {
         mainContent.style.marginRight = '0'
+        mainContent.style.transition = 'margin-right 300ms cubic-bezier(0.4, 0, 0.2, 1)'
       }
     }
 
     return () => {
       if (mainContent) {
         mainContent.style.marginRight = '0'
+        mainContent.style.transition = ''
       }
     }
   }, [isOpen])
@@ -56,7 +58,7 @@ export function TaskDetailPanel({ className }: TaskDetailPanelProps) {
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
-          transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
           className={cn(
             'fixed top-0 right-0 h-screen w-[540px] z-50',
             'bg-background border-l border-border/50',

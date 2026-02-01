@@ -81,26 +81,27 @@ export default async function UpcomingPage() {
                 />
 
 
-                <div className="mt-8 space-y-3">
+                <div className="mt-8">
                     {sortedDates.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground bg-card rounded-lg border border-dashed">
-                            No upcoming tasks for the next 7 days.
+                        <div className="text-center py-12 text-muted-foreground">
+                            <p className="text-base font-medium">No upcoming tasks for the next 7 days</p>
+                            <p className="text-sm mt-1 opacity-70">Schedule tasks to see them here</p>
                         </div>
                     ) : (
-                        <>
-                            {sortedDates.map((dateKey, index) => (
-                                <div key={dateKey} className={`space-y-3 ${index > 0 ? 'mt-6' : ''}`}>
-                                    <h3 className="font-medium text-sm text-muted-foreground ml-1">
+                        <div className="space-y-8">
+                            {sortedDates.map((dateKey) => (
+                                <div key={dateKey} className="space-y-3">
+                                    <h3 className="font-semibold text-sm text-foreground/70 px-1">
                                         {format(new Date(dateKey), 'EEEE, MMMM d')}
                                     </h3>
                                     <SortableTaskList tasks={groupedTasks[dateKey]} />
                                 </div>
                             ))}
-                        </>
+                        </div>
                     )}
 
                     <CreateTaskInline
-                        className="ml-6"
+                        className="ml-6 mt-6"
                         label="Add task to upcoming..."
                     />
                 </div>

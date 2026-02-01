@@ -70,10 +70,10 @@ export default async function TodayPage() {
                     highPriorityCount={highPriorityCount}
                 />
 
-                <div className="mt-8 space-y-3">
+                <div className="mt-8">
                     <TodayTaskList tasks={todayTasks} />
 
-                    <CreateTaskInline className="ml-6" />
+                    <CreateTaskInline className="ml-6 mt-6" />
                 </div>
             </div>
         </div>

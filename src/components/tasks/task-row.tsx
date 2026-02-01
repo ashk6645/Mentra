@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { toggleTaskCompletion, deleteTask } from '@/lib/actions/tasks'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { MoreHorizontal, Pencil, Trash, GitBranch } from 'lucide-react'
+import { MoreHorizontal, Trash, Clock, CheckSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -15,6 +15,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { DeleteTaskDialog } from './delete-task-dialog'
+import { useTaskDetailStore } from '@/stores/use-task-detail-store'
 
 interface TaskRowProps {
     task: any // Using any to avoid type conflicts with shared components for now
@@ -24,6 +25,8 @@ export function TaskRow({ task }: TaskRowProps) {
     const router = useRouter()
     const [isPending, setIsPending] = useState(false)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+    const { selectedTaskId } = useTaskDetailStore()
+    const isSelected = selectedTaskId === task.id
 
     const handleToggle = async (checked: boolean) => {
         setIsPending(true)
@@ -54,111 +57,151 @@ export function TaskRow({ task }: TaskRowProps) {
         router.refresh()
     }
 
-    const getPriorityColor = (priority?: string | null) => {
+    const getPriorityStyles = (priority?: string | null) => {
         switch (priority?.toLowerCase()) {
             case 'urgent':
-                return 'bg-red-600 text-white'
+                return {
+                    bg: 'bg-red-50 dark:bg-red-950/30',
+                    text: 'text-red-600 dark:text-red-400',
+                    label: 'Urgent'
+                }
             case 'high':
-                return 'bg-orange-500 text-white'
+                return {
+                    bg: 'bg-orange-50 dark:bg-orange-950/30',
+                    text: 'text-orange-600 dark:text-orange-400',
+                    label: 'High'
+                }
             case 'medium':
-                return 'bg-blue-500 text-white'
+                return {
+                    bg: 'bg-blue-50 dark:bg-blue-950/30',
+                    text: 'text-blue-600 dark:text-blue-400',
+                    label: 'Medium'
+                }
             case 'low':
-                return 'bg-slate-500 text-white'
+                return {
+                    bg: 'bg-gray-50 dark:bg-gray-800',
+                    text: 'text-gray-600 dark:text-gray-400',
+                    label: 'Low'
+                }
             default:
-                return 'bg-gray-500 text-white'
+                return null
         }
-    }
-
-    const getPriorityLabel = (priority?: string | null) => {
-        if (!priority) return ''
-        return priority.charAt(0).toUpperCase() + priority.slice(1)
     }
 
     const formatDueDate = (date?: Date | null) => {
-        if (!date) return ''
+        if (!date) return null
         const d = new Date(date)
+        const now = new Date()
+        const isOverdue = d < now && !task.completed
+        const hasTime = d.getHours() !== 0 || d.getMinutes() !== 0
+        
+        let text = ''
         if (isToday(d)) {
-            return `Today ${format(d, 'h:mm a')}`
+            text = hasTime ? format(d, 'h:mm a') : 'Today'
+        } else if (isTomorrow(d)) {
+            text = hasTime ? `Tomorrow ${format(d, 'h:mm a')}` : 'Tomorrow'
+        } else {
+            text = hasTime ? `${format(d, 'MMM d')} ${format(d, 'h:mm a')}` : format(d, 'MMM d')
         }
-        if (isTomorrow(d)) {
-            return `Tomorrow ${format(d, 'h:mm a')}`
-        }
-        if (d.getHours() === 0 && d.getMinutes() === 0) {
-            return format(d, 'MMM d')
-        }
-        return `${format(d, 'MMM d')} ${format(d, 'h:mm a')}`
+        
+        return { text, isOverdue }
     }
 
-    const priority = task.priority?.toLowerCase() || 'none'
-    const hasPriority = priority !== 'none'
+    const priorityStyles = getPriorityStyles(task.priority)
+    const dueDateInfo = formatDueDate(task.dueDate)
+    const hasSubtasks = task.subtasks && task.subtasks.length > 0
+    const completedSubtasks = hasSubtasks ? task.subtasks.filter((st: any) => st.completed).length : 0
+    const totalSubtasks = hasSubtasks ? task.subtasks.length : 0
 
     return (
         <>
             <div
                 onClick={handleRowClick}
                 className={cn(
-                    "group flex items-center gap-4 p-4 bg-card border rounded-lg shadow-sm transition-all hover:shadow-md cursor-pointer",
-                    task.completed && "opacity-60 bg-muted/20"
+                    "group relative flex items-center gap-3 px-4 py-3.5 bg-card border border-border/40 rounded-lg cursor-pointer transition-colors hover:bg-accent/5",
+                    task.completed && "bg-muted/30"
                 )}>
-                <div onClick={(e) => e.stopPropagation()}>
+                
+                {/* Left accent bar - only shows when selected */}
+                {isSelected && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-lg" />
+                )}
+                
+                {/* Checkbox */}
+                <div onClick={(e) => e.stopPropagation()} className="shrink-0">
                     <Checkbox
                         checked={task.completed}
                         onCheckedChange={handleToggle}
                         disabled={isPending}
-                        className="h-5 w-5 rounded-sm border-2 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                        className="h-5 w-5 rounded-full border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                     />
                 </div>
 
-                <div className="flex-1 min-w-0">
+                {/* Content */}
+                <div className="flex-1 min-w-0 space-y-1">
+                    {/* Title and subtask progress */}
                     <div className="flex items-center gap-2">
-                        <p className={cn(
-                            "font-semibold text-base leading-none truncate cursor-pointer hover:text-primary transition-colors",
+                        <h3 className={cn(
+                            "font-semibold text-[15px] leading-tight text-foreground",
                             task.completed && "line-through text-muted-foreground"
                         )}>
                             {task.title}
-                        </p>
-                        {task.subtasks && task.subtasks.length > 0 && (
-                            <div className="flex items-center gap-1 text-muted-foreground shrink-0" title={`${task.subtasks.filter((st: any) => st.completed).length}/${task.subtasks.length} subtasks`}>
-                                <GitBranch className="h-3.5 w-3.5" />
+                        </h3>
+                        {hasSubtasks && (
+                            <div className="flex items-center gap-1 text-muted-foreground">
+                                <CheckSquare className="h-3.5 w-3.5" />
                                 <span className="text-xs font-medium">
-                                    {task.subtasks.filter((st: any) => st.completed).length}/{task.subtasks.length}
+                                    {completedSubtasks}/{totalSubtasks}
                                 </span>
                             </div>
                         )}
                     </div>
+                    
+                    {/* Description */}
                     {task.description && (
-                        <p className="text-sm text-muted-foreground mt-1 truncate">
+                        <p className="text-sm text-muted-foreground/80 leading-relaxed line-clamp-1">
                             {task.description}
                         </p>
                     )}
                 </div>
 
-                <div className="flex items-center gap-3 shrink-0">
-                    {task.dueDate && (
-                        <div className="text-sm text-muted-foreground font-medium whitespace-nowrap">
-                            {formatDueDate(task.dueDate)}
-                        </div>
-                    )}
-                    {hasPriority && (
+                {/* Right side metadata */}
+                <div className="flex items-center gap-2 shrink-0">
+                    {/* Due date */}
+                    {dueDateInfo && (
                         <div className={cn(
-                            "px-2.5 py-0.5 rounded text-xs font-semibold",
-                            getPriorityColor(task.priority)
+                            "flex items-center gap-1.5 text-xs font-medium",
+                            dueDateInfo.isOverdue ? "text-red-500" : "text-muted-foreground"
                         )}>
-                            {getPriorityLabel(task.priority)}
+                            <Clock className="h-3.5 w-3.5" />
+                            <span>{dueDateInfo.text}</span>
+                        </div>
+                    )}
+                    
+                    {/* Priority badge */}
+                    {priorityStyles && (
+                        <div className={cn(
+                            "px-2.5 py-1 rounded-md text-xs font-medium",
+                            priorityStyles.bg,
+                            priorityStyles.text
+                        )}>
+                            {priorityStyles.label}
                         </div>
                     )}
 
-
-
+                    {/* More menu */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
                                 <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Menu</span>
+                                <span className="sr-only">Task actions</span>
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-
+                        <DropdownMenuContent align="end" className="w-40">
                             <DropdownMenuItem
                                 className="text-destructive focus:text-destructive"
                                 onClick={(e) => e.stopPropagation()}
@@ -172,10 +215,8 @@ export function TaskRow({ task }: TaskRowProps) {
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-
                 </div>
             </div>
-
 
             <DeleteTaskDialog
                 open={showDeleteDialog}
