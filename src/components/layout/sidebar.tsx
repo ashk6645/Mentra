@@ -202,10 +202,9 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, counts
                                 {!isSidebarCollapsed && (
                                     <>
                                         <span className="text-sm font-medium truncate opacity-90">
-                                            {displayName}'s Workspace
+                                            {displayName}
                                         </span>
                                         <div className="ml-auto flex items-center text-muted-foreground">
-                                            <span className="text-[10px] border border-border px-1 rounded bg-background/50 mr-1">Free</span>
                                             <ChevronRight className="h-3 w-3 rotate-90 opacity-50" />
                                         </div>
                                     </>
