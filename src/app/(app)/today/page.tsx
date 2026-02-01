@@ -39,6 +39,17 @@ export default async function TodayPage() {
             completed: true,
             completedAt: true,
             sortOrder: true,
+            tags: {
+                select: {
+                    tag: {
+                        select: {
+                            id: true,
+                            name: true,
+                            color: true,
+                        }
+                    }
+                }
+            },
             subtasks: {
                 select: {
                     id: true,

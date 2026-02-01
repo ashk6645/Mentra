@@ -53,7 +53,17 @@ export async function getCompletedTasks(): Promise<{ success: boolean; data?: Gr
                 title: true,
                 completedAt: true,
                 priority: true,
-
+                tags: {
+                    select: {
+                        tag: {
+                            select: {
+                                id: true,
+                                name: true,
+                                color: true,
+                            }
+                        }
+                    }
+                }
             },
             orderBy: {
                 completedAt: 'desc'

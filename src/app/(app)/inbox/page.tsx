@@ -44,6 +44,17 @@ export default async function InboxPage() {
                 orderBy: {
                     sortOrder: 'asc'
                 }
+            },
+            tags: {
+                select: {
+                    tag: {
+                        select: {
+                            id: true,
+                            name: true,
+                            color: true,
+                        }
+                    }
+                }
             }
         },
         orderBy: [

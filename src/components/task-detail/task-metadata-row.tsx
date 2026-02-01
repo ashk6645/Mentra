@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 
 import { useState, useTransition, useEffect } from 'react'
-import { Calendar, Clock, Flag, Tag, Loader2, Check, X } from 'lucide-react'
+import { Calendar, Clock, Flag, Tag, Loader2, Check, X, Plus } from 'lucide-react'
 import { format, isToday, isTomorrow } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -59,6 +59,8 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
   const [availableTags, setAvailableTags] = useState<{ id: string, name: string, color?: string | null }[]>([])
 
   const [showTagInput, setShowTagInput] = useState(false)
+  const [searchValue, setSearchValue] = useState('')
+  const [isCreatingTag, setIsCreatingTag] = useState(false)
   const [isPending, startTransition] = useTransition()
   const { selectTask } = useTaskDetailStore()
   const { toast } = useToast()
@@ -306,6 +308,38 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
     })
   }
 
+  const handleCreateTag = async () => {
+    if (!searchValue.trim()) return
+
+    setIsCreatingTag(true)
+    startTransition(async () => {
+      // Dynamic import to avoid circular dependency issues if any
+      const { createTag } = await import('@/lib/actions/tags')
+
+      const result = await createTag({
+        name: searchValue.trim(),
+        color: 'bg-slate-500' // Default color
+      })
+
+      if (result.success && result.data) {
+        setAvailableTags(prev => [...prev, result.data!])
+        handleTagToggle(result.data.id)
+        setSearchValue('')
+        toast({
+          title: 'Label created',
+          description: `Created label "${result.data.name}"`
+        })
+      } else {
+        toast({
+          title: 'Failed to create label',
+          description: 'Please try again',
+          variant: 'destructive'
+        })
+      }
+      setIsCreatingTag(false)
+    })
+  }
+
   return (
     <div className="flex flex-wrap gap-2">
       {/* Due Date */}
@@ -392,7 +426,10 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
       </Popover>
 
       {/* Tags */}
-      <Popover open={showTagInput} onOpenChange={setShowTagInput}>
+      <Popover open={showTagInput} onOpenChange={(open) => {
+        setShowTagInput(open)
+        if (!open) setSearchValue('')
+      }}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -405,14 +442,43 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
             ) : (
               <Tag className="mr-1.5 h-3 w-3" />
             )}
-            Add label
+            {selectedTagIds.length === 0 ? "Add label" :
+              selectedTagIds.length === 1 ?
+                (availableTags.find(t => t.id === selectedTagIds[0])?.name ||
+                  task.tags?.find(t => (t.tag?.id || t.id) === selectedTagIds[0])?.tag?.name ||
+                  "Label")
+                : `${selectedTagIds.length} labels`}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-52 p-0" align="start">
           <Command>
-            <CommandInput placeholder="Search labels..." />
+            <CommandInput
+              placeholder="Search labels..."
+              value={searchValue}
+              onValueChange={setSearchValue}
+            />
             <CommandList>
-              <CommandEmpty>No labels found.</CommandEmpty>
+              <CommandEmpty className="py-2 px-2 text-sm">
+                <div className="flex flex-col gap-2">
+                  <span className="text-muted-foreground text-xs text-center">No labels found.</span>
+                  {searchValue.trim() && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="w-full text-xs h-7"
+                      onClick={handleCreateTag}
+                      disabled={isCreatingTag}
+                    >
+                      {isCreatingTag ? (
+                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                      ) : (
+                        <Plus className="mr-2 h-3 w-3" />
+                      )}
+                      Create "{searchValue}"
+                    </Button>
+                  )}
+                </div>
+              </CommandEmpty>
               <CommandGroup>
                 {availableTags.map((tag) => (
                   <CommandItem

@@ -297,50 +297,53 @@ export async function updateTask(data: UpdateTaskInput) {
         }
         if (result.data.durationMinutes !== undefined) updateData.durationMinutes = result.data.durationMinutes
 
-        if (result.data.tagIds !== undefined) {
-            // First delete existing tags
-            await prisma.taskTag.deleteMany({
-                where: { taskId: result.data.id }
-            });
+        const task = await prisma.$transaction(async (tx) => {
+            // Verify ownership first
+            const existing = await tx.task.findUnique({
+                where: { id: result.data.id },
+                select: { userId: true }
+            })
 
-            // Then create new associations
-            if (result.data.tagIds && result.data.tagIds.length > 0) {
-                updateData.tags = {
-                    create: result.data.tagIds.map(tagId => ({
-                        tag: { connect: { id: tagId } }
-                    }))
-                };
+            if (!existing || existing.userId !== user.id) {
+                throw new AppError('Task not found', ErrorCodes.NOT_FOUND, 404)
             }
-        }
 
-        const currentTask = await prisma.task.findUnique({
-            where: { id: result.data.id },
-            select: { userId: true }
-        })
+            if (result.data.tagIds !== undefined) {
+                // First delete existing tags
+                await tx.taskTag.deleteMany({
+                    where: { taskId: result.data.id }
+                });
 
-        if (!currentTask) {
-            return { success: false, error: 'Task not found' }
-        }
-
-        const task = await prisma.task.update({
-            where: {
-                id: result.data.id,
-            },
-            data: updateData,
-            include: {
-                user: {
-                    select: {
-                        displayName: true,
-                        email: true,
-                        avatarUrl: true
-                    }
-                },
-                tags: {
-                    include: {
-                        tag: true
-                    }
+                // Then create new associations
+                if (result.data.tagIds && result.data.tagIds.length > 0) {
+                    updateData.tags = {
+                        create: result.data.tagIds.map(tagId => ({
+                            tag: { connect: { id: tagId } }
+                        }))
+                    };
                 }
             }
+
+            return await tx.task.update({
+                where: {
+                    id: result.data.id,
+                },
+                data: updateData,
+                include: {
+                    user: {
+                        select: {
+                            displayName: true,
+                            email: true,
+                            avatarUrl: true
+                        }
+                    },
+                    tags: {
+                        include: {
+                            tag: true
+                        }
+                    }
+                }
+            })
         })
 
         // Award XP if task was just completed
