@@ -3,6 +3,7 @@
 import { CommandPalette } from './command-palette'
 import { Sidebar } from '@/components/layout/sidebar'
 import { useUIStore } from '@/stores/use-ui-store'
+import { useTaskDetailStore } from '@/stores/use-task-detail-store'
 import { motion } from 'framer-motion'
 
 
@@ -15,6 +16,7 @@ interface CommandPaletteWrapperProps {
 
 export function CommandPaletteWrapper({ user, children, initialPages, sidebarCounts }: CommandPaletteWrapperProps) {
     const { isSidebarCollapsed } = useUIStore()
+    const { isOpen: isTaskPanelOpen } = useTaskDetailStore()
 
     const handleOpenCommand = () => {
         if (typeof window !== 'undefined') {
@@ -36,7 +38,8 @@ export function CommandPaletteWrapper({ user, children, initialPages, sidebarCou
                 className="min-h-screen"
                 initial={false}
                 animate={{
-                    paddingLeft: isSidebarCollapsed ? 80 : 220
+                    paddingLeft: isSidebarCollapsed ? 80 : 220,
+                    paddingRight: isTaskPanelOpen ? 540 : 0
                 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
             >
