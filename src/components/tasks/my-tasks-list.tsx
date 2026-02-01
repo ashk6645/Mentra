@@ -83,16 +83,14 @@ export function MyTasksList({ tasks }: MyTasksListProps) {
             </div>
 
             {filteredTasks.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground bg-card/50 rounded-xl border border-dashed border-border/50">
+                <div className="text-center py-12 text-muted-foreground">
                     <p className="text-base font-medium">No {filter !== 'all' ? filter : ''} tasks found</p>
                     <p className="text-sm mt-1 opacity-70">
                         {filter === 'all' ? 'Create your first task to get started' : `No tasks in ${filter} category`}
                     </p>
                 </div>
             ) : (
-                <div className="space-y-3">
-                    <SortableTaskList tasks={filteredTasks} />
-                </div>
+                <SortableTaskList tasks={filteredTasks} />
             )}
         </div>
     )

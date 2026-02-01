@@ -9,16 +9,12 @@ interface InboxTaskListProps {
 export function InboxTaskList({ tasks }: InboxTaskListProps) {
     if (tasks.length === 0) {
         return (
-            <div className="text-center py-12 text-muted-foreground bg-card/50 rounded-xl border border-dashed border-border/50">
-                <p className="text-base font-medium">Your inbox is empty. Great job!</p>
+            <div className="text-center py-12 text-muted-foreground">
+                <p className="text-base font-medium">Your inbox is empty</p>
                 <p className="text-sm mt-1 opacity-70">New tasks will appear here</p>
             </div>
         )
     }
 
-    return (
-        <div className="space-y-3">
-            <SortableTaskList tasks={tasks} />
-        </div>
-    )
+    return <SortableTaskList tasks={tasks} />
 }
