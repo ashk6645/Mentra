@@ -34,13 +34,8 @@ export function TaskDetailFooter({ task }: TaskDetailFooterProps) {
 
   return (
     <div className="border-t border-border/50 p-6 bg-muted/20">
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <div>
-          Created by {creatorName}
-        </div>
-        <div>
-          Last Updated {formatDate(task.updatedAt)}
-        </div>
+      <div className="flex items-center justify-center text-xs text-muted-foreground w-full">
+        Last Updated {formatDate(task.updatedAt)}
       </div>
     </div>
   )
