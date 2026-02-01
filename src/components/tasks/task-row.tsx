@@ -118,7 +118,7 @@ export function TaskRow({ task }: TaskRowProps) {
             <div
                 onClick={handleRowClick}
                 className={cn(
-                    "group relative flex items-start gap-3 px-4 py-3.5 bg-card border border-border/40 rounded-lg cursor-pointer transition-colors hover:bg-accent/5",
+                    "group relative flex items-center gap-3 px-4 py-3.5 bg-card border border-border/40 rounded-lg cursor-pointer transition-colors hover:bg-accent/5",
                     task.completed && "bg-muted/30"
                 )}>
                 
@@ -128,7 +128,7 @@ export function TaskRow({ task }: TaskRowProps) {
                 )}
                 
                 {/* Checkbox */}
-                <div onClick={(e) => e.stopPropagation()} className="pt-0.5">
+                <div onClick={(e) => e.stopPropagation()} className="shrink-0">
                     <Checkbox
                         checked={task.completed}
                         onCheckedChange={handleToggle}
