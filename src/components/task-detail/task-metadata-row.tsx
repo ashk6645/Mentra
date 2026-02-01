@@ -119,11 +119,28 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
     const newDate = date || null
     setDueDate(newDate)
 
+    // Calculate new scheduledStart if exists to keep time on the new date
+    let newScheduledStart: Date | null | undefined = undefined
+    if (task.scheduledStart && newDate) {
+      const oldStart = new Date(task.scheduledStart)
+      newScheduledStart = new Date(newDate)
+      newScheduledStart.setHours(oldStart.getHours(), oldStart.getMinutes(), 0, 0)
+    } else if (!newDate) {
+      // If due date is cleared, also clear scheduled time
+      newScheduledStart = null
+    }
+
     startTransition(async () => {
-      const result = await updateTask({
+      const payload: UpdateTaskInput = {
         id: task.id,
         dueDate: newDate ? newDate.toISOString() : null,
-      })
+      }
+
+      if (newScheduledStart !== undefined) {
+        payload.scheduledStart = newScheduledStart ? newScheduledStart.toISOString() : null
+      }
+
+      const result = await updateTask(payload)
 
       if (result.success && result.data) {
         // Update the store with the new task data
@@ -173,7 +190,7 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
     })
   }
 
-  const handleTimeChange = async (timeValue: string) => {
+  const saveTime = async (timeValue: string) => {
     if (!dueDate || !timeValue) return
 
     const [hours, minutes] = timeValue.split(':').map(Number)
@@ -181,8 +198,6 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
     const baseDate = dueDate || new Date()
     const scheduledStart = new Date(baseDate)
     scheduledStart.setHours(hours, minutes, 0, 0)
-
-    setTime(timeValue)
 
     startTransition(async () => {
       // If we didn't have a due date, set it now
@@ -214,6 +229,10 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
         })
       }
     })
+  }
+
+  const handleTimeChange = (timeValue: string) => {
+    setTime(timeValue)
   }
 
   const handleTagToggle = async (tagId: string) => {
@@ -276,6 +295,7 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
                   type="time"
                   value={time}
                   onChange={(e) => handleTimeChange(e.target.value)}
+                  onBlur={(e) => saveTime(e.target.value)}
                   className="h-8 text-xs"
                 />
               </div>
