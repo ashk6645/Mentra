@@ -150,3 +150,59 @@ export async function getTaskSuggestions(
         return {}
     }
 }
+
+export async function rewriteTaskTitle(currentTitle: string): Promise<string | null> {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return null
+
+    const prompt = `
+    Rewrite the following task title to be more clear, actionable, and concise.
+    Current Title: "${currentTitle}"
+    
+    Return ONLY the rewritten title as a plain string. No quotes, no markdown.
+    `
+
+    try {
+        const result = await geminiModel.generateContent(prompt)
+        const response = await result.response
+        const text = response.text().trim()
+
+        await logAIActivity(user.id, prompt, text, 'REWRITE_TASK_TITLE')
+        return text
+    } catch (error) {
+        console.error("AI Rewrite failed", error)
+        return null
+    }
+}
+
+export async function estimateTaskDuration(title: string, description?: string): Promise<number | null> {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return null
+
+    const prompt = `
+    Estimate the duration in minutes for the following task.
+    Task: "${title}"
+    ${description ? `Description: "${description}"` : ''}
+
+    Return ONLY the number of minutes as an integer. 
+    Example: 30
+    If impossible to estimate, return 30 (default).
+    `
+
+    try {
+        const result = await geminiModel.generateContent(prompt)
+        const response = await result.response
+        const text = response.text().trim()
+        const minutes = parseInt(text.replace(/[^0-9]/g, ''))
+
+        await logAIActivity(user.id, prompt, text, 'ESTIMATE_TASK_DURATION')
+        return isNaN(minutes) ? 30 : minutes
+    } catch (error) {
+        console.error("AI Estimate failed", error)
+        return null
+    }
+}
