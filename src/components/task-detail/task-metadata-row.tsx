@@ -1,5 +1,7 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
+
 import { useState, useTransition, useEffect } from 'react'
 import { Calendar, Clock, Flag, Tag, Loader2, Check, X } from 'lucide-react'
 import { format, isToday, isTomorrow } from 'date-fns'
@@ -59,9 +61,11 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
   const [isPending, startTransition] = useTransition()
   const { selectTask } = useTaskDetailStore()
   const { toast } = useToast()
+  const router = useRouter() // Add router
 
   // Sync local state when task prop changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     setDueDate(normalizeDueDate(task.dueDate))
     setPriority(task.priority || 'none')
     setTime(task.scheduledStart ? format(new Date(task.scheduledStart), 'HH:mm') : '')
@@ -124,6 +128,7 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
       if (result.success && result.data) {
         // Update the store with the new task data
         selectTask(task.id, result.data)
+        router.refresh() // Refresh server components
         toast({
           title: 'Date updated',
           description: newDate ? `Due date set to ${format(newDate, 'MMM d, yyyy')}` : 'Due date cleared',
@@ -152,6 +157,7 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
 
       if (result.success && result.data) {
         selectTask(task.id, result.data)
+        router.refresh() // Refresh server components
         toast({
           title: 'Priority updated',
           description: `Priority set to ${newPriority === 'none' ? 'none' : newPriority}`,
@@ -194,6 +200,7 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
 
       if (result.success && result.data) {
         selectTask(task.id, result.data)
+        router.refresh() // Refresh server components
         toast({
           title: 'Time updated',
           description: `Scheduled for ${format(scheduledStart, 'h:mm a')}`,
@@ -224,6 +231,7 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
 
       if (result.success && result.data) {
         selectTask(task.id, result.data)
+        router.refresh() // Refresh server components
       } else {
         // Revert on failure
         setSelectedTagIds(selectedTagIds)
