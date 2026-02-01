@@ -15,6 +15,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { DeleteTaskDialog } from './delete-task-dialog'
+import { useTaskDetailStore } from '@/stores/use-task-detail-store'
 
 interface TaskRowProps {
     task: any // Using any to avoid type conflicts with shared components for now
@@ -24,6 +25,8 @@ export function TaskRow({ task }: TaskRowProps) {
     const router = useRouter()
     const [isPending, setIsPending] = useState(false)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+    const { selectedTaskId } = useTaskDetailStore()
+    const isSelected = selectedTaskId === task.id
 
     const handleToggle = async (checked: boolean) => {
         setIsPending(true)
@@ -90,16 +93,15 @@ export function TaskRow({ task }: TaskRowProps) {
         const d = new Date(date)
         const now = new Date()
         const isOverdue = d < now && !task.completed
+        const hasTime = d.getHours() !== 0 || d.getMinutes() !== 0
         
         let text = ''
         if (isToday(d)) {
-            text = d.getHours() === 0 && d.getMinutes() === 0 
-                ? 'Today' 
-                : format(d, 'h:mm a')
+            text = hasTime ? format(d, 'h:mm a') : 'Today'
         } else if (isTomorrow(d)) {
-            text = 'Tomorrow'
+            text = hasTime ? `Tomorrow ${format(d, 'h:mm a')}` : 'Tomorrow'
         } else {
-            text = format(d, 'MMM d')
+            text = hasTime ? `${format(d, 'MMM d')} ${format(d, 'h:mm a')}` : format(d, 'MMM d')
         }
         
         return { text, isOverdue }
@@ -120,8 +122,10 @@ export function TaskRow({ task }: TaskRowProps) {
                     task.completed && "bg-muted/30"
                 )}>
                 
-                {/* Left accent bar - shows on hover */}
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+                {/* Left accent bar - only shows when selected */}
+                {isSelected && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-lg" />
+                )}
                 
                 {/* Checkbox */}
                 <div onClick={(e) => e.stopPropagation()} className="pt-0.5">

@@ -26,7 +26,8 @@ interface TaskCardProps {
 export function TaskCard({ task }: { task: Task & { tags?: { tag: { id: string, name: string, color: string | null } }[], subtasks?: any[] } }) {
     const router = useRouter()
     const [isThinking, setIsThinking] = useState(false)
-    const { selectTask } = useTaskDetailStore()
+    const { selectTask, selectedTaskId } = useTaskDetailStore()
+    const isSelected = selectedTaskId === task.id
 
     const handleToggle = async (checked: boolean) => {
         setIsThinking(true)
@@ -86,16 +87,15 @@ export function TaskCard({ task }: { task: Task & { tags?: { tag: { id: string, 
         const d = new Date(date)
         const now = new Date()
         const isOverdue = d < now && !task.completed
+        const hasTime = d.getHours() !== 0 || d.getMinutes() !== 0
         
         let text = ''
         if (isToday(d)) {
-            text = d.getHours() === 0 && d.getMinutes() === 0 
-                ? 'Today' 
-                : format(d, 'h:mm a')
+            text = hasTime ? format(d, 'h:mm a') : 'Today'
         } else if (isTomorrow(d)) {
-            text = 'Tomorrow'
+            text = hasTime ? `Tomorrow ${format(d, 'h:mm a')}` : 'Tomorrow'
         } else {
-            text = format(d, 'MMM d')
+            text = hasTime ? `${format(d, 'MMM d')} ${format(d, 'h:mm a')}` : format(d, 'MMM d')
         }
         
         return { text, isOverdue }
@@ -115,8 +115,10 @@ export function TaskCard({ task }: { task: Task & { tags?: { tag: { id: string, 
                 task.completed && "bg-muted/30"
             )}>
             
-            {/* Left accent bar */}
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+            {/* Left accent bar - only shows when selected */}
+            {isSelected && (
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-lg" />
+            )}
             
             {/* Checkbox */}
             <div onClick={(e) => e.stopPropagation()} className="pt-0.5">
