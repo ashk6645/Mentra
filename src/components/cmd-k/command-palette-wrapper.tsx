@@ -3,6 +3,7 @@
 import { CommandPalette } from './command-palette'
 import { Sidebar } from '@/components/layout/sidebar'
 import { useUIStore } from '@/stores/use-ui-store'
+import { motion } from 'framer-motion'
 
 
 interface CommandPaletteWrapperProps {
@@ -31,16 +32,18 @@ export function CommandPaletteWrapper({ user, children, initialPages, sidebarCou
                 counts={sidebarCounts}
             />
 
-            <main
-                className="min-h-screen transition-[padding] duration-300 ease-in-out"
-                style={{
-                    paddingLeft: isSidebarCollapsed ? 80 : 256
+            <motion.main
+                className="min-h-screen"
+                initial={false}
+                animate={{
+                    paddingLeft: isSidebarCollapsed ? 80 : 220
                 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
             >
                 <div className="h-full pt-16 md:pt-0 relative">
                     {children}
                 </div>
-            </main>
+            </motion.main>
         </>
     )
 }
