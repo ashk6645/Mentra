@@ -12,6 +12,11 @@ export interface ParsedTaskData {
     priority?: 'urgent' | 'high' | 'medium' | 'low'
     dueDate?: Date
     reminderPattern?: string // e.g., "30min", "1hour", "1day"
+    recurrence?: {
+        interval: 'daily' | 'weekly' | 'monthly' | 'yearly'
+        step?: number
+        days?: number[]
+    }
     rawInput: string
 }
 
@@ -39,15 +44,16 @@ export function parseTaskNaturalLanguage(
     const tags = extractTags(workingInput)
     const priority = extractPriority(workingInput)
     const reminder = extractReminder(workingInput)
+    const recurrence = extractRecurrence(workingInput)
     const dateTime = extractDateTime(workingInput, context.currentDate)
 
     // Remove all extracted elements to get clean title
     const elementsToRemove: ExtractedElement[] = []
 
-
     if (tags.length > 0) elementsToRemove.push(...tags)
     if (priority) elementsToRemove.push(priority)
     if (reminder) elementsToRemove.push(reminder)
+    if (recurrence) elementsToRemove.push(recurrence)
     if (dateTime.extracted) elementsToRemove.push(dateTime.extracted)
 
     const title = cleanTaskTitle(workingInput, elementsToRemove)
@@ -58,6 +64,7 @@ export function parseTaskNaturalLanguage(
         priority: priority ? mapPriorityToLevel(priority.value) : undefined,
         dueDate: dateTime.date,
         reminderPattern: reminder?.value.substring(1), // Remove ! prefix
+        recurrence: recurrence ? parseRecurrence(recurrence.value) : undefined,
         rawInput: input,
     }
 }
@@ -528,4 +535,98 @@ export function calculateReminderTime(dueDate: Date, pattern: string): Date | nu
     }
 
     return null
+}
+
+/**
+ * Extract recurrence patterns
+ * Supports: every day, daily, every [day], every week, monthly, yearly
+ */
+export function extractRecurrence(input: string): ExtractedElement | null {
+    // 1. "every X days/weeks/months" or "every day/week/month"
+    const everyRegex = /\bevery (\d+ )?(day|week|month|year)s?\b/i
+    let match = input.match(everyRegex)
+    if (match) {
+        return {
+            value: match[0],
+            startIndex: match.index!,
+            endIndex: match.index! + match[0].length,
+        }
+    }
+
+    // 2. "daily", "weekly", "monthly", "yearly"
+    const adverbRegex = /\b(daily|weekly|monthly|yearly)\b/i
+    match = input.match(adverbRegex)
+    if (match) {
+        return {
+            value: match[0],
+            startIndex: match.index!,
+            endIndex: match.index! + match[0].length,
+        }
+    }
+
+    // 3. "every [weekday]" e.g., "every monday", "every friday"
+    const daysRegex = /\bevery (monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i
+    match = input.match(daysRegex)
+    if (match) {
+        return {
+            value: match[0],
+            startIndex: match.index!,
+            endIndex: match.index! + match[0].length,
+        }
+    }
+
+    return null
+}
+
+/**
+ * Parse extracted recurrence string into structured data
+ */
+export function parseRecurrence(input: string): ParsedTaskData['recurrence'] | undefined {
+    const lower = input.toLowerCase()
+
+    // Daily
+    if (lower.includes('daily') || lower.includes('every day')) {
+        return { interval: 'daily', step: 1 }
+    }
+
+    // Weekly
+    if (lower.includes('weekly') || lower.includes('every week')) {
+        return { interval: 'weekly', step: 1 }
+    }
+
+    // Monthly
+    if (lower.includes('monthly') || lower.includes('every month')) {
+        return { interval: 'monthly', step: 1 }
+    }
+
+    // Yearly
+    if (lower.includes('yearly') || lower.includes('every year')) {
+        return { interval: 'yearly', step: 1 }
+    }
+
+    // Every X ...
+    const stepMatch = lower.match(/every (\d+) (day|week|month|year)s?/)
+    if (stepMatch) {
+        const step = parseInt(stepMatch[1])
+        const unit = stepMatch[2] as 'day' | 'week' | 'month' | 'year'
+        return {
+            interval: (unit + 'ly') as 'daily' | 'weekly' | 'monthly' | 'yearly',
+            step: step
+        }
+    }
+
+    // Every [Weekday]
+    const dowMatch = lower.match(/every (monday|tuesday|wednesday|thursday|friday|saturday|sunday)/)
+    if (dowMatch) {
+        const dayMap: { [key: string]: number } = {
+            sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6
+        }
+        return {
+            interval: 'weekly',
+            step: 1,
+            days: [dayMap[dowMatch[1]]]
+        }
+    }
+
+    return undefined
 }

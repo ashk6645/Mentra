@@ -62,6 +62,13 @@ model Task {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  // Recurrence
+  isRecurring        Boolean   @default(false) @map("is_recurring")
+  recurrenceInterval String?   @map("recurrence_interval") // 'daily', 'weekly', 'monthly', 'yearly'
+  recurrenceStep     Int?      @default(1) @map("recurrence_step")
+  recurrenceDays     Int[]     @default([]) @map("recurrence_days") // 0=Sun, 1=Mon...
+  recurrenceEnd      DateTime? @map("recurrence_end") @db.Timestamptz
+
   // Relations
   user          Profile        @relation(fields: [userId], references: [id], onDelete: Cascade)
   tags          TaskTag[]
