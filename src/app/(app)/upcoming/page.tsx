@@ -83,14 +83,15 @@ export default async function UpcomingPage() {
 
                 <div className="mt-8 space-y-3">
                     {sortedDates.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground bg-card rounded-lg border border-dashed">
-                            No upcoming tasks for the next 7 days.
+                        <div className="text-center py-12 text-muted-foreground bg-card/50 rounded-xl border border-dashed border-border/50">
+                            <p className="text-base font-medium">No upcoming tasks for the next 7 days</p>
+                            <p className="text-sm mt-1 opacity-70">Schedule tasks to see them here</p>
                         </div>
                     ) : (
                         <>
                             {sortedDates.map((dateKey, index) => (
-                                <div key={dateKey} className={`space-y-3 ${index > 0 ? 'mt-6' : ''}`}>
-                                    <h3 className="font-medium text-sm text-muted-foreground ml-1">
+                                <div key={dateKey} className={`space-y-3 ${index > 0 ? 'mt-8' : ''}`}>
+                                    <h3 className="font-semibold text-sm text-foreground/70 ml-1 mb-3">
                                         {format(new Date(dateKey), 'EEEE, MMMM d')}
                                     </h3>
                                     <SortableTaskList tasks={groupedTasks[dateKey]} />

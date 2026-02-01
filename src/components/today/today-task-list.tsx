@@ -1,6 +1,5 @@
 'use client'
 
-import { TaskRow } from '@/components/tasks/task-row'
 import { SortableTaskList } from '@/components/tasks/sortable-task-list'
 
 interface TodayTaskListProps {
@@ -10,11 +9,16 @@ interface TodayTaskListProps {
 export function TodayTaskList({ tasks }: TodayTaskListProps) {
     if (tasks.length === 0) {
         return (
-            <div className="text-center py-8 text-muted-foreground bg-card rounded-lg border border-dashed">
-                No tasks scheduled for today.
+            <div className="text-center py-12 text-muted-foreground bg-card/50 rounded-xl border border-dashed border-border/50">
+                <p className="text-base font-medium">No tasks scheduled for today</p>
+                <p className="text-sm mt-1 opacity-70">Add a task to get started</p>
             </div>
         )
     }
 
-    return <SortableTaskList tasks={tasks} />
+    return (
+        <div className="space-y-3">
+            <SortableTaskList tasks={tasks} />
+        </div>
+    )
 }
