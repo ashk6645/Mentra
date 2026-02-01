@@ -67,9 +67,22 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
   // Sync local state when task prop changes
   useEffect(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    setDueDate(normalizeDueDate(task.dueDate))
+    const normalizedDate = normalizeDueDate(task.dueDate)
+    setDueDate(normalizedDate)
     setPriority(task.priority || 'none')
-    setTime(task.scheduledStart ? format(new Date(task.scheduledStart), 'HH:mm') : '')
+
+    // Extract time from scheduledStart, or fallback to dueDate if available
+    let timeStr = ''
+    if (task.scheduledStart) {
+      timeStr = format(new Date(task.scheduledStart), 'HH:mm')
+    } else if (task.dueDate) {
+      // If dueDate has time component (non-zero), use it
+      const date = new Date(task.dueDate)
+      if (date.getHours() !== 0 || date.getMinutes() !== 0) {
+        timeStr = format(date, 'HH:mm')
+      }
+    }
+    setTime(timeStr)
 
     // Extract tag IDs from task.tags which might be TaskTagWithTag[] or similar
     // We assume backend returns tags structure as requested
