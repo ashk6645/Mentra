@@ -36,6 +36,7 @@ interface Task {
   tags?: TaskTag[]
   scheduledStart?: Date | string | null
   scheduledEnd?: Date | string | null
+  durationMinutes?: number | null
 }
 
 interface TaskMetadataRowProps {
@@ -121,7 +122,13 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
 
     // Calculate new scheduledStart if exists to keep time on the new date
     let newScheduledStart: Date | null | undefined = undefined
-    if (task.scheduledStart && newDate) {
+    if (time && newDate) {
+      // If we have a time set, apply it to the new date
+      const [hours, minutes] = time.split(':').map(Number)
+      newScheduledStart = new Date(newDate)
+      newScheduledStart.setHours(hours, minutes, 0, 0)
+    } else if (task.scheduledStart && newDate) {
+      // Fallback to existing task time if local state is empty but task has time
       const oldStart = new Date(task.scheduledStart)
       newScheduledStart = new Date(newDate)
       newScheduledStart.setHours(oldStart.getHours(), oldStart.getMinutes(), 0, 0)
@@ -138,6 +145,21 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
 
       if (newScheduledStart !== undefined) {
         payload.scheduledStart = newScheduledStart ? newScheduledStart.toISOString() : null
+
+        // If we're setting a scheduled start, also update scheduled end based on duration
+        if (newScheduledStart) {
+          const duration = task.durationMinutes || 30
+          const endDate = new Date(newScheduledStart.getTime() + duration * 60000)
+          payload.scheduledEnd = endDate.toISOString()
+
+          // Also update the due date to include the time component for consistency
+          if (newDate) {
+            const dateWithTime = new Date(newScheduledStart)
+            payload.dueDate = dateWithTime.toISOString()
+          }
+        } else {
+          payload.scheduledEnd = null
+        }
       }
 
       const result = await updateTask(payload)
@@ -194,20 +216,29 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
     if (!dueDate || !timeValue) return
 
     const [hours, minutes] = timeValue.split(':').map(Number)
-    // If we have a due date, use it, otherwise use today or tomorrow
     const baseDate = dueDate || new Date()
+
+    // Create new start date with the selected time
     const scheduledStart = new Date(baseDate)
     scheduledStart.setHours(hours, minutes, 0, 0)
 
+    // Also update dueDate to include the time component (same as EditTaskDialog logic)
+    const newDueDate = new Date(scheduledStart)
+
+    let scheduledEnd: Date | undefined
+    const duration = task.durationMinutes || 30
+    const endDate = new Date(scheduledStart.getTime() + duration * 60000)
+    scheduledEnd = endDate
+
     startTransition(async () => {
-      // If we didn't have a due date, set it now
       const updatePayload: UpdateTaskInput = {
         id: task.id,
         scheduledStart: scheduledStart.toISOString(),
+        dueDate: newDueDate.toISOString(), // Sync due date time
+        scheduledEnd: scheduledEnd ? scheduledEnd.toISOString() : undefined
       }
 
       if (!dueDate) {
-        updatePayload.dueDate = scheduledStart.toISOString()
         setDueDate(scheduledStart)
       }
 
