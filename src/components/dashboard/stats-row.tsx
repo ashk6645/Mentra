@@ -8,10 +8,14 @@ interface StatsRowProps {
     totalTasks: number
     streak: number
     xp: number
-    totalCompleted: number
+    level: number
+    xpProgress: {
+        current: number
+        needed: number
+    }
 }
 
-export function StatsRow({ completedTasks, totalTasks, streak, xp, totalCompleted }: StatsRowProps) {
+export function StatsRow({ completedTasks, totalTasks, streak, xp, level, xpProgress }: StatsRowProps) {
     const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
     const items = [
@@ -37,9 +41,9 @@ export function StatsRow({ completedTasks, totalTasks, streak, xp, totalComplete
             bgColor: 'bg-yellow-500/10'
         },
         {
-            label: 'Total Completed',
-            value: totalCompleted.toLocaleString(),
-            icon: CheckCircle2,
+            label: 'Current Level',
+            value: `Level ${level}`,
+            icon: Trophy,
             color: 'text-blue-500',
             bgColor: 'bg-blue-500/10'
         }

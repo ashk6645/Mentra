@@ -4,6 +4,7 @@ import { FocusWidget } from '@/components/dashboard/focus-widget'
 import { ActivityWidget } from '@/components/dashboard/activity-widget'
 import { DateWidget } from '@/components/dashboard/date-widget'
 import { HabitsWidget } from '@/components/dashboard/habits-widget'
+import { xpProgressInCurrentLevel } from '@/lib/xp-utils'
 
 interface DashboardWidgetsProps {
     userId: string
@@ -49,6 +50,7 @@ export async function DashboardWidgets({ userId }: DashboardWidgetsProps) {
             select: {
                 displayName: true,
                 currentStreak: true,
+                level: true,
             }
         }),
 
@@ -95,6 +97,7 @@ export async function DashboardWidgets({ userId }: DashboardWidgetsProps) {
     ])
 
     const totalXPValue = totalXP._sum.amount || 0
+    const xpProgress = xpProgressInCurrentLevel(totalXPValue)
 
     // Map activity
     const activityItems = recentActivity.map((task: any) => ({
@@ -114,7 +117,8 @@ export async function DashboardWidgets({ userId }: DashboardWidgetsProps) {
                     totalTasks={activeTasks.length + completedTodayCount}
                     streak={profile?.currentStreak || 0}
                     xp={totalXPValue}
-                    totalCompleted={completedTodayCount}
+                    level={profile?.level || 1}
+                    xpProgress={xpProgress}
                 />
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[400px]">
