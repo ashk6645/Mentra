@@ -5,6 +5,7 @@ import { ActivityWidget } from '@/components/dashboard/activity-widget'
 import { DateWidget } from '@/components/dashboard/date-widget'
 import { HabitsWidget } from '@/components/dashboard/habits-widget'
 import { xpProgressInCurrentLevel } from '@/lib/xp-utils'
+import { getCachedUserStats } from '@/lib/cache/profile-cache'
 
 interface DashboardWidgetsProps {
     userId: string
@@ -14,12 +15,12 @@ export async function DashboardWidgets({ userId }: DashboardWidgetsProps) {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const tomorrow = new Date(today.getTime() + 86400000)
+    const thirtyDaysAgo = new Date(today.getTime() - 30 * 86400000) // Performance optimization
 
     // Optimized: Fetch only what's needed in parallel
     const [
         activeTasks,
-        profile,
-        totalXP,
+        cachedStats,
         recentActivity,
         habits,
         completedTodayCount
@@ -44,28 +45,18 @@ export async function DashboardWidgets({ userId }: DashboardWidgetsProps) {
             take: 50
         }),
 
-        // Profile
-        prisma.profile.findUnique({
-            where: { id: userId },
-            select: {
-                displayName: true,
-                currentStreak: true,
-                level: true,
-            }
-        }),
+        // Cached profile and XP stats (reduces queries)
+        getCachedUserStats(userId),
 
-        // XP total
-        prisma.xPLog.aggregate({
-            where: { userId: userId },
-            _sum: { amount: true }
-        }),
-
-        // Recent activity (limit 10)
+        // Recent activity (limit 10) - Only fetch last 30 days for performance
         prisma.task.findMany({
             where: {
                 userId: userId,
                 completed: true,
-                completedAt: { not: null }
+                completedAt: { 
+                    not: null,
+                    gte: thirtyDaysAgo  // Performance: Only recent tasks
+                }
             },
             orderBy: { completedAt: 'desc' },
             take: 10,
@@ -96,7 +87,8 @@ export async function DashboardWidgets({ userId }: DashboardWidgetsProps) {
         })
     ])
 
-    const totalXPValue = totalXP._sum.amount || 0
+    const profile = cachedStats.profile
+    const totalXPValue = cachedStats.totalXP
     const xpProgress = xpProgressInCurrentLevel(totalXPValue)
 
     // Map activity

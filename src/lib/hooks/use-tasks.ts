@@ -70,13 +70,43 @@ export function useToggleTask() {
       }
       return result.data
     },
+    // Optimistic updates for instant UI feedback
+    onMutate: async ({ id, completed }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: queryKeys.tasks.all })
+      
+      // Snapshot previous values
+      const previousTasks = queryClient.getQueriesData({ queryKey: queryKeys.tasks.all })
+      
+      // Optimistically update all task queries
+      queryClient.setQueriesData({ queryKey: queryKeys.tasks.all }, (old: any) => {
+        if (!old) return old
+        if (Array.isArray(old)) {
+          return old.map((task: any) => 
+            task.id === id 
+              ? { ...task, completed, completedAt: completed ? new Date().toISOString() : null }
+              : task
+          )
+        }
+        return old
+      })
+      
+      // Return context for rollback
+      return { previousTasks }
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
       if (variables.completed) {
         showSuccessToast('Task completed', 'Great job! Keep up the momentum!')
       }
     },
-    onError: (error: Error) => {
+    onError: (error: Error, _, context) => {
+      // Rollback on error
+      if (context?.previousTasks) {
+        context.previousTasks.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data)
+        })
+      }
       showErrorToast(error.message, 'Toggle task')
     },
   })

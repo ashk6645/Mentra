@@ -36,7 +36,7 @@ export async function updateUserProfile(data: { displayName?: string }) {
             })
         }
 
-        revalidatePath('/')
+        revalidatePath('/', 'layout')
         return { success: true, message: 'Profile updated successfully' }
     } catch (error) {
         console.error('Error updating profile:', error)

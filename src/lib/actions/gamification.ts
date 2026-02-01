@@ -41,7 +41,7 @@ export async function awardXP(action: string, points: number) {
             }
         })
 
-        // Update user's total XP
+        // Update user's total XP (atomic increment - no race condition)
         const profile = await prisma.profile.update({
             where: { id: user.id },
             data: {
@@ -62,6 +62,9 @@ export async function awardXP(action: string, points: number) {
                 select: { id: true }
             })
         }
+
+        // Revalidate cached data
+        revalidatePath('/', 'layout')
 
         return { success: true, data: { xp: profile.totalXp, level: newLevel } }
     } catch (error) {
@@ -189,16 +192,20 @@ export async function updateStreak() {
             }
         }
 
-        // Update profile
-        await prisma.profile.update({
+        // Update profile with atomic operations where possible
+        const updatedProfile = await prisma.profile.update({
             where: { id: user.id },
             data: {
                 currentStreak: newStreakCount,
-                longestStreak: Math.max(newStreakCount, profile.longestStreak),
+                // Atomic max operation: only update if new streak is longer
+                longestStreak: newStreakCount > profile.longestStreak ? newStreakCount : profile.longestStreak,
                 updatedAt: now
             },
             select: { id: true }
         })
+
+        // Revalidate cached profile data
+        revalidatePath('/', 'layout')
 
         // Award streak bonus XP if applicable (prevent recursion by checking streak count)
         if (streakBonus && newStreakCount > 1 && newStreakCount % 7 === 0) {

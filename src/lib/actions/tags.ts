@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, unstable_cache } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
@@ -10,21 +10,25 @@ const createTagSchema = z.object({
     color: z.string().optional(),
 })
 
+// Cached version of getTags for better performance
+const getCachedTagsForUser = unstable_cache(
+    async (userId: string) => {
+        const tags = await prisma.tag.findMany({
+            where: { userId },
+            orderBy: { name: 'asc' }
+        })
+        return tags
+    },
+    ['user-tags'],
+    { revalidate: 3600 } // Cache for 1 hour
+)
+
 export async function getTags() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return []
 
-    const tags = await prisma.tag.findMany({
-        where: {
-            userId: user.id
-        },
-        orderBy: {
-            name: 'asc'
-        }
-    })
-
-    return tags
+    return getCachedTagsForUser(user.id)
 }
 
 export async function createTag(data: z.infer<typeof createTagSchema>) {
@@ -51,6 +55,7 @@ export async function createTag(data: z.infer<typeof createTagSchema>) {
         })
 
         revalidatePath('/tags')
+        revalidatePath('/', 'layout') // Revalidate cached tags
         return { success: true, data: tag }
     } catch (error) {
         return { error: 'Failed to create tag' }
@@ -71,6 +76,7 @@ export async function deleteTag(id: string) {
             }
         })
         revalidatePath('/tags')
+        revalidatePath('/', 'layout') // Revalidate cached tags
         return { success: true }
     } catch (error) {
         return { error: 'Failed to delete tag' }
