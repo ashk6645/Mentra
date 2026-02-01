@@ -14,8 +14,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { EditTaskDialog } from './edit-task-dialog'
-
 import { DeleteTaskDialog } from './delete-task-dialog'
 
 interface TaskRowProps {
@@ -26,7 +24,6 @@ export function TaskRow({ task }: TaskRowProps) {
     const router = useRouter()
     const [isPending, setIsPending] = useState(false)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-    const [showEditDialog, setShowEditDialog] = useState(false)
 
     const handleToggle = async (checked: boolean) => {
         setIsPending(true)
@@ -44,9 +41,12 @@ export function TaskRow({ task }: TaskRowProps) {
         // Prevent opening if clicking on checkbox or menu actions
         if ((e.target as HTMLElement).closest('[role="menuitem"]')) return
         if ((e.target as HTMLElement).closest('[data-radix-collection-item]')) return
+        if ((e.target as HTMLElement).closest('button')) return
         if (e.defaultPrevented) return
 
-        setShowEditDialog(true)
+        // Open task detail panel with task data
+        const { selectTask } = require('@/stores/use-task-detail-store').useTaskDetailStore.getState()
+        selectTask(task.id, task)
     }
 
     const handleDelete = async () => {
@@ -158,15 +158,7 @@ export function TaskRow({ task }: TaskRowProps) {
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                                onClick={(e) => e.stopPropagation()}
-                                onSelect={(e) => {
-                                    e.preventDefault()
-                                    setShowEditDialog(true)
-                                }}>
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                            </DropdownMenuItem>
+
                             <DropdownMenuItem
                                 className="text-destructive focus:text-destructive"
                                 onClick={(e) => e.stopPropagation()}
@@ -184,17 +176,12 @@ export function TaskRow({ task }: TaskRowProps) {
                 </div>
             </div>
 
+
             <DeleteTaskDialog
                 open={showDeleteDialog}
                 onOpenChange={setShowDeleteDialog}
                 onConfirm={handleDelete}
                 taskTitle={task.title}
-            />
-
-            <EditTaskDialog
-                task={task}
-                isOpen={showEditDialog}
-                onOpenChange={setShowEditDialog}
             />
         </>
     )

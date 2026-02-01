@@ -14,9 +14,10 @@ const createTaskSchema = z.object({
     description: z.string().optional(),
     priority: z.enum(['low', 'medium', 'high', 'urgent']).optional().nullable(),
     dueDate: z.string().optional().nullable(), // Passed as ISO string
-    scheduledStart: z.string().optional(), // ISO string for scheduled start time
-    scheduledEnd: z.string().optional(), // ISO string for scheduled end time
+    scheduledStart: z.string().optional().nullable(), // ISO string for scheduled start time
+    scheduledEnd: z.string().optional().nullable(), // ISO string for scheduled end time
     durationMinutes: z.number().optional(),
+    tagIds: z.array(z.string()).optional(),
 })
 
 const updateTaskSchema = createTaskSchema.partial().extend({
@@ -133,6 +134,60 @@ export async function getTasks(options: GetTasksOptions = {}) {
     }
 }
 
+export async function getTaskById(taskId: string) {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            throw new AppError(
+                ErrorMessages.UNAUTHORIZED,
+                ErrorCodes.UNAUTHORIZED,
+                401,
+                ErrorMessages.UNAUTHORIZED
+            )
+        }
+
+        const task = await prisma.task.findFirst({
+            where: {
+                id: taskId,
+                userId: user.id,
+            },
+            include: {
+                user: {
+                    select: {
+                        displayName: true,
+                        email: true,
+                        avatarUrl: true
+                    }
+                },
+                subtasks: {
+                    orderBy: { sortOrder: 'asc' },
+                },
+                tags: {
+                    include: {
+                        tag: true,
+                    },
+                },
+            },
+        })
+
+        if (!task) {
+            return { success: false, error: 'Task not found', task: null }
+        }
+
+        return { success: true, task }
+    } catch (error) {
+        console.error('getTaskById error:', error)
+
+        if (error instanceof AppError) {
+            return { success: false, error: error.userMessage || error.message, task: null }
+        }
+
+        return { success: false, error: ErrorMessages.DATABASE_ERROR, task: null }
+    }
+}
+
 export async function createTask(data: CreateTaskInput) {
     try {
         console.log('createTask called with:', data)
@@ -183,6 +238,11 @@ export async function createTask(data: CreateTaskInput) {
                 scheduledStart: result.data.scheduledStart ? new Date(result.data.scheduledStart) : null,
                 scheduledEnd: result.data.scheduledEnd ? new Date(result.data.scheduledEnd) : null,
                 durationMinutes: result.data.durationMinutes || null,
+                tags: result.data.tagIds ? {
+                    create: result.data.tagIds.map(tagId => ({
+                        tag: { connect: { id: tagId } }
+                    }))
+                } : undefined
             },
         })
 
@@ -237,6 +297,22 @@ export async function updateTask(data: UpdateTaskInput) {
         }
         if (result.data.durationMinutes !== undefined) updateData.durationMinutes = result.data.durationMinutes
 
+        if (result.data.tagIds !== undefined) {
+            // First delete existing tags
+            await prisma.taskTag.deleteMany({
+                where: { taskId: result.data.id }
+            });
+
+            // Then create new associations
+            if (result.data.tagIds && result.data.tagIds.length > 0) {
+                updateData.tags = {
+                    create: result.data.tagIds.map(tagId => ({
+                        tag: { connect: { id: tagId } }
+                    }))
+                };
+            }
+        }
+
         const currentTask = await prisma.task.findUnique({
             where: { id: result.data.id },
             select: { userId: true }
@@ -251,6 +327,20 @@ export async function updateTask(data: UpdateTaskInput) {
                 id: result.data.id,
             },
             data: updateData,
+            include: {
+                user: {
+                    select: {
+                        displayName: true,
+                        email: true,
+                        avatarUrl: true
+                    }
+                },
+                tags: {
+                    include: {
+                        tag: true
+                    }
+                }
+            }
         })
 
         // Award XP if task was just completed

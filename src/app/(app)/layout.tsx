@@ -6,6 +6,7 @@ import { GlobalQuickAdd } from '@/components/tasks/global-quick-add'
 import { getCurrentUser } from '@/lib/user-session'
 import { getPages } from '@/lib/actions/pages'
 import { getSidebarCounts } from '@/lib/actions/tasks'
+import { TaskDetailPanel } from '@/components/task-detail/task-detail-panel'
 
 export default async function AppLayout({
     children,
@@ -31,6 +32,7 @@ export default async function AppLayout({
                 {children}
             </CommandPaletteWrapper>
             <GlobalQuickAdd />
+            <TaskDetailPanel />
         </div>
     )
 }
