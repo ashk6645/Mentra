@@ -70,13 +70,13 @@ export default async function InboxPage() {
                 title="Inbox"
                 description="Capture everything here"
                 icon={InboxIcon}
-                actions={
-                    <CreateTaskInline
-                        className="w-auto"
-                        label="Add task..."
-                        variant="ghost"
-                    />
-                }
+                // actions={
+                //     <CreateTaskInline
+                //         className="w-auto"
+                //         label="Add task..."
+                //         variant="ghost"
+                //     />
+                // }
             />
 
             <div className="space-y-3">

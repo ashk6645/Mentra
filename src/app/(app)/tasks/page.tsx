@@ -17,13 +17,13 @@ export default async function TasksPage() {
                 title="My Tasks"
                 description="All your tasks in one place"
                 icon={ListTodo}
-                actions={
-                    <CreateTaskInline
-                        className="w-auto"
-                        label="Add task..."
-                        variant="ghost"
-                    />
-                }
+                // actions={
+                //     <CreateTaskInline
+                //         className="w-auto"
+                //         label="Add task..."
+                //         variant="ghost"
+                //     />
+                // }
             />
 
             <div className="space-y-3">
