@@ -22,9 +22,6 @@ import {
     Camera,
     AlertTriangle,
     Calendar,
-    Trophy,
-    Zap,
-    Flame,
     Upload
 } from 'lucide-react'
 import {
@@ -303,38 +300,7 @@ export function ProfileAccount() {
                 </div>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-4">
-                <div className="flex items-center gap-3 p-3 rounded-lg border border-[#E9E9E8] dark:border-[#2C2C2C] bg-[#F7F7F5] dark:bg-[#191919]">
-                    <div className="p-2 bg-yellow-500/10 rounded-full text-yellow-600 dark:text-yellow-400">
-                        <Trophy className="h-4 w-4" />
-                    </div>
-                    <div>
-                        <p className="text-[10px] text-[#91918E] dark:text-[#818181] font-semibold uppercase tracking-wider">Level</p>
-                        <p className="text-lg font-bold leading-none text-[#37352F] dark:text-[#D4D4D4]">{profile?.level || 1}</p>
-                    </div>
-                </div>
 
-                <div className="flex items-center gap-3 p-3 rounded-lg border border-[#E9E9E8] dark:border-[#2C2C2C] bg-[#F7F7F5] dark:bg-[#191919]">
-                    <div className="p-2 bg-blue-500/10 rounded-full text-blue-600 dark:text-blue-400">
-                        <Zap className="h-4 w-4" />
-                    </div>
-                    <div>
-                        <p className="text-[10px] text-[#91918E] dark:text-[#818181] font-semibold uppercase tracking-wider">Total XP</p>
-                        <p className="text-lg font-bold leading-none text-[#37352F] dark:text-[#D4D4D4]">{profile?.total_xp || 0}</p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 rounded-lg border border-[#E9E9E8] dark:border-[#2C2C2C] bg-[#F7F7F5] dark:bg-[#191919]">
-                    <div className="p-2 bg-orange-500/10 rounded-full text-orange-600 dark:text-orange-400">
-                        <Flame className="h-4 w-4" />
-                    </div>
-                    <div>
-                        <p className="text-[10px] text-[#91918E] dark:text-[#818181] font-semibold uppercase tracking-wider">Streak</p>
-                        <p className="text-lg font-bold leading-none text-[#37352F] dark:text-[#D4D4D4]">{profile?.current_streak || 0} Days</p>
-                    </div>
-                </div>
-            </div>
 
             <Separator className="bg-[#E9E9E8] dark:bg-[#2C2C2C]" />
 
