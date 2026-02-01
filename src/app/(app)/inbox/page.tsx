@@ -1,5 +1,7 @@
 import { CreateTaskInline } from '@/components/tasks/create-task-inline'
-import { Inbox as InboxIcon, Plus } from 'lucide-react'
+import { Inbox as InboxIcon } from 'lucide-react'
+import { PageShell } from '@/components/layout/page-shell'
+import { PageHeader } from '@/components/layout/page-header'
 import { getCurrentUser } from '@/lib/user-session'
 import { InboxTaskList } from '@/components/inbox/inbox-task-list'
 import { InboxSkeleton } from '@/components/inbox/inbox-skeleton'
@@ -52,32 +54,27 @@ export default async function InboxPage() {
     })
 
     return (
-        <div className="flex-1 overflow-y-auto min-h-full">
-            <div className="max-w-3xl mx-auto px-6 pb-20 pt-8">
-
-                <div className="flex flex-col items-center justify-center py-8 space-y-2">
-                    <div className="flex items-center gap-2">
-                        <InboxIcon className="h-6 w-6 text-blue-500 fill-blue-500/10" />
-                        <h1 className="text-3xl font-bold text-foreground">Inbox</h1>
-                    </div>
-
-                    <div className="h-px w-24 bg-border/50 my-2" />
-
-                    <p className="text-sm text-muted-foreground">
-                        Capture everything here
-                    </p>
-                </div>
-
-                <div className="mt-8 space-y-3">
-                    <InboxTaskList tasks={inboxTasks} />
-
+        <PageShell>
+            <PageHeader
+                title="Inbox"
+                description="Capture everything here"
+                icon={InboxIcon}
+                actions={
                     <CreateTaskInline
-
-                        className="ml-6"
-                        label="Add task to Inbox..."
+                        className="w-auto"
+                        label="Add task..."
+                        variant="ghost"
                     />
-                </div>
+                }
+            />
+
+            <div className="space-y-3">
+                <InboxTaskList tasks={inboxTasks} />
+                <CreateTaskInline
+                    className="ml-6 opacity-50 hover:opacity-100 transition-opacity"
+                    label="Add task to Inbox..."
+                />
             </div>
-        </div>
+        </PageShell>
     )
 }

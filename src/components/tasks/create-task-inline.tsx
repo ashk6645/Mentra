@@ -17,7 +17,7 @@ interface CreateTaskInlineProps {
 
     onTaskCreated?: (task: any) => void
     className?: string
-    variant?: 'inline' | 'compact'
+    variant?: 'inline' | 'compact' | 'ghost'
     label?: string
 }
 

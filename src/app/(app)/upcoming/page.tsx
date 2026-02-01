@@ -1,8 +1,9 @@
 import { CreateTaskInline } from '@/components/tasks/create-task-inline'
 import { SortableTaskList } from '@/components/tasks/sortable-task-list'
-import { UpcomingHeader } from '@/components/upcoming/upcoming-header'
+import { PageShell } from '@/components/layout/page-shell'
+import { PageHeader } from '@/components/layout/page-header'
 import { format } from 'date-fns'
-import { Plus } from 'lucide-react'
+import { CalendarDays } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 
@@ -71,41 +72,47 @@ export default async function UpcomingPage() {
     const sortedDates = Object.keys(groupedTasks).sort()
 
     return (
-        <div className="flex-1 overflow-y-auto min-h-full">
-            <div className="max-w-3xl mx-auto px-6 pb-20 pt-8">
+        <PageShell>
+            <PageHeader
+                title="Upcoming"
+                description={`Next 7 days (${format(tomorrow, 'MMM d')} - ${format(nextWeek, 'MMM d')})`}
+                icon={CalendarDays}
+                actions={
+                    <div className="text-sm font-medium text-muted-foreground bg-secondary/50 px-3 py-1 rounded-full">
+                        {upcomingTasks.length} tasks scheduled
+                    </div>
+                }
+            />
 
-                <UpcomingHeader
-                    start={tomorrow}
-                    end={nextWeek}
-                    totalTasks={upcomingTasks.length}
-                />
-
-
-                <div className="mt-8">
-                    {sortedDates.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground">
-                            <p className="text-base font-medium">No upcoming tasks for the next 7 days</p>
-                            <p className="text-sm mt-1 opacity-70">Schedule tasks to see them here</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-8">
-                            {sortedDates.map((dateKey) => (
-                                <div key={dateKey} className="space-y-3">
-                                    <h3 className="font-semibold text-sm text-foreground/70 px-1">
-                                        {format(new Date(dateKey), 'EEEE, MMMM d')}
+            <div className="space-y-8">
+                {sortedDates.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground border border-dashed border-border/50 rounded-lg">
+                        <p className="text-base font-medium">No upcoming tasks</p>
+                        <p className="text-sm mt-1 opacity-70">Enjoy your free week!</p>
+                    </div>
+                ) : (
+                    <div className="space-y-12">
+                        {sortedDates.map((dateKey) => (
+                            <div key={dateKey} className="space-y-4">
+                                <div className="flex items-center gap-3 pb-2 border-b border-border/40">
+                                    <h3 className="font-semibold text-lg tracking-tight">
+                                        {format(new Date(dateKey), 'EEEE')}
                                     </h3>
-                                    <SortableTaskList tasks={groupedTasks[dateKey]} />
+                                    <span className="text-sm text-muted-foreground">
+                                        {format(new Date(dateKey), 'MMMM d')}
+                                    </span>
                                 </div>
-                            ))}
-                        </div>
-                    )}
+                                <SortableTaskList tasks={groupedTasks[dateKey]} />
+                            </div>
+                        ))}
+                    </div>
+                )}
 
-                    <CreateTaskInline
-                        className="ml-6 mt-6"
-                        label="Add task to upcoming..."
-                    />
-                </div>
+                <CreateTaskInline
+                    className="ml-6 mt-6 opacity-60 hover:opacity-100 transition-opacity"
+                    label="Schedule a task..."
+                />
             </div>
-        </div>
+        </PageShell>
     )
 }

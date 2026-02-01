@@ -1,5 +1,6 @@
 import { CreateTaskInline } from '@/components/tasks/create-task-inline'
-import { TodayHeader } from '@/components/today/today-header'
+import { PageShell } from '@/components/layout/page-shell'
+import { PageHeader } from '@/components/layout/page-header'
 import { TodayTaskList } from '@/components/today/today-task-list'
 import { Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
@@ -61,21 +62,27 @@ export default async function TodayPage() {
     ).length
 
     return (
-        <div className="flex-1 overflow-y-auto min-h-full">
-            <div className="max-w-3xl mx-auto px-6 pb-20 pt-8">
+        <PageShell>
+            <PageHeader
+                title="Today"
+                description={
+                    <span className="flex items-center gap-2">
+                        <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+                        <span className="text-muted-foreground/50">•</span>
+                        <span>{todayTasks.length} tasks</span>
+                    </span>
+                }
+                actions={
+                    <div className="text-sm font-medium text-orange-600 bg-orange-50 dark:bg-orange-950/30 px-3 py-1 rounded-full">
+                        {highPriorityCount > 0 ? `${highPriorityCount} High Priority` : 'All clear'}
+                    </div>
+                }
+            />
 
-                <TodayHeader
-                    date={new Date()}
-                    totalTasks={todayTasks.length}
-                    highPriorityCount={highPriorityCount}
-                />
-
-                <div className="mt-8">
-                    <TodayTaskList tasks={todayTasks} />
-
-                    <CreateTaskInline className="ml-6 mt-6" />
-                </div>
+            <div className="space-y-8">
+                <TodayTaskList tasks={todayTasks} />
+                <CreateTaskInline className="ml-6" />
             </div>
-        </div>
+        </PageShell>
     )
 }
