@@ -14,8 +14,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-// import { EditTaskDialog } from './edit-task-dialog'
-
 import { DeleteTaskDialog } from './delete-task-dialog'
 
 interface TaskRowProps {
@@ -26,7 +24,6 @@ export function TaskRow({ task }: TaskRowProps) {
     const router = useRouter()
     const [isPending, setIsPending] = useState(false)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-    // const [showEditDialog, setShowEditDialog] = useState(false)
     const [isHovered, setIsHovered] = useState(false)
 
     const handleToggle = async (checked: boolean) => {
@@ -48,7 +45,6 @@ export function TaskRow({ task }: TaskRowProps) {
         if ((e.target as HTMLElement).closest('button')) return
         if (e.defaultPrevented) return
 
-        // TODO: Open task detail panel when merged from other branch
         console.log('Task clicked:', task.id)
     }
 
@@ -60,40 +56,29 @@ export function TaskRow({ task }: TaskRowProps) {
     const getPriorityColor = (priority?: string | null) => {
         switch (priority?.toLowerCase()) {
             case 'urgent':
-                return 'bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400 border-red-200/50 dark:border-red-900/30'
+                return 'text-red-600 bg-red-50 dark:bg-red-950/20 dark:text-red-400'
             case 'high':
-                return 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border-amber-200/50 dark:border-amber-900/30'
+                return 'text-amber-600 bg-amber-50 dark:bg-amber-950/20 dark:text-amber-400'
             case 'medium':
-                return 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400 border-blue-200/50 dark:border-blue-900/30'
+                return 'text-blue-600 bg-blue-50 dark:bg-blue-950/20 dark:text-blue-400'
             case 'low':
-                return 'bg-slate-50 text-slate-600 dark:bg-slate-950/30 dark:text-slate-400 border-slate-200/50 dark:border-slate-900/30'
+                return 'text-slate-500 bg-slate-100 dark:bg-slate-800 dark:text-slate-400'
             default:
-                return 'bg-muted/50 text-muted-foreground/70 border-border/30'
+                return 'text-muted-foreground'
         }
-    }
-
-    const getPriorityLabel = (priority?: string | null) => {
-        if (!priority) return ''
-        return priority.charAt(0).toUpperCase() + priority.slice(1)
     }
 
     const formatDueDate = (date?: Date | null) => {
         if (!date) return ''
         const d = new Date(date)
         if (isToday(d)) {
-            return `Today ${format(d, 'h:mm a')}`
+            return `Today`
         }
         if (isTomorrow(d)) {
-            return `Tomorrow ${format(d, 'h:mm a')}`
+            return `Tomorrow`
         }
-        if (d.getHours() === 0 && d.getMinutes() === 0) {
-            return format(d, 'MMM d')
-        }
-        return `${format(d, 'MMM d')} ${format(d, 'h:mm a')}`
+        return format(d, 'MMM d')
     }
-
-    const priority = task.priority?.toLowerCase() || 'none'
-    const hasPriority = priority !== 'none'
 
     return (
         <>
@@ -102,46 +87,51 @@ export function TaskRow({ task }: TaskRowProps) {
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 className={cn(
-                    // Soft Card System - Default State
-                    "group relative flex items-center gap-4 px-4 py-3.5 rounded-[14px] cursor-pointer",
-                    "transition-all duration-200 ease-out",
-                    
-                    // Default: Nearly flat, subtle background
-                    "bg-card/40 dark:bg-card/20",
-                    
-                    // Hover: Slight elevation
-                    !task.completed && isHovered && [
-                        "bg-card/80 dark:bg-card/40",
-                        "shadow-sm shadow-black/5 dark:shadow-black/20",
-                        "scale-[1.005]"
-                    ],
-                    
-                    // Completed: Lower opacity, reduced contrast
-                    task.completed && [
-                        "opacity-50",
-                        "bg-muted/20 dark:bg-muted/10"
-                    ]
+                    // Base Layout
+                    "group relative flex items-start gap-3 py-3 px-4 rounded-lg cursor-default",
+                    "border-b border-transparent transition-all duration-200",
+
+                    // Hover State
+                    "hover:bg-muted/40",
+
+                    // Completed State
+                    task.completed && "opacity-50"
                 )}
             >
-                <div onClick={(e) => e.stopPropagation()}>
+                {/* Drag Handle (Visible on Hover from parent sortable usually, but we can add visual cue here if needed) */}
+                {/* This matches the updated plan to keep it calm and minimal. 
+                     The Sortable component handles the actual drag listeners, 
+                     but we can show a visual hint if desired. 
+                     For now, we let the Sortable wrapper handle the grip. */}
+
+                {/* Checkbox */}
+                <div onClick={(e) => e.stopPropagation()} className="pt-0.5 shrink-0">
                     <Checkbox
                         checked={task.completed}
                         onCheckedChange={handleToggle}
                         disabled={isPending}
-                        className="h-5 w-5 rounded-md border-2 transition-all data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                        className={cn(
+                            "h-5 w-5 rounded-full transition-all border-muted-foreground/40",
+                            "data-[state=checked]:bg-primary data-[state=checked]:border-primary",
+                            "hover:border-primary/60"
+                        )}
                     />
                 </div>
 
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2.5">
-                        <p className={cn(
-                            "font-medium text-[15px] leading-snug truncate transition-colors",
-                            task.completed ? "line-through text-muted-foreground/70" : "text-foreground"
+                {/* Content */}
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                    <div className="flex items-center gap-2">
+                        <span className={cn(
+                            "text-[15px] font-medium leading-snug transition-colors",
+                            task.completed ? "line-through text-muted-foreground" : "text-foreground"
                         )}>
                             {task.title}
-                        </p>
+                        </span>
+
+                        {/* Subtasks Indicator */}
                         {task.subtasks && task.subtasks.length > 0 && (
-                            <div className="flex items-center gap-1 text-muted-foreground/60 shrink-0" title={`${task.subtasks.filter((st: any) => st.completed).length}/${task.subtasks.length} subtasks`}>
+                            <div className="flex items-center gap-1 text-muted-foreground/60 shrink-0"
+                                title={`${task.subtasks.filter((st: any) => st.completed).length}/${task.subtasks.length} subtasks`}>
                                 <GitBranch className="h-3 w-3" />
                                 <span className="text-[11px] font-medium tabular-nums">
                                     {task.subtasks.filter((st: any) => st.completed).length}/{task.subtasks.length}
@@ -149,35 +139,49 @@ export function TaskRow({ task }: TaskRowProps) {
                             </div>
                         )}
                     </div>
+
+                    {/* Description */}
                     {task.description && (
-                        <p className="text-[13px] text-muted-foreground/70 mt-1 truncate leading-relaxed">
+                        <p className={cn(
+                            "text-[13px] mt-0.5 truncate leading-relaxed",
+                            task.completed ? "text-muted-foreground/60" : "text-muted-foreground/80"
+                        )}>
                             {task.description}
                         </p>
                     )}
                 </div>
 
-                <div className="flex items-center gap-2.5 shrink-0">
-                    {task.dueDate && (
-                        <div className="text-[13px] text-muted-foreground/70 font-medium whitespace-nowrap">
-                            {formatDueDate(task.dueDate)}
-                        </div>
-                    )}
-                    {hasPriority && (
+                {/* Right Metadata */}
+                <div className="flex items-center gap-4 shrink-0 self-start pt-0.5">
+
+                    {/* Priority Badge */}
+                    {task.priority && task.priority !== 'none' && (
                         <div className={cn(
-                            "px-2.5 py-1 rounded-full text-[11px] font-semibold border",
+                            "px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide",
                             getPriorityColor(task.priority)
                         )}>
-                            {getPriorityLabel(task.priority)}
+                            {task.priority}
                         </div>
                     )}
 
+                    {/* Due Date */}
+                    {task.dueDate && (
+                        <div className={cn(
+                            "text-[12px] tabular-nums font-medium",
+                            task.dueDate < new Date() && !task.completed ? "text-red-500" : "text-muted-foreground/70"
+                        )}>
+                            {formatDueDate(task.dueDate)}
+                        </div>
+                    )}
+
+                    {/* Actions Menu */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button 
-                                variant="ghost" 
-                                size="icon" 
+                            <Button
+                                variant="ghost"
+                                size="icon"
                                 className={cn(
-                                    "h-7 w-7 transition-opacity",
+                                    "h-6 w-6 text-muted-foreground/50 hover:text-foreground hover:bg-transparent",
                                     isHovered ? "opacity-100" : "opacity-0"
                                 )}
                             >
@@ -186,15 +190,6 @@ export function TaskRow({ task }: TaskRowProps) {
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            {/* <DropdownMenuItem
-                                onClick={(e) => e.stopPropagation()}
-                                onSelect={(e) => {
-                                    e.preventDefault()
-                                    setShowEditDialog(true)
-                                }}>
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                            </DropdownMenuItem> */}
                             <DropdownMenuItem
                                 className="text-destructive focus:text-destructive"
                                 onClick={(e) => e.stopPropagation()}
@@ -217,12 +212,6 @@ export function TaskRow({ task }: TaskRowProps) {
                 onConfirm={handleDelete}
                 taskTitle={task.title}
             />
-
-            {/* <EditTaskDialog
-                task={task}
-                isOpen={showEditDialog}
-                onOpenChange={setShowEditDialog}
-            /> */}
         </>
     )
 }

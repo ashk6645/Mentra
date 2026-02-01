@@ -37,22 +37,22 @@ export function AddTaskTrigger({
             suppressHydrationWarning={true}
             className={cn(
                 // Ghost Card - matches task card width and alignment
-                "flex items-center gap-3.5 px-4 py-3.5 rounded-[14px]",
+                "flex items-center gap-3.5 px-4 py-3 rounded-lg",
                 "cursor-pointer transition-all duration-200 ease-out",
-                
+
                 // Default: Nearly invisible, subtle hint
                 "bg-transparent hover:bg-card/40 dark:hover:bg-card/20",
                 "border border-dashed border-transparent hover:border-border/30",
-                
+
                 // Hover: Slight elevation like task cards
                 "hover:shadow-sm hover:shadow-black/5 dark:hover:shadow-black/20",
-                
+
                 "text-muted-foreground/50 hover:text-muted-foreground",
                 "group",
                 className
             )}
         >
-            <div className="h-5 w-5 rounded-md border-2 border-muted-foreground/20 flex items-center justify-center group-hover:border-primary/40 group-hover:bg-primary/5 transition-all">
+            <div className="h-5 w-5 rounded-full border-2 border-muted-foreground/20 flex items-center justify-center group-hover:border-primary/40 group-hover:bg-primary/5 transition-all">
                 <Plus className="h-3 w-3 group-hover:text-primary transition-colors" />
             </div>
             <span className="font-medium text-[15px]">{label}</span>

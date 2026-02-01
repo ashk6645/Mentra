@@ -72,8 +72,6 @@ export default async function InboxPage() {
                     <InboxTaskList tasks={inboxTasks} />
 
                     <CreateTaskInline
-
-                        className="ml-6"
                         label="Add task to Inbox..."
                     />
                 </div>
