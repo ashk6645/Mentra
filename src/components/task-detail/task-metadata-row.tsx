@@ -1,22 +1,37 @@
 'use client'
 
 import { useState, useTransition, useEffect } from 'react'
-import { Calendar, Clock, Flag, Tag, Loader2 } from 'lucide-react'
+import { Calendar, Clock, Flag, Tag, Loader2, Check, X } from 'lucide-react'
 import { format, isToday, isTomorrow } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { updateTask } from '@/lib/actions/tasks'
+import { updateTask, UpdateTaskInput } from '@/lib/actions/tasks'
+import { getTags } from '@/lib/actions/tags'
 import { useTaskDetailStore } from '@/stores/use-task-detail-store'
 import { useToast } from '@/components/ui/use-toast'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import { Badge } from '@/components/ui/badge'
+
+interface TaskTag {
+  tag?: { id: string; name: string; color?: string | null };
+  id?: string;
+}
 
 interface Task {
   id: string
   dueDate?: Date | string | null
   priority?: string | null
-  tags?: any[]
+  tags?: TaskTag[]
   scheduledStart?: Date | string | null
   scheduledEnd?: Date | string | null
 }
@@ -37,7 +52,9 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
   const [time, setTime] = useState<string>(
     task.scheduledStart ? format(new Date(task.scheduledStart), 'HH:mm') : ''
   )
-  const [showTimeInput, setShowTimeInput] = useState(false)
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
+  const [availableTags, setAvailableTags] = useState<{ id: string, name: string, color?: string | null }[]>([])
+
   const [showTagInput, setShowTagInput] = useState(false)
   const [isPending, startTransition] = useTransition()
   const { selectTask } = useTaskDetailStore()
@@ -48,13 +65,35 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
     setDueDate(normalizeDueDate(task.dueDate))
     setPriority(task.priority || 'none')
     setTime(task.scheduledStart ? format(new Date(task.scheduledStart), 'HH:mm') : '')
-  }, [task.id, task.dueDate, task.priority, task.scheduledStart])
+
+    // Extract tag IDs from task.tags which might be TaskTagWithTag[] or similar
+    // We assume backend returns tags structure as requested
+    const tags = task.tags?.map((t) => t.tag?.id || t.id).filter(Boolean) as string[] || []
+    setSelectedTagIds(tags)
+  }, [task.id, task.dueDate, task.priority, task.scheduledStart, task.tags])
+
+  // Fetch available tags
+  useEffect(() => {
+    const loadTags = async () => {
+      const tags = await getTags()
+      setAvailableTags(tags)
+    }
+    loadTags()
+  }, [])
 
   const formatDueDate = (date: Date | null) => {
     if (!date) return 'Unscheduled'
-    if (isToday(date)) return 'Today'
-    if (isTomorrow(date)) return 'Tomorrow'
-    return format(date, 'MMM d')
+
+    let dateStr = ''
+    if (isToday(date)) dateStr = 'Today'
+    else if (isTomorrow(date)) dateStr = 'Tomorrow'
+    else dateStr = format(date, 'MMM d')
+
+    if (time) {
+      return `${dateStr}, ${time}`
+    }
+
+    return dateStr
   }
 
   const getPriorityColor = (priority: string) => {
@@ -75,16 +114,16 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
   const handleDateChange = async (date: Date | undefined) => {
     const newDate = date || null
     setDueDate(newDate)
-    
+
     startTransition(async () => {
       const result = await updateTask({
         id: task.id,
         dueDate: newDate ? newDate.toISOString() : null,
       })
 
-      if (result.success) {
+      if (result.success && result.data) {
         // Update the store with the new task data
-        selectTask(task.id, { ...task, dueDate: newDate })
+        selectTask(task.id, result.data)
         toast({
           title: 'Date updated',
           description: newDate ? `Due date set to ${format(newDate, 'MMM d, yyyy')}` : 'Due date cleared',
@@ -103,15 +142,16 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
   const handlePriorityChange = async (newPriority: string) => {
     const oldPriority = priority
     setPriority(newPriority)
-    
+
     startTransition(async () => {
       const result = await updateTask({
         id: task.id,
-        priority: newPriority === 'none' ? null : (newPriority as any),
+        priority: newPriority === 'none' ? null : (newPriority as any // eslint-disable-line @typescript-eslint/no-explicit-any
+        ),
       })
 
-      if (result.success) {
-        selectTask(task.id, { ...task, priority: newPriority === 'none' ? null : newPriority })
+      if (result.success && result.data) {
+        selectTask(task.id, result.data)
         toast({
           title: 'Priority updated',
           description: `Priority set to ${newPriority === 'none' ? 'none' : newPriority}`,
@@ -131,30 +171,65 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
     if (!dueDate || !timeValue) return
 
     const [hours, minutes] = timeValue.split(':').map(Number)
-    const scheduledStart = new Date(dueDate)
+    // If we have a due date, use it, otherwise use today or tomorrow
+    const baseDate = dueDate || new Date()
+    const scheduledStart = new Date(baseDate)
     scheduledStart.setHours(hours, minutes, 0, 0)
 
     setTime(timeValue)
-    setShowTimeInput(false)
 
     startTransition(async () => {
-      const result = await updateTask({
+      // If we didn't have a due date, set it now
+      const updatePayload: UpdateTaskInput = {
         id: task.id,
         scheduledStart: scheduledStart.toISOString(),
-      })
+      }
 
-      if (result.success) {
-        selectTask(task.id, { ...task, scheduledStart })
+      if (!dueDate) {
+        updatePayload.dueDate = scheduledStart.toISOString()
+        setDueDate(scheduledStart)
+      }
+
+      const result = await updateTask(updatePayload)
+
+      if (result.success && result.data) {
+        selectTask(task.id, result.data)
         toast({
-          title: 'Time added',
+          title: 'Time updated',
           description: `Scheduled for ${format(scheduledStart, 'h:mm a')}`,
         })
       } else {
         setTime(task.scheduledStart ? format(new Date(task.scheduledStart), 'HH:mm') : '')
         toast({
-          title: 'Failed to add time',
+          title: 'Failed to update time',
           description: result.error || 'Please try again',
           variant: 'destructive',
+        })
+      }
+    })
+  }
+
+  const handleTagToggle = async (tagId: string) => {
+    const newTags = selectedTagIds.includes(tagId)
+      ? selectedTagIds.filter(id => id !== tagId)
+      : [...selectedTagIds, tagId]
+
+    setSelectedTagIds(newTags)
+
+    startTransition(async () => {
+      const result = await updateTask({
+        id: task.id,
+        tagIds: newTags
+      })
+
+      if (result.success && result.data) {
+        selectTask(task.id, result.data)
+      } else {
+        // Revert on failure
+        setSelectedTagIds(selectedTagIds)
+        toast({
+          title: 'Failed to update tags',
+          variant: 'destructive'
         })
       }
     })
@@ -184,77 +259,32 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
             onSelect={handleDateChange}
             initialFocus
           />
-          {dueDate && (
-            <div className="p-3 border-t">
+          <div className="p-3 border-t bg-muted/10 space-y-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Time</label>
+              <div className="flex items-center gap-2">
+                <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                <Input
+                  type="time"
+                  value={time}
+                  onChange={(e) => handleTimeChange(e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+            </div>
+            {dueDate && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleDateChange(undefined)}
-                className="w-full"
+                className="w-full text-xs h-8 text-muted-foreground hover:text-destructive"
               >
-                Clear date
+                Clear date & time
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </PopoverContent>
       </Popover>
-
-      {/* Time (if date is set) */}
-      {dueDate && (
-        <Popover open={showTimeInput} onOpenChange={setShowTimeInput}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={isPending}
-              className={cn(
-                'h-7 px-3 rounded-full border text-xs font-medium transition-all',
-                time
-                  ? 'text-foreground border-border/50'
-                  : 'text-muted-foreground/60 border-border/30 hover:border-border/50'
-              )}
-            >
-              {isPending ? (
-                <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
-              ) : (
-                <Clock className="mr-1.5 h-3 w-3" />
-              )}
-              {time || 'Add time'}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-3" align="start">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Time</label>
-              <Input
-                type="time"
-                value={time}
-                onChange={(e) => handleTimeChange(e.target.value)}
-                className="w-full"
-              />
-              {time && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setTime('')
-                    setShowTimeInput(false)
-                    startTransition(async () => {
-                      await updateTask({
-                        id: task.id,
-                        scheduledStart: null,
-                      })
-                      selectTask(task.id, { ...task, scheduledStart: null })
-                    })
-                  }}
-                  className="w-full"
-                >
-                  Clear time
-                </Button>
-              )}
-            </div>
-          </PopoverContent>
-        </Popover>
-      )}
 
       {/* Priority */}
       <Popover>
@@ -306,14 +336,63 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
             Add label
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-64 p-3" align="start">
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              Tag functionality coming soon
-            </p>
-          </div>
+        <PopoverContent className="w-52 p-0" align="start">
+          <Command>
+            <CommandInput placeholder="Search labels..." />
+            <CommandList>
+              <CommandEmpty>No labels found.</CommandEmpty>
+              <CommandGroup>
+                {availableTags.map((tag) => (
+                  <CommandItem
+                    key={tag.id}
+                    onSelect={() => handleTagToggle(tag.id)}
+                    className="cursor-pointer"
+                  >
+                    <div className="mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary">
+                      <Check
+                        className={cn(
+                          "h-3 w-3",
+                          selectedTagIds.includes(tag.id) ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                    </div>
+                    <span>{tag.name}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
         </PopoverContent>
       </Popover>
+
+      {/* Selected Tag Badges */}
+      {selectedTagIds.length > 0 && (
+        <div className="flex gap-1.5 flex-wrap">
+          {selectedTagIds.map(tagId => {
+            const tag = availableTags.find(t => t.id === tagId) || task.tags?.find((t) => (t.tag?.id || t.id) === tagId)?.tag
+            if (!tag) return null
+            return (
+              <Badge
+                key={tagId}
+                variant="secondary"
+                className="h-6 px-2 text-[10px] font-normal gap-1 bg-muted/40 hover:bg-muted/60"
+              >
+                {tag.name}
+                <div
+                  role="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleTagToggle(tagId)
+                  }}
+                  className="cursor-pointer hover:text-destructive"
+                >
+                  <X className="h-2.5 w-2.5" />
+                </div>
+              </Badge>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

@@ -17,6 +17,7 @@ const createTaskSchema = z.object({
     scheduledStart: z.string().optional().nullable(), // ISO string for scheduled start time
     scheduledEnd: z.string().optional().nullable(), // ISO string for scheduled end time
     durationMinutes: z.number().optional(),
+    tagIds: z.array(z.string()).optional(),
 })
 
 const updateTaskSchema = createTaskSchema.partial().extend({
@@ -153,6 +154,13 @@ export async function getTaskById(taskId: string) {
                 userId: user.id,
             },
             include: {
+                user: {
+                    select: {
+                        displayName: true,
+                        email: true,
+                        avatarUrl: true
+                    }
+                },
                 subtasks: {
                     orderBy: { sortOrder: 'asc' },
                 },
@@ -230,6 +238,11 @@ export async function createTask(data: CreateTaskInput) {
                 scheduledStart: result.data.scheduledStart ? new Date(result.data.scheduledStart) : null,
                 scheduledEnd: result.data.scheduledEnd ? new Date(result.data.scheduledEnd) : null,
                 durationMinutes: result.data.durationMinutes || null,
+                tags: result.data.tagIds ? {
+                    create: result.data.tagIds.map(tagId => ({
+                        tag: { connect: { id: tagId } }
+                    }))
+                } : undefined
             },
         })
 
@@ -284,6 +297,22 @@ export async function updateTask(data: UpdateTaskInput) {
         }
         if (result.data.durationMinutes !== undefined) updateData.durationMinutes = result.data.durationMinutes
 
+        if (result.data.tagIds !== undefined) {
+            // First delete existing tags
+            await prisma.taskTag.deleteMany({
+                where: { taskId: result.data.id }
+            });
+
+            // Then create new associations
+            if (result.data.tagIds && result.data.tagIds.length > 0) {
+                updateData.tags = {
+                    create: result.data.tagIds.map(tagId => ({
+                        tag: { connect: { id: tagId } }
+                    }))
+                };
+            }
+        }
+
         const currentTask = await prisma.task.findUnique({
             where: { id: result.data.id },
             select: { userId: true }
@@ -298,6 +327,20 @@ export async function updateTask(data: UpdateTaskInput) {
                 id: result.data.id,
             },
             data: updateData,
+            include: {
+                user: {
+                    select: {
+                        displayName: true,
+                        email: true,
+                        avatarUrl: true
+                    }
+                },
+                tags: {
+                    include: {
+                        tag: true
+                    }
+                }
+            }
         })
 
         // Award XP if task was just completed
