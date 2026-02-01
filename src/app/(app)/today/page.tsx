@@ -2,7 +2,7 @@ import { CreateTaskInline } from '@/components/tasks/create-task-inline'
 import { PageShell } from '@/components/layout/page-shell'
 import { PageHeader } from '@/components/layout/page-header'
 import { TodayTaskList } from '@/components/today/today-task-list'
-import { Plus } from 'lucide-react'
+import { Plus, Sun } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 
@@ -70,6 +70,7 @@ export default async function TodayPage() {
                         <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
                     </span>
                 }
+                icon={Sun}
                 actions={
                     <div className="flex items-center gap-2">
                         <div className="text-sm font-medium text-blue-600 bg-blue-50 dark:bg-blue-950/30 px-3 py-1 rounded-full">
