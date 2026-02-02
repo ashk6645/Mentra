@@ -1,5 +1,8 @@
 'use client'
 
+import { useAnimate } from 'framer-motion'
+import confetti from 'canvas-confetti'
+
 import { format, isToday, isTomorrow } from 'date-fns'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
@@ -28,13 +31,47 @@ export function TaskRow({ task }: TaskRowProps) {
     const { selectedTaskId } = useTaskDetailStore()
     const isSelected = selectedTaskId === task.id
 
+    const [scope, animate] = useAnimate()
+
     const handleToggle = async (checked: boolean) => {
         setIsPending(true)
+        // 1. Optimistic UI update - we expect the checkbox to update immediately via its own state, 
+        // but we trigger the side effects here.
+
         try {
-            await toggleTaskCompletion(task.id, checked)
+            // 2. Confetti (only on completion)
+            if (checked) {
+                const rect = scope.current.getBoundingClientRect()
+                const x = (rect.left + rect.width / 2) / window.innerWidth
+                const y = (rect.top + rect.height / 2) / window.innerHeight
+
+                confetti({
+                    particleCount: 30,
+                    spread: 50,
+                    origin: { x, y },
+                    colors: ['#10b981', '#3b82f6', '#f59e0b'],
+                    disableForReducedMotion: true,
+                    zIndex: 1000,
+                })
+            }
+
+            // 3. Server sync (start parallel with animation)
+            // 3. Server sync 
+            const togglePromise = toggleTaskCompletion(task.id, checked)
+
+            // 4. Exit animation if completing
+            if (checked) {
+                await animate(scope.current,
+                    { opacity: [1, 0], x: [0, 20], height: 0, marginBottom: 0, paddingBlock: 0, border: 0 },
+                    { duration: 0.35, ease: [0.32, 0.72, 0, 1] }
+                )
+            }
+
+            await togglePromise
             router.refresh()
         } catch (error) {
             console.error('Failed to toggle task', error)
+            router.refresh()
         } finally {
             setIsPending(false)
         }
@@ -117,9 +154,12 @@ export function TaskRow({ task }: TaskRowProps) {
     return (
         <>
             <div
+                ref={scope}
                 onClick={handleRowClick}
+                data-task-id={task.id}
+                tabIndex={0}
                 className={cn(
-                    "group relative flex items-center gap-3 px-4 py-3.5 bg-card border border-border/40 rounded-lg cursor-pointer transition-colors hover:bg-accent/5",
+                    "group relative flex items-center gap-3 px-4 py-3.5 bg-card border border-border/40 rounded-lg cursor-pointer transition-colors hover:bg-accent/5 focus:outline-none focus:ring-2 focus:ring-primary/20",
                     task.completed && "bg-muted/30",
                     isOverdue && "border-l-4 border-l-red-500/50 bg-red-50/50 dark:bg-red-950/20"
                 )}>

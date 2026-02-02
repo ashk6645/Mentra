@@ -7,6 +7,7 @@ import { getCurrentUser } from '@/lib/user-session'
 import { getPages } from '@/lib/actions/pages'
 import { getSidebarCounts } from '@/lib/actions/tasks'
 import { TaskDetailPanel } from '@/components/task-detail/task-detail-panel'
+import { KeyboardShortcuts } from '@/components/utils/keyboard-shortcuts'
 
 export default async function AppLayout({
     children,
@@ -33,6 +34,7 @@ export default async function AppLayout({
             </CommandPaletteWrapper>
             <GlobalQuickAdd />
             <TaskDetailPanel />
+            <KeyboardShortcuts />
         </div>
     )
 }

@@ -39,7 +39,14 @@ export function GlobalQuickAdd({ className }: GlobalQuickAddProps) {
         }
 
         window.addEventListener('keydown', handleKeyDown)
-        return () => window.removeEventListener('keydown', handleKeyDown)
+        // Expose method for other components
+        if (typeof window !== 'undefined') {
+            (window as any).__openQuickAdd = () => setOpen(true)
+        }
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown)
+        }
     }, [])
 
     const handleSubmit = async (parsedData: ParsedTaskData) => {
