@@ -38,7 +38,7 @@ export default function SignupPage() {
             setLoading(false)
         } else {
             // Redirect or show success message
-            router.push('/dashboard?verified=false')
+            router.push('/today?verified=false')
             router.refresh()
         }
     }

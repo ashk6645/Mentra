@@ -107,16 +107,12 @@ export function PageEditor({ page }: PageEditorProps) {
     const handleDelete = async () => {
         if (!isOwner) return
         if (confirm('Are you sure you want to delete this page?')) {
-            await deletePage(page.id)
-            router.push('/dashboard')
-            router.refresh()
+            const result = await deletePage(page.id)
+            if (result.success) {
+                router.push('/today')
+                router.refresh()
+            }
         }
-    }
-
-    const handleIconChange = async (newIcon: string) => {
-        if (!canEdit) return
-        setIcon(newIcon)
-        await updatePage(page.id, { icon: newIcon })
         router.refresh()
     }
 

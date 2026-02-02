@@ -20,11 +20,11 @@ export default function NewPrivatePage() {
                     router.replace(`/pages/${result.page.id}`)
                     router.refresh()
                 } else {
-                    router.replace('/dashboard')
+                    router.replace('/today')
                 }
             } catch (error) {
                 console.error('Failed to create page', error)
-                router.replace('/dashboard')
+                router.replace('/today')
             }
         }
         init()

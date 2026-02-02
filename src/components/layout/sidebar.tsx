@@ -154,7 +154,6 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, counts
     const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url
 
     const routes = [
-        { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
         { label: 'Inbox', icon: Inbox, href: '/inbox', badge: counts?.inbox },
         { label: 'Today', icon: Sun, href: '/today', badge: counts?.today },
         { label: 'Upcoming', icon: CalendarDays, href: '/upcoming' },
