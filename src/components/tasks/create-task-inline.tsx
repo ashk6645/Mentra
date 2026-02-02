@@ -63,6 +63,7 @@ export function CreateTaskInline({
         recurrenceInterval?: 'daily' | 'weekly' | 'monthly' | 'yearly'
         recurrenceStep?: number
         recurrenceDays?: number[]
+        reminderPattern?: string
     }) {
         try {
             setIsSubmitting(true)
@@ -71,6 +72,7 @@ export function CreateTaskInline({
                 ...data,
                 priority: data.priority || undefined,
                 dueDate: data.dueDate ? data.dueDate.toISOString() : undefined,
+                reminderPattern: data.reminderPattern,
             })
 
             if (result.success) {

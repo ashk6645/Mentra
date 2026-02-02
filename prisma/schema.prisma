@@ -4,43 +4,43 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // 1. Profiles
 model Profile {
-  id             String    @id // Links to auth.users.id
-  email          String    @unique
-  displayName    String?   @map("display_name")
-  avatarUrl      String?   @map("avatar_url")
-  level          Int       @default(1)
-  totalXp        Int       @default(0) @map("total_xp")
-  currentStreak  Int       @default(0) @map("current_streak")
-  longestStreak  Int       @default(0) @map("longest_streak")
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
+  id            String   @id // Links to auth.users.id
+  email         String   @unique
+  displayName   String?  @map("display_name")
+  avatarUrl     String?  @map("avatar_url")
+  level         Int      @default(1)
+  totalXp       Int      @default(0) @map("total_xp")
+  currentStreak Int      @default(0) @map("current_streak")
+  longestStreak Int      @default(0) @map("longest_streak")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   // Relations
-  tasks                Task[]
-  tags                 Tag[]
-  habits               Habit[]
-  focusSessions        FocusSession[]
-  xpLogs               XPLog[]
-  aiLogs               AIActivityLog[]
-  pages                Page[]
-  sharedPagesOwned     SharedPage[]    @relation("SharedPageByUser")
-  sharedPagesAccess    SharedPage[]    @relation("SharedPageWithUser")
+  tasks                   Task[]
+  tags                    Tag[]
+  habits                  Habit[]
+  focusSessions           FocusSession[]
+  xpLogs                  XPLog[]
+  aiLogs                  AIActivityLog[]
+  pages                   Page[]
+  sharedPagesOwned        SharedPage[]             @relation("SharedPageByUser")
+  sharedPagesAccess       SharedPage[]             @relation("SharedPageWithUser")
+  notificationPreferences NotificationPreferences?
+  pushSubscriptions       PushSubscription[]
 
   @@map("profiles")
 }
 
-
-
 // 4. Tasks
 model Task {
-  id              String    @id @default(uuid())
-  userId          String    @map("user_id")
+  id     String @id @default(uuid())
+  userId String @map("user_id")
 
   title       String
   description String?
@@ -77,7 +77,6 @@ model Task {
   subtasks      Subtask[]
 
   @@index([userId])
-
   @@index([userId, completed]) // Optimized for Dashboard (active tasks)
   @@index([userId, completed, completedAt]) // Optimized for Stats/History
   @@map("tasks")
@@ -93,7 +92,7 @@ model Subtask {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@index([taskId])
   @@map("subtasks")
@@ -131,11 +130,14 @@ model TaskTag {
 
 // 7. Reminders
 model Reminder {
-  id        String   @id @default(uuid())
-  taskId    String   @map("task_id")
-  remindAt  DateTime @map("remind_at") @db.Timestamptz
-  isSent    Boolean  @default(false) @map("is_sent")
-  createdAt DateTime @default(now()) @map("created_at")
+  id        String    @id @default(uuid())
+  taskId    String    @map("task_id")
+  remindAt  DateTime  @map("remind_at") @db.Timestamptz
+  isSent    Boolean   @default(false) @map("is_sent")
+  sentAt    DateTime? @map("sent_at") @db.Timestamptz
+  sentVia   String[]  @default([]) @map("sent_via") // ['push', 'email']
+  error     String? // Store delivery errors
+  createdAt DateTime  @default(now()) @map("created_at")
 
   // Relations
   task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
@@ -144,22 +146,63 @@ model Reminder {
   @@map("reminders")
 }
 
-// 8. Habits
+// 8. Notification Preferences
+model NotificationPreferences {
+  id     String @id @default(uuid())
+  userId String @unique @map("user_id")
+
+  // Channels
+  enablePush  Boolean @default(true) @map("enable_push")
+  enableEmail Boolean @default(true) @map("enable_email")
+
+  // Timing
+  quietHoursStart Int? @map("quiet_hours_start") // 0-23
+  quietHoursEnd   Int? @map("quiet_hours_end") // 0-23
+
+  // Preferences
+  emailDigest     Boolean @default(false) @map("email_digest")
+  digestFrequency String? @map("digest_frequency") // 'daily', 'weekly'
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+// 9. Push Subscriptions
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+// 10. Habits
 model Habit {
-  id              String    @id @default(uuid())
-  userId          String    @map("user_id")
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
   name            String
   description     String?
-  frequency       String    // 'daily', 'weekly', 'custom'
-  targetDays      Int[]     @map("target_days")
+  frequency       String // 'daily', 'weekly', 'custom'
+  targetDays      Int[]    @map("target_days")
   icon            String?
   color           String?
-  xpPerCompletion Int       @default(10) @map("xp_per_completion")
-  currentStreak   Int       @default(0) @map("current_streak")
-  bestStreak      Int       @default(0) @map("best_streak")
-  isActive        Boolean   @default(true) @map("is_active")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  xpPerCompletion Int      @default(10) @map("xp_per_completion")
+  currentStreak   Int      @default(0) @map("current_streak")
+  bestStreak      Int      @default(0) @map("best_streak")
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   // Relations
   user        Profile           @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -208,7 +251,7 @@ model XPLog {
   id          String   @id @default(uuid())
   userId      String   @map("user_id")
   amount      Int
-  source      String   // 'task', 'habit', 'focus_session', 'streak', 'achievement', 'daily_login', 'other'
+  source      String // 'task', 'habit', 'focus_session', 'streak', 'achievement', 'daily_login', 'other'
   sourceId    String?  @map("source_id")
   description String?
   createdAt   DateTime @default(now()) @map("created_at")
@@ -235,8 +278,6 @@ model AIActivityLog {
 
   @@map("ai_activity_logs")
 }
-
-
 
 // 15. Shared Pages
 model SharedPage {
@@ -269,16 +310,16 @@ model Page {
   icon         String?  @default("📄")
   coverImage   String?  @map("cover_image")
   isFavorited  Boolean  @default(false) @map("is_favorited")
-  isArchived   Boolean  @default(false) @map("is_archived")  // Soft delete
+  isArchived   Boolean  @default(false) @map("is_archived") // Soft delete
   sortOrder    Int      @default(0) @map("sort_order")
-  depth        Int      @default(0)  // Nesting depth (max 5)
+  depth        Int      @default(0) // Nesting depth (max 5)
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   // Relations
-  user       Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parentPage Page?   @relation("PageHierarchy", fields: [parentPageId], references: [id], onDelete: Cascade)
-  childPages Page[]  @relation("PageHierarchy")
+  user       Profile      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentPage Page?        @relation("PageHierarchy", fields: [parentPageId], references: [id], onDelete: Cascade)
+  childPages Page[]       @relation("PageHierarchy")
   blocks     Block[]
   sharedWith SharedPage[]
 
@@ -293,11 +334,11 @@ model Block {
   id            String    @id @default(uuid())
   pageId        String    @map("page_id")
   parentBlockId String?   @map("parent_block_id")
-  parentItemId  String?   @map("parent_item_id")  // For blocks inside database items
+  parentItemId  String?   @map("parent_item_id") // For blocks inside database items
   type          BlockType
   content       Json      @default("{}")
   sortOrder     Int       @default(0) @map("sort_order")
-  isArchived    Boolean   @default(false) @map("is_archived")  // Soft delete
+  isArchived    Boolean   @default(false) @map("is_archived") // Soft delete
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
@@ -306,8 +347,8 @@ model Block {
   parentBlock        Block?             @relation("BlockNesting", fields: [parentBlockId], references: [id], onDelete: Cascade)
   childBlocks        Block[]            @relation("BlockNesting")
   parentItem         DatabaseItem?      @relation("ItemContent", fields: [parentItemId], references: [id], onDelete: Cascade)
-  databaseViews      DatabaseView[]     // One block can have MULTIPLE views
-  databaseItems      DatabaseItem[]     // Items in this database block
+  databaseViews      DatabaseView[] // One block can have MULTIPLE views
+  databaseItems      DatabaseItem[] // Items in this database block
   databaseProperties DatabaseProperty[] // Properties/columns in this database block
 
   @@index([pageId])
@@ -320,18 +361,18 @@ model Block {
 
 // 17. Database Views (MULTIPLE views per database block)
 model DatabaseView {
-  id            String     @id @default(uuid())
-  blockId       String     @map("block_id")  // NO UNIQUE - allows multiple views
-  name          String     @default("Default View")  // View name for switching
-  viewType      ViewType   @map("view_type")
-  filters       Json?      @default("[]")
-  sorts         Json?      @default("[]")
-  visibleFields Json?      @default("[]") @map("visible_fields")
-  groupBy       String?    @map("group_by")
-  isDefault     Boolean    @default(false) @map("is_default")  // Which view shows first
-  sortOrder     Int        @default(0) @map("sort_order")  // Order in view switcher
-  createdAt     DateTime   @default(now()) @map("created_at")
-  updatedAt     DateTime   @updatedAt @map("updated_at")
+  id            String   @id @default(uuid())
+  blockId       String   @map("block_id") // NO UNIQUE - allows multiple views
+  name          String   @default("Default View") // View name for switching
+  viewType      ViewType @map("view_type")
+  filters       Json?    @default("[]")
+  sorts         Json?    @default("[]")
+  visibleFields Json?    @default("[]") @map("visible_fields")
+  groupBy       String?  @map("group_by")
+  isDefault     Boolean  @default(false) @map("is_default") // Which view shows first
+  sortOrder     Int      @default(0) @map("sort_order") // Order in view switcher
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   // Relations
   block Block @relation(fields: [blockId], references: [id], onDelete: Cascade)
@@ -342,19 +383,19 @@ model DatabaseView {
 
 // 18. Database Items (Rows/Cards in inline databases)
 model DatabaseItem {
-  id          String   @id @default(uuid())
-  blockId     String   @map("block_id")
-  title       String   @default("Untitled")
-  icon        String?
-  coverImage  String?  @map("cover_image")
-  properties  Json     @default("{}")  // Property values keyed by property ID
-  sortOrder   Int      @default(0) @map("sort_order")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id         String   @id @default(uuid())
+  blockId    String   @map("block_id")
+  title      String   @default("Untitled")
+  icon       String?
+  coverImage String?  @map("cover_image")
+  properties Json     @default("{}") // Property values keyed by property ID
+  sortOrder  Int      @default(0) @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   // Relations
-  block       Block         @relation(fields: [blockId], references: [id], onDelete: Cascade)
-  childBlocks Block[]       @relation("ItemContent")  // Blocks inside the item (page content)
+  block       Block   @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  childBlocks Block[] @relation("ItemContent") // Blocks inside the item (page content)
 
   @@index([blockId])
   @@index([blockId, sortOrder])
@@ -363,14 +404,14 @@ model DatabaseItem {
 
 // 19. Database Properties (Column definitions for inline databases)
 model DatabaseProperty {
-  id        String       @id @default(uuid())
-  blockId   String       @map("block_id")
-  name      String       @default("Property")
-  type      String       @default("TEXT")  // TEXT, NUMBER, SELECT, MULTI_SELECT, DATE, CHECKBOX, URL, EMAIL, PHONE
-  options   Json?        @default("[]")  // For select/multi-select options
-  sortOrder Int          @default(0) @map("sort_order")
-  createdAt DateTime     @default(now()) @map("created_at")
-  updatedAt DateTime     @updatedAt @map("updated_at")
+  id        String   @id @default(uuid())
+  blockId   String   @map("block_id")
+  name      String   @default("Property")
+  type      String   @default("TEXT") // TEXT, NUMBER, SELECT, MULTI_SELECT, DATE, CHECKBOX, URL, EMAIL, PHONE
+  options   Json?    @default("[]") // For select/multi-select options
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
   block Block @relation(fields: [blockId], references: [id], onDelete: Cascade)

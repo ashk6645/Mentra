@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { CalendarIcon, Flag, Inbox, Clock, X, ChevronDown, Check } from 'lucide-react'
+import { CalendarIcon, Flag, Inbox, Clock, X, ChevronDown, Check, Bell } from 'lucide-react'
 import { format } from 'date-fns'
 
 import { cn } from '@/lib/utils'
@@ -39,6 +39,7 @@ export interface TaskEditorProps {
         recurrenceInterval?: 'daily' | 'weekly' | 'monthly' | 'yearly'
         recurrenceStep?: number
         recurrenceDays?: number[]
+        reminderPattern?: string
     }) => void
     isSubmitting?: boolean
 }
@@ -65,6 +66,7 @@ export function TaskEditor({
         step?: number
         days?: number[]
     } | undefined>(undefined)
+    const [reminderPattern, setReminderPattern] = useState<string | undefined>(undefined)
 
     // Clean title for submission (without tags/dates)
     const [parsedTitle, setParsedTitle] = useState('')
@@ -100,6 +102,7 @@ export function TaskEditor({
                 if (parsed.dueDate) setDate(parsed.dueDate)
                 if (parsed.priority) setPriority(parsed.priority)
                 if (parsed.recurrence) setRecurrence(parsed.recurrence)
+                if (parsed.reminderPattern) setReminderPattern(parsed.reminderPattern)
             } catch (err) {
                 console.error("Parsing error", err)
             }
@@ -121,6 +124,7 @@ export function TaskEditor({
             recurrenceInterval: recurrence?.interval,
             recurrenceStep: recurrence?.step,
             recurrenceDays: recurrence?.days,
+            reminderPattern,
         })
     }
 
@@ -219,10 +223,18 @@ export function TaskEditor({
                         </DropdownMenuContent>
                     </DropdownMenu>
 
-                    {/* Reminders / More (Placeholder for now) */}
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                    </Button>
+
+                    {/* Reminder Badge */}
+                    {reminderPattern && (
+                        <div className="flex items-center gap-1.5 px-2 h-8 text-xs font-medium border border-purple-200 bg-purple-50 text-purple-700 rounded-md dark:border-purple-800 dark:bg-purple-900/30 dark:text-purple-400">
+                            <Bell className="h-3.5 w-3.5" />
+                            <span>{reminderPattern}</span>
+                            <X
+                                className="h-3 w-3 hover:text-purple-900 cursor-pointer"
+                                onClick={() => setReminderPattern(undefined)}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 {/* Natural Language Tips */}

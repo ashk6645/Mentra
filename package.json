@@ -57,9 +57,11 @@
     "react-day-picker": "^9.13.0",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.71.1",
+    "resend": "^6.9.1",
     "rrule": "^2.8.1",
     "tailwind-merge": "^3.4.0",
     "uuid": "^13.0.0",
+    "web-push": "^3.6.7",
     "zod": "^4.3.5",
     "zustand": "^5.0.10"
   },

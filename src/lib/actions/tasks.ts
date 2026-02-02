@@ -571,7 +571,7 @@ export async function createTaskFromNaturalLanguage(input: string) {
                 id: user.id,
                 email: user.email!,
                 displayName: user.user_metadata?.display_name || user.email?.split('@')[0] || 'User',
-            }
+            },
         })
 
         // Create the task
