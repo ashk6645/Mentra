@@ -3,7 +3,7 @@
  * This file defines all the types used across the application
  */
 
-import { Task, Tag, Profile, Habit, FocusSession, Subtask } from '@prisma/client'
+import { Task, Tag, Profile, FocusSession, Subtask } from '@prisma/client'
 
 // ========================================
 // TYPE DEFINITIONS
@@ -45,12 +45,7 @@ export type ProfileWithStats = Profile & {
   focusSessions?: FocusSession[]
 }
 
-/**
- * Habit with completions
- */
-export type HabitWithCompletions = Habit & {
-  completions?: HabitCompletion[]
-}
+
 
 // ========================================
 // FORM INPUT TYPES
@@ -79,13 +74,7 @@ export interface UpdateTaskInput extends Partial<CreateTaskInput> {
 
 
 
-/**
- * Input type for creating a habit
- */
-export interface CreateHabitInput {
-  name: string
-  frequency: Frequency
-}
+
 
 
 
@@ -428,10 +417,6 @@ export interface Reminder {
   createdAt: Date
 }
 
-export interface HabitCompletion {
-  id: string
-  habitId: string
-  completedAt: Date
-}
+
 
 

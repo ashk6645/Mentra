@@ -149,7 +149,7 @@ export async function resetUserAccount() {
             // 1. Core Data
             await tx.task.deleteMany({ where: { userId } })
 
-            await tx.habit.deleteMany({ where: { userId } })
+
             await tx.tag.deleteMany({ where: { userId } })
 
 

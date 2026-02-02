@@ -34,21 +34,6 @@ export async function getActivityDates() {
             },
         })
 
-        // Get dates with habit completions
-        const habitCompletions = await prisma.habitCompletion.findMany({
-            where: {
-                habit: {
-                    userId: user.id,
-                },
-                completedAt: {
-                    gte: ninetyDaysAgo,
-                },
-            },
-            select: {
-                completedAt: true,
-            },
-        })
-
         // Combine and deduplicate dates (normalize to start of day)
         const activityDates = new Set<string>()
 
@@ -57,11 +42,6 @@ export async function getActivityDates() {
                 const dateStr = startOfDay(new Date(task.completedAt)).toISOString()
                 activityDates.add(dateStr)
             }
-        })
-
-        habitCompletions.forEach(completion => {
-            const dateStr = startOfDay(new Date(completion.completedAt)).toISOString()
-            activityDates.add(dateStr)
         })
 
         // Convert to array of Date objects

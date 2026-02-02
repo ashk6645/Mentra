@@ -54,28 +54,6 @@ async function handler(request: NextRequest) {
 
 
 
-        case 'HABITS':
-            const habits = await prisma.habit.findMany({
-                where: { userId: user.id },
-                select: {
-                    id: true,
-                    name: true,
-                    frequency: true,
-                    currentStreak: true,
-                    icon: true,
-                    color: true,
-                    isActive: true,
-                },
-                orderBy: { createdAt: 'desc' },
-                take: 50,
-            })
-            data = habits.map(h => ({
-                ...h,
-                title: h.name,
-                streak: h.currentStreak,
-                status: h.isActive ? 'Active' : 'Inactive',
-            }))
-            break
 
         default:
             throw new AppError(
