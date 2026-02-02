@@ -312,9 +312,9 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, counts
                                             </span>
                                         )}
                                         
-                                        {/* Keyboard shortcut hint */}
+                                        {/* Keyboard shortcut hint - shows on hover */}
                                         {(route as any).shortcut && (
-                                            <kbd className="hidden lg:inline-flex h-5 w-5 items-center justify-center rounded border border-border/40 bg-muted/30 text-[10px] font-mono text-muted-foreground">
+                                            <kbd className="hidden lg:inline-flex h-5 w-5 items-center justify-center rounded border border-border/40 bg-muted/30 text-[10px] font-mono text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                                                 {(route as any).shortcut}
                                             </kbd>
                                         )}
