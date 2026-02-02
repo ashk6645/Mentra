@@ -70,23 +70,24 @@ export function TaskRow({ task }: TaskRowProps) {
             // 3. Server sync (start parallel with animation)
             const togglePromise = toggleTask({ id: task.id, completed: checked })
 
-            // 4. Exit animation if completing - smoother and longer
-            if (checked) {
-                await animate(scope.current,
-                    {
-                        opacity: [1, 0.6, 0],
-                        x: [0, 10, 20],
-                        height: [scope.current.offsetHeight, 0],
-                        marginBottom: [12, 0],
-                        paddingBlock: [14, 0],
-                        border: 0
-                    },
-                    {
-                        duration: 0.4, // Slightly longer for smoother feel
-                        ease: [0.32, 0.72, 0, 1] // Custom easing
-                    }
-                )
-            }
+            // 4. Exit animation removed - user wants task to stay visible
+            // if (checked) {
+            //     await animate(scope.current,
+            //         {
+            //             opacity: [1, 0.6, 0],
+            //             x: [0, 10, 20],
+            //             height: [scope.current.offsetHeight, 0],
+            //             marginBottom: [12, 0],
+            //             paddingBlock: [14, 0],
+            //             border: 0
+            //         },
+            //         {
+            //             duration: 0.4, // Slightly longer for smoother feel
+            //             ease: [0.32, 0.72, 0, 1] // Custom easing
+            //         }
+            //     )
+            // }
+
 
             await togglePromise
             router.refresh()
