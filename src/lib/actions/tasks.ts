@@ -25,6 +25,8 @@ const createTaskSchema = z.object({
     recurrenceStep: z.number().optional(),
     recurrenceDays: z.array(z.number()).optional(),
     recurrenceEnd: z.string().optional().nullable(),
+    // Reminder
+    reminderPattern: z.string().optional(),
 })
 
 const updateTaskSchema = createTaskSchema.partial().extend({
@@ -571,7 +573,7 @@ export async function createTaskFromNaturalLanguage(input: string) {
                 id: user.id,
                 email: user.email!,
                 displayName: user.user_metadata?.display_name || user.email?.split('@')[0] || 'User',
-            }
+            },
         })
 
         // Create the task
