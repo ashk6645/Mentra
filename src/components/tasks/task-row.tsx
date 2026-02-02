@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { toggleTaskCompletion, deleteTask } from '@/lib/actions/tasks'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { MoreHorizontal, Trash, Clock, CheckSquare, Repeat } from 'lucide-react'
+import { MoreHorizontal, Trash, Clock, CheckSquare, Repeat, Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -175,6 +175,13 @@ export function TaskRow({ task }: TaskRowProps) {
                         )}>
                             {task.isRecurring ? <Repeat className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
                             <span>{dueDateInfo?.text || (task.isRecurring ? 'Recurring' : '')}</span>
+                        </div>
+                    )}
+
+                    {/* Reminder indicator */}
+                    {task.reminders && task.reminders.some((r: any) => !r.isSent) && (
+                        <div className="flex items-center gap-1 text-purple-600 dark:text-purple-400">
+                            <Bell className="h-3.5 w-3.5 fill-current" />
                         </div>
                     )}
 

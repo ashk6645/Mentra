@@ -126,7 +126,14 @@ export async function getTasks(options: GetTasksOptions = {}) {
                     orderBy: {
                         sortOrder: 'asc'
                     }
-                }
+                },
+                reminders: {
+                    select: {
+                        id: true,
+                        remindAt: true,
+                        isSent: true,
+                    },
+                },
 
             },
             orderBy: [
