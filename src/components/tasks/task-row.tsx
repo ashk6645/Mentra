@@ -57,10 +57,10 @@ export function TaskRow({ task }: TaskRowProps) {
                 const y = (rect.top + rect.height / 2) / window.innerHeight
 
                 confetti({
-                    particleCount: 30,
-                    spread: 50,
+                    particleCount: 35,
+                    spread: 60,
                     origin: { x, y },
-                    colors: ['#10b981', '#3b82f6', '#f59e0b'],
+                    colors: ['#10b981', '#22c55e', '#86efac'], // Brand-consistent greens
                     disableForReducedMotion: true,
                     zIndex: 1000,
                 })
@@ -69,11 +69,21 @@ export function TaskRow({ task }: TaskRowProps) {
             // 3. Server sync (start parallel with animation)
             const togglePromise = toggleTask({ id: task.id, completed: checked })
 
-            // 4. Exit animation if completing
+            // 4. Exit animation if completing - smoother and longer
             if (checked) {
                 await animate(scope.current,
-                    { opacity: [1, 0], x: [0, 20], height: 0, marginBottom: 0, paddingBlock: 0, border: 0 },
-                    { duration: 0.35, ease: [0.32, 0.72, 0, 1] }
+                    { 
+                        opacity: [1, 0.6, 0], 
+                        x: [0, 10, 20], 
+                        height: [scope.current.offsetHeight, 0],
+                        marginBottom: [12, 0],
+                        paddingBlock: [14, 0],
+                        border: 0
+                    },
+                    { 
+                        duration: 0.4, // Slightly longer for smoother feel
+                        ease: [0.32, 0.72, 0, 1] // Custom easing
+                    }
                 )
             }
 
@@ -169,12 +179,27 @@ export function TaskRow({ task }: TaskRowProps) {
                 data-task-id={task.id}
                 tabIndex={0}
                 className={cn(
-                    "group relative flex items-center gap-3 px-4 py-3.5 bg-card border border-border/40 rounded-lg cursor-pointer transition-colors hover:bg-accent/5 focus:outline-none focus:ring-2 focus:ring-primary/20",
-                    task.completed && "bg-muted/30",
-                    isOverdue && "border-l-4 border-l-red-500/50 bg-red-50/50 dark:bg-red-950/20"
+                    "group relative flex items-center gap-3 px-4 py-3.5 rounded-lg cursor-pointer",
+                    "bg-card border border-border/60", // Stronger border
+                    "transition-all duration-200",
+                    "hover:border-border hover:shadow-sm hover:-translate-y-0.5", // Lift on hover
+                    "focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary", // Clear focus
+                    task.completed && "opacity-60",
+                    isOverdue && "border-l-4 border-l-red-500 bg-red-50/30 dark:bg-red-950/10"
                 )}>
 
-                {/* Left accent bar - only shows when detailed (focused) */}
+                {/* Priority left accent bar */}
+                {task.priority && !task.completed && !isOverdue && (
+                    <div className={cn(
+                        "absolute left-0 top-0 bottom-0 w-1 rounded-l-lg",
+                        task.priority === 'urgent' && "bg-red-500",
+                        task.priority === 'high' && "bg-orange-500",
+                        task.priority === 'medium' && "bg-blue-500",
+                        task.priority === 'low' && "bg-gray-400"
+                    )} />
+                )}
+
+                {/* Detail panel selection accent */}
                 {isDetailed && (
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-lg" />
                 )}

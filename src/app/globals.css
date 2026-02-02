@@ -125,9 +125,9 @@
     --accent-foreground: var(--neutral-900);
 
     /* Status Colors */
-    --success: #10B981;
+    --success: #10B981; /* Emerald-500 - Brighter for satisfying completion */
     --success-foreground: var(--white);
-    --warning: #F59E0B;
+    --warning: #F59E0B; /* Amber-500 - Softer, warm but not alarming */
     --warning-foreground: var(--white);
     --destructive: #EF4444;
     --destructive-foreground: var(--white);
@@ -201,9 +201,9 @@
     --accent: #262626;
     --accent-foreground: #EDEDED;
 
-    --success: #059669;
+    --success: #10B981; /* Emerald-500 - Keep bright green for completion */
     --success-foreground: #FFFFFF;
-    --warning: #D97706;
+    --warning: #F59E0B; /* Amber-500 - Softer amber */
     --warning-foreground: #FFFFFF;
     --destructive: #DC2626;
     --destructive-foreground: #FFFFFF;

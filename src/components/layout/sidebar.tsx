@@ -154,13 +154,12 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, counts
     const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url
 
     const routes = [
-        { label: 'Inbox', icon: Inbox, href: '/inbox', badge: counts?.inbox },
-        { label: 'Today', icon: Sun, href: '/today', badge: counts?.today },
-        { label: 'Upcoming', icon: CalendarDays, href: '/upcoming' },
-        { label: 'Completed', icon: CheckCircle2, href: '/completed' },
-
-        { label: 'Calendar', icon: Calendar, href: '/calendar' },
-        { label: 'Focus', icon: Timer, href: '/focus' },
+        { label: 'Inbox', icon: Inbox, href: '/inbox', badge: counts?.inbox, alert: (counts?.overdue || 0) > 0, shortcut: 'i' },
+        { label: 'Today', icon: Sun, href: '/today', badge: counts?.today, shortcut: 't' },
+        { label: 'Upcoming', icon: CalendarDays, href: '/upcoming', shortcut: 'u' },
+        { label: 'Completed', icon: CheckCircle2, href: '/completed', shortcut: 'c' },
+        { label: 'Calendar', icon: Calendar, href: '/calendar', shortcut: 'l' },
+        { label: 'Focus', icon: Timer, href: '/focus', shortcut: 'f' },
     ]
 
     const sidebarContent = (
@@ -300,10 +299,24 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, counts
                                         <span className="truncate flex-1">
                                             {route.label}
                                         </span>
+                                        
+                                        {/* Badge with alert indicator */}
                                         {(route as any).badge !== undefined && (route as any).badge > 0 && (
-                                            <span className="text-[10px] bg-neutral-200 dark:bg-neutral-800 text-muted-foreground px-1.5 py-0.5 rounded-md font-medium min-w-[18px] text-center">
+                                            <span className={cn(
+                                                "text-[10px] px-1.5 py-0.5 rounded-md font-medium min-w-[18px] text-center",
+                                                (route as any).alert
+                                                    ? "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400"
+                                                    : "bg-neutral-200 dark:bg-neutral-800 text-muted-foreground"
+                                            )}>
                                                 {(route as any).badge}
                                             </span>
+                                        )}
+                                        
+                                        {/* Keyboard shortcut hint */}
+                                        {(route as any).shortcut && (
+                                            <kbd className="hidden lg:inline-flex h-5 w-5 items-center justify-center rounded border border-border/40 bg-muted/30 text-[10px] font-mono text-muted-foreground">
+                                                {(route as any).shortcut}
+                                            </kbd>
                                         )}
                                     </>
                                 )}

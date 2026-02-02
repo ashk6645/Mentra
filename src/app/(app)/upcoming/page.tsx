@@ -97,9 +97,25 @@ export default async function UpcomingPage() {
 
             <div className="space-y-8">
                 {sortedDates.length === 0 ? (
-                    <div className="text-center py-12 text-muted-foreground border border-dashed border-border/50 rounded-lg">
-                        <p className="text-base font-medium">No upcoming tasks</p>
-                        <p className="text-sm mt-1 opacity-70">Enjoy your free week!</p>
+                    <div className="flex flex-col items-center justify-center py-16 px-4">
+                        {/* Friendly visual */}
+                        <div className="relative mb-6">
+                            <div className="text-7xl opacity-80">📅</div>
+                            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-sm">
+                                ✨
+                            </div>
+                        </div>
+                        
+                        {/* Encouraging copy */}
+                        <h3 className="text-xl font-semibold text-foreground mb-2">
+                            Your week is wide open!
+                        </h3>
+                        <p className="text-muted-foreground text-center max-w-md mb-6">
+                            No tasks scheduled for the next 7 days. Time to plan ahead or enjoy the moment.
+                        </p>
+                        
+                        {/* Clear action */}
+                        <CreateTaskInline variant="compact" label="Schedule a task" />
                     </div>
                 ) : (
                     <div className="space-y-12">
