@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 
 import { useState, useTransition, useEffect } from 'react'
 import { Calendar, Clock, Flag, Tag, Loader2, Check, X, Plus } from 'lucide-react'
+import { RecurringConfig } from '@/components/tasks/recurring-config'
 import { format, isToday, isTomorrow } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -37,6 +38,10 @@ interface Task {
   scheduledStart?: Date | string | null
   scheduledEnd?: Date | string | null
   durationMinutes?: number | null
+  isRecurring?: boolean
+  recurrenceInterval?: 'daily' | 'weekly' | 'monthly' | 'yearly' | null
+  recurrenceStep?: number | null
+  recurrenceDays?: number[] | null
 }
 
 interface TaskMetadataRowProps {
@@ -424,7 +429,39 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
           </div>
         </PopoverContent>
       </Popover>
+      {/* Recurring Config */}
+      <RecurringConfig
+        isRecurring={task.isRecurring || false}
+        recurrenceInterval={task.recurrenceInterval}
+        recurrenceStep={task.recurrenceStep}
+        recurrenceDays={task.recurrenceDays}
+        onUpdate={async (config) => {
+          startTransition(async () => {
+            const result = await updateTask({
+              id: task.id,
+              isRecurring: config.isRecurring,
+              recurrenceInterval: config.recurrenceInterval,
+              recurrenceStep: config.recurrenceStep ?? undefined,
+              recurrenceDays: config.recurrenceDays ?? undefined,
+            })
 
+            if (result.success && result.data) {
+              selectTask(task.id, result.data)
+              router.refresh()
+              toast({
+                title: config.isRecurring ? 'Recurrence set' : 'Recurrence removed',
+                description: config.isRecurring ? 'Task will repeat automatically' : 'Task will not repeat',
+              })
+            } else {
+              toast({
+                title: 'Failed to update recurrence',
+                description: result.error || 'Please try again',
+                variant: 'destructive',
+              })
+            }
+          })
+        }}
+      />
       {/* Tags */}
       <Popover open={showTagInput} onOpenChange={(open) => {
         setShowTagInput(open)

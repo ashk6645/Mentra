@@ -6,6 +6,7 @@ import confetti from 'canvas-confetti'
 import { format, isToday, isTomorrow } from 'date-fns'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
+import { formatRecurrence } from '@/lib/utils/recurrence'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -256,14 +257,22 @@ export function TaskRow({ task }: TaskRowProps) {
 
                 {/* Right side metadata */}
                 <div className="flex items-center gap-2 shrink-0">
+                    {/* Recurring badge */}
+                    {task.isRecurring && (
+                        <div className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400">
+                            <Repeat className="h-3.5 w-3.5" />
+                            <span>{formatRecurrence(task.recurrenceInterval, task.recurrenceStep, task.recurrenceDays)}</span>
+                        </div>
+                    )}
+
                     {/* Due date */}
-                    {(dueDateInfo || task.isRecurring) && (
+                    {dueDateInfo && (
                         <div className={cn(
                             "flex items-center gap-1.5 text-xs font-medium",
                             dueDateInfo?.isOverdue ? "text-red-500" : "text-muted-foreground"
                         )}>
-                            {task.isRecurring ? <Repeat className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
-                            <span>{dueDateInfo?.text || (task.isRecurring ? 'Recurring' : '')}</span>
+                            <Clock className="h-3.5 w-3.5" />
+                            <span>{dueDateInfo?.text}</span>
                         </div>
                     )}
 

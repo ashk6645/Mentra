@@ -539,12 +539,17 @@ export function calculateReminderTime(dueDate: Date, pattern: string): Date | nu
 
 /**
  * Extract recurrence patterns
- * Supports: every day, daily, every [day], every week, monthly, yearly
+ * Supports: 
+ * - every day, daily, every [day]
+ * - every week, weekly
+ * - every month, monthly, 1st of month
+ * - every weekday (Mon-Fri)
+ * - every [specific day] (every monday)
  */
 export function extractRecurrence(input: string): ExtractedElement | null {
-    // 1. "every X days/weeks/months" or "every day/week/month"
-    const everyRegex = /\bevery (\d+ )?(day|week|month|year)s?\b/i
-    let match = input.match(everyRegex)
+    // 1. "every weekday" (Mon-Fri)
+    const weekdayRegex = /\bevery weekdays?\b/i
+    let match = input.match(weekdayRegex)
     if (match) {
         return {
             value: match[0],
@@ -553,7 +558,29 @@ export function extractRecurrence(input: string): ExtractedElement | null {
         }
     }
 
-    // 2. "daily", "weekly", "monthly", "yearly"
+    // 2. "1st of month", "first of month", "15th of month"
+    const monthDayRegex = /\b(\d{1,2}(?:st|nd|rd|th)?|first|last) of (?:the )?month\b/i
+    match = input.match(monthDayRegex)
+    if (match) {
+        return {
+            value: match[0],
+            startIndex: match.index!,
+            endIndex: match.index! + match[0].length,
+        }
+    }
+
+    // 3. "every X days/weeks/months" or "every day/week/month"
+    const everyRegex = /\bevery (\d+ )?(day|week|month|year)s?\b/i
+    match = input.match(everyRegex)
+    if (match) {
+        return {
+            value: match[0],
+            startIndex: match.index!,
+            endIndex: match.index! + match[0].length,
+        }
+    }
+
+    // 4. "daily", "weekly", "monthly", "yearly"
     const adverbRegex = /\b(daily|weekly|monthly|yearly)\b/i
     match = input.match(adverbRegex)
     if (match) {
@@ -564,7 +591,7 @@ export function extractRecurrence(input: string): ExtractedElement | null {
         }
     }
 
-    // 3. "every [weekday]" e.g., "every monday", "every friday"
+    // 5. "every [weekday]" e.g., "every monday", "every friday"
     const daysRegex = /\bevery (monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i
     match = input.match(daysRegex)
     if (match) {
@@ -583,6 +610,34 @@ export function extractRecurrence(input: string): ExtractedElement | null {
  */
 export function parseRecurrence(input: string): ParsedTaskData['recurrence'] | undefined {
     const lower = input.toLowerCase()
+
+    // Every weekday (Mon-Fri)
+    if (lower.includes('every weekday')) {
+        return {
+            interval: 'weekly',
+            step: 1,
+            days: [1, 2, 3, 4, 5] // Monday to Friday
+        }
+    }
+
+    // 1st of month, 15th of month, etc.
+    const monthDayMatch = lower.match(/(\d{1,2})(?:st|nd|rd|th)? of (?:the )?month/)
+    if (monthDayMatch) {
+        const dayOfMonth = parseInt(monthDayMatch[1])
+        return {
+            interval: 'monthly',
+            step: 1,
+            days: [dayOfMonth] // Store day of month
+        }
+    }
+
+    // First of month / Last of month
+    if (lower.includes('first of')) {
+        return { interval: 'monthly', step: 1, days: [1] }
+    }
+    if (lower.includes('last of')) {
+        return { interval: 'monthly', step: 1, days: [31] } // Backend should handle last day logic
+    }
 
     // Daily
     if (lower.includes('daily') || lower.includes('every day')) {
