@@ -19,6 +19,9 @@ const createTaskSchema = z.object({
     scheduledEnd: z.string().optional().nullable(), // ISO string for scheduled end time
     durationMinutes: z.number().optional(),
     tagIds: z.array(z.string()).optional(),
+    // Project & Section
+    projectId: z.string().optional().nullable(),
+    sectionId: z.string().optional().nullable(),
     // Recurrence
     isRecurring: z.boolean().optional(),
     recurrenceInterval: z.enum(['daily', 'weekly', 'monthly', 'yearly']).optional().nullable(),
@@ -259,6 +262,9 @@ export async function createTask(data: CreateTaskInput) {
                 scheduledStart: result.data.scheduledStart ? new Date(result.data.scheduledStart) : null,
                 scheduledEnd: result.data.scheduledEnd ? new Date(result.data.scheduledEnd) : null,
                 durationMinutes: result.data.durationMinutes || null,
+                // Project & Section
+                projectId: result.data.projectId || null,
+                sectionId: result.data.sectionId || null,
                 tags: result.data.tagIds ? {
                     create: result.data.tagIds.map(tagId => ({
                         tag: { connect: { id: tagId } }
@@ -323,6 +329,10 @@ export async function updateTask(data: UpdateTaskInput) {
             updateData.scheduledEnd = result.data.scheduledEnd ? new Date(result.data.scheduledEnd) : null
         }
         if (result.data.durationMinutes !== undefined) updateData.durationMinutes = result.data.durationMinutes
+
+        // Project & Section
+        if (result.data.projectId !== undefined) updateData.projectId = result.data.projectId
+        if (result.data.sectionId !== undefined) updateData.sectionId = result.data.sectionId
 
         const task = await prisma.$transaction(async (tx) => {
             // Verify ownership first
@@ -862,5 +872,89 @@ async function handleRecurringTaskCompletion(task: Task, userId: string) {
         })
     } catch (error) {
         console.error('Failed to create next recurring task:', error)
+    }
+}
+
+/**
+ * Get all tasks for a specific project
+ */
+export async function getTasksByProject(projectId: string, sectionId?: string | null) {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            return { success: false, error: 'Unauthorized', data: [] }
+        }
+
+        const where: any = {
+            userId: user.id,
+            projectId,
+        }
+
+        // Filter by section if provided
+        if (sectionId !== undefined) {
+            where.sectionId = sectionId
+        }
+
+        const tasks = await prisma.task.findMany({
+            where,
+            select: {
+                id: true,
+                userId: true,
+                title: true,
+                description: true,
+                priority: true,
+                dueDate: true,
+                completed: true,
+                completedAt: true,
+                scheduledStart: true,
+                scheduledEnd: true,
+                durationMinutes: true,
+                sortOrder: true,
+                createdAt: true,
+                updatedAt: true,
+                projectId: true,
+                sectionId: true,
+                // Recurrence
+                isRecurring: true,
+                recurrenceInterval: true,
+                recurrenceStep: true,
+                recurrenceDays: true,
+                recurrenceEnd: true,
+                tags: {
+                    select: {
+                        tag: {
+                            select: {
+                                id: true,
+                                name: true,
+                                color: true,
+                            }
+                        }
+                    }
+                },
+                subtasks: {
+                    select: {
+                        id: true,
+                        title: true,
+                        completed: true,
+                        sortOrder: true,
+                    },
+                    orderBy: {
+                        sortOrder: 'asc'
+                    }
+                },
+            },
+            orderBy: [
+                { completed: 'asc' },
+                { sortOrder: 'asc' },
+                { createdAt: 'desc' }
+            ],
+        })
+
+        return { success: true, data: tasks }
+    } catch (error) {
+        console.error('getTasksByProject error:', error)
+        return { success: false, error: 'Failed to fetch tasks', data: [] }
     }
 }

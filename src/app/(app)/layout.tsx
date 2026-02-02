@@ -5,6 +5,7 @@ import { CommandPaletteWrapper } from '@/components/cmd-k/command-palette-wrappe
 import { GlobalQuickAdd } from '@/components/tasks/global-quick-add'
 import { getCurrentUser } from '@/lib/user-session'
 import { getPages } from '@/lib/actions/pages'
+import { getProjects } from '@/lib/actions/projects'
 import { getSidebarCounts } from '@/lib/actions/tasks'
 import { TaskDetailPanel } from '@/components/task-detail/task-detail-panel'
 import { BulkActionsBar } from '@/components/tasks/bulk-actions-bar'
@@ -22,6 +23,7 @@ export default async function AppLayout({
     }
 
     const { pages } = await getPages()
+    const projectsResult = await getProjects()
     const { data: sidebarCounts } = await getSidebarCounts()
 
     return (
@@ -29,6 +31,7 @@ export default async function AppLayout({
             <CommandPaletteWrapper
                 user={user}
                 initialPages={pages || []}
+                initialProjects={projectsResult.success ? projectsResult.data : []}
                 sidebarCounts={sidebarCounts || { inbox: 0, today: 0, overdue: 0 }}
             >
                 {children}
