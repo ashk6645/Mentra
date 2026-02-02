@@ -371,11 +371,11 @@ updateTask(task)
 
 // ✅ Good: Document complex logic
 /**
- * Calculate XP needed for next level using exponential growth
- * Formula: BASE_XP * (MULTIPLIER ^ (level - 1))
+ * Calculate estimated time for project completion
+ * Formula: sum(task_duration) * buffer_multiplier
  */
-function xpForNextLevel(level: number): number {
-  return Math.floor(XP_LEVEL_BASE * Math.pow(XP_LEVEL_MULTIPLIER, level - 1))
+function estimateProjectTime(tasks: Task[]): number {
+  return Math.ceil(tasks.reduce((acc, task) => acc + (task.duration || 0), 0) * BUFFER_MULTIPLIER)
 }
 ```
 

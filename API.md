@@ -107,7 +107,7 @@ import { completeTask } from '@/lib/actions/tasks'
 const result = await completeTask('task-uuid', true) // or false to uncomplete
 ```
 
-Automatically awards XP and updates streaks.
+
 
 ---
 
@@ -225,7 +225,7 @@ import { completeHabit } from '@/lib/actions/habits'
 const result = await completeHabit('habit-uuid')
 ```
 
-Awards XP automatically.
+
 
 ---
 
@@ -283,79 +283,6 @@ const suggestions = await getTaskSuggestions(
 
 ---
 
-## Gamification API
-
-### Award XP
-
-```typescript
-import { awardXP } from '@/lib/actions/gamification'
-
-const result = await awardXP('TASK_COMPLETION', 10)
-```
-
-**Actions:**
-- `TASK_COMPLETION` - 10 XP
-- `SUBTASK_COMPLETION` - 5 XP
-- `STREAK_BONUS` - 25 XP
-- `HIGH_PRIORITY_COMPLETION` - 15 XP
-- `FOCUS_SESSION_COMPLETION` - 20 XP
-
-### Get User Stats
-
-```typescript
-import { getUserStats } from '@/lib/actions/gamification'
-
-const stats = await getUserStats()
-// Returns:
-// {
-//   xp: 245,
-//   level: 3,
-//   streakCount: 7,
-//   lastActiveAt: Date,
-//   xpProgress: {
-//     current: 45,
-//     needed: 100,
-//     percentage: 45
-//   }
-// }
-```
-
-### Update Streak
-
-```typescript
-import { updateStreak } from '@/lib/actions/gamification'
-
-const result = await updateStreak()
-```
-
-Automatically called on task completion.
-
----
-
-## Areas of Life API
-
-### Get All Areas
-
-```typescript
-import { getAreas } from '@/lib/actions/areas'
-
-const areas = await getAreas()
-```
-
-### Create Area
-
-```typescript
-import { createArea } from '@/lib/actions/areas'
-
-const result = await createArea({
-  name: 'Health & Fitness',
-  icon: '🏃',
-  color: 'green'
-})
-```
-
----
-
 ## Focus Sessions API
 
 ### Create Focus Session
@@ -370,7 +297,7 @@ const result = await createFocusSession({
 })
 ```
 
-Awards 20 XP automatically.
+
 
 ---
 

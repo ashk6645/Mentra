@@ -30,7 +30,7 @@ export const AUTH_ROUTES = ['/login', '/signup']
 export const PROTECTED_ROUTES = ['/inbox', '/today', '/upcoming', '/tasks', '/habits', '/focus']
 
 // ========================================
-// GAMIFICATION CONSTANTS
+// XP CONSTANTS
 // ========================================
 
 export const XP_VALUES = {

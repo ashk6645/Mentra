@@ -32,7 +32,7 @@ npm run dev
 http://localhost:3000
 ```
 
-✅ You should see the Mentra Dashboard!
+✅ You should see the Mentra Today view!
 
 ---
 

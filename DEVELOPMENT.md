@@ -88,7 +88,6 @@ src/
 │   │   ├── login/
 │   │   └── signup/
 │   ├── (app)/             # Protected application pages
-│   │   ├── dashboard/
 │   │   ├── inbox/
 │   │   ├── today/
 │   │   ├── upcoming/
@@ -96,7 +95,6 @@ src/
 │   │   ├── tasks/
 │   │   ├── habits/
 │   │   ├── focus/
-│   │   └── areas/
 │   ├── layout.tsx         # Root layout
 │   └── page.tsx           # Landing page
 │
@@ -106,8 +104,7 @@ src/
 │   ├── projects/         # Project management
 │   ├── habits/           # Habit tracking
 │   ├── focus/            # Focus mode & Pomodoro
-│   ├── gamification/     # XP, levels, streaks
-│   ├── areas/            # Life OS areas
+│   ├── focus/            # Focus mode & Pomodoro
 │   ├── tags/             # Tag management
 │   ├── layout/           # Layout components
 │   ├── cmd-k/            # Command palette
@@ -119,7 +116,7 @@ src/
 │   │   ├── projects.ts
 │   │   ├── habits.ts
 │   │   ├── ai.ts
-│   │   └── gamification.ts
+│   │   └── ai.ts
 │   ├── supabase/         # Supabase clients
 │   │   ├── client.ts     # Browser client
 │   │   └── server.ts     # Server client
@@ -128,8 +125,7 @@ src/
 │   │   └── notifications.ts
 │   ├── hooks/            # Custom React hooks
 │   ├── gemini.ts         # Gemini AI config
-│   ├── prisma.ts         # Prisma client
-│   ├── xp-utils.ts       # XP calculations
+│   ├── prisma.ts         # Prisma clients
 │   ├── constants.ts      # App constants
 │   └── utils.ts          # General utilities
 │
@@ -308,11 +304,7 @@ export async function aiFeature(input: string, userId: string) {
 - [ ] Task breakdown
 - [ ] Smart suggestions
 
-#### Gamification
-- [ ] XP awarded on task completion
-- [ ] Level up
-- [ ] Streak tracking
-- [ ] XP display
+
 
 ## Performance Optimization
 

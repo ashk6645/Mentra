@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     default: "Mentra - Premium Task & Life Management",
     template: "%s | Mentra",
   },
-  description: "A production-grade task management application with AI-powered features, gamification, and mental health-friendly design. Achieve more with less stress.",
+  description: "A production-grade task management application with AI-powered features and mental health-friendly design. Achieve more with less stress.",
   keywords: ["task management", "productivity", "todo", "GTD", "project management", "AI assistant", "Mentra"],
   authors: [{ name: "Mentra Team" }],
   creator: "Mentra",

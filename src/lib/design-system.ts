@@ -23,7 +23,7 @@ export const typography = {
     weight: 700,
     lineHeight: 1.2,
     letterSpacing: '-0.02em',
-    usage: 'Page titles only (Dashboard, Projects, Today)',
+    usage: 'Page titles only (Projects, Today)',
   },
   heading: {
     size: '1.25rem',     // 20px

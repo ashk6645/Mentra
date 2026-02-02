@@ -29,7 +29,7 @@ export const getCachedProfile = unstable_cache(
 )
 
 /**
- * Cached user stats for dashboard
+ * Cached user stats for home view
  */
 export const getCachedUserStats = unstable_cache(
     async (userId: string) => {

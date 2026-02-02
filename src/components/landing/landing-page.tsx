@@ -111,7 +111,7 @@ export function LandingPage() {
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
               Mentra combines tasks, calendar, focus sessions, and habit tracking into one seamless experience.
-              With intelligent AI assistance and a gamification system that actually motivates,
+              With intelligent AI assistance and a focus system that actually motivates,
               staying organized has never felt this natural.
             </p>
           </motion.div>
@@ -169,8 +169,8 @@ export function LandingPage() {
             />
             <FeatureCard
               icon={<LayoutDashboard className="h-6 w-6" />}
-              title="Progress Dashboard"
-              description="Track your productivity with tasteful gamification and meaningful insights."
+              title="Progress Overview"
+              description="Track your productivity with meaningful insights."
               delay={0.5}
             />
           </div>

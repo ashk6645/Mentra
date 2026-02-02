@@ -9,7 +9,7 @@ export function AppPreview() {
     { icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-500/10', glow: 'shadow-emerald-500/20', label: 'Complete project proposal', sub: 'Due today · High priority', delay: 0.15, progress: 0.75 },
     { icon: Calendar, color: 'text-sky-600', bg: 'bg-sky-500/10', glow: 'shadow-sky-500/20', label: 'Team sync — 2:00 PM', sub: 'Calendar · 30 min', delay: 0.25, progress: 0 },
     { icon: Target, color: 'text-amber-600', bg: 'bg-amber-500/10', glow: 'shadow-amber-500/20', label: 'Daily focus session', sub: 'Pomodoro · 25 min remaining', delay: 0.35, progress: 0.5 },
-    { icon: Zap, color: 'text-violet-600', bg: 'bg-violet-500/10', glow: 'shadow-violet-500/20', label: 'Review analytics dashboard', sub: 'Recurring · Every Monday', delay: 0.45, progress: 0.3 },
+    { icon: Zap, color: 'text-violet-600', bg: 'bg-violet-500/10', glow: 'shadow-violet-500/20', label: 'Review analytics overview', sub: 'Recurring · Every Monday', delay: 0.45, progress: 0.3 },
   ]
 
   return (

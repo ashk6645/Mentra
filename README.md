@@ -26,24 +26,7 @@ A production-grade task management SaaS built with Next.js 15, Supabase, Prisma,
 - 📊 Productivity insights and patterns
 - 📝 Complete AI activity logging
 
-### **🏆 Gamification (Non-Childish)**
-- ⭐ Experience Points (XP) system
-- 📈 Level progression (1-50+)
-- 🔥 Daily streaks
-- 🎯 Weekly goals
-- 🏅 Tasteful achievements
-- 📊 Progress visualization
 
-### **🌱 Life OS Concept**
-- Organize tasks into life domains:
-  - 💼 Career
-  - 🏃 Health & Fitness
-  - 📚 Learning & Growth
-  - 👨‍👩‍👧 Personal & Family
-  - 💰 Finance
-  - ✨ Hobbies & Creativity
-- Balance visualization
-- Weekly review prompts
 
 ### **🧘 Mental Health-Friendly**
 - Low energy mode (show only 3 tasks)
@@ -175,14 +158,12 @@ task-app/
 │   ├── app/                   # Next.js app router
 │   │   ├── (auth)/           # Auth pages (login, signup)
 │   │   ├── (app)/            # Protected app pages
-│   │   │   ├── dashboard/
 │   │   │   ├── inbox/
 │   │   │   ├── today/
 │   │   │   ├── upcoming/
 
 │   │   ├── habits/           # Habit tracking
 │   │   ├── focus/            # Pomodoro timer
-│   │   └── gamification/     # XP badges, streaks
 │   ├── lib/                  # Utilities & actions
 │   │   ├── actions/          # Server actions
 │   │   ├── supabase/         # Supabase clients
@@ -233,14 +214,12 @@ All database tables are protected with RLS policies ensuring users can only acce
 ## 📊 **Database Schema**
 
 Key tables:
-- `profiles` - User profiles with XP, level, streaks
+- `profiles` - User profiles
 - `tasks` - Core task data with subtasks support
 - `tags` - Task tagging system
 - `habits` - Habit tracking
 - `focus_sessions` - Pomodoro sessions
-- `xp_logs` - Gamification tracking
 - `ai_activity_logs` - AI interaction logs
-- `areas_of_life` - Life OS domains
 
 ## 🤝 **Contributing**
 
@@ -299,13 +278,13 @@ Ensure all environment variables are set in your deployment platform.
 - Task CRUD, Smart lists, Drag-and-drop, Search
 
 ### **Phase 2: Advanced** ✅
-- Recurring tasks, Tags, Real-time sync, Gamification
+- Recurring tasks, Tags, Real-time sync
 
 ### **Phase 3: AI Integration** ✅
 - Natural language parsing, Task breakdown, Smart scheduling
 
 ### **Phase 4: Differentiation** ✅
-- Life OS, Habits, Focus mode, Mental health features
+- Habits, Focus mode, Mental health features
 
 ### **Phase 5: Production** 🚧
 - Performance optimization

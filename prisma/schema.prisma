@@ -73,7 +73,7 @@ model Task {
   subtasks      Subtask[]
 
   @@index([userId])
-  @@index([userId, completed]) // Optimized for Dashboard (active tasks)
+  @@index([userId, completed]) // Optimized for Today view (active tasks)
   @@index([userId, completed, completedAt]) // Optimized for Stats/History
   @@map("tasks")
 }
