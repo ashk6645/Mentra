@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
 import { Task } from '@prisma/client'
-import { awardXP, updateStreak } from '@/lib/actions/gamification'
+import { updateStreak } from '@/lib/actions/activity'
 import { AppError, ErrorCodes, ErrorMessages } from '@/lib/error-handler'
 import { addDays, addWeeks, addMonths, addYears } from 'date-fns'
 
@@ -95,7 +95,6 @@ export async function getTasks(options: GetTasksOptions = {}) {
                 scheduledStart: true,
                 scheduledEnd: true,
                 durationMinutes: true,
-                xpEarned: true,
                 sortOrder: true,
                 createdAt: true,
                 updatedAt: true,
@@ -374,12 +373,9 @@ export async function updateTask(data: UpdateTaskInput) {
             })
         })
 
-        // Award XP if task was just completed
+        // Update streak if task was just completed
         if (result.data.completed === true) {
-            await Promise.all([
-                awardXP('task', 10),
-                updateStreak()
-            ])
+            await updateStreak()
         }
 
         ; (revalidateTag as any)(`tasks-${user.id}`)
@@ -465,12 +461,9 @@ export async function toggleTaskCompletion(id: string, completed: boolean) {
             await handleRecurringTaskCompletion(currentTask, user.id)
         }
 
-        // Award XP and update streak if task was just completed
+        // Update streak if task was just completed
         if (completed) {
-            await Promise.all([
-                awardXP('task', 10),
-                updateStreak()
-            ])
+            await updateStreak()
         }
 
         ; (revalidateTag as any)(`tasks-${user.id}`)
@@ -627,29 +620,9 @@ export async function createTaskFromNaturalLanguage(input: string) {
             }
         }
 
-        // Award XP for task creation
-        const xpAmount = parsed.priority === 'urgent' ? 15 : 10
-        await prisma.xPLog.create({
-            data: {
-                userId: user.id,
-                amount: xpAmount,
-                source: 'task',
-                sourceId: task.id,
-                description: `Created task: ${task.title}`,
-            },
-        })
 
-        // Update user's total XP
-        await prisma.profile.update({
-            where: { id: user.id },
-            data: {
-                totalXp: {
-                    increment: xpAmount,
-                },
-            },
-        })
 
-            ; (revalidateTag as any)(`tasks-${user.id}`)
+        ; (revalidateTag as any)(`tasks-${user.id}`)
         revalidatePath('/', 'layout')
         return { success: true, data: task }
     } catch (error) {

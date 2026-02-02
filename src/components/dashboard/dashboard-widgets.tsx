@@ -53,7 +53,7 @@ export async function DashboardWidgets({ userId }: DashboardWidgetsProps) {
             where: {
                 userId: userId,
                 completed: true,
-                completedAt: { 
+                completedAt: {
                     not: null,
                     gte: thirtyDaysAgo  // Performance: Only recent tasks
                 }

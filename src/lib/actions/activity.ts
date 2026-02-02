@@ -104,3 +104,105 @@ export async function getStreakInfo() {
         return { success: false, currentStreak: 0, longestStreak: 0 }
     }
 }
+
+/**
+ * Update user's activity streak
+ * Called when user completes a task or habit
+ */
+export async function updateStreak() {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            return { success: false, error: 'Unauthorized', data: null }
+        }
+
+        // Ensure profile exists
+        await prisma.profile.upsert({
+            where: { id: user.id },
+            update: {},
+            create: {
+                id: user.id,
+                email: user.email!,
+                displayName: user.user_metadata?.display_name || user.email?.split('@')[0] || 'User',
+            },
+            select: { id: true }
+        })
+
+        const profile = await prisma.profile.findUnique({
+            where: { id: user.id },
+            select: {
+                currentStreak: true,
+                longestStreak: true,
+                updatedAt: true
+            }
+        })
+
+        if (!profile) {
+            return { success: false, error: 'Profile not found', data: null }
+        }
+
+        const now = new Date()
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        const lastActive = profile.updatedAt
+            ? new Date(profile.updatedAt.getFullYear(), profile.updatedAt.getMonth(), profile.updatedAt.getDate())
+            : null
+
+        let newStreakCount = profile.currentStreak
+        let streakBonus = false
+
+        if (!lastActive) {
+            // First activity ever
+            newStreakCount = 1
+        } else {
+            const diffDays = Math.floor((today.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24))
+
+            if (diffDays === 0) {
+                // Same day activity
+                if (profile.currentStreak === 0) {
+                    newStreakCount = 1
+                } else {
+                    // Already have a streak for today, no change
+                    return {
+                        success: true,
+                        data: {
+                            streakCount: newStreakCount,
+                            streakBonus: false
+                        }
+                    }
+                }
+            } else if (diffDays === 1) {
+                // Consecutive day - increment streak
+                newStreakCount = profile.currentStreak + 1
+                streakBonus = true
+            } else {
+                // Streak broken - reset to 1
+                newStreakCount = 1
+            }
+        }
+
+        // Update profile with atomic operations where possible
+        await prisma.profile.update({
+            where: { id: user.id },
+            data: {
+                currentStreak: newStreakCount,
+                // Atomic max operation: only update if new streak is longer
+                longestStreak: newStreakCount > profile.longestStreak ? newStreakCount : profile.longestStreak,
+                updatedAt: now
+            },
+            select: { id: true }
+        })
+
+        return {
+            success: true,
+            data: {
+                streakCount: newStreakCount,
+                streakBonus
+            }
+        }
+    } catch (error) {
+        console.error('Failed to update streak:', error)
+        return { success: false, error: 'Failed to update streak', data: null }
+    }
+}

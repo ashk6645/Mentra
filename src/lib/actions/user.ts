@@ -157,8 +157,7 @@ export async function resetUserAccount() {
             await tx.focusSession.deleteMany({ where: { userId } })
             await tx.page.deleteMany({ where: { userId } })
 
-            // 3. Logs & Gamification
-            await tx.xPLog.deleteMany({ where: { userId } })
+            // 3. Logs
             await tx.aIActivityLog.deleteMany({ where: { userId } })
 
             // 4. Shared Data (Where user is the sharer)
@@ -168,8 +167,6 @@ export async function resetUserAccount() {
             await tx.profile.update({
                 where: { id: userId },
                 data: {
-                    level: 1,
-                    totalXp: 0,
                     currentStreak: 0,
                     longestStreak: 0,
                     // Keep personal info

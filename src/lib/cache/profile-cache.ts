@@ -16,8 +16,6 @@ export const getCachedProfile = unstable_cache(
                 email: true,
                 displayName: true,
                 avatarUrl: true,
-                level: true,
-                totalXp: true,
                 currentStreak: true,
                 longestStreak: true,
                 createdAt: true,
@@ -35,25 +33,17 @@ export const getCachedProfile = unstable_cache(
  */
 export const getCachedUserStats = unstable_cache(
     async (userId: string) => {
-        const [profile, totalXP] = await Promise.all([
-            prisma.profile.findUnique({
-                where: { id: userId },
-                select: {
-                    displayName: true,
-                    currentStreak: true,
-                    level: true,
-                    totalXp: true,
-                }
-            }),
-            prisma.xPLog.aggregate({
-                where: { userId },
-                _sum: { amount: true }
-            })
-        ])
+        const profile = await prisma.profile.findUnique({
+            where: { id: userId },
+            select: {
+                displayName: true,
+                currentStreak: true,
+                longestStreak: true,
+            }
+        })
 
         return {
-            profile,
-            totalXP: totalXP._sum.amount || 0
+            profile
         }
     },
     ['user-stats'],
