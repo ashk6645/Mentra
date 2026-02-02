@@ -3,749 +3,347 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { 
-    CheckCircle2, 
-    Calendar, 
-    Square, 
-    CheckSquare, 
-    Plus,
-    Flame,
-    TrendingUp,
-    Clock,
-    Target,
-    Zap,
-    BarChart3,
-    Moon,
-    Sun
-} from 'lucide-react'
+import { Circle, CheckCircle2, Flame, Calendar, Clock } from 'lucide-react'
 import Image from 'next/image'
 import logo from '@/app/icon.png'
 
-// --- Animation 1: Task Addition Flow ---
-function TaskAdditionAnimation() {
-    const [tasks, setTasks] = useState([
-        { id: 1, text: 'Review project roadmap', completed: true },
-        { id: 2, text: 'Design system update', completed: false },
-    ])
-    const [showInput, setShowInput] = useState(false)
-    const [newTaskText] = useState('Client presentation')
+// Refined easing
+const ease = [0.16, 1, 0.3, 1]
+
+// ============================================
+// SLIDE 1: Task Addition
+// ============================================
+function TaskAdditionSlide() {
+    const [isTyping, setIsTyping] = useState(false)
+    const [typedText, setTypedText] = useState('')
+    const [showTask, setShowTask] = useState(false)
+    const fullText = 'Prepare client presentation'
 
     useEffect(() => {
-        const timer1 = setTimeout(() => setShowInput(true), 1000)
+        const timer1 = setTimeout(() => setIsTyping(true), 800)
         const timer2 = setTimeout(() => {
-            setTasks(prev => [...prev, { id: 3, text: newTaskText, completed: false }])
-            setShowInput(false)
-        }, 3000)
-        const timer3 = setTimeout(() => {
-            setTasks([
-                { id: 1, text: 'Review project roadmap', completed: true },
-                { id: 2, text: 'Design system update', completed: false },
-            ])
-        }, 5000)
-        
+            let index = 0
+            const typeInterval = setInterval(() => {
+                if (index <= fullText.length) {
+                    setTypedText(fullText.slice(0, index))
+                    index++
+                } else {
+                    clearInterval(typeInterval)
+                    setTimeout(() => {
+                        setShowTask(true)
+                        setIsTyping(false)
+                    }, 300)
+                }
+            }, 50)
+        }, 1200)
+
         return () => {
             clearTimeout(timer1)
             clearTimeout(timer2)
-            clearTimeout(timer3)
         }
     }, [])
 
     return (
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-5 text-white">
-                <h3 className="text-lg font-bold">Today's Tasks</h3>
-                <p className="text-sm text-indigo-100">Monday, Feb 2</p>
+        <div className="w-full max-w-lg space-y-0.5">
+            {/* Existing tasks */}
+            <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-md group hover:bg-slate-50/60 transition-colors duration-150">
+                <Circle className="h-3.5 w-3.5 text-slate-300 flex-shrink-0" strokeWidth={2} />
+                <span className="text-sm text-slate-600">Review quarterly goals</span>
             </div>
-            <div className="p-5 space-y-3">
-                <AnimatePresence mode="popLayout">
-                    {tasks.map((task, index) => (
-                        <motion.div
-                            key={task.id}
-                            initial={{ opacity: 0, y: -20, scale: 0.9 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            transition={{ type: 'spring', damping: 20 }}
-                            className={cn(
-                                "flex items-center gap-3 p-4 rounded-xl border-2 transition-all duration-300",
-                                task.completed 
-                                    ? "bg-green-50 border-green-200" 
-                                    : "bg-slate-50 border-slate-200 hover:border-indigo-300"
-                            )}
-                        >
-                            <motion.div
-                                animate={{
-                                    scale: task.completed ? [1, 1.3, 1] : 1,
-                                }}
-                                className={task.completed ? "text-green-600" : "text-slate-400"}
-                            >
-                                {task.completed ? (
-                                    <CheckCircle2 className="h-6 w-6" />
-                                ) : (
-                                    <Square className="h-6 w-6" />
-                                )}
-                            </motion.div>
-                            <span className={cn(
-                                "text-sm font-medium flex-1",
-                                task.completed ? "text-slate-500 line-through" : "text-slate-800"
-                            )}>
-                                {task.text}
-                            </span>
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
-
-                {/* Add Task Input */}
-                <AnimatePresence>
-                    {showInput && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="overflow-hidden"
-                        >
-                            <div className="flex items-center gap-3 p-4 rounded-xl border-2 border-indigo-400 bg-indigo-50">
-                                <Plus className="h-6 w-6 text-indigo-600" />
-                                <motion.div
-                                    initial={{ width: 0 }}
-                                    animate={{ width: '100%' }}
-                                    className="flex-1"
-                                >
-                                    <div className="text-sm font-medium text-slate-800">
-                                        {newTaskText}
-                                        <motion.span
-                                            animate={{ opacity: [1, 0] }}
-                                            transition={{ duration: 0.8, repeat: Infinity }}
-                                            className="inline-block w-0.5 h-4 bg-indigo-600 ml-1"
-                                        />
-                                    </div>
-                                </motion.div>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                {/* Add Button */}
-                {!showInput && (
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="w-full p-4 rounded-xl border-2 border-dashed border-slate-300 text-slate-500 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-300 flex items-center justify-center gap-2"
-                    >
-                        <Plus className="h-5 w-5" />
-                        <span className="text-sm font-medium">Add Task</span>
-                    </motion.button>
-                )}
-            </div>
-        </div>
-    )
-}
-
-// --- Animation 2: Habit Tracking Streak ---
-function HabitTrackingAnimation() {
-    const [streak, setStreak] = useState(0)
-    const [days] = useState([
-        { day: 'M', completed: true },
-        { day: 'T', completed: true },
-        { day: 'W', completed: true },
-        { day: 'T', completed: false },
-        { day: 'F', completed: false },
-        { day: 'S', completed: false },
-        { day: 'S', completed: false },
-    ])
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setStreak(prev => (prev + 1) % 8)
-        }, 800)
-        return () => clearInterval(interval)
-    }, [])
-
-    return (
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
-            <div className="bg-gradient-to-br from-orange-500 to-pink-600 p-6 text-white">
-                <div className="flex items-center justify-between mb-4">
-                    <div>
-                        <h3 className="text-xl font-bold">Morning Meditation</h3>
-                        <p className="text-sm text-orange-100">Daily habit</p>
-                    </div>
-                    <Flame className="h-10 w-10" />
-                </div>
-                <div className="flex items-baseline gap-2">
-                    <motion.span
-                        key={Math.min(streak, 7)}
-                        initial={{ scale: 1.5, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="text-5xl font-bold"
-                    >
-                        {Math.min(streak, 7)}
-                    </motion.span>
-                    <span className="text-lg text-orange-100">day streak</span>
-                </div>
-            </div>
-            
-            <div className="p-6">
-                <div className="grid grid-cols-7 gap-2 mb-6">
-                    {days.map((item, index) => (
-                        <div key={index} className="flex flex-col items-center gap-2">
-                            <span className="text-xs font-medium text-slate-500">{item.day}</span>
-                            <motion.div
-                                initial={{ scale: 0, rotate: -180 }}
-                                animate={{ 
-                                    scale: index < streak ? 1 : (item.completed ? 1 : 0.9),
-                                    rotate: index < streak ? 0 : (item.completed ? 0 : -180),
-                                    backgroundColor: index < streak 
-                                        ? 'rgb(249 115 22)' 
-                                        : (item.completed ? 'rgb(249 115 22)' : 'rgb(226 232 240)')
-                                }}
-                                transition={{ 
-                                    delay: index * 0.1,
-                                    type: 'spring',
-                                    damping: 15
-                                }}
-                                className="w-10 h-10 rounded-full flex items-center justify-center"
-                            >
-                                {(index < streak || item.completed) && (
-                                    <CheckCircle2 className="h-5 w-5 text-white" />
-                                )}
-                            </motion.div>
-                        </div>
-                    ))}
-                </div>
-
-                <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                        <span className="text-sm text-slate-600">Weekly progress</span>
-                        <span className="text-sm font-bold text-orange-600">
-                            {Math.min(streak, 7)}/7 days
-                        </span>
-                    </div>
-                    <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-                        <motion.div
-                            animate={{ width: `${(Math.min(streak, 7) / 7) * 100}%` }}
-                            transition={{ duration: 0.5 }}
-                            className="h-full bg-gradient-to-r from-orange-500 to-pink-600 rounded-full"
-                        />
-                    </div>
-                </div>
-
-                <div className="mt-6 grid grid-cols-2 gap-3">
-                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                        <Target className="h-5 w-5 text-slate-500 mb-2" />
-                        <div className="text-2xl font-bold text-slate-900">21</div>
-                        <div className="text-xs text-slate-500">Best Streak</div>
-                    </div>
-                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                        <TrendingUp className="h-5 w-5 text-slate-500 mb-2" />
-                        <div className="text-2xl font-bold text-slate-900">85%</div>
-                        <div className="text-xs text-slate-500">Completion</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
-}
-
-// --- Animation 3: Task Detail Edit ---
-function TaskEditAnimation() {
-    const [isOpen, setIsOpen] = useState(false)
-    const [priority, setPriority] = useState('medium')
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setIsOpen(prev => !prev)
-            if (!isOpen) {
-                setTimeout(() => {
-                    setPriority(prev => 
-                        prev === 'low' ? 'medium' : prev === 'medium' ? 'high' : 'low'
-                    )
-                }, 1500)
-            }
-        }, 4000)
-        return () => clearInterval(interval)
-    }, [isOpen])
-
-    const priorityColors = {
-        low: 'bg-blue-500',
-        medium: 'bg-yellow-500',
-        high: 'bg-red-500'
-    }
-
-    return (
-        <div className="relative w-full max-w-md h-[420px] flex items-center justify-center">
-            {/* Background List */}
-            <div className="absolute inset-0 w-full bg-white rounded-2xl shadow-lg border border-slate-200 p-5 space-y-3 opacity-40 scale-95">
-                {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-16 w-full bg-slate-100 rounded-xl" />
-                ))}
+            <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-md group hover:bg-slate-50/60 transition-colors duration-150">
+                <Circle className="h-3.5 w-3.5 text-slate-300 flex-shrink-0" strokeWidth={2} />
+                <span className="text-sm text-slate-600">Update project timeline</span>
             </div>
 
-            {/* Task Detail Modal */}
-            <AnimatePresence>
-                {isOpen && (
+            {/* New task being added */}
+            <AnimatePresence mode="wait">
+                {isTyping && !showTask && (
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        transition={{ type: 'spring', damping: 25 }}
-                        className="absolute w-full bg-white rounded-2xl shadow-2xl border-2 border-slate-200 overflow-hidden z-10"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2, ease }}
+                        className="overflow-hidden"
                     >
-                        <div className="h-32 bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 p-6 flex flex-col justify-end relative overflow-hidden">
-                            <motion.div
-                                animate={{
-                                    scale: [1, 1.2, 1],
-                                    opacity: [0.3, 0.5, 0.3]
-                                }}
-                                transition={{ duration: 3, repeat: Infinity }}
-                                className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full blur-3xl"
-                            />
-                            <h3 className="text-white text-xl font-bold relative z-10">
-                                Design System Update
-                            </h3>
-                            <p className="text-purple-100 text-sm relative z-10">
-                                Due today at 5:00 PM
-                            </p>
+                        <div className="flex items-center gap-3 px-3.5 py-2.5 bg-indigo-50/50 rounded-md">
+                            <Circle className="h-3.5 w-3.5 text-indigo-400 flex-shrink-0" strokeWidth={2} />
+                            <span className="text-sm text-slate-700">
+                                {typedText}
+                                <motion.span
+                                    animate={{ opacity: [1, 0] }}
+                                    transition={{ duration: 0.8, repeat: Infinity }}
+                                    className="inline-block w-0.5 h-3.5 bg-indigo-600 ml-0.5 align-middle"
+                                />
+                            </span>
                         </div>
+                    </motion.div>
+                )}
 
-                        <div className="p-6 space-y-5">
-                            {/* Priority Selector */}
-                            <div>
-                                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2 block">
-                                    Priority
-                                </label>
-                                <div className="flex gap-2">
-                                    {['low', 'medium', 'high'].map((p) => (
-                                        <motion.button
-                                            key={p}
-                                            animate={{
-                                                scale: priority === p ? 1.05 : 1,
-                                                opacity: priority === p ? 1 : 0.5
-                                            }}
-                                            className={cn(
-                                                "px-4 py-2 rounded-lg font-medium text-white text-sm capitalize transition-all",
-                                                priorityColors[p as keyof typeof priorityColors],
-                                                priority === p && "ring-2 ring-offset-2 ring-slate-900"
-                                            )}
-                                        >
-                                            {p}
-                                        </motion.button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Description */}
-                            <div>
-                                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2 block">
-                                    Description
-                                </label>
-                                <div className="space-y-2">
-                                    <div className="h-3 w-full bg-slate-100 rounded-full" />
-                                    <div className="h-3 w-5/6 bg-slate-100 rounded-full" />
-                                    <div className="h-3 w-4/6 bg-slate-100 rounded-full" />
-                                </div>
-                            </div>
-
-                            {/* Tags */}
-                            <div className="flex gap-2">
-                                <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">
-                                    Design
-                                </span>
-                                <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                                    Urgent
-                                </span>
-                            </div>
-
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                className="w-full py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl font-semibold shadow-lg shadow-purple-200"
-                            >
-                                Save Changes
-                            </motion.button>
+                {showTask && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        transition={{ duration: 0.25, ease }}
+                        className="overflow-hidden"
+                    >
+                        <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-md hover:bg-slate-50/60 transition-colors duration-150">
+                            <Circle className="h-3.5 w-3.5 text-slate-300 flex-shrink-0" strokeWidth={2} />
+                            <span className="text-sm text-slate-600">{fullText}</span>
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
-
-            {/* Animated Cursor */}
-            <motion.div
-                animate={{
-                    x: isOpen ? 180 : 80,
-                    y: isOpen ? 280 : 60,
-                    scale: isOpen ? 0.9 : 1
-                }}
-                transition={{ duration: 0.8, ease: "easeInOut" }}
-                className="absolute z-50 pointer-events-none"
-            >
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="drop-shadow-2xl">
-                    <path d="M5.65376 12.3673H5.46026L5.31717 12.4976L0.500002 16.8829L0.500002 1.19841L11.7841 12.3673H5.65376Z" fill="black" />
-                </svg>
-            </motion.div>
         </div>
     )
 }
 
-// --- Animation 4: Calendar Week View ---
-function CalendarAnimation() {
-    const [selectedDay, setSelectedDay] = useState(0)
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-    const events = [
-        { day: 0, title: 'Team Meeting', time: '9:00 AM', color: 'bg-blue-500' },
-        { day: 0, title: 'Design Review', time: '2:00 PM', color: 'bg-purple-500' },
-        { day: 2, title: 'Client Call', time: '10:00 AM', color: 'bg-green-500' },
-        { day: 4, title: 'Project Demo', time: '3:00 PM', color: 'bg-orange-500' },
-    ]
+// ============================================
+// SLIDE 2: Task Completion
+// ============================================
+function TaskCompletionSlide() {
+    const [completed, setCompleted] = useState(false)
+    const [count, setCount] = useState(3)
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            setSelectedDay(prev => (prev + 1) % 7)
-        }, 2500)
-        return () => clearInterval(interval)
-    }, [])
-
-    return (
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
-            <div className="bg-gradient-to-r from-blue-600 to-cyan-600 p-5 text-white">
-                <div className="flex items-center justify-between mb-3">
-                    <div>
-                        <h3 className="text-xl font-bold">This Week</h3>
-                        <p className="text-sm text-blue-100">February 2-8, 2026</p>
-                    </div>
-                    <Calendar className="h-8 w-8" />
-                </div>
-            </div>
-
-            <div className="p-5">
-                {/* Week Days */}
-                <div className="grid grid-cols-7 gap-2 mb-6">
-                    {days.map((day, index) => (
-                        <motion.div
-                            key={index}
-                            animate={{
-                                scale: selectedDay === index ? 1.1 : 1,
-                                backgroundColor: selectedDay === index ? 'rgb(37 99 235)' : 'rgb(241 245 249)'
-                            }}
-                            className="aspect-square rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all"
-                        >
-                            <span className={cn(
-                                "text-xs font-medium mb-1",
-                                selectedDay === index ? "text-white" : "text-slate-500"
-                            )}>
-                                {day}
-                            </span>
-                            <span className={cn(
-                                "text-lg font-bold",
-                                selectedDay === index ? "text-white" : "text-slate-900"
-                            )}>
-                                {index + 2}
-                            </span>
-                            {events.some(e => e.day === index) && (
-                                <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    className={cn(
-                                        "w-1 h-1 rounded-full mt-1",
-                                        selectedDay === index ? "bg-white" : "bg-blue-500"
-                                    )}
-                                />
-                            )}
-                        </motion.div>
-                    ))}
-                </div>
-
-                {/* Events List */}
-                <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide">
-                        Scheduled Events
-                    </h4>
-                    <AnimatePresence mode="popLayout">
-                        {events
-                            .filter(event => event.day === selectedDay)
-                            .map((event, index) => (
-                                <motion.div
-                                    key={`${event.day}-${index}`}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 20 }}
-                                    transition={{ delay: index * 0.1 }}
-                                    className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-blue-300 transition-all"
-                                >
-                                    <div className={cn("w-1 h-12 rounded-full", event.color)} />
-                                    <div className="flex-1">
-                                        <h5 className="font-semibold text-slate-900">{event.title}</h5>
-                                        <p className="text-sm text-slate-500 flex items-center gap-1">
-                                            <Clock className="h-3 w-3" />
-                                            {event.time}
-                                        </p>
-                                    </div>
-                                </motion.div>
-                            ))}
-                    </AnimatePresence>
-                    {events.filter(e => e.day === selectedDay).length === 0 && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="text-center py-8 text-slate-400"
-                        >
-                            <Calendar className="h-12 w-12 mx-auto mb-2 opacity-30" />
-                            <p className="text-sm">No events scheduled</p>
-                        </motion.div>
-                    )}
-                </div>
-            </div>
-        </div>
-    )
-}
-
-// --- Animation 5: Productivity Analytics ---
-function ProductivityAnalytics() {
-    const [activeMetric, setActiveMetric] = useState(0)
-    const metrics = [
-        { label: 'Tasks Completed', value: 24, max: 30, icon: CheckCircle2, color: 'from-green-500 to-emerald-600' },
-        { label: 'Focus Time', value: 6.5, max: 8, icon: Zap, color: 'from-yellow-500 to-orange-600', suffix: 'hrs' },
-        { label: 'Habits Streak', value: 12, max: 14, icon: Flame, color: 'from-orange-500 to-red-600', suffix: 'days' },
-    ]
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setActiveMetric(prev => (prev + 1) % metrics.length)
-        }, 3000)
-        return () => clearInterval(interval)
-    }, [])
-
-    const currentMetric = metrics[activeMetric]
-    const percentage = (currentMetric.value / currentMetric.max) * 100
-
-    return (
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
-            <div className={cn(
-                "bg-gradient-to-br p-6 text-white transition-all duration-500",
-                currentMetric.color
-            )}>
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold">Weekly Overview</h3>
-                    <BarChart3 className="h-8 w-8" />
-                </div>
-                <p className="text-sm opacity-90">Feb 2 - Feb 8, 2026</p>
-            </div>
-
-            <div className="p-6 space-y-6">
-                {/* Main Metric Display */}
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={activeMetric}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                        className="text-center"
-                    >
-                        <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: 'spring', damping: 15 }}
-                            className={cn(
-                                "inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br mb-4",
-                                currentMetric.color
-                            )}
-                        >
-                            <currentMetric.icon className="h-10 w-10 text-white" />
-                        </motion.div>
-                        <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">
-                            {currentMetric.label}
-                        </h4>
-                        <div className="flex items-baseline justify-center gap-2">
-                            <motion.span
-                                key={currentMetric.value}
-                                initial={{ scale: 1.5, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                className="text-5xl font-bold text-slate-900"
-                            >
-                                {currentMetric.value}
-                            </motion.span>
-                            {currentMetric.suffix && (
-                                <span className="text-xl text-slate-500">{currentMetric.suffix}</span>
-                            )}
-                        </div>
-                        <p className="text-sm text-slate-500 mt-1">
-                            of {currentMetric.max} {currentMetric.suffix || 'goal'}
-                        </p>
-
-                        {/* Progress Bar */}
-                        <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden mt-4">
-                            <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: `${percentage}%` }}
-                                transition={{ duration: 1, ease: 'easeOut' }}
-                                className={cn("h-full bg-gradient-to-r rounded-full", currentMetric.color)}
-                            />
-                        </div>
-                    </motion.div>
-                </AnimatePresence>
-
-                {/* Metric Indicators */}
-                <div className="flex justify-center gap-2">
-                    {metrics.map((_, index) => (
-                        <button
-                            key={index}
-                            onClick={() => setActiveMetric(index)}
-                            className={cn(
-                                'h-2 rounded-full transition-all duration-300',
-                                index === activeMetric
-                                    ? 'w-8 bg-slate-900'
-                                    : 'w-2 bg-slate-300'
-                            )}
-                        />
-                    ))}
-                </div>
-
-                {/* Quick Stats Grid */}
-                <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
-                    <div className="bg-slate-50 rounded-xl p-4 text-center">
-                        <TrendingUp className="h-5 w-5 text-green-600 mx-auto mb-2" />
-                        <div className="text-2xl font-bold text-slate-900">+23%</div>
-                        <div className="text-xs text-slate-500">vs last week</div>
-                    </div>
-                    <div className="bg-slate-50 rounded-xl p-4 text-center">
-                        <Target className="h-5 w-5 text-blue-600 mx-auto mb-2" />
-                        <div className="text-2xl font-bold text-slate-900">89%</div>
-                        <div className="text-xs text-slate-500">Goal achieved</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
-}
-
-// --- Animation 6: Focus Mode Timer ---
-function FocusModeAnimation() {
-    const [isActive, setIsActive] = useState(false)
-    const [time, setTime] = useState(25 * 60) // 25 minutes in seconds
-    const [mode, setMode] = useState<'focus' | 'break'>('focus')
-
-    useEffect(() => {
-        const timer = setTimeout(() => setIsActive(true), 500)
+        const timer = setTimeout(() => {
+            setCompleted(true)
+            setCount(4)
+        }, 1500)
         return () => clearTimeout(timer)
     }, [])
 
-    useEffect(() => {
-        let interval: NodeJS.Timeout
-        if (isActive && time > 0) {
-            interval = setInterval(() => {
-                setTime(prev => {
-                    if (prev <= 1) {
-                        setMode(m => m === 'focus' ? 'break' : 'focus')
-                        return mode === 'focus' ? 5 * 60 : 25 * 60
-                    }
-                    return prev - 1
-                })
-            }, 50) // Faster for demo
-        }
-        return () => clearInterval(interval)
-    }, [isActive, time, mode])
-
-    const minutes = Math.floor(time / 60)
-    const seconds = time % 60
-    const totalTime = mode === 'focus' ? 25 * 60 : 5 * 60
-    const progress = ((totalTime - time) / totalTime) * 100
-
     return (
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
-            <div className={cn(
-                "p-6 text-white transition-all duration-1000",
-                mode === 'focus' 
-                    ? "bg-gradient-to-br from-indigo-600 to-blue-600" 
-                    : "bg-gradient-to-br from-green-600 to-emerald-600"
-            )}>
-                <div className="flex items-center justify-between mb-4">
-                    <div>
-                        <h3 className="text-xl font-bold">
-                            {mode === 'focus' ? 'Focus Session' : 'Break Time'}
-                        </h3>
-                        <p className="text-sm opacity-90">Stay concentrated</p>
-                    </div>
-                    {mode === 'focus' ? (
-                        <Zap className="h-8 w-8" />
-                    ) : (
-                        <Moon className="h-8 w-8" />
-                    )}
-                </div>
+        <div className="w-full max-w-lg space-y-0.5">
+            {/* Header with count */}
+            <div className="flex items-center justify-between px-3.5 py-3 mb-1">
+                <h3 className="text-sm font-medium text-slate-900">Today</h3>
+                <motion.span
+                    key={count}
+                    initial={{ scale: 1.1, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.25, ease }}
+                    className="text-xs text-slate-500 font-medium"
+                >
+                    {count} completed
+                </motion.span>
             </div>
 
-            <div className="p-8 flex flex-col items-center">
-                {/* Circular Timer */}
-                <div className="relative w-56 h-56 mb-6">
-                    <svg className="w-full h-full transform -rotate-90">
-                        <circle
-                            cx="112"
-                            cy="112"
-                            r="100"
-                            stroke="rgb(241 245 249)"
-                            strokeWidth="12"
-                            fill="none"
-                        />
-                        <motion.circle
-                            cx="112"
-                            cy="112"
-                            r="100"
-                            stroke={mode === 'focus' ? 'rgb(79 70 229)' : 'rgb(16 185 129)'}
-                            strokeWidth="12"
-                            fill="none"
-                            strokeLinecap="round"
-                            initial={{ pathLength: 0 }}
-                            animate={{ pathLength: progress / 100 }}
-                            transition={{ duration: 0.5 }}
-                            style={{
-                                strokeDasharray: 2 * Math.PI * 100,
-                            }}
-                        />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <motion.div
-                            key={`${minutes}-${seconds}`}
-                            initial={{ scale: 1.1, opacity: 0 }}
+            {/* Task being completed */}
+            <motion.div
+                animate={{
+                    opacity: completed ? 0.4 : 1,
+                }}
+                transition={{ duration: 0.25, ease }}
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-md hover:bg-slate-50/60 transition-colors duration-150 cursor-pointer"
+            >
+                <motion.div
+                    animate={{
+                        scale: completed ? [1, 1.15, 1] : 1,
+                    }}
+                    transition={{ duration: 0.3, ease }}
+                >
+                    {completed ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-green-600 flex-shrink-0" strokeWidth={2.5} />
+                    ) : (
+                        <Circle className="h-3.5 w-3.5 text-slate-300 flex-shrink-0" strokeWidth={2} />
+                    )}
+                </motion.div>
+                <span className={cn(
+                    "text-sm transition-all duration-200",
+                    completed ? "text-slate-400 line-through" : "text-slate-600"
+                )}>
+                    Review quarterly goals
+                </span>
+            </motion.div>
+
+            {/* Other tasks */}
+            <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-md hover:bg-slate-50/60 transition-colors duration-150">
+                <Circle className="h-3.5 w-3.5 text-slate-300 flex-shrink-0" strokeWidth={2} />
+                <span className="text-sm text-slate-600">Update project timeline</span>
+            </div>
+            <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-md hover:bg-slate-50/60 transition-colors duration-150">
+                <Circle className="h-3.5 w-3.5 text-slate-300 flex-shrink-0" strokeWidth={2} />
+                <span className="text-sm text-slate-600">Prepare client presentation</span>
+            </div>
+        </div>
+    )
+}
+
+// ============================================
+// SLIDE 3: Task Detail Panel
+// ============================================
+function TaskDetailSlide() {
+    const [showPanel, setShowPanel] = useState(false)
+
+    useEffect(() => {
+        const timer = setTimeout(() => setShowPanel(true), 1000)
+        return () => clearTimeout(timer)
+    }, [])
+
+    return (
+        <div className="relative w-full max-w-2xl h-[380px]">
+            {/* Task list (background) */}
+            <motion.div
+                animate={{
+                    opacity: showPanel ? 0.2 : 1,
+                    x: showPanel ? -20 : 0,
+                }}
+                transition={{ duration: 0.35, ease }}
+                className="absolute inset-0 space-y-0.5"
+            >
+                <div className="flex items-center gap-3 px-3.5 py-2.5 bg-indigo-50/40 rounded-md">
+                    <Circle className="h-3.5 w-3.5 text-indigo-400 flex-shrink-0" strokeWidth={2} />
+                    <span className="text-sm text-slate-700">Review quarterly goals</span>
+                </div>
+                <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-md">
+                    <Circle className="h-3.5 w-3.5 text-slate-300 flex-shrink-0" strokeWidth={2} />
+                    <span className="text-sm text-slate-600">Update project timeline</span>
+                </div>
+                <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-md">
+                    <Circle className="h-3.5 w-3.5 text-slate-300 flex-shrink-0" strokeWidth={2} />
+                    <span className="text-sm text-slate-600">Prepare client presentation</span>
+                </div>
+            </motion.div>
+
+            {/* Detail panel */}
+            <AnimatePresence>
+                {showPanel && (
+                    <motion.div
+                        initial={{ x: '100%', opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: '100%', opacity: 0 }}
+                        transition={{ duration: 0.35, ease }}
+                        className="absolute right-0 top-0 bottom-0 w-[55%] bg-white border-l border-slate-200/80 rounded-r-xl shadow-2xl shadow-slate-900/5"
+                    >
+                        <div className="p-6 space-y-5">
+                            {/* Header */}
+                            <div className="flex items-start gap-3">
+                                <Circle className="h-3.5 w-3.5 text-indigo-400 flex-shrink-0 mt-1.5" strokeWidth={2} />
+                                <div className="flex-1">
+                                    <div className="text-base font-medium text-slate-900">
+                                        Review quarterly goals
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Description */}
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                    Description
+                                </label>
+                                <div className="w-full text-sm bg-slate-50 border border-slate-200/50 rounded-lg p-3 min-h-[80px]">
+                                    <div className="h-2.5 w-full bg-slate-200/60 rounded mb-2" />
+                                    <div className="h-2.5 w-4/5 bg-slate-200/60 rounded mb-2" />
+                                    <div className="h-2.5 w-3/5 bg-slate-200/60 rounded" />
+                                </div>
+                            </div>
+
+                            {/* Metadata */}
+                            <div className="space-y-2.5">
+                                <div className="flex items-center gap-2.5 text-sm text-slate-600 px-1">
+                                    <Calendar className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} />
+                                    <span className="text-sm">No due date</span>
+                                </div>
+                                <div className="flex items-center gap-2.5 text-sm text-slate-600 px-1">
+                                    <div className="h-3.5 w-3.5 rounded-full border-2 border-slate-300" />
+                                    <span className="text-sm">No priority</span>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    )
+}
+
+// ============================================
+// SLIDE 4: Habit Tracking
+// ============================================
+function HabitTrackingSlide() {
+    const [streak, setStreak] = useState(6)
+    const [todayCompleted, setTodayCompleted] = useState(false)
+    const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setTodayCompleted(true)
+            setStreak(7)
+        }, 1500)
+        return () => clearTimeout(timer)
+    }, [])
+
+    return (
+        <div className="w-full max-w-lg">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-6 shadow-sm shadow-slate-900/5">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 className="text-base font-semibold text-slate-900">Morning Meditation</h3>
+                        <p className="text-xs text-slate-500 mt-0.5">Daily habit</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Flame className="h-4 w-4 text-orange-500" strokeWidth={2} />
+                        <motion.span
+                            key={streak}
+                            initial={{ scale: 1.15, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            className="text-6xl font-bold text-slate-900"
+                            transition={{ duration: 0.25, ease }}
+                            className="text-2xl font-bold text-slate-900 tabular-nums"
                         >
-                            {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
-                        </motion.div>
-                        <p className="text-sm text-slate-500 mt-2">
-                            {mode === 'focus' ? 'minutes remaining' : 'break time'}
-                        </p>
+                            {streak}
+                        </motion.span>
+                        <span className="text-sm text-slate-500 font-medium">day streak</span>
                     </div>
                 </div>
 
-                {/* Control Buttons */}
-                <div className="flex gap-3 w-full">
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => setIsActive(!isActive)}
-                        className={cn(
-                            "flex-1 py-3 rounded-xl font-semibold text-white shadow-lg transition-all",
-                            mode === 'focus'
-                                ? "bg-gradient-to-r from-indigo-600 to-blue-600 shadow-indigo-200"
-                                : "bg-gradient-to-r from-green-600 to-emerald-600 shadow-green-200"
-                        )}
-                    >
-                        {isActive ? 'Pause' : 'Start'}
-                    </motion.button>
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-all"
-                    >
-                        Reset
-                    </motion.button>
+                {/* Week view */}
+                <div className="grid grid-cols-7 gap-2">
+                    {days.map((day, index) => {
+                        const isCompleted = index < 6 || (index === 6 && todayCompleted)
+                        const isToday = index === 6
+
+                        return (
+                            <div key={index} className="flex flex-col items-center gap-2">
+                                <span className="text-xs font-medium text-slate-500">{day}</span>
+                                <motion.div
+                                    animate={{
+                                        backgroundColor: isCompleted
+                                            ? 'rgb(249 115 22)'
+                                            : 'rgb(241 245 249)',
+                                        scale: isToday && todayCompleted ? [1, 1.12, 1] : 1,
+                                    }}
+                                    transition={{ duration: 0.3, ease }}
+                                    className="w-9 h-9 rounded-full flex items-center justify-center"
+                                >
+                                    {isCompleted && (
+                                        <CheckCircle2 className="h-4 w-4 text-white" strokeWidth={2.5} />
+                                    )}
+                                </motion.div>
+                            </div>
+                        )
+                    })}
                 </div>
 
-                {/* Session Info */}
-                <div className="w-full mt-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-600">Session</span>
-                        <span className="font-semibold text-slate-900">3/4 completed</span>
+                {/* Progress */}
+                <div className="mt-5 pt-5 border-t border-slate-100">
+                    <div className="flex items-center justify-between text-xs mb-2">
+                        <span className="text-slate-500 font-medium">Weekly progress</span>
+                        <motion.span
+                            key={streak}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-slate-700 font-semibold tabular-nums"
+                        >
+                            {streak}/7 days
+                        </motion.span>
                     </div>
-                    <div className="mt-2 w-full bg-slate-200 rounded-full h-2">
-                        <div className="w-3/4 bg-gradient-to-r from-indigo-600 to-blue-600 h-full rounded-full" />
+                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                        <motion.div
+                            animate={{ width: `${(streak / 7) * 100}%` }}
+                            transition={{ duration: 0.4, ease }}
+                            className="h-full bg-orange-500 rounded-full"
+                        />
                     </div>
                 </div>
             </div>
@@ -753,44 +351,194 @@ function FocusModeAnimation() {
     )
 }
 
-// --- Main Feature Config ---
-const features = [
+// ============================================
+// SLIDE 5: Reminder Scheduling
+// ============================================
+function ReminderSchedulingSlide() {
+    const [showDate, setShowDate] = useState(false)
+
+    useEffect(() => {
+        const timer = setTimeout(() => setShowDate(true), 1500)
+        return () => clearTimeout(timer)
+    }, [])
+
+    return (
+        <div className="w-full max-w-lg space-y-0.5">
+            {/* Task with date being added */}
+            <div className="flex items-center gap-3 px-3.5 py-2.5 bg-indigo-50/40 rounded-md">
+                <Circle className="h-3.5 w-3.5 text-indigo-400 flex-shrink-0" strokeWidth={2} />
+                <div className="flex-1 flex items-center justify-between gap-3">
+                    <span className="text-sm text-slate-700">Team standup meeting</span>
+                    <AnimatePresence mode="wait">
+                        {showDate && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, x: -10 }}
+                                animate={{ opacity: 1, scale: 1, x: 0 }}
+                                transition={{ duration: 0.25, ease }}
+                                className="flex items-center gap-1.5 px-2 py-1 bg-indigo-100 text-indigo-700 rounded-md text-xs font-medium flex-shrink-0"
+                            >
+                                <Calendar className="h-3 w-3" strokeWidth={2.5} />
+                                <span>Tomorrow 9:00 AM</span>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            </div>
+
+            {/* Other tasks */}
+            <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-md hover:bg-slate-50/60 transition-colors duration-150">
+                <Circle className="h-3.5 w-3.5 text-slate-300 flex-shrink-0" strokeWidth={2} />
+                <div className="flex-1 flex items-center justify-between gap-3">
+                    <span className="text-sm text-slate-600">Review quarterly goals</span>
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 text-slate-600 rounded-md text-xs font-medium flex-shrink-0">
+                        <Clock className="h-3 w-3" strokeWidth={2.5} />
+                        <span>Today 2:00 PM</span>
+                    </div>
+                </div>
+            </div>
+            <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-md hover:bg-slate-50/60 transition-colors duration-150">
+                <Circle className="h-3.5 w-3.5 text-slate-300 flex-shrink-0" strokeWidth={2} />
+                <span className="text-sm text-slate-600">Update project timeline</span>
+            </div>
+        </div>
+    )
+}
+
+// ============================================
+// SLIDE 6: Calendar View
+// ============================================
+function CalendarViewSlide() {
+    const [selectedDay, setSelectedDay] = useState(2)
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+    useEffect(() => {
+        const timer = setTimeout(() => setSelectedDay(3), 1800)
+        return () => clearTimeout(timer)
+    }, [])
+
+    return (
+        <div className="w-full max-w-lg">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm shadow-slate-900/5">
+                {/* Header */}
+                <div className="mb-4">
+                    <h3 className="text-base font-semibold text-slate-900">This Week</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">February 2-8, 2026</p>
+                </div>
+
+                {/* Calendar grid */}
+                <div className="grid grid-cols-7 gap-1.5 mb-5">
+                    {days.map((day, index) => (
+                        <div key={index} className="flex flex-col items-center">
+                            <span className="text-xs font-medium text-slate-500 mb-2">{day.slice(0, 1)}</span>
+                            <motion.div
+                                animate={{
+                                    backgroundColor: selectedDay === index ? 'rgb(99 102 241)' : 'rgb(248 250 252)',
+                                    scale: selectedDay === index ? 1.05 : 1,
+                                }}
+                                transition={{ duration: 0.2, ease }}
+                                className="w-full aspect-square rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100 transition-colors"
+                            >
+                                <span className={cn(
+                                    "text-sm font-semibold tabular-nums",
+                                    selectedDay === index ? "text-white" : "text-slate-700"
+                                )}>
+                                    {index + 2}
+                                </span>
+                                {[2, 3, 5].includes(index) && (
+                                    <motion.div
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        className={cn(
+                                            "w-1 h-1 rounded-full mt-1",
+                                            selectedDay === index ? "bg-white" : "bg-indigo-500"
+                                        )}
+                                    />
+                                )}
+                            </motion.div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Events */}
+                <div className="space-y-2 pt-4 border-t border-slate-100">
+                    <AnimatePresence mode="wait">
+                        {selectedDay === 2 && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 8 }}
+                                transition={{ duration: 0.2, ease }}
+                                className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg"
+                            >
+                                <div className="w-1 h-12 bg-blue-500 rounded-full flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-sm font-medium text-slate-900">Team Review</div>
+                                    <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                                        <Clock className="h-3 w-3" strokeWidth={2} />
+                                        10:00 AM - 11:00 AM
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                        {selectedDay === 3 && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 8 }}
+                                transition={{ duration: 0.2, ease }}
+                                className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg"
+                            >
+                                <div className="w-1 h-12 bg-purple-500 rounded-full flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-sm font-medium text-slate-900">Client Call</div>
+                                    <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                                        <Clock className="h-3 w-3" strokeWidth={2} />
+                                        2:00 PM - 3:00 PM
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+// ============================================
+// Main Slider Component
+// ============================================
+const slides = [
     {
-        title: 'Add Tasks Effortlessly',
-        description: 'Create and organize your tasks in seconds. Watch them come to life with smooth animations.',
-        component: TaskAdditionAnimation,
-        gradient: 'from-indigo-600 to-purple-600'
+        title: 'Add tasks effortlessly',
+        description: 'Type naturally and watch your tasks appear',
+        component: TaskAdditionSlide,
     },
     {
-        title: 'Build Powerful Habits',
-        description: 'Track your daily routines and watch your streaks grow. Consistency made visual and rewarding.',
-        component: HabitTrackingAnimation,
-        gradient: 'from-orange-500 to-pink-600'
+        title: 'Track your progress',
+        description: 'Check off tasks with satisfying feedback',
+        component: TaskCompletionSlide,
     },
     {
-        title: 'Deep Task Focus',
-        description: 'Click into any task for full details. Edit, prioritize, and manage everything in one beautiful view.',
-        component: TaskEditAnimation,
-        gradient: 'from-violet-500 to-purple-600'
+        title: 'Dive into details',
+        description: 'Click any task to view and edit',
+        component: TaskDetailSlide,
     },
     {
-        title: 'Master Your Schedule',
-        description: 'Visualize your entire week at a glance. Drag, drop, and organize with intuitive calendar views.',
-        component: CalendarAnimation,
-        gradient: 'from-blue-600 to-cyan-600'
+        title: 'Build lasting habits',
+        description: 'Maintain streaks with visual motivation',
+        component: HabitTrackingSlide,
     },
     {
-        title: 'Track Your Progress',
-        description: 'Beautiful analytics show how productive you\'ve been. See your achievements grow over time.',
-        component: ProductivityAnalytics,
-        gradient: 'from-green-500 to-emerald-600'
+        title: 'Stay on schedule',
+        description: 'Set reminders and due dates effortlessly',
+        component: ReminderSchedulingSlide,
     },
     {
-        title: 'Stay in the Zone',
-        description: 'Pomodoro-style focus sessions help you work smarter. Time your deep work and breaks perfectly.',
-        component: FocusModeAnimation,
-        gradient: 'from-indigo-600 to-blue-600'
-    }
+        title: 'Plan your week',
+        description: 'See your schedule at a glance',
+        component: CalendarViewSlide,
+    },
 ]
 
 export function AuthFeatureSlider() {
@@ -798,137 +546,92 @@ export function AuthFeatureSlider() {
 
     useEffect(() => {
         const timer = setInterval(() => {
-            setCurrentSlide((prev) => (prev + 1) % features.length)
-        }, 7000)
+            setCurrentSlide((prev) => (prev + 1) % slides.length)
+        }, 6500)
         return () => clearInterval(timer)
     }, [])
 
-    return (
-        <div className="relative h-full w-full overflow-hidden flex flex-col items-center justify-center p-8 bg-gradient-to-br from-slate-50 via-white to-slate-50">
-            {/* Animated Background */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <motion.div
-                    animate={{
-                        scale: [1, 1.2, 1],
-                        x: ['-10%', '10%', '-10%'],
-                        y: ['-10%', '10%', '-10%'],
-                    }}
-                    transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
-                    className="absolute -top-1/4 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-indigo-200/30 to-purple-200/30 rounded-full blur-[120px]"
-                />
-                <motion.div
-                    animate={{
-                        scale: [1, 1.15, 1],
-                        x: ['10%', '-10%', '10%'],
-                        y: ['10%', '-10%', '10%'],
-                    }}
-                    transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                    className="absolute -bottom-1/4 -left-1/4 w-[700px] h-[700px] bg-gradient-to-br from-blue-200/30 to-cyan-200/30 rounded-full blur-[100px]"
-                />
-            </div>
+    const CurrentComponent = slides[currentSlide].component
 
-            {/* Content Container */}
-            <div className="relative z-10 w-full max-w-lg flex flex-col items-center justify-center h-full">
+    return (
+        <div className="relative h-full w-full overflow-hidden flex flex-col items-center justify-center p-12 bg-white">
+            {/* Minimal gradient background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-50/50 via-white to-indigo-50/30" />
+
+            {/* Content */}
+            <div className="relative z-10 w-full max-w-2xl flex flex-col items-center justify-center h-full">
                 {/* Branding */}
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="absolute top-8 left-8 flex items-center gap-3"
-                >
-                    <div className="relative h-10 w-10">
+                <div className="absolute top-10 left-10 flex items-center gap-2.5">
+                    <div className="relative h-8 w-8">
                         <Image
                             src={logo}
-                            alt="Mentra Logo"
+                            alt="Mentra"
                             fill
-                            className="object-contain drop-shadow-lg"
+                            className="object-contain"
                             priority
                         />
                     </div>
-                    <span className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent tracking-tight">
+                    <span className="text-lg font-semibold text-slate-900">
                         Mentra
                     </span>
-                </motion.div>
+                </div>
 
-                {/* Animation Stage */}
-                <div className="relative h-[500px] w-full flex items-center justify-center mb-8">
+                {/* Slide content */}
+                <div className="flex-1 flex items-center justify-center w-full mb-16">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={currentSlide}
-                            initial={{ opacity: 0, scale: 0.92, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 1.08, y: -20 }}
-                            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                            className="absolute inset-0 flex items-center justify-center"
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -12 }}
+                            transition={{ duration: 0.4, ease }}
+                            className="w-full flex items-center justify-center"
                         >
-                            {(() => {
-                                const Component = features[currentSlide].component
-                                return <Component />
-                            })()}
+                            <CurrentComponent />
                         </motion.div>
                     </AnimatePresence>
                 </div>
 
-                {/* Text Content */}
-                <div className="relative z-20 text-center space-y-3 max-w-md px-4">
+                {/* Text content */}
+                <div className="text-center space-y-2 max-w-lg mb-10">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={currentSlide}
-                            initial={{ opacity: 0, y: 15 }}
+                            initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -15 }}
-                            transition={{ duration: 0.4 }}
+                            exit={{ opacity: 0, y: -8 }}
+                            transition={{ duration: 0.3, delay: 0.1 }}
                         >
-                            <motion.h2
-                                className={cn(
-                                    "text-4xl font-bold tracking-tight mb-3 bg-gradient-to-r bg-clip-text text-transparent",
-                                    features[currentSlide].gradient
-                                )}
-                            >
-                                {features[currentSlide].title}
-                            </motion.h2>
-                            <p className="text-lg text-slate-600 leading-relaxed">
-                                {features[currentSlide].description}
+                            <h2 className="text-2xl font-semibold text-slate-900 mb-2">
+                                {slides[currentSlide].title}
+                            </h2>
+                            <p className="text-sm text-slate-600 leading-relaxed">
+                                {slides[currentSlide].description}
                             </p>
                         </motion.div>
                     </AnimatePresence>
                 </div>
 
-                {/* Progress Indicators */}
-                <div className="flex justify-center gap-2 mt-10">
-                    {features.map((_, index) => (
+                {/* Progress indicators */}
+                <div className="flex justify-center gap-1.5">
+                    {slides.map((_, index) => (
                         <button
                             key={index}
                             onClick={() => setCurrentSlide(index)}
-                            className={cn(
-                                'h-2 rounded-full transition-all duration-500 relative overflow-hidden',
-                                index === currentSlide
-                                    ? 'w-12 bg-gradient-to-r ' + features[index].gradient
-                                    : 'w-2 bg-slate-300 hover:bg-slate-400'
-                            )}
+                            className="group relative"
                             aria-label={`Go to slide ${index + 1}`}
                         >
-                            {index === currentSlide && (
-                                <motion.div
-                                    initial={{ width: '0%' }}
-                                    animate={{ width: '100%' }}
-                                    transition={{ duration: 7, ease: 'linear' }}
-                                    className="absolute inset-0 bg-white/30"
-                                />
-                            )}
+                            <div
+                                className={cn(
+                                    'h-1 rounded-full transition-all duration-300',
+                                    index === currentSlide
+                                        ? 'w-6 bg-slate-900'
+                                        : 'w-1 bg-slate-300 group-hover:bg-slate-400'
+                                )}
+                            />
                         </button>
                     ))}
                 </div>
-
-                {/* Feature Count */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                    className="mt-6 text-sm text-slate-500"
-                >
-                    {currentSlide + 1} of {features.length}
-                </motion.div>
             </div>
         </div>
     )

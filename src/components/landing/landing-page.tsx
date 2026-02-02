@@ -129,7 +129,7 @@ export function LandingPage() {
             className="text-center mb-16 space-y-4"
           >
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Everything you need, nothing you don't
+              Everything you need
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Powerful features wrapped in a calm, distraction-free interface
