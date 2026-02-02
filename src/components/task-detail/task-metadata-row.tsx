@@ -459,11 +459,11 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
             variant="outline"
             size="sm"
             className={cn(
-              'h-7 px-3 rounded-full border text-xs font-medium transition-all',
-              !dueDate && 'text-muted-foreground/60 border-border/30 hover:border-border/50'
+              'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
+              !dueDate && 'text-muted-foreground/70 border-dashed border-border/50 hover:border-border hover:bg-muted/30'
             )}
           >
-            <Calendar className="mr-1.5 h-3 w-3" />
+            <Calendar className="mr-2 h-3.5 w-3.5" />
             {formatDueDate(dueDate)}
           </Button>
         </PopoverTrigger>
@@ -508,9 +508,9 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
           <Button
             variant="outline"
             size="sm"
-            className={cn('h-7 px-3 rounded-full border text-xs font-medium transition-all', getPriorityColor(priority))}
+            className={cn('h-8 px-3 rounded-md border text-[13px] font-medium transition-all', getPriorityColor(priority))}
           >
-            <Flag className="mr-1.5 h-3 w-3" />
+            <Flag className="mr-2 h-3.5 w-3.5" />
             {priority === 'none' ? 'Priority' : priority.charAt(0).toUpperCase() + priority.slice(1)}
           </Button>
         </PopoverTrigger>
@@ -575,14 +575,14 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
             variant="outline"
             size="sm"
             className={cn(
-              'h-7 px-3 rounded-full border text-xs font-medium transition-all',
-              !selectedProjectId && 'text-muted-foreground/60 border-border/30 hover:border-border/50'
+              'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
+              !selectedProjectId && 'text-muted-foreground/70 border-dashed border-border/50 hover:border-border hover:bg-muted/30'
             )}
           >
-            <FolderKanban className="mr-1.5 h-3 w-3" />
+            <FolderKanban className="mr-2 h-3.5 w-3.5" />
             {selectedProjectId
               ? `${task.project?.icon || '📁'} ${task.project?.name || 'Project'}`
-              : 'Add to project'}
+              : 'Project'}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-52 p-2" align="start">
@@ -625,14 +625,14 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
               variant="outline"
               size="sm"
               className={cn(
-                'h-7 px-3 rounded-full border text-xs font-medium transition-all',
-                !selectedSectionId && 'text-muted-foreground/60 border-border/30 hover:border-border/50'
+                'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
+                !selectedSectionId && 'text-muted-foreground/70 border-dashed border-border/50 hover:border-border hover:bg-muted/30'
               )}
             >
-              <Layers className="mr-1.5 h-3 w-3" />
+              <Layers className="mr-2 h-3.5 w-3.5" />
               {selectedSectionId
                 ? task.section?.name || 'Section'
-                : 'Add to section'}
+                : 'Section'}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-52 p-2" align="start">
@@ -682,14 +682,14 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
             variant="outline"
             size="sm"
             disabled={isPending}
-            className="h-7 px-3 rounded-full border text-xs font-medium text-muted-foreground/60 border-border/30 hover:border-border/50 transition-all"
+            className="h-8 px-3 rounded-md border text-[13px] font-medium text-muted-foreground/70 border-dashed border-border/50 hover:border-border hover:bg-muted/30 transition-all"
           >
             {isPending ? (
-              <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+              <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Tag className="mr-1.5 h-3 w-3" />
+              <Tag className="mr-2 h-3.5 w-3.5" />
             )}
-            {selectedTagIds.length === 0 ? "Add label" :
+            {selectedTagIds.length === 0 ? "Label" :
               selectedTagIds.length === 1 ?
                 (availableTags.find(t => t.id === selectedTagIds[0])?.name ||
                   task.tags?.find(t => (t.tag?.id || t.id) === selectedTagIds[0])?.tag?.name ||
