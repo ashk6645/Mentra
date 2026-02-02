@@ -180,80 +180,21 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, initia
 
     const sidebarContent = (
         <div className="group flex flex-col h-full bg-sidebar/95 backdrop-blur-xl border-r border-sidebar-border supports-[backdrop-filter]:bg-sidebar/80 relative">
-            {/* Header / User Profile Area */}
-            <div className={cn("flex flex-col gap-2 transition-all duration-300", isSidebarCollapsed ? "px-2 py-3" : "px-3 py-3")}>
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            suppressHydrationWarning
-                            className={cn(
-                                "w-full justify-start hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50 h-9 px-2 transition-colors duration-200",
-                                isSidebarCollapsed && "px-0 justify-center"
-                            )}
-                        >
-                            <div className={cn("flex items-center gap-2 w-full", isSidebarCollapsed && "justify-center")}>
-                                <Avatar className="h-5 w-5 border border-border/20 shadow-sm shrink-0">
-                                    <AvatarImage src={avatarUrl} />
-                                    <AvatarFallback className="bg-orange-500/10 text-orange-600 text-[10px] font-medium">
-                                        {displayName?.charAt(0).toUpperCase()}
-                                    </AvatarFallback>
-                                </Avatar>
-                                {!isSidebarCollapsed && (
-                                    <>
-                                        <span className="text-sm font-medium truncate opacity-90">
-                                            {displayName}
-                                        </span>
-                                        <div className="ml-auto flex items-center text-muted-foreground">
-                                            <ChevronRight className="h-3 w-3 rotate-90 opacity-50" />
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent
-                        className="w-52 p-1 mt-1 bg-popover/95 backdrop-blur-xl border-border/25 shadow-xl"
-                        align="start"
-                        side="bottom"
-                        sideOffset={0}
-                    >
-                        <div className="flex items-center gap-2 p-2 mb-1">
-                            <Avatar className="h-8 w-8 border border-border/20">
-                                <AvatarImage src={avatarUrl} />
-                                <AvatarFallback className="bg-orange-500/10 text-orange-600 text-xs font-medium">
-                                    {displayName?.charAt(0).toUpperCase()}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col">
-                                <span className="text-sm font-medium">{displayName}</span>
-                                <span className="text-xs text-muted-foreground">{user?.email}</span>
-                            </div>
-                        </div>
-                        <Separator className="my-1 bg-border/50" />
-
-                        <div className="space-y-0.5">
-                            <Button
-                                variant="ghost"
-                                className="w-full justify-start h-8 px-2 text-sm font-normal"
-                                onClick={() => setShowProfileDialog(true)}
-                            >
-                                <UserIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                                Profile
-                            </Button>
-
-                            <Separator className="my-1 bg-border/50" />
-                            <Button
-                                variant="ghost"
-                                className="w-full justify-start h-8 px-2 text-sm font-normal text-destructive hover:text-destructive hover:bg-destructive/10"
-                                onClick={handleSignOut}
-                            >
-                                <LogOut className="mr-2 h-4 w-4" />
-                                Sign Out
-                            </Button>
-                        </div>
-                    </PopoverContent>
-                </Popover>
+            {/* Logo Area */}
+            <div className={cn("flex items-center h-14 transition-all duration-300", isSidebarCollapsed ? "justify-center px-2" : "px-4")}>
+                <div className="relative h-8 w-full flex items-center justify-start gap-2">
+                    <img
+                        src="/Mentra1.png"
+                        alt="Mentra"
+                        className={cn(
+                            "object-contain transition-all duration-300",
+                            isSidebarCollapsed ? "h-6 w-6" : "h-8 w-auto"
+                        )}
+                    />
+                    {!isSidebarCollapsed && (
+                        <span className="font-bold text-xl tracking-wide text-foreground">MENTRA</span>
+                    )}
+                </div>
             </div>
 
 
@@ -596,6 +537,83 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, initia
                         </AnimatePresence>
                     </div>
                 )}
+            </div>
+
+            {/* User Profile Area - Moved to Bottom */}
+            <div className={cn("flex flex-col gap-2 transition-all duration-300 border-t border-sidebar-border mt-auto", isSidebarCollapsed ? "px-2 py-3" : "px-3 py-3")}>
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            suppressHydrationWarning
+                            className={cn(
+                                "w-full justify-start hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50 h-9 px-2 transition-colors duration-200",
+                                isSidebarCollapsed && "px-0 justify-center"
+                            )}
+                        >
+                            <div className={cn("flex items-center gap-2 w-full", isSidebarCollapsed && "justify-center")}>
+                                <Avatar className="h-5 w-5 border border-border/20 shadow-sm shrink-0">
+                                    <AvatarImage src={avatarUrl} />
+                                    <AvatarFallback className="bg-orange-500/10 text-orange-600 text-[10px] font-medium">
+                                        {displayName?.charAt(0).toUpperCase()}
+                                    </AvatarFallback>
+                                </Avatar>
+                                {!isSidebarCollapsed && (
+                                    <>
+                                        <span className="text-sm font-medium truncate opacity-90">
+                                            {displayName}
+                                        </span>
+                                        <div className="ml-auto flex items-center text-muted-foreground">
+                                            {/* Changed rotation to -90 or 0 depending on preference, kept generic or removed if implied up */}
+                                            <ChevronRight className="h-3 w-3 opacity-50" />
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                        className="w-52 p-1 mb-1 bg-popover/95 backdrop-blur-xl border-border/25 shadow-xl"
+                        align="start"
+                        side="right"
+                        sideOffset={10}
+                    >
+                        <div className="flex items-center gap-2 p-2 mb-1">
+                            <Avatar className="h-8 w-8 border border-border/20">
+                                <AvatarImage src={avatarUrl} />
+                                <AvatarFallback className="bg-orange-500/10 text-orange-600 text-xs font-medium">
+                                    {displayName?.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col">
+                                <span className="text-sm font-medium">{displayName}</span>
+                                <span className="text-xs text-muted-foreground">{user?.email}</span>
+                            </div>
+                        </div>
+                        <Separator className="my-1 bg-border/50" />
+
+                        <div className="space-y-0.5">
+                            <Button
+                                variant="ghost"
+                                className="w-full justify-start h-8 px-2 text-sm font-normal"
+                                onClick={() => setShowProfileDialog(true)}
+                            >
+                                <UserIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                                Profile
+                            </Button>
+
+                            <Separator className="my-1 bg-border/50" />
+                            <Button
+                                variant="ghost"
+                                className="w-full justify-start h-8 px-2 text-sm font-normal text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={handleSignOut}
+                            >
+                                <LogOut className="mr-2 h-4 w-4" />
+                                Sign Out
+                            </Button>
+                        </div>
+                    </PopoverContent>
+                </Popover>
             </div>
 
 
