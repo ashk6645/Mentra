@@ -21,13 +21,13 @@ export const ROUTES = {
   INBOX: '/inbox',
   TODAY: '/today',
   UPCOMING: '/upcoming',
-  TASKS: '/tasks',
+
   HABITS: '/habits',
   FOCUS: '/focus',
 } as const
 
 export const AUTH_ROUTES = ['/login', '/signup']
-export const PROTECTED_ROUTES = ['/inbox', '/today', '/upcoming', '/tasks', '/habits', '/focus']
+export const PROTECTED_ROUTES = ['/inbox', '/today', '/upcoming', '/habits', '/focus']
 
 // ========================================
 // XP CONSTANTS

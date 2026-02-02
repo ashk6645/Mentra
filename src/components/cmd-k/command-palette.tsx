@@ -108,7 +108,7 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
 
 
     const mainNav = [
-        { name: "All Tasks", icon: CheckSquare, route: "/tasks" },
+
         { name: "Today", icon: CalendarIcon, route: "/today" },
         { name: "Upcoming", icon: Rocket, route: "/upcoming" },
     ].filter(item => filterStatic(item.name))

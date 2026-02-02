@@ -109,6 +109,7 @@ export function TaskRow({ task }: TaskRowProps) {
 
     const priorityStyles = getPriorityStyles(task.priority)
     const dueDateInfo = formatDueDate(task.dueDate)
+    const isOverdue = dueDateInfo?.isOverdue
     const hasSubtasks = task.subtasks && task.subtasks.length > 0
     const completedSubtasks = hasSubtasks ? task.subtasks.filter((st: any) => st.completed).length : 0
     const totalSubtasks = hasSubtasks ? task.subtasks.length : 0
@@ -119,7 +120,8 @@ export function TaskRow({ task }: TaskRowProps) {
                 onClick={handleRowClick}
                 className={cn(
                     "group relative flex items-center gap-3 px-4 py-3.5 bg-card border border-border/40 rounded-lg cursor-pointer transition-colors hover:bg-accent/5",
-                    task.completed && "bg-muted/30"
+                    task.completed && "bg-muted/30",
+                    isOverdue && "border-l-4 border-l-red-500/50 bg-red-50/50 dark:bg-red-950/20"
                 )}>
 
                 {/* Left accent bar - only shows when selected */}

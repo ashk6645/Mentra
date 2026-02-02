@@ -158,7 +158,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, counts
         { label: 'Today', icon: Sun, href: '/today', badge: counts?.today },
         { label: 'Upcoming', icon: CalendarDays, href: '/upcoming' },
         { label: 'Completed', icon: CheckCircle2, href: '/completed' },
-        { label: 'My Tasks', icon: CheckSquare, href: '/tasks' },
+
         { label: 'Calendar', icon: Calendar, href: '/calendar' },
         { label: 'Focus', icon: Timer, href: '/focus' },
         { label: 'Habits', icon: Target, href: '/habits' },

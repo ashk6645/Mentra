@@ -64,19 +64,21 @@ export default async function InboxPage() {
         take: 100
     })
 
+    // Calculate overdue count from the fetched tasks
+    const overdueCount = inboxTasks.filter(t =>
+        !t.completed && t.dueDate && new Date(t.dueDate) < new Date()
+    ).length
+
     return (
         <PageShell>
             <PageHeader
                 title="Inbox"
-                description="Capture everything here"
+                description={
+                    overdueCount > 0
+                        ? `${inboxTasks.length} tasks • ${overdueCount} overdue`
+                        : "Capture everything here"
+                }
                 icon={InboxIcon}
-                // actions={
-                //     <CreateTaskInline
-                //         className="w-auto"
-                //         label="Add task..."
-                //         variant="ghost"
-                //     />
-                // }
             />
 
             <div className="space-y-3">
