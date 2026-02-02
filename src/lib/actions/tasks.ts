@@ -25,6 +25,8 @@ const createTaskSchema = z.object({
     recurrenceStep: z.number().optional(),
     recurrenceDays: z.array(z.number()).optional(),
     recurrenceEnd: z.string().optional().nullable(),
+    // Reminder
+    reminderPattern: z.string().optional(),
 })
 
 const updateTaskSchema = createTaskSchema.partial().extend({
