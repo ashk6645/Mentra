@@ -6,9 +6,9 @@ import confetti from 'canvas-confetti'
 import { format, isToday, isTomorrow } from 'date-fns'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
-import { toggleTaskCompletion, deleteTask } from '@/lib/actions/tasks'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+
 import { MoreHorizontal, Trash, Clock, CheckSquare, Repeat, Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,6 +20,8 @@ import {
 import { DeleteTaskDialog } from './delete-task-dialog'
 import { useTaskDetailStore } from '@/stores/use-task-detail-store'
 import { useTaskSelectionStore } from '@/stores/use-task-selection-store'
+import { useToggleTask, useDeleteTask } from '@/lib/hooks/use-tasks'
+
 
 
 interface TaskRowProps {
@@ -38,6 +40,9 @@ export function TaskRow({ task }: TaskRowProps) {
     const isSelectionMode = selectedIds.size > 0
 
     const [scope, animate] = useAnimate()
+
+    const { mutateAsync: toggleTask } = useToggleTask()
+    const { mutateAsync: deleteTask } = useDeleteTask()
 
     const handleToggle = async (checked: boolean) => {
         setIsPending(true)
@@ -62,8 +67,7 @@ export function TaskRow({ task }: TaskRowProps) {
             }
 
             // 3. Server sync (start parallel with animation)
-            // 3. Server sync 
-            const togglePromise = toggleTaskCompletion(task.id, checked)
+            const togglePromise = toggleTask({ id: task.id, completed: checked })
 
             // 4. Exit animation if completing
             if (checked) {
