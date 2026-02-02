@@ -45,7 +45,7 @@ export function LandingPage() {
                   Focus on what
                 </span>
                 <br />
-                <span className="bg-gradient-to-r from-primary via-blue-600 to-primary/70 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-b from-primary via-blue-600 to-primary/80 bg-clip-text text-transparent">
                   truly matters
                 </span>
               </h1>
@@ -65,13 +65,8 @@ export function LandingPage() {
             >
               <Link href="/signup">
                 <Button size="lg" className="text-base px-8 h-12 rounded-xl group">
-                  Get Started Free
+                  Get Started
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-              <Link href="/login">
-                <Button size="lg" variant="outline" className="text-base px-8 h-12 rounded-xl border-border/25 hover:bg-secondary/50">
-                  Sign In
                 </Button>
               </Link>
             </motion.div>
