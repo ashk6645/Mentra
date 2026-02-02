@@ -1,17 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, CheckCircle2, ChevronRight, MoreHorizontal } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, ChevronRight, Maximize2, Minimize2 } from 'lucide-react'
 import { CircularTimer } from './circular-timer'
 import { BreathingCircle } from './breathing-circle'
+import { AmbientSoundController } from './ambient-sound-controller'
 import { Button } from '@/components/ui/button'
 import { toggleTaskCompletion } from '@/lib/actions/tasks'
 import { cn } from '@/lib/utils'
 
 interface FocusViewProps {
-    tasks: any[] // Using any to match existing loose typing in other components, ideally Task type
+    tasks: any[]
 }
 
 export function FocusView({ tasks: initialTasks }: FocusViewProps) {
@@ -19,19 +20,45 @@ export function FocusView({ tasks: initialTasks }: FocusViewProps) {
     const [tasks, setTasks] = useState(initialTasks)
     const [currentIndex, setCurrentIndex] = useState(0)
     const [isCompleted, setIsCompleted] = useState(false)
-
-    // filter out completed tasks from the flow if they are completed in this session
-    // effectively, we just iterate through the list.
+    const [isFullscreen, setIsFullscreen] = useState(false)
 
     const currentTask = tasks[currentIndex]
-    const nextTasks = tasks.slice(currentIndex + 1, currentIndex + 3)
+    const nextTask = tasks[currentIndex + 1]
+
+    // Handle Fullscreen Toggle
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen()
+            setIsFullscreen(true)
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen()
+                setIsFullscreen(false)
+            }
+        }
+    }
+
+    // Keyboard Shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen()
+                    setIsFullscreen(false)
+                } else {
+                    router.back()
+                }
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [router])
 
     const handleNext = () => {
         setIsCompleted(false)
         if (currentIndex < tasks.length - 1) {
             setCurrentIndex(prev => prev + 1)
         } else {
-            // All done logic
             router.push('/')
         }
     }
@@ -42,10 +69,9 @@ export function FocusView({ tasks: initialTasks }: FocusViewProps) {
         setIsCompleted(true)
         try {
             await toggleTaskCompletion(currentTask.id, true)
-            // Wait a bit for animation then move next
             setTimeout(() => {
                 handleNext()
-            }, 1000)
+            }, 800)
         } catch (error) {
             console.error('Failed to complete task', error)
             setIsCompleted(false)
@@ -54,144 +80,173 @@ export function FocusView({ tasks: initialTasks }: FocusViewProps) {
 
     if (!currentTask) {
         return (
-            <div className="h-screen flex flex-col items-center justify-center bg-zinc-950 text-white p-8 text-center">
-                <h1 className="text-4xl font-light mb-4">All caught up!</h1>
-                <p className="text-zinc-400 mb-8">No more tasks in your queue.</p>
-                <Button onClick={() => router.push('/')} variant="outline" className="border-zinc-700 text-zinc-200 hover:bg-zinc-800 hover:text-white">
-                    Return to Dashboard
-                </Button>
+            <div className="h-screen w-full flex flex-col items-center justify-center bg-slate-950 text-white p-8 text-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="max-w-md space-y-8"
+                >
+                    <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <CheckCircle2 className="w-10 h-10 text-blue-400" />
+                    </div>
+                    <h1 className="text-4xl font-light tracking-tight">Session Complete</h1>
+                    <p className="text-slate-400 leading-relaxed">
+                        You've cleared your queue. excellent work.
+                    </p>
+                    <Button
+                        onClick={() => router.push('/')}
+                        className="h-12 px-8 rounded-full bg-white text-slate-950 hover:bg-slate-200 mt-8 font-medium"
+                    >
+                        Return
+                    </Button>
+                </motion.div>
             </div>
         )
     }
 
     return (
-        <div className="relative h-screen w-full overflow-hidden bg-gradient-to-br from-slate-900 via-zinc-900 to-slate-950 text-white font-sans selection:bg-blue-500/30">
-            {/* Ambient Background */}
+        <div className="relative h-screen w-screen overflow-hidden bg-slate-950 text-white font-sans selection:bg-blue-500/30 flex flex-col">
+            {/* Background Layer */}
+            <div className="absolute inset-0 z-0 bg-gradient-to-br from-slate-900 via-[#0B0F19] to-black" />
             <BreathingCircle />
 
-            {/* Header / Nav */}
-            <header className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-10">
+            {/* Header */}
+            <header className="relative z-50 p-6 flex justify-between items-center opacity-0 hover:opacity-100 transition-opacity duration-500">
                 <Button
                     variant="ghost"
-                    className="text-white/50 hover:text-white hover:bg-white/5 gap-2"
+                    className="text-white/40 hover:text-white hover:bg-white/5 gap-2 uppercase tracking-widest text-[10px]"
                     onClick={() => router.back()}
                 >
-                    <ArrowLeft className="h-4 w-4" />
-                    Exit Focus Mode
+                    <ArrowLeft className="h-3 w-3" />
+                    Exit
                 </Button>
-                <div className="text-sm font-medium text-white/30 tracking-widest uppercase">
-                    Focus Session
-                </div>
+
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-white/40 hover:text-white hover:bg-white/5"
+                    onClick={toggleFullscreen}
+                >
+                    {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                </Button>
             </header>
 
-            {/* Main Content */}
-            <div className="relative z-10 flex flex-col items-center justify-center h-full max-w-4xl mx-auto px-6">
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={currentTask.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.4 }}
-                        className="w-full text-center space-y-12"
-                    >
-                        {/* Task Title */}
-                        <div className="space-y-4">
-                            <motion.h1
-                                className="text-5xl md:text-7xl font-light tracking-tight leading-tight"
-                                layoutId={`title-${currentTask.id}`}
-                            >
-                                {currentTask.title}
-                            </motion.h1>
-                            {currentTask.description && (
-                                <p className="text-xl text-white/60 max-w-2xl mx-auto leading-relaxed">
-                                    {currentTask.description}
-                                </p>
+            {/* Main Content Area - Grid to lock layout and prevent overlap */}
+            <main className="relative z-10 flex-1 grid grid-rows-[1fr_auto_1fr] items-center justify-items-center px-6 md:px-12 pb-12">
+
+                {/* Top Section: Task Title (Centered vertically in top third) */}
+                <div className="w-full max-w-4xl flex flex-col items-center justify-end h-full pb-12">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={currentTask.id}
+                            initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
+                            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                            exit={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
+                            transition={{ duration: 0.5, ease: "easeOut" }}
+                            className="text-center space-y-6"
+                        >
+                            {/* Priority Badge */}
+                            {currentTask.priority && (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className={cn(
+                                        "inline-flex items-center px-3 py-1 rounded-full border text-[10px] uppercase tracking-[0.2em] font-medium mx-auto backdrop-blur-md",
+                                        currentTask.priority === 'urgent' ? "border-red-500/30 text-red-400 bg-red-500/5" :
+                                            currentTask.priority === 'high' ? "border-orange-500/30 text-orange-400 bg-orange-500/5" :
+                                                "border-blue-500/30 text-blue-400 bg-blue-500/5"
+                                    )}
+                                >
+                                    {currentTask.priority} Priority
+                                </motion.div>
                             )}
-                            <div className="flex gap-2 justify-center pt-2">
-                                {currentTask.priority && (
-                                    <span className={cn(
-                                        "px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider border",
-                                        currentTask.priority === 'urgent' ? "border-red-500/50 text-red-400" :
-                                            currentTask.priority === 'high' ? "border-orange-500/50 text-orange-400" :
-                                                "border-blue-500/50 text-blue-400"
-                                    )}>
-                                        {currentTask.priority}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
 
-                        {/* Timer */}
-                        <div className="py-8">
-                            <CircularTimer
-                                duration={25 * 60}
-                                onComplete={() => {
-                                    // Timer complete action - maybe sound sound or notification?
-                                    // For now, we can just let the user decide to move on or take a break
-                                }}
-                            />
-                        </div>
+                            {/* Title - Responsive typography, non-breaking words if possible */}
+                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight leading-[1.1] text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70 max-w-5xl mx-auto break-words text-balance">
+                                {currentTask.title}
+                            </h1>
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
 
-                        {/* Actions */}
-                        <div className="flex items-center justify-center gap-6">
-                            <Button
-                                size="lg"
-                                className={cn(
-                                    "h-14 px-8 rounded-full text-lg gap-2 transition-all duration-300",
-                                    isCompleted
-                                        ? "bg-green-500 hover:bg-green-600 text-white w-48"
-                                        : "bg-white text-black hover:bg-zinc-200"
-                                )}
-                                onClick={handleTaskCompletion}
-                                disabled={isCompleted}
-                            >
+                {/* Middle Section: Timer (Hero) */}
+                <div className="py-8">
+                    <CircularTimer
+                        duration={25 * 60}
+                        className="scale-90 md:scale-100"
+                        onComplete={() => { }}
+                        autoStart={false}
+                    />
+                </div>
+
+                {/* Bottom Section: Actions & Queue */}
+                <div className="w-full max-w-lg flex flex-col items-center justify-start h-full pt-8 space-y-12">
+
+                    {/* Primary Action */}
+                    <motion.div
+                        layout
+                        className="flex items-center gap-4"
+                    >
+                        <Button
+                            className={cn(
+                                "h-14 px-8 rounded-full text-base font-medium transition-all duration-500 shadow-[0_0_20px_rgba(255,255,255,0.05)] hover:shadow-[0_0_30px_rgba(255,255,255,0.1)]",
+                                isCompleted
+                                    ? "bg-emerald-500 text-white w-48 hover:bg-emerald-600 border-emerald-400/20"
+                                    : "bg-white text-zinc-950 hover:bg-zinc-200"
+                            )}
+                            onClick={handleTaskCompletion}
+                            disabled={isCompleted}
+                        >
+                            <AnimatePresence mode="wait">
                                 {isCompleted ? (
-                                    <>
+                                    <motion.div
+                                        key="complete"
+                                        initial={{ opacity: 0, scale: 0.5 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="flex items-center gap-2"
+                                    >
                                         <CheckCircle2 className="h-5 w-5" />
-                                        Completed
-                                    </>
+                                        <span>Done</span>
+                                    </motion.div>
                                 ) : (
-                                    "Complete Task"
+                                    <motion.span
+                                        key="label"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                    >
+                                        Complete Task
+                                    </motion.span>
                                 )}
-                            </Button>
+                            </AnimatePresence>
+                        </Button>
 
+                        {!isCompleted && (
                             <Button
                                 variant="outline"
-                                size="lg"
-                                className="h-14 w-14 rounded-full border-white/10 hover:bg-white/10 hover:text-white p-0"
+                                size="icon"
+                                className="h-14 w-14 rounded-full border-white/10 text-white/40 hover:text-white hover:bg-white/5 hover:border-white/20 transition-all"
                                 onClick={handleNext}
+                                title="Skip Task"
                             >
-                                <ChevronRight className="h-6 w-6" />
+                                <ChevronRight className="h-5 w-5" />
                             </Button>
-                        </div>
-                    </motion.div>
-                </AnimatePresence>
-
-                {/* Up Next Queue */}
-                <div className="absolute bottom-12 w-full max-w-md">
-                    <div className="text-white/40 text-sm font-medium mb-4 uppercase tracking-widest text-center">Up Next</div>
-                    <div className="space-y-3">
-                        <AnimatePresence>
-                            {nextTasks.map((task, i) => (
-                                <motion.div
-                                    key={task.id}
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0, transition: { delay: i * 0.1 } }}
-                                    exit={{ opacity: 0 }}
-                                    className="bg-white/5 backdrop-blur-sm border border-white/5 p-4 rounded-lg flex items-center justify-between group"
-                                >
-                                    <span className="text-white/80 font-medium truncate">{task.title}</span>
-                                    <span className="text-white/30 text-xs">{task.durationMinutes ? `${task.durationMinutes}m` : ''}</span>
-                                </motion.div>
-                            ))}
-                        </AnimatePresence>
-                        {nextTasks.length === 0 && (
-                            <div className="text-center text-white/20 italic">No more tasks queued</div>
                         )}
-                    </div>
+                    </motion.div>
+
+                    {/* Up Next (Minimalist) */}
+                    {nextTask && (
+                        <div className="text-center space-y-2 opacity-0 hover:opacity-100 transition-opacity duration-500 delay-200">
+                            <div className="text-[10px] uppercase tracking-widest text-white/20 font-medium">Up Next</div>
+                            <div className="text-sm text-white/40 font-light truncate max-w-xs mx-auto">
+                                {nextTask.title}
+                            </div>
+                        </div>
+                    )}
                 </div>
-            </div>
+            </main>
+
+            {/* Ambient Controls */}
+            <AmbientSoundController />
         </div>
     )
 }

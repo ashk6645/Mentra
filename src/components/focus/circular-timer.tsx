@@ -10,18 +10,31 @@ interface CircularTimerProps {
     duration: number // in seconds
     onComplete?: () => void
     className?: string
+    autoStart?: boolean
 }
 
-export function CircularTimer({ duration, onComplete, className }: CircularTimerProps) {
+export function CircularTimer({ duration, onComplete, className, autoStart = false }: CircularTimerProps) {
     const [timeLeft, setTimeLeft] = useState(duration)
-    const [isActive, setIsActive] = useState(false)
+    const [isActive, setIsActive] = useState(autoStart)
     const [progress, setProgress] = useState(100)
 
     useEffect(() => {
         setTimeLeft(duration)
-        setIsActive(false)
+        setIsActive(autoStart)
         setProgress(100)
-    }, [duration])
+    }, [duration, autoStart])
+
+    // Handle spacebar
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.code === 'Space') {
+                e.preventDefault()
+                setIsActive(prev => !prev)
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [])
 
     useEffect(() => {
         let interval: NodeJS.Timeout
@@ -60,8 +73,8 @@ export function CircularTimer({ duration, onComplete, className }: CircularTimer
     }
 
     // SVG parameters
-    const size = 300
-    const strokeWidth = 12
+    const size = 320
+    const strokeWidth = 8
     const center = size / 2
     const radius = size / 2 - strokeWidth / 2
     const circumference = 2 * Math.PI * radius
@@ -69,19 +82,25 @@ export function CircularTimer({ duration, onComplete, className }: CircularTimer
     const strokeDashoffset = circumference - (progress / 100) * circumference
 
     return (
-        <div className={cn("flex flex-col items-center gap-8", className)}>
-            <div className="relative flex items-center justify-center">
-                {/* Background Circle */}
-                <svg width={size} height={size} className="transform -rotate-90">
+        <div className={cn("flex flex-col items-center gap-12", className)}>
+            <div className="relative flex items-center justify-center group cursor-pointer" onClick={toggleTimer}>
+                {/* Background Glow */}
+                <div className={cn(
+                    "absolute inset-0 rounded-full bg-blue-500/0 transition-all duration-700 blur-[80px]",
+                    isActive && "bg-blue-500/10"
+                )} />
+
+                <svg width={size} height={size} className="transform -rotate-90 relative z-10 transition-transform duration-500 ease-out group-hover:scale-105">
+                    {/* Track */}
                     <circle
                         cx={center}
                         cy={center}
                         r={radius}
                         fill="transparent"
-                        stroke="rgba(255, 255, 255, 0.1)"
+                        stroke="rgba(255, 255, 255, 0.05)"
                         strokeWidth={strokeWidth}
                     />
-                    {/* Progress Circle */}
+                    {/* Progress */}
                     <motion.circle
                         cx={center}
                         cy={center}
@@ -98,38 +117,52 @@ export function CircularTimer({ duration, onComplete, className }: CircularTimer
                             duration: 1,
                             ease: "linear"
                         }}
+                        className={cn("drop-shadow-[0_0_10px_rgba(255,255,255,0.3)] transition-all duration-500", isActive ? "stroke-blue-400" : "stroke-white/80")}
                     />
                 </svg>
 
                 {/* Time Display */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-6xl font-light tracking-tight tabular-nums">
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
+                    <motion.span
+                        key={timeLeft} // Rerender animation on tick
+                        className="text-7xl font-light tracking-tighter tabular-nums text-white"
+                        initial={{ scale: 0.95, opacity: 0.8 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ duration: 0.2 }}
+                    >
                         {formatTime(timeLeft)}
+                    </motion.span>
+                    <span className={cn(
+                        "mt-2 text-xs uppercase tracking-[0.2em] font-medium transition-all duration-300",
+                        isActive ? "text-blue-400" : "text-white/30"
+                    )}>
+                        {isActive ? 'Focusing' : 'Paused'}
                     </span>
                 </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            {/* Controls (Minimal) */}
+            <div className="flex items-center gap-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 hover:opacity-100">
                 <Button
                     variant="ghost"
-                    size="lg"
-                    className="h-16 w-16 rounded-full border border-white/20 hover:bg-white/10 hover:text-white"
-                    onClick={toggleTimer}
+                    size="icon"
+                    className="h-12 w-12 rounded-full text-white/30 hover:text-white hover:bg-white/10 transition-all"
+                    onClick={(e) => { e.stopPropagation(); resetTimer() }}
                 >
-                    {isActive ? (
-                        <Pause className="h-8 w-8 fill-current" />
-                    ) : (
-                        <Play className="h-8 w-8 fill-current ml-1" />
-                    )}
+                    <RotateCcw className="h-5 w-5" />
                 </Button>
 
                 <Button
                     variant="ghost"
-                    size="icon"
-                    className="h-12 w-12 rounded-full text-white/50 hover:text-white hover:bg-white/10"
-                    onClick={resetTimer}
+                    size="lg"
+                    className="h-16 w-16 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/30 text-white transition-all scale-100 hover:scale-110 active:scale-95"
+                    onClick={(e) => { e.stopPropagation(); toggleTimer() }}
                 >
-                    <RotateCcw className="h-5 w-5" />
+                    {isActive ? (
+                        <Pause className="h-6 w-6 fill-current" />
+                    ) : (
+                        <Play className="h-6 w-6 fill-current ml-1" />
+                    )}
                 </Button>
             </div>
         </div>
