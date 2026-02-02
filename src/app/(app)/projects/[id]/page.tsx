@@ -71,33 +71,47 @@ export default async function ProjectPage(props: ProjectPageProps) {
     return (
         <div className="h-full flex flex-col">
             {/* Header */}
-            <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="max-w-5xl mx-auto px-6 py-6">
+            <div className="border-b border-border/40 bg-gradient-to-b from-background via-background to-muted/20">
+                <div className="max-w-5xl mx-auto px-8 py-10">
                     <div className="flex items-start justify-between">
                         <div className="flex items-start gap-4">
-                            {/* Project Icon */}
-                            <div className="text-4xl">
-                                {project.icon || '📁'}
+                            {/* Project Icon with Glow */}
+                            <div className="relative group shrink-0">
+                                <div className="absolute inset-0 bg-primary/10 rounded-2xl blur-xl group-hover:bg-primary/20 transition-colors" />
+                                <div className="relative flex items-center justify-center w-16 h-16 text-4xl bg-card border border-border/50 rounded-2xl shadow-sm">
+                                    {project.icon || '📁'}
+                                </div>
                             </div>
 
                             {/* Project Info */}
-                            <div className="flex-1">
-                                <h1 className="text-2xl font-bold text-foreground mb-1">
+                            <div className="flex-1 min-w-0 pt-1">
+                                <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">
                                     {project.name}
                                 </h1>
                                 {project.description && (
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-[15px] text-muted-foreground/80 leading-relaxed max-w-2xl mb-4">
                                         {project.description}
                                     </p>
                                 )}
-                                <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                                    <span>{totalActiveTasks} active</span>
-                                    <span>•</span>
-                                    <span>{totalCompletedTasks} completed</span>
+
+                                {/* Stats with visual indicators */}
+                                <div className="flex items-center gap-6 text-[13px] font-medium text-muted-foreground">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                                        <span>{totalActiveTasks} active</span>
+                                    </div>
+                                    <div className="w-px h-4 bg-border/60" />
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+                                        <span>{totalCompletedTasks} completed</span>
+                                    </div>
                                     {sections.length > 0 && (
                                         <>
-                                            <span>•</span>
-                                            <span>{sections.length} {sections.length === 1 ? 'section' : 'sections'}</span>
+                                            <div className="w-px h-4 bg-border/60" />
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-2 h-2 rounded-full bg-purple-500/50" />
+                                                <span>{sections.length} {sections.length === 1 ? 'section' : 'sections'}</span>
+                                            </div>
                                         </>
                                     )}
                                 </div>

@@ -299,7 +299,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, initia
                                 key={route.href}
                                 href={route.href}
                                 className={cn(
-                                    "flex items-center gap-2.5 px-3 py-1 text-sm rounded-sm transition-all duration-200 group relative h-8",
+                                    "flex items-center gap-3 px-4 py-2 text-[15px] rounded-lg transition-all duration-200 ease-out group relative h-9",
                                     isActive
                                         ? "text-foreground bg-neutral-200/60 dark:bg-neutral-800/60 font-medium"
                                         : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50",
@@ -456,7 +456,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, initia
                                             <Link
                                                 href={`/pages/${page.id}`}
                                                 className={cn(
-                                                    "flex-1 flex items-center gap-2 px-3 py-1 text-sm rounded-sm transition-colors",
+                                                    "flex-1 flex items-center gap-2 px-4 py-1.5 text-[14px] rounded-lg transition-colors",
                                                     pathname === `/pages/${page.id}`
                                                         ? "text-foreground bg-neutral-200/60 dark:bg-neutral-800/60 font-medium"
                                                         : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50"
@@ -554,7 +554,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, initia
                                             <Link
                                                 href={`/pages/${page.id}`}
                                                 className={cn(
-                                                    "flex-1 flex items-center gap-2 px-3 py-1 text-sm rounded-sm transition-colors",
+                                                    "flex-1 flex items-center gap-2 px-4 py-1.5 text-[14px] rounded-lg transition-colors",
                                                     pathname === `/pages/${page.id}`
                                                         ? "text-foreground bg-neutral-200/60 dark:bg-neutral-800/60 font-medium"
                                                         : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50"

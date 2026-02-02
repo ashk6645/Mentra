@@ -105,10 +105,10 @@ export function SectionHeader({ section, taskCount = 0 }: SectionHeaderProps) {
 
     return (
         <>
-            <div className="group flex items-center gap-2 py-3 px-1">
+            <div className="group flex items-center gap-2 py-3 px-1 mb-2 border-b border-border/40 transition-colors hover:border-border/60">
                 {/* Drag Handle */}
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-                    <GripVertical className="h-4 w-4 text-muted-foreground" />
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded">
+                    <GripVertical className="h-4 w-4 text-muted-foreground/50" />
                 </div>
 
                 {/* Section Name */}
@@ -121,7 +121,7 @@ export function SectionHeader({ section, taskCount = 0 }: SectionHeaderProps) {
                                 if (e.key === 'Enter') handleSave()
                                 if (e.key === 'Escape') handleCancel()
                             }}
-                            className="h-7 text-sm font-semibold"
+                            className="h-7 text-sm font-semibold bg-background"
                             autoFocus
                             disabled={isUpdating}
                         />
@@ -145,12 +145,13 @@ export function SectionHeader({ section, taskCount = 0 }: SectionHeaderProps) {
                     </div>
                 ) : (
                     <>
-                        <h3 className="flex-1 text-sm font-semibold text-foreground uppercase tracking-wider">
+                        <h3 className="flex items-center gap-2 text-[13px] font-semibold text-muted-foreground/80 group-hover:text-foreground transition-colors uppercase tracking-wider">
                             {section.name}
                         </h3>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-[11px] font-medium text-muted-foreground/50 px-2 py-0.5 rounded-full bg-muted/30">
                             {taskCount}
                         </span>
+                        <div className="flex-1" /> {/* Spacer */}
                     </>
                 )}
 
@@ -159,7 +160,7 @@ export function SectionHeader({ section, taskCount = 0 }: SectionHeaderProps) {
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-7 w-7">
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
                                     <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>

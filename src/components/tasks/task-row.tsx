@@ -73,15 +73,15 @@ export function TaskRow({ task }: TaskRowProps) {
             // 4. Exit animation if completing - smoother and longer
             if (checked) {
                 await animate(scope.current,
-                    { 
-                        opacity: [1, 0.6, 0], 
-                        x: [0, 10, 20], 
+                    {
+                        opacity: [1, 0.6, 0],
+                        x: [0, 10, 20],
                         height: [scope.current.offsetHeight, 0],
                         marginBottom: [12, 0],
                         paddingBlock: [14, 0],
                         border: 0
                     },
-                    { 
+                    {
                         duration: 0.4, // Slightly longer for smoother feel
                         ease: [0.32, 0.72, 0, 1] // Custom easing
                     }
@@ -180,7 +180,7 @@ export function TaskRow({ task }: TaskRowProps) {
                 data-task-id={task.id}
                 tabIndex={0}
                 className={cn(
-                    "group relative flex items-center gap-3 px-4 py-3.5 rounded-lg cursor-pointer",
+                    "group relative flex items-center gap-3 px-4 py-3.5 rounded-xl cursor-pointer",
                     "bg-card border border-border/60", // Stronger border
                     "transition-all duration-200",
                     "hover:border-border hover:shadow-sm hover:-translate-y-0.5", // Lift on hover
@@ -206,12 +206,12 @@ export function TaskRow({ task }: TaskRowProps) {
                 )}
 
                 {/* Checkbox */}
-                <div onClick={(e) => e.stopPropagation()} className="shrink-0">
+                <div onClick={(e) => e.stopPropagation()} className="shrink-0 flex items-center justify-center">
                     <Checkbox
                         checked={task.completed}
                         onCheckedChange={handleToggle}
                         disabled={isPending}
-                        className="h-5 w-5 rounded-full border-2 border-muted-foreground/40 hover:border-muted-foreground/60 data-[state=checked]:bg-success data-[state=checked]:border-success"
+                        className="h-5 w-5 rounded-md border-2 border-muted-foreground/30 hover:border-muted-foreground/60 hover:bg-accent/20 data-[state=checked]:bg-success data-[state=checked]:border-success transition-all duration-200"
                     />
                 </div>
 
@@ -255,8 +255,8 @@ export function TaskRow({ task }: TaskRowProps) {
                     )}
                 </div>
 
-                {/* Right side metadata */}
-                <div className="flex items-center gap-2 shrink-0">
+                {/* Right side metadata - Fade in on hover */}
+                <div className="flex items-center gap-3 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     {/* Recurring badge */}
                     {task.isRecurring && (
                         <div className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400">
