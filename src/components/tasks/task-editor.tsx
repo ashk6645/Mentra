@@ -33,9 +33,12 @@ export interface TaskEditorProps {
         description?: string
         dueDate?: Date
         priority?: 'low' | 'medium' | 'high' | 'urgent' | null
-
         tagIds?: string[]
         scheduledTime?: string
+        isRecurring?: boolean
+        recurrenceInterval?: 'daily' | 'weekly' | 'monthly' | 'yearly'
+        recurrenceStep?: number
+        recurrenceDays?: number[]
     }) => void
     isSubmitting?: boolean
 }
@@ -57,7 +60,11 @@ export function TaskEditor({
     const [description, setDescription] = useState('')
     const [date, setDate] = useState<Date | undefined>(undefined)
     const [priority, setPriority] = useState<string | null>(null)
-
+    const [recurrence, setRecurrence] = useState<{
+        interval: 'daily' | 'weekly' | 'monthly' | 'yearly'
+        step?: number
+        days?: number[]
+    } | undefined>(undefined)
 
     // Clean title for submission (without tags/dates)
     const [parsedTitle, setParsedTitle] = useState('')
@@ -92,7 +99,7 @@ export function TaskEditor({
 
                 if (parsed.dueDate) setDate(parsed.dueDate)
                 if (parsed.priority) setPriority(parsed.priority)
-                if (parsed.priority) setPriority(parsed.priority)
+                if (parsed.recurrence) setRecurrence(parsed.recurrence)
             } catch (err) {
                 console.error("Parsing error", err)
             }
@@ -110,7 +117,10 @@ export function TaskEditor({
             description,
             dueDate: date,
             priority: priority as any,
-
+            isRecurring: !!recurrence,
+            recurrenceInterval: recurrence?.interval,
+            recurrenceStep: recurrence?.step,
+            recurrenceDays: recurrence?.days,
         })
     }
 

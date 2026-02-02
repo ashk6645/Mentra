@@ -1,6 +1,6 @@
 'use client'
 
-import { Check } from 'lucide-react'
+import { Check, Repeat } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format, isToday, isYesterday } from 'date-fns'
 
@@ -14,6 +14,7 @@ interface CompletedTaskRowProps {
             name: string
             color: string | null
         } | null
+        isRecurring?: boolean
     }
 }
 
@@ -54,9 +55,14 @@ export function CompletedTaskRow({ task }: CompletedTaskRowProps) {
 
                 {/* Title & Project */}
                 <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-medium text-foreground truncate">
-                        {task.title}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                        {task.isRecurring && (
+                            <Repeat className="h-3 w-3 text-muted-foreground/70" />
+                        )}
+                        <span className="text-sm font-medium text-foreground truncate">
+                            {task.title}
+                        </span>
+                    </div>
 
                     {task.project && (
                         <div className="flex items-center gap-1.5 mt-0.5">

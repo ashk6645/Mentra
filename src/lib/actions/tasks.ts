@@ -97,6 +97,12 @@ export async function getTasks(options: GetTasksOptions = {}) {
                 sortOrder: true,
                 createdAt: true,
                 updatedAt: true,
+                // Recurrence
+                isRecurring: true,
+                recurrenceInterval: true,
+                recurrenceStep: true,
+                recurrenceDays: true,
+                recurrenceEnd: true,
                 tags: {
                     select: {
                         tag: {
@@ -575,6 +581,11 @@ export async function createTaskFromNaturalLanguage(input: string) {
                 title: parsed.title,
                 priority: parsed.priority,
                 dueDate: parsed.dueDate,
+                // Recurrence
+                isRecurring: !!parsed.recurrence,
+                recurrenceInterval: parsed.recurrence?.interval,
+                recurrenceStep: parsed.recurrence?.step,
+                recurrenceDays: parsed.recurrence?.days || [],
                 tags: tagIds.length > 0
                     ? {
                         create: tagIds.map((tagId) => ({
@@ -669,6 +680,7 @@ export async function searchTasks(query: string) {
                 completed: true,
                 dueDate: true,
                 priority: true,
+                isRecurring: true,
             }
         })
 

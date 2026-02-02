@@ -10,6 +10,7 @@ interface TodayTaskRowProps {
         completed: boolean
         priority?: string | null
         dueDate?: Date | null
+        isRecurring?: boolean
     }
 }
 
