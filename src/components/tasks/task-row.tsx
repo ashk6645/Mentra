@@ -181,29 +181,36 @@ export function TaskRow({ task }: TaskRowProps) {
                 tabIndex={0}
                 className={cn(
                     "group relative flex items-center gap-3 px-4 py-3.5 rounded-xl cursor-pointer",
-                    "bg-card border border-border/60", // Stronger border
-                    "transition-all duration-200",
-                    "hover:border-border hover:shadow-sm hover:-translate-y-0.5", // Lift on hover
-                    "focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary", // Clear focus
+                    "bg-card border transition-all duration-200",
+
+                    // Base border (overridden by specific states below)
+                    "border-border/60",
+
+                    // Hover state
+                    "hover:shadow-sm hover:-translate-y-0.5",
+
+                    // Focus state
+                    "focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary",
+
+                    // Completed state
                     task.completed && "opacity-60",
-                    isOverdue && "border-l-4 border-l-red-500 bg-red-50/30 dark:bg-red-950/10"
+
+                    // Priority & Status Indicators (Left Border)
+                    // Priority uses border-l-4 to curve perfectly with the container's radius
+                    !task.completed && (
+                        // Overdue State (Red)
+                        isOverdue ? "border-l-4 border-l-red-500 bg-red-50/30 dark:bg-red-950/10" :
+                            // Detailed/Selected State (Blue)
+                            isDetailed ? "border-l-4 border-l-blue-500" :
+                                // Priority States
+                                task.priority === 'urgent' ? "border-l-4 border-l-red-500" :
+                                    task.priority === 'high' ? "border-l-4 border-l-orange-500" :
+                                        task.priority === 'medium' ? "border-l-4 border-l-blue-500" :
+                                            task.priority === 'low' ? "border-l-4 border-l-gray-400" :
+                                                // Default Hover for non-priority tasks (optional, keeping clean for now)
+                                                "hover:border-border"
+                    )
                 )}>
-
-                {/* Priority left accent bar */}
-                {task.priority && !task.completed && !isOverdue && (
-                    <div className={cn(
-                        "absolute left-0 top-0 bottom-0 w-1 rounded-l-lg",
-                        task.priority === 'urgent' && "bg-red-500",
-                        task.priority === 'high' && "bg-orange-500",
-                        task.priority === 'medium' && "bg-blue-500",
-                        task.priority === 'low' && "bg-gray-400"
-                    )} />
-                )}
-
-                {/* Detail panel selection accent */}
-                {isDetailed && (
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-lg" />
-                )}
 
                 {/* Checkbox */}
                 <div onClick={(e) => e.stopPropagation()} className="shrink-0 flex items-center justify-center">
