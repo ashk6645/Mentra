@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { toggleTaskCompletion, deleteTask } from '@/lib/actions/tasks'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { MoreHorizontal, Trash, Clock, CheckSquare } from 'lucide-react'
+import { MoreHorizontal, Trash, Clock, CheckSquare, Repeat } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -94,7 +94,7 @@ export function TaskRow({ task }: TaskRowProps) {
         const now = new Date()
         const isOverdue = d < now && !task.completed
         const hasTime = d.getHours() !== 0 || d.getMinutes() !== 0
-        
+
         let text = ''
         if (isToday(d)) {
             text = hasTime ? format(d, 'h:mm a') : 'Today'
@@ -103,7 +103,7 @@ export function TaskRow({ task }: TaskRowProps) {
         } else {
             text = hasTime ? `${format(d, 'MMM d')} ${format(d, 'h:mm a')}` : format(d, 'MMM d')
         }
-        
+
         return { text, isOverdue }
     }
 
@@ -121,12 +121,12 @@ export function TaskRow({ task }: TaskRowProps) {
                     "group relative flex items-center gap-3 px-4 py-3.5 bg-card border border-border/40 rounded-lg cursor-pointer transition-colors hover:bg-accent/5",
                     task.completed && "bg-muted/30"
                 )}>
-                
+
                 {/* Left accent bar - only shows when selected */}
                 {isSelected && (
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-lg" />
                 )}
-                
+
                 {/* Checkbox */}
                 <div onClick={(e) => e.stopPropagation()} className="shrink-0">
                     <Checkbox
@@ -156,7 +156,7 @@ export function TaskRow({ task }: TaskRowProps) {
                             </div>
                         )}
                     </div>
-                    
+
                     {/* Description */}
                     {task.description && (
                         <p className="text-sm text-muted-foreground/80 leading-relaxed line-clamp-1">
@@ -168,16 +168,16 @@ export function TaskRow({ task }: TaskRowProps) {
                 {/* Right side metadata */}
                 <div className="flex items-center gap-2 shrink-0">
                     {/* Due date */}
-                    {dueDateInfo && (
+                    {(dueDateInfo || task.isRecurring) && (
                         <div className={cn(
                             "flex items-center gap-1.5 text-xs font-medium",
-                            dueDateInfo.isOverdue ? "text-red-500" : "text-muted-foreground"
+                            dueDateInfo?.isOverdue ? "text-red-500" : "text-muted-foreground"
                         )}>
-                            <Clock className="h-3.5 w-3.5" />
-                            <span>{dueDateInfo.text}</span>
+                            {task.isRecurring ? <Repeat className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
+                            <span>{dueDateInfo?.text || (task.isRecurring ? 'Recurring' : '')}</span>
                         </div>
                     )}
-                    
+
                     {/* Priority badge */}
                     {priorityStyles && (
                         <div className={cn(
@@ -192,9 +192,9 @@ export function TaskRow({ task }: TaskRowProps) {
                     {/* More menu */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button 
-                                variant="ghost" 
-                                size="icon" 
+                            <Button
+                                variant="ghost"
+                                size="icon"
                                 className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                             >
                                 <MoreHorizontal className="h-4 w-4" />

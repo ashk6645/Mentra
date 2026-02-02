@@ -59,6 +59,10 @@ export function CreateTaskInline({
         priority?: 'low' | 'medium' | 'high' | 'urgent' | null
         tagIds?: string[]
         scheduledTime?: string
+        isRecurring?: boolean
+        recurrenceInterval?: 'daily' | 'weekly' | 'monthly' | 'yearly'
+        recurrenceStep?: number
+        recurrenceDays?: number[]
     }) {
         try {
             setIsSubmitting(true)

@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { Task } from '@prisma/client'
 import { awardXP, updateStreak } from '@/lib/actions/gamification'
 import { AppError, ErrorCodes, ErrorMessages } from '@/lib/error-handler'
+import { addDays, addWeeks, addMonths, addYears } from 'date-fns'
 
 // Schemas
 const createTaskSchema = z.object({
@@ -18,6 +19,12 @@ const createTaskSchema = z.object({
     scheduledEnd: z.string().optional().nullable(), // ISO string for scheduled end time
     durationMinutes: z.number().optional(),
     tagIds: z.array(z.string()).optional(),
+    // Recurrence
+    isRecurring: z.boolean().optional(),
+    recurrenceInterval: z.enum(['daily', 'weekly', 'monthly', 'yearly']).optional().nullable(),
+    recurrenceStep: z.number().optional(),
+    recurrenceDays: z.array(z.number()).optional(),
+    recurrenceEnd: z.string().optional().nullable(),
 })
 
 const updateTaskSchema = createTaskSchema.partial().extend({
@@ -90,6 +97,12 @@ export async function getTasks(options: GetTasksOptions = {}) {
                 sortOrder: true,
                 createdAt: true,
                 updatedAt: true,
+                // Recurrence
+                isRecurring: true,
+                recurrenceInterval: true,
+                recurrenceStep: true,
+                recurrenceDays: true,
+                recurrenceEnd: true,
                 tags: {
                     select: {
                         tag: {
@@ -242,7 +255,13 @@ export async function createTask(data: CreateTaskInput) {
                     create: result.data.tagIds.map(tagId => ({
                         tag: { connect: { id: tagId } }
                     }))
-                } : undefined
+                } : undefined,
+                // Recurrence
+                isRecurring: result.data.isRecurring || false,
+                recurrenceInterval: result.data.recurrenceInterval,
+                recurrenceStep: result.data.recurrenceStep,
+                recurrenceDays: result.data.recurrenceDays,
+                recurrenceEnd: result.data.recurrenceEnd ? new Date(result.data.recurrenceEnd) : null,
             },
         })
 
@@ -414,9 +433,11 @@ export async function toggleTaskCompletion(id: string, completed: boolean) {
             return { success: false, error: 'Unauthorized' }
         }
 
+
+
+        // Need more fields for recurrence logic
         const currentTask = await prisma.task.findUnique({
             where: { id },
-            select: { userId: true }
         })
 
         if (!currentTask) return { success: false, error: 'Task not found' }
@@ -429,6 +450,11 @@ export async function toggleTaskCompletion(id: string, completed: boolean) {
                 completedAt: completed ? new Date() : null,
             }
         })
+
+        // Handle Recurrence (Loop)
+        if (completed && currentTask.isRecurring && currentTask.recurrenceInterval && currentTask.dueDate) {
+            await handleRecurringTaskCompletion(currentTask, user.id)
+        }
 
         // Award XP and update streak if task was just completed
         if (completed) {
@@ -555,6 +581,11 @@ export async function createTaskFromNaturalLanguage(input: string) {
                 title: parsed.title,
                 priority: parsed.priority,
                 dueDate: parsed.dueDate,
+                // Recurrence
+                isRecurring: !!parsed.recurrence,
+                recurrenceInterval: parsed.recurrence?.interval,
+                recurrenceStep: parsed.recurrence?.step,
+                recurrenceDays: parsed.recurrence?.days || [],
                 tags: tagIds.length > 0
                     ? {
                         create: tagIds.map((tagId) => ({
@@ -649,6 +680,7 @@ export async function searchTasks(query: string) {
                 completed: true,
                 dueDate: true,
                 priority: true,
+                isRecurring: true,
             }
         })
 
@@ -722,5 +754,67 @@ export async function getSidebarCounts() {
     } catch (error) {
         console.error('getSidebarCounts: Database error', error)
         return { success: false, error: 'Failed to fetch counts', data: { inbox: 0, today: 0, overdue: 0 } }
+    }
+}
+
+/**
+ * Handle logic for completing a recurring task
+ * Creates the next instance of the task
+ */
+async function handleRecurringTaskCompletion(task: Task, userId: string) {
+    try {
+        if (!task.dueDate || !task.recurrenceInterval) return
+
+        let nextDate = new Date(task.dueDate)
+        const step = task.recurrenceStep || 1
+
+        // Calculate next date based on interval
+        switch (task.recurrenceInterval) {
+            case 'daily':
+                nextDate = addDays(nextDate, step)
+                break
+            case 'weekly':
+                nextDate = addWeeks(nextDate, step)
+                break
+            case 'monthly':
+                nextDate = addMonths(nextDate, step)
+                break
+            case 'yearly':
+                nextDate = addYears(nextDate, step)
+                break
+        }
+
+        // If recurrence end date is set and passed, stop
+        if (task.recurrenceEnd && nextDate > task.recurrenceEnd) {
+            return
+        }
+
+        // Create the new task
+        await prisma.task.create({
+            data: {
+                userId,
+                title: task.title,
+                description: task.description,
+                priority: task.priority,
+                dueDate: nextDate,
+                // Inherit recurrence settings
+                isRecurring: true,
+                recurrenceInterval: task.recurrenceInterval,
+                recurrenceStep: task.recurrenceStep,
+                recurrenceDays: task.recurrenceDays,
+                recurrenceEnd: task.recurrenceEnd,
+                // Copy tags
+                tags: {
+                    create: (await prisma.taskTag.findMany({
+                        where: { taskId: task.id },
+                        select: { tagId: true }
+                    })).map(tt => ({
+                        tag: { connect: { id: tt.tagId } }
+                    }))
+                }
+            }
+        })
+    } catch (error) {
+        console.error('Failed to create next recurring task:', error)
     }
 }
