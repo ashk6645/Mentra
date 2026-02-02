@@ -119,7 +119,6 @@ export async function toggleTagOnTask(taskId: string, tagId: string) {
         }
 
         revalidatePath('/tasks')
-        revalidatePath('/dashboard')
         return { success: true }
     } catch (error) {
         return { error: 'Failed to toggle tag' }

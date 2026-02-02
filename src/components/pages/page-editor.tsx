@@ -116,6 +116,13 @@ export function PageEditor({ page }: PageEditorProps) {
         router.refresh()
     }
 
+    const handleIconChange = async (newIcon: string) => {
+        if (!canEdit) return
+        setIcon(newIcon)
+        await updatePage(page.id, { icon: newIcon })
+        router.refresh()
+    }
+
     const handleAddCover = async () => {
         if (!canEdit) return
         const defaultCover = 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'

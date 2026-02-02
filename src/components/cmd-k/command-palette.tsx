@@ -108,7 +108,6 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
 
 
     const mainNav = [
-        { name: "Dashboard", icon: Layout, route: "/dashboard" },
         { name: "All Tasks", icon: CheckSquare, route: "/tasks" },
         { name: "Today", icon: CalendarIcon, route: "/today" },
         { name: "Upcoming", icon: Rocket, route: "/upcoming" },

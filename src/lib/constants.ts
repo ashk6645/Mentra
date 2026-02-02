@@ -18,7 +18,6 @@ export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
   SIGNUP: '/signup',
-  DASHBOARD: '/dashboard',
   INBOX: '/inbox',
   TODAY: '/today',
   UPCOMING: '/upcoming',
@@ -28,7 +27,7 @@ export const ROUTES = {
 } as const
 
 export const AUTH_ROUTES = ['/login', '/signup']
-export const PROTECTED_ROUTES = ['/dashboard', '/inbox', '/today', '/upcoming', '/tasks', '/habits', '/focus']
+export const PROTECTED_ROUTES = ['/inbox', '/today', '/upcoming', '/tasks', '/habits', '/focus']
 
 // ========================================
 // GAMIFICATION CONSTANTS
