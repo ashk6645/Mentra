@@ -161,7 +161,6 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, counts
 
         { label: 'Calendar', icon: Calendar, href: '/calendar' },
         { label: 'Focus', icon: Timer, href: '/focus' },
-        { label: 'Habits', icon: Target, href: '/habits' },
     ]
 
     const sidebarContent = (

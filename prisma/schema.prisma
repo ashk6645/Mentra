@@ -22,7 +22,7 @@ model Profile {
   // Relations
   tasks                   Task[]
   tags                    Tag[]
-  habits                  Habit[]
+
   focusSessions           FocusSession[]
   aiLogs                  AIActivityLog[]
   pages                   Page[]
@@ -183,42 +183,7 @@ model PushSubscription {
   @@map("push_subscriptions")
 }
 
-// 10. Habits
-model Habit {
-  id            String   @id @default(uuid())
-  userId        String   @map("user_id")
-  name          String
-  description   String?
-  frequency     String // 'daily', 'weekly', 'custom'
-  targetDays    Int[]    @map("target_days")
-  icon          String?
-  color         String?
-  currentStreak Int      @default(0) @map("current_streak")
-  bestStreak    Int      @default(0) @map("best_streak")
-  isActive      Boolean  @default(true) @map("is_active")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
 
-  // Relations
-  user        Profile           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  completions HabitCompletion[]
-
-  @@map("habits")
-}
-
-// 9. Habit Completions
-model HabitCompletion {
-  id          String   @id @default(uuid())
-  habitId     String   @map("habit_id")
-  completedAt DateTime @default(now()) @map("completed_at") @db.Timestamptz
-  notes       String?
-
-  // Relations
-  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
-
-  @@index([habitId])
-  @@map("habit_completions")
-}
 
 // 10. Focus Sessions
 model FocusSession {
@@ -438,7 +403,7 @@ enum BlockType {
 enum SourceType {
   TASKS
   // PROJECTS removed
-  HABITS
+
 }
 
 enum ViewType {
