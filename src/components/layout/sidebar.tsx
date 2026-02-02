@@ -47,6 +47,7 @@ import {
 import { ProfileDialog } from '@/components/profile/profile-dialog'
 import { CreateProjectDialog } from '@/components/projects/create-project-dialog'
 import { ProjectRow } from '@/components/projects/project-row'
+import { type Project } from '@/lib/actions/projects'
 
 interface PageItem {
     id: string
@@ -57,25 +58,11 @@ interface PageItem {
     isShared?: boolean
 }
 
-interface ProjectItem {
-    id: string
-    name: string
-    icon: string | null
-    color: string
-    description?: string | null
-    isFavorited?: boolean
-    isArchived?: boolean
-    sortOrder?: number
-    createdAt?: Date
-    updatedAt?: Date
-    taskCount?: number
-}
-
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     user: any
     onOpenCommand?: () => void
     initialPages?: PageItem[]
-    initialProjects?: ProjectItem[]
+    initialProjects?: Project[]
     counts?: {
         inbox: number
         today: number
@@ -97,9 +84,9 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, initia
 
     const [showProfileDialog, setShowProfileDialog] = useState(false)
     const [pages, setPages] = useState<PageItem[]>(initialPages || [])
-    const [projects, setProjects] = useState<ProjectItem[]>(initialProjects || [])
+    const [projects, setProjects] = useState<Project[]>(initialProjects || [])
     const [showNewProjectDialog, setShowNewProjectDialog] = useState(false)
-    const [editingProject, setEditingProject] = useState<ProjectItem | null>(null)
+    const [editingProject, setEditingProject] = useState<Project | null>(null)
 
     // Reset expanded states when sidebar collapses to keep UI clean
     useEffect(() => {

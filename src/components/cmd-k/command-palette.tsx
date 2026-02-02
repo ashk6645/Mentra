@@ -13,7 +13,8 @@ import {
     User,
     CheckSquare,
     Layout,
-    Search
+    Search,
+    FolderKanban
 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
@@ -29,12 +30,15 @@ import {
     CommandShortcut,
 } from "@/components/ui/command"
 import { searchTasks } from "@/lib/actions/tasks"
+import { getProjects } from "@/lib/actions/projects"
 import { cn } from "@/lib/utils"
 
 interface Project {
     id: string
     name: string
-    color: string | null
+    icon: string | null
+    color: string
+    taskCount?: number
 }
 
 export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean) => void }) {
@@ -52,6 +56,7 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
         dueDate: Date | null
     }[]>([])
     const [isSearching, setIsSearching] = React.useState(false)
+    const [projects, setProjects] = React.useState<Project[]>([])
 
     const handleOpenChange = (newOpen: boolean) => {
         setOpen(newOpen)
@@ -95,6 +100,21 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
         return () => clearTimeout(timer)
     }, [query])
 
+    // Fetch projects on mount
+    React.useEffect(() => {
+        async function fetchProjects() {
+            try {
+                const result = await getProjects()
+                if (result.success && result.data) {
+                    setProjects(result.data)
+                }
+            } catch (error) {
+                console.error('Failed to fetch projects', error)
+            }
+        }
+        fetchProjects()
+    }, [])
+
     const runCommand = React.useCallback((command: () => unknown) => {
         handleOpenChange(false)
         command()
@@ -108,10 +128,13 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
 
 
     const mainNav = [
-
         { name: "Today", icon: CalendarIcon, route: "/today" },
         { name: "Upcoming", icon: Rocket, route: "/upcoming" },
     ].filter(item => filterStatic(item.name))
+
+    const filteredProjects = projects.filter(project =>
+        filterStatic(project.name)
+    )
 
     const themes = [
         { name: "Light", icon: Sun, value: "light" },
@@ -164,6 +187,30 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
                                 </CommandItem>
                             ))}
                         </CommandGroup>
+                    )}
+
+                    {/* Projects */}
+                    {filteredProjects.length > 0 && (
+                        <>
+                            {(tasks.length > 0 || mainNav.length > 0) && <CommandSeparator />}
+                            <CommandGroup heading="Projects">
+                                {filteredProjects.map(project => (
+                                    <CommandItem
+                                        key={project.id}
+                                        onSelect={() => runCommand(() => router.push(`/projects/${project.id}`))}
+                                    >
+                                        <FolderKanban className="mr-2 h-4 w-4" />
+                                        <span className="mr-2">{project.icon || '📁'}</span>
+                                        <span className="truncate flex-1">{project.name}</span>
+                                        {project.taskCount !== undefined && project.taskCount > 0 && (
+                                            <span className="text-xs text-muted-foreground">
+                                                {project.taskCount}
+                                            </span>
+                                        )}
+                                    </CommandItem>
+                                ))}
+                            </CommandGroup>
+                        </>
                     )}
 
 

@@ -1,9 +1,12 @@
 import { notFound, redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/user-session'
 import { getProject } from '@/lib/actions/projects'
+import { getSections } from '@/lib/actions/sections'
 import { getTasksByProject } from '@/lib/actions/tasks'
 import { SortableTaskList } from '@/components/tasks/sortable-task-list'
 import { CreateTaskInline } from '@/components/tasks/create-task-inline'
+import { SectionHeader } from '@/components/projects/section-header'
+import { AddSectionButton } from '@/components/projects/add-section-button'
 import { MoreHorizontal, Edit2, Archive, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,12 +18,13 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 interface ProjectPageProps {
-    params: {
+    params: Promise<{
         id: string
-    }
+    }>
 }
 
-export default async function ProjectPage({ params }: ProjectPageProps) {
+export default async function ProjectPage(props: ProjectPageProps) {
+    const params = await props.params
     const user = await getCurrentUser()
 
     if (!user) {
@@ -36,13 +40,33 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
     const project = projectResult.data
 
+    // Fetch sections for this project
+    const sectionsResult = await getSections(params.id)
+    const sections = (sectionsResult.success && sectionsResult.data) ? sectionsResult.data : []
+
     // Fetch tasks for this project
     const tasksResult = await getTasksByProject(params.id)
-    const tasks = tasksResult.success ? tasksResult.data : []
+    const tasks = (tasksResult.success && tasksResult.data) ? tasksResult.data : []
 
-    // Separate active and completed tasks
-    const activeTasks = tasks.filter(t => !t.completed)
-    const completedTasks = tasks.filter(t => t.completed)
+    // Group tasks by section
+    const tasksBySection = tasks.reduce((acc, task) => {
+        const sectionId = task.sectionId || 'no-section'
+        if (!acc[sectionId]) {
+            acc[sectionId] = []
+        }
+        acc[sectionId].push(task)
+        return acc
+    }, {} as Record<string, typeof tasks>)
+
+    // Separate active and completed tasks for each section
+    const getActiveTasks = (sectionId: string) =>
+        (tasksBySection[sectionId] || []).filter(t => !t.completed)
+
+    const getCompletedTasks = (sectionId: string) =>
+        (tasksBySection[sectionId] || []).filter(t => t.completed)
+
+    const totalActiveTasks = tasks.filter(t => !t.completed).length
+    const totalCompletedTasks = tasks.filter(t => t.completed).length
 
     return (
         <div className="h-full flex flex-col">
@@ -67,9 +91,15 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                                     </p>
                                 )}
                                 <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                                    <span>{activeTasks.length} active</span>
+                                    <span>{totalActiveTasks} active</span>
                                     <span>•</span>
-                                    <span>{completedTasks.length} completed</span>
+                                    <span>{totalCompletedTasks} completed</span>
+                                    {sections.length > 0 && (
+                                        <>
+                                            <span>•</span>
+                                            <span>{sections.length} {sections.length === 1 ? 'section' : 'sections'}</span>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -112,25 +142,82 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                         />
                     </div>
 
-                    {/* Active Tasks */}
-                    {activeTasks.length > 0 && (
+                    {/* Sections */}
+                    {sections.map((section) => {
+                        const activeTasks = getActiveTasks(section.id)
+                        const completedTasks = getCompletedTasks(section.id)
+                        const totalTasks = activeTasks.length + completedTasks.length
+
+                        return (
+                            <div key={section.id} className="mb-8">
+                                <SectionHeader
+                                    section={section}
+                                    taskCount={totalTasks}
+                                />
+
+                                {/* Section Quick Add */}
+                                <div className="mb-3 ml-6">
+                                    <CreateTaskInline
+                                        defaultProjectId={params.id}
+                                        defaultSectionId={section.id}
+                                        placeholder={`Add a task to ${section.name}...`}
+                                        variant="compact"
+                                    />
+                                </div>
+
+                                {/* Active Tasks in Section */}
+                                {activeTasks.length > 0 && (
+                                    <div className="mb-4 ml-6">
+                                        <SortableTaskList tasks={activeTasks} />
+                                    </div>
+                                )}
+
+                                {/* Completed Tasks in Section */}
+                                {completedTasks.length > 0 && (
+                                    <div className="ml-6">
+                                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                                            Completed
+                                        </h4>
+                                        <SortableTaskList tasks={completedTasks} />
+                                    </div>
+                                )}
+                            </div>
+                        )
+                    })}
+
+                    {/* No Section Tasks */}
+                    {tasksBySection['no-section'] && tasksBySection['no-section'].length > 0 && (
                         <div className="mb-8">
-                            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                                Active Tasks
-                            </h2>
-                            <SortableTaskList tasks={activeTasks} />
+                            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 py-3 px-1">
+                                No Section
+                                <span className="ml-2 text-xs">
+                                    {tasksBySection['no-section'].length}
+                                </span>
+                            </h3>
+
+                            {/* Active Tasks */}
+                            {getActiveTasks('no-section').length > 0 && (
+                                <div className="mb-4">
+                                    <SortableTaskList tasks={getActiveTasks('no-section')} />
+                                </div>
+                            )}
+
+                            {/* Completed Tasks */}
+                            {getCompletedTasks('no-section').length > 0 && (
+                                <div>
+                                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                                        Completed
+                                    </h4>
+                                    <SortableTaskList tasks={getCompletedTasks('no-section')} />
+                                </div>
+                            )}
                         </div>
                     )}
 
-                    {/* Completed Tasks */}
-                    {completedTasks.length > 0 && (
-                        <div>
-                            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                                Completed
-                            </h2>
-                            <SortableTaskList tasks={completedTasks} />
-                        </div>
-                    )}
+                    {/* Add Section Button */}
+                    <div className="mb-6">
+                        <AddSectionButton projectId={params.id} />
+                    </div>
 
                     {/* Empty State */}
                     {tasks.length === 0 && (
