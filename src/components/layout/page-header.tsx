@@ -12,72 +12,64 @@ export function PageHeader({ title, description, icon: Icon, actions, className 
     // Page-specific styling for personality
     const getPageStyle = () => {
         if (title === 'Today') return {
-            iconBg: 'bg-gradient-to-br from-orange-400/10 to-amber-400/10 border-orange-200/40 dark:border-orange-800/40',
-            iconColor: 'text-orange-500',
-            pageBg: 'bg-gradient-to-b from-orange-50/30 to-transparent dark:from-orange-950/10'
+            icon: 'bg-gradient-to-br from-orange-500/10 to-amber-500/10 text-orange-600 border-orange-200/30 dark:border-orange-800/30',
+            glow: 'bg-gradient-to-b from-orange-50/20 via-transparent to-transparent dark:from-orange-950/10'
         }
         if (title === 'Inbox') return {
-            iconBg: 'bg-gradient-to-br from-blue-400/10 to-cyan-400/10 border-blue-200/40 dark:border-blue-800/40',
-            iconColor: 'text-blue-500',
-            pageBg: 'bg-gradient-to-b from-blue-50/30 to-transparent dark:from-blue-950/10'
+            icon: 'bg-gradient-to-br from-blue-500/10 to-cyan-500/10 text-blue-600 border-blue-200/30 dark:border-blue-800/30',
+            glow: 'bg-gradient-to-b from-blue-50/20 via-transparent to-transparent dark:from-blue-950/10'
         }
         if (title === 'Upcoming') return {
-            iconBg: 'bg-gradient-to-br from-purple-400/10 to-pink-400/10 border-purple-200/40 dark:border-purple-800/40',
-            iconColor: 'text-purple-500',
-            pageBg: 'bg-gradient-to-b from-purple-50/30 to-transparent dark:from-purple-950/10'
+            icon: 'bg-gradient-to-br from-violet-500/10 to-purple-500/10 text-violet-600 border-violet-200/30 dark:border-violet-800/30',
+            glow: 'bg-gradient-to-b from-violet-50/20 via-transparent to-transparent dark:from-violet-950/10'
         }
         if (title === 'Completed') return {
-            iconBg: 'bg-gradient-to-br from-green-400/10 to-emerald-400/10 border-green-200/40 dark:border-green-800/40',
-            iconColor: 'text-green-500',
-            pageBg: 'bg-gradient-to-b from-green-50/30 to-transparent dark:from-green-950/10'
+            icon: 'bg-gradient-to-br from-emerald-500/10 to-green-500/10 text-emerald-600 border-emerald-200/30 dark:border-emerald-800/30',
+            glow: 'bg-gradient-to-b from-emerald-50/20 via-transparent to-transparent dark:from-emerald-950/10'
         }
         if (title === 'Calendar') return {
-            iconBg: 'bg-gradient-to-br from-indigo-400/10 to-blue-400/10 border-indigo-200/40 dark:border-indigo-800/40',
-            iconColor: 'text-indigo-500',
-            pageBg: 'bg-gradient-to-b from-indigo-50/30 to-transparent dark:from-indigo-950/10'
+            icon: 'bg-gradient-to-br from-indigo-500/10 to-blue-500/10 text-indigo-600 border-indigo-200/30 dark:border-indigo-800/30',
+            glow: 'bg-gradient-to-b from-indigo-50/20 via-transparent to-transparent dark:from-indigo-950/10'
         }
         if (title === 'Focus') return {
-            iconBg: 'bg-gradient-to-br from-rose-400/10 to-red-400/10 border-rose-200/40 dark:border-rose-800/40',
-            iconColor: 'text-rose-500',
-            pageBg: 'bg-gradient-to-b from-rose-50/30 to-transparent dark:from-rose-950/10'
+            icon: 'bg-gradient-to-br from-rose-500/10 to-red-500/10 text-rose-600 border-rose-200/30 dark:border-rose-800/30',
+            glow: 'bg-gradient-to-b from-rose-50/20 via-transparent to-transparent dark:from-rose-950/10'
         }
         // Default styling
         return {
-            iconBg: 'bg-primary/10 border-border/40',
-            iconColor: 'text-primary',
-            pageBg: ''
+            icon: 'bg-primary/10 text-primary border-border/30',
+            glow: ''
         }
     }
 
     const style = getPageStyle()
 
     return (
-        <div className={cn("relative", className)}>
-            {/* Subtle page background gradient */}
-            <div className={cn("absolute inset-0 -top-6 -z-10 h-32 rounded-t-3xl", style.pageBg)} />
+        <div className={cn("relative mb-10", className)}>
+            {/* Subtle page-specific glow */}
+            {style.glow && (
+                <div className={cn("absolute -inset-x-4 -top-6 h-32 -z-10 rounded-t-3xl", style.glow)} />
+            )}
             
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     {Icon && (
                         <div className={cn(
-                            "flex items-center justify-center w-12 h-12 rounded-xl",
-                            "shadow-sm border",
-                            style.iconBg
+                            "flex items-center justify-center w-11 h-11 rounded-xl shadow-sm border",
+                            style.icon
                         )}>
-                            <Icon className={cn("w-6 h-6", style.iconColor)} />
+                            <Icon className="w-6 h-6" />
                         </div>
                     )}
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
                         {description && (
-                            <p className="text-sm text-muted-foreground mt-0.5">
-                                {description}
-                            </p>
+                            <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
                         )}
                     </div>
                 </div>
                 
-                {actions && <div className="flex items-center gap-2">{actions}</div>}
+                {actions}
             </div>
         </div>
     )

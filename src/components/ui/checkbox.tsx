@@ -19,10 +19,10 @@ function Checkbox({
       checked={indeterminate ? 'indeterminate' : checked}
       className={cn(
         // Design system: 24px visual, 44px touch target (accessibility), 4px border radius
-        "peer border-input bg-background data-[state=checked]:bg-success data-[state=checked]:text-success-foreground data-[state=checked]:border-success size-6 shrink-0 rounded border transition-quick outline-none focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        "peer border-input bg-background data-[state=checked]:bg-success data-[state=checked]:text-white data-[state=checked]:border-success size-6 shrink-0 rounded border transition-quick outline-none focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
         // Scale animation on check (playful bounce: 1.0 → 1.1 → 1.0)
         "data-[state=checked]:animate-in data-[state=checked]:zoom-in-90",
-        "data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground",
+        "data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-white",
         // Invalid state
         "aria-invalid:border-destructive aria-invalid:focus-visible:outline-destructive",
         className

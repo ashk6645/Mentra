@@ -210,7 +210,7 @@ export function TaskRow({ task }: TaskRowProps) {
                         checked={task.completed}
                         onCheckedChange={handleToggle}
                         disabled={isPending}
-                        className="h-5 w-5 rounded-full border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                        className="h-5 w-5 rounded-full border-2 border-muted-foreground/40 hover:border-muted-foreground/60 data-[state=checked]:bg-success data-[state=checked]:border-success"
                     />
                 </div>
 
