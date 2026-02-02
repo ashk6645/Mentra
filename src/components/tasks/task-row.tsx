@@ -19,6 +19,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { DeleteTaskDialog } from './delete-task-dialog'
 import { useTaskDetailStore } from '@/stores/use-task-detail-store'
+import { useTaskSelectionStore } from '@/stores/use-task-selection-store'
+
 
 interface TaskRowProps {
     task: any // Using any to avoid type conflicts with shared components for now
@@ -29,7 +31,11 @@ export function TaskRow({ task }: TaskRowProps) {
     const [isPending, setIsPending] = useState(false)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const { selectedTaskId } = useTaskDetailStore()
-    const isSelected = selectedTaskId === task.id
+    const isDetailed = selectedTaskId === task.id
+
+    const { selectedIds, toggleSelection } = useTaskSelectionStore()
+    const isMultiSelected = selectedIds.has(task.id)
+    const isSelectionMode = selectedIds.size > 0
 
     const [scope, animate] = useAnimate()
 
@@ -164,8 +170,8 @@ export function TaskRow({ task }: TaskRowProps) {
                     isOverdue && "border-l-4 border-l-red-500/50 bg-red-50/50 dark:bg-red-950/20"
                 )}>
 
-                {/* Left accent bar - only shows when selected */}
-                {isSelected && (
+                {/* Left accent bar - only shows when detailed (focused) */}
+                {isDetailed && (
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-lg" />
                 )}
 
@@ -176,6 +182,18 @@ export function TaskRow({ task }: TaskRowProps) {
                         onCheckedChange={handleToggle}
                         disabled={isPending}
                         className="h-5 w-5 rounded-full border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                    />
+                </div>
+
+                {/* Bulk Selection Checkbox - Visible on hover or when selected or in selection mode */}
+                <div onClick={(e) => e.stopPropagation()} className={cn(
+                    "shrink-0 transition-all duration-200",
+                    isMultiSelected || isSelectionMode ? "w-5 opacity-100" : "w-0 opacity-0 group-hover:w-5 group-hover:opacity-100 overflow-hidden"
+                )}>
+                    <Checkbox
+                        checked={isMultiSelected}
+                        onCheckedChange={() => toggleSelection(task.id)}
+                        className="h-5 w-5 border-2 border-muted-foreground/30 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
                     />
                 </div>
 

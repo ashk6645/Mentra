@@ -739,6 +739,70 @@ export async function getSidebarCounts() {
     }
 }
 
+export async function bulkUpdateTasks(ids: string[], data: Partial<UpdateTaskInput>) {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            return { success: false, error: 'Unauthorized' }
+        }
+
+        if (ids.length === 0) return { success: true }
+
+        // Construct update data
+        const updateData: any = {}
+        if (data.priority !== undefined && data.priority !== null) updateData.priority = data.priority
+        if (data.dueDate !== undefined) updateData.dueDate = data.dueDate ? new Date(data.dueDate) : null
+        if (data.completed !== undefined) {
+            updateData.completed = data.completed
+            updateData.completedAt = data.completed ? new Date() : null
+        }
+
+        await prisma.task.updateMany({
+            where: {
+                id: { in: ids },
+                userId: user.id
+            },
+            data: updateData
+        })
+
+            ; (revalidateTag as any)(`tasks-${user.id}`)
+        revalidatePath('/', 'layout')
+        return { success: true }
+    } catch (error) {
+        console.error('bulkUpdateTasks error:', error)
+        return { success: false, error: 'Failed to update tasks' }
+    }
+}
+
+export async function bulkDeleteTasks(ids: string[]) {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            return { success: false, error: 'Unauthorized' }
+        }
+
+        if (ids.length === 0) return { success: true }
+
+        await prisma.task.deleteMany({
+            where: {
+                id: { in: ids },
+                userId: user.id
+            }
+        })
+
+            ; (revalidateTag as any)(`tasks-${user.id}`)
+        revalidatePath('/', 'layout')
+        return { success: true }
+    } catch (error) {
+        console.error('bulkDeleteTasks error:', error)
+        return { success: false, error: 'Failed to delete tasks' }
+    }
+}
+
 /**
  * Handle logic for completing a recurring task
  * Creates the next instance of the task
