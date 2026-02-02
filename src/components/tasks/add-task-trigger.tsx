@@ -51,14 +51,58 @@ export function AddTaskTrigger({
             onClick={onClick}
             suppressHydrationWarning={true}
             className={cn(
-                "flex-1 flex items-center gap-3 p-4 rounded-lg border border-dashed border-muted-foreground/30 hover:bg-muted/50 transition-colors cursor-pointer text-muted-foreground hover:text-foreground group",
+                "relative group",
+                "flex items-center gap-3",
+                "px-4 py-3 mx-1", // Added mx-1 to align visually with rows that have borders
+                "rounded-xl",
+                "border-2 border-dashed border-border/40",
+                "bg-muted/10", // Subtle background
+                "transition-all duration-200 ease-out",
+                "cursor-text", // Feels like an input
+
+                // Hover state - becomes solid and lifts slightly
+                "hover:border-solid",
+                "hover:border-primary/20",
+                "hover:bg-background",
+                "hover:shadow-sm",
+                "hover:-translate-y-0.5",
+
                 className
             )}
         >
-            <div className="h-5 w-5 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center group-hover:border-primary/50 group-hover:bg-primary/10 transition-colors">
-                <Plus className="h-3 w-3 group-hover:text-primary transition-colors" />
-            </div>
-            <span className="font-medium">{label}</span>
+            {/* Plus icon */}
+            <Plus className={cn(
+                "h-5 w-5",
+                "text-muted-foreground/40",
+                "transition-colors duration-200",
+                "group-hover:text-primary/70"
+            )} />
+
+            {/* Label acting as placeholder */}
+            <span className={cn(
+                "flex-1 font-medium text-[15px]",
+                "text-muted-foreground/60",
+                "transition-colors duration-200",
+                "group-hover:text-foreground/80"
+            )}>
+                {label}
+            </span>
+
+            {/* Keyboard hint (only show on hover) */}
+            <kbd className={cn(
+                "hidden sm:inline-flex items-center justify-center",
+                "px-2 py-1",
+                "h-5 min-w-[20px]",
+                "rounded-[4px]",
+                "border border-border/30",
+                "bg-muted/30",
+                "text-[10px] font-mono font-medium text-muted-foreground/40",
+                "opacity-0 group-hover:opacity-100",
+                "transition-all duration-200",
+                "translate-x-2 group-hover:translate-x-0" // Slide in effect
+            )}>
+                Q
+            </kbd>
         </div>
     )
 }

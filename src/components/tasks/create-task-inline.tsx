@@ -14,7 +14,9 @@ import { AddTaskTrigger } from './add-task-trigger'
 
 interface CreateTaskInlineProps {
     defaultStatus?: string
-
+    defaultProjectId?: string
+    defaultSectionId?: string
+    placeholder?: string
     onTaskCreated?: (task: any) => void
     className?: string
     variant?: 'inline' | 'compact' | 'ghost'
@@ -23,6 +25,9 @@ interface CreateTaskInlineProps {
 
 export function CreateTaskInline({
     defaultStatus,
+    defaultProjectId,
+    defaultSectionId,
+    placeholder,
     onTaskCreated,
     className,
     variant = 'inline',
@@ -73,6 +78,8 @@ export function CreateTaskInline({
                 priority: data.priority || undefined,
                 dueDate: data.dueDate ? data.dueDate.toISOString() : undefined,
                 reminderPattern: data.reminderPattern,
+                projectId: defaultProjectId,
+                sectionId: defaultSectionId,
             })
 
             if (result.success) {

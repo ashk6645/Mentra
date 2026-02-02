@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { CalendarIcon, Flag, Inbox, Clock, X, ChevronDown, Check, Bell } from 'lucide-react'
+import { CalendarIcon, Flag, Inbox, Clock, X, ChevronDown, Check, Bell, FolderKanban, Layers } from 'lucide-react'
 import { format } from 'date-fns'
 
 import { cn } from '@/lib/utils'
@@ -24,8 +24,9 @@ import {
 import { Badge } from '@/components/ui/badge'
 
 export interface TaskEditorProps {
-
     availableTags?: { id: string; name: string }[]
+    defaultProjectId?: string
+    defaultSectionId?: string
 
     onCancel?: () => void
     onSubmit: (data: {
@@ -40,6 +41,8 @@ export interface TaskEditorProps {
         recurrenceStep?: number
         recurrenceDays?: number[]
         reminderPattern?: string
+        projectId?: string
+        sectionId?: string
     }) => void
     isSubmitting?: boolean
 }
@@ -53,6 +56,8 @@ const priorities = [
 
 export function TaskEditor({
     availableTags = [],
+    defaultProjectId,
+    defaultSectionId,
     onCancel,
     onSubmit,
     isSubmitting = false
@@ -67,6 +72,10 @@ export function TaskEditor({
         days?: number[]
     } | undefined>(undefined)
     const [reminderPattern, setReminderPattern] = useState<string | undefined>(undefined)
+    const [projectId, setProjectId] = useState<string | undefined>(defaultProjectId)
+    const [sectionId, setSectionId] = useState<string | undefined>(defaultSectionId)
+    const [availableProjects, setAvailableProjects] = useState<{ id: string; name: string; icon: string | null; color: string }[]>([])
+    const [availableSections, setAvailableSections] = useState<{ id: string; name: string }[]>([])
 
     // Clean title for submission (without tags/dates)
     const [parsedTitle, setParsedTitle] = useState('')
@@ -80,6 +89,35 @@ export function TaskEditor({
             titleInputRef.current.focus()
         }
     }, [])
+
+    // Fetch projects on mount
+    useEffect(() => {
+        async function fetchProjects() {
+            const { getProjects } = await import('@/lib/actions/projects')
+            const result = await getProjects()
+            if (result.success && result.data) {
+                setAvailableProjects(result.data)
+            }
+        }
+        fetchProjects()
+    }, [])
+
+    // Fetch sections when project changes
+    useEffect(() => {
+        if (projectId) {
+            async function fetchSections() {
+                const { getSections } = await import('@/lib/actions/sections')
+                const result = await getSections(projectId!)
+                if (result.success && result.data) {
+                    setAvailableSections(result.data)
+                }
+            }
+            fetchSections()
+        } else {
+            setAvailableSections([])
+            setSectionId(undefined)
+        }
+    }, [projectId])
 
     const handleTitleChange = (newVal: string) => {
         setTitle(newVal)
@@ -125,6 +163,8 @@ export function TaskEditor({
             recurrenceStep: recurrence?.step,
             recurrenceDays: recurrence?.days,
             reminderPattern,
+            projectId,
+            sectionId,
         })
     }
 
@@ -234,6 +274,93 @@ export function TaskEditor({
                                 onClick={() => setReminderPattern(undefined)}
                             />
                         </div>
+                    )}
+
+                    {/* Project Selector */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className={cn(
+                                    "h-8 px-2 text-xs font-normal border-dashed",
+                                    projectId && "border-solid"
+                                )}
+                            >
+                                <FolderKanban className="mr-1.5 h-3.5 w-3.5" />
+                                {projectId
+                                    ? `${availableProjects.find(p => p.id === projectId)?.icon || '📁'} ${availableProjects.find(p => p.id === projectId)?.name || 'Project'}`
+                                    : "Project"}
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="max-h-64 overflow-y-auto">
+                            {availableProjects.map((project) => (
+                                <DropdownMenuItem
+                                    key={project.id}
+                                    onClick={() => setProjectId(project.id)}
+                                    className="gap-2"
+                                >
+                                    <span>{project.icon || '📁'}</span>
+                                    <span>{project.name}</span>
+                                    {projectId === project.id && <Check className="ml-auto h-4 w-4" />}
+                                </DropdownMenuItem>
+                            ))}
+                            {projectId && (
+                                <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => setProjectId(undefined)}>
+                                        Clear Project
+                                    </DropdownMenuItem>
+                                </>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    {/* Section Selector (only show if project selected) */}
+                    {projectId && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className={cn(
+                                        "h-8 px-2 text-xs font-normal border-dashed",
+                                        sectionId && "border-solid"
+                                    )}
+                                >
+                                    <Layers className="mr-1.5 h-3.5 w-3.5" />
+                                    {sectionId
+                                        ? availableSections.find(s => s.id === sectionId)?.name || 'Section'
+                                        : "Section"}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start" className="max-h-64 overflow-y-auto">
+                                {availableSections.length === 0 ? (
+                                    <div className="px-2 py-4 text-xs text-center text-muted-foreground">
+                                        No sections in this project
+                                    </div>
+                                ) : (
+                                    availableSections.map((section) => (
+                                        <DropdownMenuItem
+                                            key={section.id}
+                                            onClick={() => setSectionId(section.id)}
+                                            className="gap-2"
+                                        >
+                                            <span>{section.name}</span>
+                                            {sectionId === section.id && <Check className="ml-auto h-4 w-4" />}
+                                        </DropdownMenuItem>
+                                    ))
+                                )}
+                                {sectionId && (
+                                    <>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={() => setSectionId(undefined)}>
+                                            Clear Section
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     )}
                 </div>
 

@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 
 import { useState, useTransition, useEffect } from 'react'
-import { Calendar, Clock, Flag, Tag, Loader2, Check, X, Plus } from 'lucide-react'
+import { Calendar, Clock, Flag, Tag, Loader2, Check, X, Plus, FolderKanban, Layers } from 'lucide-react'
 import { RecurringConfig } from '@/components/tasks/recurring-config'
 import { format, isToday, isTomorrow } from 'date-fns'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,8 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { updateTask, UpdateTaskInput } from '@/lib/actions/tasks'
 import { getTags } from '@/lib/actions/tags'
+import { getProjects } from '@/lib/actions/projects'
+import { getSections } from '@/lib/actions/sections'
 import { useTaskDetailStore } from '@/stores/use-task-detail-store'
 import { useToast } from '@/components/ui/use-toast'
 import {
@@ -42,6 +44,10 @@ interface Task {
   recurrenceInterval?: 'daily' | 'weekly' | 'monthly' | 'yearly' | null
   recurrenceStep?: number | null
   recurrenceDays?: number[] | null
+  projectId?: string | null
+  sectionId?: string | null
+  project?: { id: string; name: string; icon: string | null; color: string } | null
+  section?: { id: string; name: string } | null
 }
 
 interface TaskMetadataRowProps {
@@ -62,6 +68,10 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
   )
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
   const [availableTags, setAvailableTags] = useState<{ id: string, name: string, color?: string | null }[]>([])
+  const [availableProjects, setAvailableProjects] = useState<{ id: string; name: string; icon: string | null; color: string }[]>([])
+  const [availableSections, setAvailableSections] = useState<{ id: string; name: string }[]>([])
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(task.projectId || null)
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(task.sectionId || null)
 
   const [showTagInput, setShowTagInput] = useState(false)
   const [searchValue, setSearchValue] = useState('')
@@ -105,6 +115,33 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
     }
     loadTags()
   }, [])
+
+  // Fetch available projects
+  useEffect(() => {
+    const loadProjects = async () => {
+      const result = await getProjects()
+      if (result.success && result.data) {
+        setAvailableProjects(result.data)
+      }
+    }
+    loadProjects()
+  }, [])
+
+  // Fetch sections when project changes
+  useEffect(() => {
+    if (selectedProjectId) {
+      const loadSections = async () => {
+        const result = await getSections(selectedProjectId)
+        if (result.success && result.data) {
+          setAvailableSections(result.data)
+        }
+      }
+      loadSections()
+    } else {
+      setAvailableSections([])
+      setSelectedSectionId(null)
+    }
+  }, [selectedProjectId])
 
   const formatDueDate = (date: Date | null) => {
     if (!date) return 'Unscheduled'
@@ -345,6 +382,74 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
     })
   }
 
+  const handleProjectChange = async (projectId: string | null) => {
+    const oldProjectId = selectedProjectId
+    const oldSectionId = selectedSectionId
+    setSelectedProjectId(projectId)
+
+    // Clear section if changing project
+    if (projectId !== oldProjectId) {
+      setSelectedSectionId(null)
+    }
+
+    startTransition(async () => {
+      const result = await updateTask({
+        id: task.id,
+        projectId: projectId,
+        sectionId: projectId !== oldProjectId ? null : selectedSectionId,
+      })
+
+      if (result.success && result.data) {
+        selectTask(task.id, result.data)
+        router.refresh()
+        toast({
+          title: projectId ? 'Project assigned' : 'Project removed',
+          description: projectId
+            ? `Task moved to ${availableProjects.find(p => p.id === projectId)?.name}`
+            : 'Task removed from project',
+        })
+      } else {
+        setSelectedProjectId(oldProjectId)
+        setSelectedSectionId(oldSectionId)
+        toast({
+          title: 'Failed to update project',
+          description: result.error || 'Please try again',
+          variant: 'destructive',
+        })
+      }
+    })
+  }
+
+  const handleSectionChange = async (sectionId: string | null) => {
+    const oldSectionId = selectedSectionId
+    setSelectedSectionId(sectionId)
+
+    startTransition(async () => {
+      const result = await updateTask({
+        id: task.id,
+        sectionId: sectionId,
+      })
+
+      if (result.success && result.data) {
+        selectTask(task.id, result.data)
+        router.refresh()
+        toast({
+          title: sectionId ? 'Section assigned' : 'Section removed',
+          description: sectionId
+            ? `Task moved to ${availableSections.find(s => s.id === sectionId)?.name}`
+            : 'Task removed from section',
+        })
+      } else {
+        setSelectedSectionId(oldSectionId)
+        toast({
+          title: 'Failed to update section',
+          description: result.error || 'Please try again',
+          variant: 'destructive',
+        })
+      }
+    })
+  }
+
   return (
     <div className="flex flex-wrap gap-2">
       {/* Due Date */}
@@ -354,11 +459,11 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
             variant="outline"
             size="sm"
             className={cn(
-              'h-7 px-3 rounded-full border text-xs font-medium transition-all',
-              !dueDate && 'text-muted-foreground/60 border-border/30 hover:border-border/50'
+              'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
+              !dueDate && 'text-muted-foreground/70 border-dashed border-border/50 hover:border-border hover:bg-muted/30'
             )}
           >
-            <Calendar className="mr-1.5 h-3 w-3" />
+            <Calendar className="mr-2 h-3.5 w-3.5" />
             {formatDueDate(dueDate)}
           </Button>
         </PopoverTrigger>
@@ -403,9 +508,9 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
           <Button
             variant="outline"
             size="sm"
-            className={cn('h-7 px-3 rounded-full border text-xs font-medium transition-all', getPriorityColor(priority))}
+            className={cn('h-8 px-3 rounded-md border text-[13px] font-medium transition-all', getPriorityColor(priority))}
           >
-            <Flag className="mr-1.5 h-3 w-3" />
+            <Flag className="mr-2 h-3.5 w-3.5" />
             {priority === 'none' ? 'Priority' : priority.charAt(0).toUpperCase() + priority.slice(1)}
           </Button>
         </PopoverTrigger>
@@ -462,6 +567,111 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
           })
         }}
       />
+
+      {/* Project */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn(
+              'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
+              !selectedProjectId && 'text-muted-foreground/70 border-dashed border-border/50 hover:border-border hover:bg-muted/30'
+            )}
+          >
+            <FolderKanban className="mr-2 h-3.5 w-3.5" />
+            {selectedProjectId
+              ? `${task.project?.icon || '📁'} ${task.project?.name || 'Project'}`
+              : 'Project'}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-52 p-2" align="start">
+          <div className="space-y-1 max-h-64 overflow-y-auto">
+            {selectedProjectId && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleProjectChange(null)}
+                className="w-full justify-start text-muted-foreground hover:text-destructive"
+              >
+                <X className="mr-2 h-3.5 w-3.5" />
+                Remove from project
+              </Button>
+            )}
+            {availableProjects.map((project) => (
+              <Button
+                key={project.id}
+                variant="ghost"
+                size="sm"
+                onClick={() => handleProjectChange(project.id)}
+                className={cn(
+                  'w-full justify-start',
+                  selectedProjectId === project.id && 'bg-accent'
+                )}
+              >
+                <span className="mr-2">{project.icon || '📁'}</span>
+                {project.name}
+              </Button>
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
+
+      {/* Section (only show if project is selected) */}
+      {selectedProjectId && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
+                !selectedSectionId && 'text-muted-foreground/70 border-dashed border-border/50 hover:border-border hover:bg-muted/30'
+              )}
+            >
+              <Layers className="mr-2 h-3.5 w-3.5" />
+              {selectedSectionId
+                ? task.section?.name || 'Section'
+                : 'Section'}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-52 p-2" align="start">
+            <div className="space-y-1 max-h-64 overflow-y-auto">
+              {selectedSectionId && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleSectionChange(null)}
+                  className="w-full justify-start text-muted-foreground hover:text-destructive"
+                >
+                  <X className="mr-2 h-3.5 w-3.5" />
+                  Remove from section
+                </Button>
+              )}
+              {availableSections.length === 0 && !selectedSectionId && (
+                <div className="px-2 py-4 text-xs text-center text-muted-foreground">
+                  No sections in this project
+                </div>
+              )}
+              {availableSections.map((section) => (
+                <Button
+                  key={section.id}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleSectionChange(section.id)}
+                  className={cn(
+                    'w-full justify-start',
+                    selectedSectionId === section.id && 'bg-accent'
+                  )}
+                >
+                  {section.name}
+                </Button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+      )}
+
       {/* Tags */}
       <Popover open={showTagInput} onOpenChange={(open) => {
         setShowTagInput(open)
@@ -472,14 +682,14 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
             variant="outline"
             size="sm"
             disabled={isPending}
-            className="h-7 px-3 rounded-full border text-xs font-medium text-muted-foreground/60 border-border/30 hover:border-border/50 transition-all"
+            className="h-8 px-3 rounded-md border text-[13px] font-medium text-muted-foreground/70 border-dashed border-border/50 hover:border-border hover:bg-muted/30 transition-all"
           >
             {isPending ? (
-              <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+              <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Tag className="mr-1.5 h-3 w-3" />
+              <Tag className="mr-2 h-3.5 w-3.5" />
             )}
-            {selectedTagIds.length === 0 ? "Add label" :
+            {selectedTagIds.length === 0 ? "Label" :
               selectedTagIds.length === 1 ?
                 (availableTags.find(t => t.id === selectedTagIds[0])?.name ||
                   task.tags?.find(t => (t.tag?.id || t.id) === selectedTagIds[0])?.tag?.name ||

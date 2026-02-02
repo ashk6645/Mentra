@@ -47,7 +47,7 @@ export function TaskDetailHeader({ task, onClose }: TaskDetailHeaderProps) {
     if (!newTitle.trim() || newTitle === task.title) return
 
     setTitle(newTitle)
-    
+
     try {
       const result = await updateTask({
         id: task.id,
@@ -69,7 +69,7 @@ export function TaskDetailHeader({ task, onClose }: TaskDetailHeaderProps) {
   const handleToggleComplete = async () => {
     const newCompleted = !isCompleted
     setIsCompleted(newCompleted)
-    
+
     try {
       const result = await updateTask({
         id: task.id,
@@ -90,7 +90,7 @@ export function TaskDetailHeader({ task, onClose }: TaskDetailHeaderProps) {
 
   const handleDelete = async () => {
     setIsDeleting(true)
-    
+
     try {
       const result = await deleteTask(task.id)
 
@@ -112,7 +112,7 @@ export function TaskDetailHeader({ task, onClose }: TaskDetailHeaderProps) {
 
   return (
     <>
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/40 px-8 py-6">
+      <div className="sticky top-0 z-10 bg-gradient-to-b from-background via-background to-muted/30 backdrop-blur-md border-b border-border/40 px-8 py-8">
         <div className="flex items-start gap-4">
           {/* Large Checkbox */}
           <Checkbox

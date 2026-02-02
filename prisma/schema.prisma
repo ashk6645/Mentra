@@ -22,6 +22,7 @@ model Profile {
   // Relations
   tasks                   Task[]
   tags                    Tag[]
+  projects                Project[]
 
   focusSessions           FocusSession[]
   aiLogs                  AIActivityLog[]
@@ -32,6 +33,48 @@ model Profile {
   pushSubscriptions       PushSubscription[]
 
   @@map("profiles")
+}
+
+// 2. Projects
+model Project {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  name        String
+  icon        String?  @default("📁")
+  color       String   @default("blue")
+  description String?
+  isFavorited Boolean  @default(false) @map("is_favorited")
+  isArchived  Boolean  @default(false) @map("is_archived")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user     Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks    Task[]
+  sections Section[]
+
+  @@index([userId])
+  @@index([userId, isArchived])
+  @@map("projects")
+}
+
+// 3. Sections
+model Section {
+  id        String   @id @default(uuid())
+  projectId String   @map("project_id")
+  name      String
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks   Task[]
+
+  @@index([projectId])
+  @@index([sortOrder])
+  @@map("sections")
 }
 
 // 4. Tasks
@@ -65,8 +108,14 @@ model Task {
   recurrenceDays     Int[]     @default([]) @map("recurrence_days") // 0=Sun, 1=Mon...
   recurrenceEnd      DateTime? @map("recurrence_end") @db.Timestamptz
 
+  // Project & Section
+  projectId String? @map("project_id")
+  sectionId String? @map("section_id")
+
   // Relations
   user          Profile        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project       Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  section       Section?       @relation(fields: [sectionId], references: [id], onDelete: SetNull)
   tags          TaskTag[]
   reminders     Reminder[]
   focusSessions FocusSession[]
@@ -75,6 +124,8 @@ model Task {
   @@index([userId])
   @@index([userId, completed]) // Optimized for Today view (active tasks)
   @@index([userId, completed, completedAt]) // Optimized for Stats/History
+  @@index([projectId])
+  @@index([sectionId])
   @@map("tasks")
 }
 

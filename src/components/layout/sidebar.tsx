@@ -45,6 +45,9 @@ import {
     DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu'
 import { ProfileDialog } from '@/components/profile/profile-dialog'
+import { CreateProjectDialog } from '@/components/projects/create-project-dialog'
+import { ProjectRow } from '@/components/projects/project-row'
+import { type Project } from '@/lib/actions/projects'
 
 interface PageItem {
     id: string
@@ -59,6 +62,7 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     user: any
     onOpenCommand?: () => void
     initialPages?: PageItem[]
+    initialProjects?: Project[]
     counts?: {
         inbox: number
         today: number
@@ -67,7 +71,7 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 // Change to non-exported function, exported as memo at bottom
-function SidebarComponent({ className, user, onOpenCommand, initialPages, counts }: SidebarProps) {
+function SidebarComponent({ className, user, onOpenCommand, initialPages, initialProjects, counts }: SidebarProps) {
     const pathname = usePathname()
     const router = useRouter()
     const supabase = createClient()
@@ -76,15 +80,20 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, counts
     const [profile, setProfile] = useState<any>(null)
     const [sharedExpanded, setSharedExpanded] = useState(true)
     const [pagesExpanded, setPagesExpanded] = useState(true)
+    const [projectsExpanded, setProjectsExpanded] = useState(true)
 
     const [showProfileDialog, setShowProfileDialog] = useState(false)
     const [pages, setPages] = useState<PageItem[]>(initialPages || [])
+    const [projects, setProjects] = useState<Project[]>(initialProjects || [])
+    const [showNewProjectDialog, setShowNewProjectDialog] = useState(false)
+    const [editingProject, setEditingProject] = useState<Project | null>(null)
 
     // Reset expanded states when sidebar collapses to keep UI clean
     useEffect(() => {
         if (isSidebarCollapsed) {
             setSharedExpanded(false)
             setPagesExpanded(false)
+            setProjectsExpanded(false)
         }
     }, [isSidebarCollapsed])
 
@@ -94,6 +103,13 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, counts
             setPages(initialPages)
         }
     }, [initialPages])
+
+    // Sync state with server-provided projects
+    useEffect(() => {
+        if (initialProjects) {
+            setProjects(initialProjects)
+        }
+    }, [initialProjects])
 
     useEffect(() => {
         if (user?.id) {
@@ -283,7 +299,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, counts
                                 key={route.href}
                                 href={route.href}
                                 className={cn(
-                                    "flex items-center gap-2.5 px-3 py-1 text-sm rounded-sm transition-all duration-200 group relative h-8",
+                                    "flex items-center gap-3 px-4 py-2 text-[15px] rounded-lg transition-all duration-200 ease-out group relative h-9",
                                     isActive
                                         ? "text-foreground bg-neutral-200/60 dark:bg-neutral-800/60 font-medium"
                                         : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50",
@@ -299,7 +315,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, counts
                                         <span className="truncate flex-1">
                                             {route.label}
                                         </span>
-                                        
+
                                         {/* Badge with alert indicator */}
                                         {(route as any).badge !== undefined && (route as any).badge > 0 && (
                                             <span className={cn(
@@ -311,7 +327,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, counts
                                                 {(route as any).badge}
                                             </span>
                                         )}
-                                        
+
                                         {/* Keyboard shortcut hint - shows on hover */}
                                         {(route as any).shortcut && (
                                             <kbd className="hidden lg:inline-flex h-5 w-5 items-center justify-center rounded border border-border/40 bg-muted/30 text-[10px] font-mono text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-150">
@@ -325,6 +341,77 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, counts
                     })}
                 </div>
 
+                {/* Projects Section */}
+                {!isSidebarCollapsed && (
+                    <div className="px-2 mb-2">
+                        <div
+                            className="flex items-center justify-between group mb-1 mt-4 px-2 py-1 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 rounded-sm cursor-pointer transition-colors"
+                            onClick={() => setProjectsExpanded(!projectsExpanded)}
+                        >
+                            <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider select-none">
+                                Projects
+                            </span>
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <div className="p-0.5 text-muted-foreground">
+                                    <motion.div
+                                        animate={{ rotate: projectsExpanded ? 90 : 0 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <ChevronRight className="h-3 w-3" />
+                                    </motion.div>
+                                </div>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        setShowNewProjectDialog(true)
+                                    }}
+                                    className="p-0.5 hover:bg-zinc-300/50 dark:hover:bg-zinc-700/50 rounded-sm transition-all duration-200 text-muted-foreground"
+                                    aria-label="Add project"
+                                >
+                                    <Plus className="h-3 w-3" />
+                                </button>
+                            </div>
+                        </div>
+
+                        <AnimatePresence initial={false}>
+                            {projectsExpanded && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: "auto", opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{ duration: 0.3, ease: "circOut" }}
+                                    className="space-y-0.5 overflow-hidden"
+                                >
+                                    {projects.map((project, index) => (
+                                        <motion.div
+                                            key={project.id}
+                                            initial={{ x: -10, opacity: 0 }}
+                                            animate={{ x: 0, opacity: 1 }}
+                                            transition={{ delay: index * 0.05 }}
+                                        >
+                                            <ProjectRow
+                                                project={project}
+                                                onEdit={(proj) => {
+                                                    setEditingProject(proj)
+                                                    setShowNewProjectDialog(true)
+                                                }}
+                                            />
+                                        </motion.div>
+                                    ))}
+                                    {projects.length === 0 && (
+                                        <button
+                                            onClick={() => setShowNewProjectDialog(true)}
+                                            className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors w-full"
+                                        >
+                                            <Plus className="h-3 w-3" />
+                                            <span>New project</span>
+                                        </button>
+                                    )}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                )}
 
 
                 {/* Shared Pages Section */}
@@ -369,7 +456,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, counts
                                             <Link
                                                 href={`/pages/${page.id}`}
                                                 className={cn(
-                                                    "flex-1 flex items-center gap-2 px-3 py-1 text-sm rounded-sm transition-colors",
+                                                    "flex-1 flex items-center gap-2 px-4 py-1.5 text-[14px] rounded-lg transition-colors",
                                                     pathname === `/pages/${page.id}`
                                                         ? "text-foreground bg-neutral-200/60 dark:bg-neutral-800/60 font-medium"
                                                         : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50"
@@ -467,7 +554,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, counts
                                             <Link
                                                 href={`/pages/${page.id}`}
                                                 className={cn(
-                                                    "flex-1 flex items-center gap-2 px-3 py-1 text-sm rounded-sm transition-colors",
+                                                    "flex-1 flex items-center gap-2 px-4 py-1.5 text-[14px] rounded-lg transition-colors",
                                                     pathname === `/pages/${page.id}`
                                                         ? "text-foreground bg-neutral-200/60 dark:bg-neutral-800/60 font-medium"
                                                         : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50"
@@ -524,6 +611,22 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, counts
                 )}
             </div>
 
+
+            <CreateProjectDialog
+                open={showNewProjectDialog}
+                onOpenChange={(open) => {
+                    setShowNewProjectDialog(open)
+                    if (!open) {
+                        setEditingProject(null)
+                    }
+                }}
+                mode={editingProject ? 'edit' : 'create'}
+                project={editingProject || undefined}
+                onSuccess={() => {
+                    // Projects will be refreshed via revalidation
+                    setEditingProject(null)
+                }}
+            />
 
             <ProfileDialog
                 open={showProfileDialog}
