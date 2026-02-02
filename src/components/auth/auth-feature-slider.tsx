@@ -8,7 +8,7 @@ import Image from 'next/image'
 import logo from '@/app/icon.png'
 
 // Refined easing
-const ease = [0.16, 1, 0.3, 1]
+const ease: [number, number, number, number] = [0.16, 1, 0.3, 1]
 
 // ============================================
 // SLIDE 1: Task Addition
