@@ -42,7 +42,6 @@ export type TaskTagWithTag = {
  * Profile with stats and relations
  */
 export type ProfileWithStats = Profile & {
-  xpLogs?: XPLog[]
   focusSessions?: FocusSession[]
 }
 
@@ -125,48 +124,7 @@ export interface SubtaskSuggestion {
   estimatedDuration?: number
 }
 
-// ========================================
-// GAMIFICATION TYPES
-// ========================================
 
-/**
- * XP action types
- */
-export type XPActionType =
-  | 'TASK_COMPLETION'
-  | 'SUBTASK_COMPLETION'
-  | 'STREAK_BONUS'
-  | 'ON_TIME_COMPLETION'
-  | 'HIGH_PRIORITY_COMPLETION'
-  | 'HABIT_COMPLETION'
-  | 'FOCUS_SESSION_COMPLETION'
-  | 'WEEKLY_GOAL_ACHIEVED'
-
-/**
- * XP log entry
- */
-export interface XPLog {
-  id: string
-  userId: string
-  action: XPActionType
-  points: number
-  createdAt: Date
-}
-
-/**
- * User stats for gamification
- */
-export interface UserStats {
-  xp: number
-  level: number
-  streakCount: number
-  lastActiveAt: Date | null
-  xpProgress: {
-    current: number
-    needed: number
-    percentage: number
-  }
-}
 
 // ========================================
 // FILTER & QUERY TYPES
@@ -305,7 +263,6 @@ export interface ProductivityMetrics {
   avgCompletionTime: number // hours
   streakDays: number
   focusMinutes: number
-  xpEarned: number
 }
 
 /**
@@ -315,7 +272,6 @@ export interface ProductivityTrend {
   date: string // ISO date
   tasksCompleted: number
   focusMinutes: number
-  xpEarned: number
 }
 
 
@@ -340,10 +296,6 @@ export interface UserPreferences {
   notifyOnTaskDue: boolean
   notifyOnTaskAssigned: boolean
   emailDigest: 'daily' | 'weekly' | 'never'
-
-  // Gamification
-  showXP: boolean
-  showStreaks: boolean
 
   // Focus
   pomodoroSettings: PomodoroSettings

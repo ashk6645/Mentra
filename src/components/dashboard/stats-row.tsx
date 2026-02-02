@@ -1,21 +1,15 @@
 'use client'
 
 import { Card, CardContent } from '@/components/ui/card'
-import { CheckCircle2, Flame, Trophy, Zap } from 'lucide-react'
+import { CheckCircle2, Flame } from 'lucide-react'
 
 interface StatsRowProps {
     completedTasks: number
     totalTasks: number
     streak: number
-    xp: number
-    level: number
-    xpProgress: {
-        current: number
-        needed: number
-    }
 }
 
-export function StatsRow({ completedTasks, totalTasks, streak, xp, level, xpProgress }: StatsRowProps) {
+export function StatsRow({ completedTasks, totalTasks, streak }: StatsRowProps) {
     const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
     const items = [
@@ -32,25 +26,11 @@ export function StatsRow({ completedTasks, totalTasks, streak, xp, level, xpProg
             icon: Flame,
             color: 'text-orange-500',
             bgColor: 'bg-orange-500/10'
-        },
-        {
-            label: 'Total XP',
-            value: xp.toLocaleString(),
-            icon: Zap,
-            color: 'text-yellow-500',
-            bgColor: 'bg-yellow-500/10'
-        },
-        {
-            label: 'Current Level',
-            value: `Level ${level}`,
-            icon: Trophy,
-            color: 'text-blue-500',
-            bgColor: 'bg-blue-500/10'
         }
     ]
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {items.map((item, index) => (
                 <Card key={index} className="border-none shadow-sm bg-card hover:bg-accent/5 transition-colors">
                     <CardContent className="p-4 flex items-center justify-between">
