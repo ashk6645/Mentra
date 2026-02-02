@@ -40,7 +40,7 @@ export function CommandPaletteWrapper({ user, children, initialPages, initialPro
                 className="min-h-screen"
                 initial={false}
                 animate={{
-                    paddingLeft: isSidebarCollapsed ? 80 : 220,
+                    paddingLeft: isSidebarCollapsed ? 0 : 220,
                     paddingRight: isTaskPanelOpen ? 540 : 0
                 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}

@@ -180,19 +180,6 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, initia
 
     const sidebarContent = (
         <div className="group flex flex-col h-full bg-sidebar/95 backdrop-blur-xl border-r border-sidebar-border supports-[backdrop-filter]:bg-sidebar/80 relative">
-            {/* Collapse Toggle Button - Floating on Border */}
-            <button
-                onClick={toggleSidebarCollapsed}
-                className="absolute -right-3 top-8 z-50 h-6 w-6 rounded-full border border-sidebar-border bg-background flex items-center justify-center shadow-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            >
-                <ChevronRight className={cn(
-                    "h-3 w-3 transition-transform duration-200",
-                    !isSidebarCollapsed && "rotate-180"
-                )} />
-            </button>
-
-
             {/* Header / User Profile Area */}
             <div className={cn("flex flex-col gap-2 transition-all duration-300", isSidebarCollapsed ? "px-2 py-3" : "px-3 py-3")}>
                 <Popover>
@@ -638,13 +625,35 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, initia
     return (
         <>
             <motion.div
-                className={cn("hidden md:block fixed inset-y-0 z-50", className)}
+                className={cn("hidden md:block fixed inset-y-0 left-0 z-50 w-[220px]", className)}
                 initial={false}
-                animate={{ width: isSidebarCollapsed ? 80 : 220 }}
+                animate={{ x: isSidebarCollapsed ? -220 : 0 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
             >
                 {sidebarContent}
             </motion.div>
+
+            {/* Floating Toggle Button (Desktop) */}
+            <motion.button
+                onClick={toggleSidebarCollapsed}
+                className={cn(
+                    "hidden md:flex absolute z-50 top-8 h-6 w-6 items-center justify-center rounded-full border border-black/10 bg-white shadow-sm text-neutral-600 hover:bg-neutral-50 hover:text-black transition-colors outline-none",
+                    isSidebarCollapsed ? "bg-white/80 backdrop-blur" : "bg-white"
+                )}
+                initial={false}
+                animate={{
+                    x: isSidebarCollapsed ? 12 : 220 - 12,
+                    opacity: 1
+                }}
+                whileHover={{ opacity: 1 }} // Always visible on hover
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+                <ChevronRight className={cn(
+                    "h-3.5 w-3.5 transition-transform duration-200",
+                    !isSidebarCollapsed && "rotate-180"
+                )} />
+            </motion.button>
 
             <Sheet>
                 <SheetTrigger asChild>
