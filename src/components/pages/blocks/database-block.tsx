@@ -191,9 +191,9 @@ export function DatabaseBlock({
     return (
         <>
             {/* Notion-style Database Block */}
-            <div className="my-1 rounded-md overflow-hidden bg-background border border-border/40 shadow-sm hover:shadow-md transition-shadow">
+            <div className="my-1 rounded-md overflow-hidden bg-background border border-border/20 shadow-sm hover:shadow-md transition-shadow">
                 {/* Header - Notion style */}
-                <div className="flex items-center justify-between px-3 py-2.5 bg-muted/30 border-b border-border/40">
+                <div className="flex items-center justify-between px-3 py-2.5 bg-muted/30 border-b border-border/20">
                     <div className="flex items-center gap-2 flex-1">
                         <input
                             type="text"
@@ -390,7 +390,7 @@ function TableView({
         <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse">
                 <thead>
-                    <tr className="border-b border-border/40">
+                    <tr className="border-b border-border/20">
                         <th className="text-left py-2 px-3 font-medium text-muted-foreground text-xs uppercase tracking-wide w-[280px] bg-muted/20">
                             <div className="flex items-center gap-1.5">
                                 <span className="text-base">📄</span>
@@ -578,7 +578,7 @@ function BoardView({
                             <button
                                 key={item.id}
                                 onClick={() => onOpenItem(item)}
-                                className="w-full bg-background border border-border/40 rounded-md p-3 text-left hover:shadow-md hover:border-border transition-all group"
+                                className="w-full bg-background border border-border/20 rounded-md p-3 text-left hover:shadow-md hover:border-border transition-all group"
                             >
                                 <div className="flex items-start gap-2">
                                     <span className="text-base">{item.icon || '📄'}</span>

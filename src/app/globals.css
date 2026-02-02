@@ -99,49 +99,47 @@
     --neutral-950: #0A0A0A;
 
     /* ==================== LIGHT MODE ==================== */
-    /* Backgrounds - softer whites */
-    --background: 0 0% 99%;        /* Not pure white */
-    --card: 0 0% 100%;
-    --muted: 240 4.8% 95.9%;       /* Subtle gray */
+    --background: var(--white);
+    --foreground: var(--neutral-900);
 
-    /* Foregrounds - not pure black */
-    --foreground: 222 47% 11%;     /* Dark gray */
-    --card-foreground: 222 47% 11%;
-    --muted-foreground: 215 16.3% 46.9%;
-
-    /* Borders - very subtle */
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-
-    /* Primary - refined indigo */
-    --primary: 222 70% 58%;        /* Indigo-500 */
-    --primary-foreground: 210 40% 98%;
+    /* Surfaces */
+    --card: var(--white);
+    --card-foreground: var(--neutral-900);
+    --popover: var(--white);
+    --popover-foreground: var(--neutral-900);
+        /* Primary Action - Signature Indigo (more modern than blue) */
+    --primary: 222 70% 58%; /* #6366F1 - Indigo-500 */
+    --primary-foreground: 0 0% 100%;
     --primary-hover: 222 70% 52%;
     --primary-active: 222 70% 46%;
 
-    /* Secondary / Muted */
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 222 47% 11%;
+     /* Secondary / Muted */
+    --secondary: var(--neutral-100);
+    --secondary-foreground: var(--neutral-900);
+    --muted: var(--neutral-100);
+    --muted-foreground: var(--neutral-500);
 
-    /* Accent - hover states */
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222 47% 11%;
+    /* Accents */
+    --accent: var(--neutral-100);
+    --accent-foreground: var(--neutral-900);
 
     /* Status Colors */
-    --success: #10B981; 
-    --success-foreground: 210 40% 98%;
-    --warning: #F59E0B; 
-    --warning-foreground: 210 40% 98%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
+    --success: #10B981; /* Emerald-500 - Brighter for satisfying completion */
+    --success-foreground: var(--white);
+    --warning: #F59E0B; /* Amber-500 - Softer, warm but not alarming */
+    --warning-foreground: var(--white);
+    --destructive: #EF4444;
+    --destructive-foreground: var(--white);
 
     /* Borders & Inputs */
+    --border: var(--neutral-200);
     --border-strong: var(--neutral-300);
-    --ring: 222 47% 11%;
+    --input: var(--neutral-200);
+    --ring: var(--neutral-900);
 
     /* Text */
-    --text-primary: 222 47% 11%;
-    --text-secondary: 215 16.3% 46.9%;
+    --text-primary: var(--neutral-900);
+    --text-secondary: var(--neutral-500);
     --text-tertiary: var(--neutral-400);
     --text-quaternary: var(--neutral-300);
 
@@ -181,26 +179,26 @@
 
   .dark {
     /* ==================== DARK MODE ==================== */
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    --background: #111111;
+    --foreground: #EDEDED;
 
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
+    --card: #181818;
+    --card-foreground: #EDEDED;
+    --popover: #1C1C1C;
+    --popover-foreground: #EDEDED;
 
-    --primary: 222 70% 58%; /* #6366F1 - Indigo-500 */
+        --primary: 222 70% 58%; /* #6366F1 - Indigo-500 */
     --primary-foreground: 0 0% 100%;
     --primary-hover: 222 70% 64%;
     --primary-active: 222 70% 52%;
 
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20.2% 65.1%;
+     --secondary: #222222;
+    --secondary-foreground: #EDEDED;
+    --muted: #222222;
+    --muted-foreground: #A1A1A1;
 
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
+    --accent: #262626;
+    --accent-foreground: #EDEDED;
 
     --success: #10B981; /* Emerald-500 - Keep bright green for completion */
     --success-foreground: #FFFFFF;
@@ -209,7 +207,7 @@
     --destructive: #DC2626;
     --destructive-foreground: #FFFFFF;
 
-    --border: 217 33% 17%;
+    --border: #2A2A2A;
     --border-strong: #404040;
     --input: #262626;
     --ring: #F0F0F0;

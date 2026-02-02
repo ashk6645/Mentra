@@ -105,7 +105,7 @@ export function SectionHeader({ section, taskCount = 0 }: SectionHeaderProps) {
 
     return (
         <>
-            <div className="group flex items-center gap-2 py-3 px-1 mb-2 border-b border-border/40 transition-colors hover:border-border/60">
+            <div className="group flex items-center gap-2 py-3 px-1 mb-2 border-b border-border/20 transition-colors hover:border-border/30">
                 {/* Drag Handle */}
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded">
                     <GripVertical className="h-4 w-4 text-muted-foreground/50" />

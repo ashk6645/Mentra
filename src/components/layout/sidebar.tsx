@@ -226,7 +226,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, initia
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent
-                        className="w-52 p-1 mt-1 bg-popover/95 backdrop-blur-xl border-border/50 shadow-xl"
+                        className="w-52 p-1 mt-1 bg-popover/95 backdrop-blur-xl border-border/25 shadow-xl"
                         align="start"
                         side="bottom"
                         sideOffset={0}
@@ -288,7 +288,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, initia
                             <span className="truncate">Search</span>
                         )}
                         {!isSidebarCollapsed && (
-                            <span className="ml-auto text-[10px] text-muted-foreground/50 border border-border/50 px-1 rounded">⌘K</span>
+                            <span className="ml-auto text-[10px] text-muted-foreground/50 border border-border/25 px-1 rounded">⌘K</span>
                         )}
                     </button>
 
@@ -330,7 +330,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, initia
 
                                         {/* Keyboard shortcut hint - shows on hover */}
                                         {(route as any).shortcut && (
-                                            <kbd className="hidden lg:inline-flex h-5 w-5 items-center justify-center rounded border border-border/40 bg-muted/30 text-[10px] font-mono text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                                            <kbd className="hidden lg:inline-flex h-5 w-5 items-center justify-center rounded border border-border/20 bg-muted/30 text-[10px] font-mono text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                                                 {(route as any).shortcut}
                                             </kbd>
                                         )}
@@ -651,13 +651,13 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, initia
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="md:hidden fixed top-3 left-3 z-50 bg-background/50 backdrop-blur-md border border-border/50 shadow-sm"
+                        className="md:hidden fixed top-3 left-3 z-50 bg-background/50 backdrop-blur-md border border-border/25 shadow-sm"
                         suppressHydrationWarning
                     >
                         <Menu className="h-5 w-5" />
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-64 border-r border-border/50 bg-background/95 backdrop-blur-xl">
+                <SheetContent side="left" className="p-0 w-64 border-r border-border/25 bg-background/95 backdrop-blur-xl">
                     {sidebarContent}
                 </SheetContent>
             </Sheet>

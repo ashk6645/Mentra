@@ -71,14 +71,14 @@ export default async function ProjectPage(props: ProjectPageProps) {
     return (
         <div className="h-full flex flex-col">
             {/* Header */}
-            <div className="border-b border-border/40 bg-gradient-to-b from-background via-background to-muted/20">
+            <div className="border-b border-border/20 bg-gradient-to-b from-background via-background to-muted/20">
                 <div className="max-w-5xl mx-auto px-8 py-10">
                     <div className="flex items-start justify-between">
                         <div className="flex items-start gap-4">
                             {/* Project Icon with Glow */}
                             <div className="relative group shrink-0">
                                 <div className="absolute inset-0 bg-primary/10 rounded-2xl blur-xl group-hover:bg-primary/20 transition-colors" />
-                                <div className="relative flex items-center justify-center w-16 h-16 text-4xl bg-card border border-border/50 rounded-2xl shadow-sm">
+                                <div className="relative flex items-center justify-center w-16 h-16 text-4xl bg-card border border-border/25 rounded-2xl shadow-sm">
                                     {project.icon || '📁'}
                                 </div>
                             </div>

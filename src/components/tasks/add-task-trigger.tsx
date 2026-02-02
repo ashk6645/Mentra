@@ -55,7 +55,7 @@ export function AddTaskTrigger({
                 "flex items-center gap-3",
                 "px-4 py-3 mx-1", // Added mx-1 to align visually with rows that have borders
                 "rounded-xl",
-                "border-2 border-dashed border-border/40",
+                "border-2 border-dashed border-border/20",
                 "bg-muted/10", // Subtle background
                 "transition-all duration-200 ease-out",
                 "cursor-text", // Feels like an input

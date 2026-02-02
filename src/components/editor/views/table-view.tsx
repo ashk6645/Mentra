@@ -19,23 +19,23 @@ interface TableViewProps {
 
 export function TableView({ items, onUpdateItem, onAddItem, onDeleteItem, onOpenItem }: TableViewProps) {
     return (
-        <div className="w-full overflow-x-auto border-t border-border/40">
+        <div className="w-full overflow-x-auto border-t border-border/20">
             <table className="w-full min-w-[600px] border-collapse text-sm">
                 <thead>
-                    <tr className="border-b border-border/40 text-muted-foreground/80">
-                        <th className="w-[300px] py-1.5 px-3 text-left font-normal border-r border-border/40 hover:bg-accent/20 cursor-pointer transition-colors">
+                    <tr className="border-b border-border/20 text-muted-foreground/80">
+                        <th className="w-[300px] py-1.5 px-3 text-left font-normal border-r border-border/20 hover:bg-accent/20 cursor-pointer transition-colors">
                             <div className="flex items-center gap-2">
                                 <FileText className="w-3.5 h-3.5" />
                                 <span className="text-xs">Name</span>
                             </div>
                         </th>
-                        <th className="w-[150px] py-1.5 px-3 text-left font-normal border-r border-border/40 hover:bg-accent/20 cursor-pointer transition-colors">
+                        <th className="w-[150px] py-1.5 px-3 text-left font-normal border-r border-border/20 hover:bg-accent/20 cursor-pointer transition-colors">
                             <div className="flex items-center gap-2">
                                 <Hash className="w-3.5 h-3.5" />
                                 <span className="text-xs">Status</span>
                             </div>
                         </th>
-                        <th className="w-[150px] py-1.5 px-3 text-left font-normal border-r border-border/40 hover:bg-accent/20 cursor-pointer transition-colors">
+                        <th className="w-[150px] py-1.5 px-3 text-left font-normal border-r border-border/20 hover:bg-accent/20 cursor-pointer transition-colors">
                             <div className="flex items-center gap-2">
                                 <Tag className="w-3.5 h-3.5" />
                                 <span className="text-xs">Priority</span>

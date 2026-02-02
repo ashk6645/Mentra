@@ -111,7 +111,7 @@ export function TaskCard({ task }: { task: Task & { tags?: { tag: { id: string, 
         <div
             onClick={handleCardClick}
             className={cn(
-                "group relative flex items-center gap-3 px-4 py-3.5 bg-card border border-border/40 rounded-lg cursor-pointer transition-colors hover:bg-accent/5",
+                "group relative flex items-center gap-3 px-4 py-3.5 bg-card border border-border/20 rounded-lg cursor-pointer transition-colors hover:bg-accent/5",
                 task.completed && "bg-muted/30"
             )}>
             

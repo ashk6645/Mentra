@@ -85,7 +85,7 @@ export function ProfileActivity() {
               return (
                 <div
                   key={`${activity.type}-${index}`}
-                  className="flex items-start gap-4 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-4 transition-all hover:bg-accent/50 hover:border-border group"
+                  className="flex items-start gap-4 rounded-xl border border-border/25 bg-card/50 backdrop-blur-sm p-4 transition-all hover:bg-accent/50 hover:border-border group"
                 >
                   <div className="mt-0.5 rounded-lg bg-muted/80 p-2.5 group-hover:bg-background transition-colors">
                     {getActivityIcon(activity.type)}

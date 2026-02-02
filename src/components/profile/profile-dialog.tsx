@@ -15,7 +15,7 @@ interface ProfileDialogProps {
 export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="w-full max-w-5xl sm:max-w-5xl h-[75vh] p-0 overflow-hidden flex flex-col gap-0 border-border/50 bg-background/95 backdrop-blur-xl">
+            <DialogContent className="w-full max-w-5xl sm:max-w-5xl h-[75vh] p-0 overflow-hidden flex flex-col gap-0 border-border/25 bg-background/95 backdrop-blur-xl">
                 <DialogHeader>
                     <VisuallyHidden>
                         <DialogTitle>Profile</DialogTitle>

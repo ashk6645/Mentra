@@ -121,7 +121,7 @@ export default async function UpcomingPage() {
                     <div className="space-y-12">
                         {sortedDates.map((dateKey) => (
                             <div key={dateKey} className="space-y-4">
-                                <div className="flex items-center gap-3 pb-2 border-b border-border/40">
+                                <div className="flex items-center gap-3 pb-2 border-b border-border/20">
                                     <h3 className="font-semibold text-lg tracking-tight">
                                         {format(new Date(dateKey), 'EEEE')}
                                     </h3>

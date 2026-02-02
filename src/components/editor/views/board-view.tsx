@@ -54,7 +54,7 @@ export function BoardView({ items, onUpdateItem, onAddItem, onDeleteItem, onOpen
                                 <div
                                     key={item.id}
                                     onClick={() => onOpenItem(item.id)}
-                                    className="group bg-white dark:bg-zinc-900 p-3 rounded-md shadow-sm border border-border/20 hover:border-border/40 hover:shadow-md transition-all cursor-pointer select-none relative"
+                                    className="group bg-white dark:bg-zinc-900 p-3 rounded-md shadow-sm border border-border/20 hover:border-border/20 hover:shadow-md transition-all cursor-pointer select-none relative"
                                 >
                                     <div className="flex items-start gap-2.5">
                                         <div className="mt-0.5 text-base sm:text-lg opacity-80 select-none">{item.icon || "📄"}</div>

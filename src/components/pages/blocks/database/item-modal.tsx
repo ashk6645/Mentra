@@ -252,7 +252,7 @@ export function ItemModal({
                     />
 
                     {/* Properties */}
-                    <div className="border-y border-border/50 py-4 mb-8 space-y-3">
+                    <div className="border-y border-border/25 py-4 mb-8 space-y-3">
                         {properties.map((prop) => (
                             <div key={prop.id} className="flex items-center gap-4 text-sm">
                                 <span className="text-muted-foreground w-32 flex-shrink-0 font-medium">

@@ -70,7 +70,7 @@ export function LandingPage() {
                 </Button>
               </Link>
               <Link href="/login">
-                <Button size="lg" variant="outline" className="text-base px-8 h-12 rounded-xl border-border/50 hover:bg-secondary/50">
+                <Button size="lg" variant="outline" className="text-base px-8 h-12 rounded-xl border-border/25 hover:bg-secondary/50">
                   Sign In
                 </Button>
               </Link>
@@ -97,7 +97,7 @@ export function LandingPage() {
       </section>
 
       {/* What is Mentra */}
-      <section className="py-24 md:py-32 border-t border-border/40">
+      <section className="py-24 md:py-32 border-t border-border/20">
         <div className="container mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -178,7 +178,7 @@ export function LandingPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-24 md:py-32 border-t border-border/40">
+      <section className="py-24 md:py-32 border-t border-border/20">
         <div className="container mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -207,7 +207,7 @@ export function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border/40 py-12">
+      <footer className="border-t border-border/20 py-12">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2">

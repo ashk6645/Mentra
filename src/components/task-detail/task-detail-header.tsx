@@ -112,7 +112,7 @@ export function TaskDetailHeader({ task, onClose }: TaskDetailHeaderProps) {
 
   return (
     <>
-      <div className="sticky top-0 z-10 bg-gradient-to-b from-background via-background to-muted/30 backdrop-blur-md border-b border-border/40 px-8 py-8">
+      <div className="sticky top-0 z-10 bg-gradient-to-b from-background via-background to-muted/30 backdrop-blur-md border-b border-border/20 px-8 py-8">
         <div className="flex items-start gap-4">
           {/* Large Checkbox */}
           <Checkbox

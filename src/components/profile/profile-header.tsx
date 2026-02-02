@@ -155,7 +155,7 @@ export function ProfileHeader() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 items-center md:items-start p-6 bg-card/40 backdrop-blur-sm border border-border/40 rounded-xl">
+    <div className="flex flex-col md:flex-row gap-8 items-center md:items-start p-6 bg-card/40 backdrop-blur-sm border border-border/20 rounded-xl">
       <div className="relative group">
         <Avatar className="h-32 w-32 border-4 border-background shadow-sm">
           <AvatarImage src={profile?.avatar_url || user?.user_metadata?.avatar_url} className="object-cover" />

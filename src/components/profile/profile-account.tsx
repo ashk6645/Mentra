@@ -236,7 +236,7 @@ export function ProfileAccount() {
             {/* Profile Photo & Info */}
             <div className="flex items-start gap-6">
                 <div className="relative group cursor-pointer">
-                    <Avatar className="h-24 w-24 rounded-full border border-border/50">
+                    <Avatar className="h-24 w-24 rounded-full border border-border/25">
                         <AvatarImage src={profile?.avatar_url || avatarUrl} />
                         <AvatarFallback className="text-2xl bg-muted text-muted-foreground">
                             {initials}

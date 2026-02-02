@@ -18,7 +18,7 @@ export function GalleryView({ items, onUpdateItem, onAddItem, onDeleteItem, onOp
                 <div
                     key={item.id}
                     onClick={() => onOpenItem(item.id)}
-                    className="group bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-border/20 hover:border-border/40 hover:shadow-md transition-all overflow-hidden cursor-pointer relative flex flex-col h-full"
+                    className="group bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-border/20 hover:border-border/20 hover:shadow-md transition-all overflow-hidden cursor-pointer relative flex flex-col h-full"
                 >
                     {/* Cover Area */}
                     <div className="h-40 w-full relative shrink-0 bg-gray-50 dark:bg-zinc-800">
@@ -86,7 +86,7 @@ export function GalleryView({ items, onUpdateItem, onAddItem, onDeleteItem, onOp
             {/* New Item */}
             <button
                 onClick={onAddItem}
-                className="flex flex-col items-center justify-center gap-2 h-full min-h-[280px] bg-transparent border border-dashed border-border/40 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-900/50 transition-colors text-muted-foreground/60 hover:text-muted-foreground"
+                className="flex flex-col items-center justify-center gap-2 h-full min-h-[280px] bg-transparent border border-dashed border-border/20 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-900/50 transition-colors text-muted-foreground/60 hover:text-muted-foreground"
             >
                 <Plus className="w-5 h-5" />
                 <span className="text-sm font-medium">New</span>

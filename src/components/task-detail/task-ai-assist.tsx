@@ -165,7 +165,7 @@ export function TaskAIAssist({ task }: TaskAIAssistProps) {
     <div className="space-y-3">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center justify-between w-full p-3 rounded-lg border border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all group"
+        className="flex items-center justify-between w-full p-3 rounded-lg border border-border/25 hover:border-primary/30 hover:bg-primary/5 transition-all group"
       >
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-primary" />

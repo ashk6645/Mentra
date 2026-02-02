@@ -460,7 +460,7 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
             size="sm"
             className={cn(
               'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
-              !dueDate && 'text-muted-foreground/70 border-dashed border-border/50 hover:border-border hover:bg-muted/30'
+              !dueDate && 'text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30'
             )}
           >
             <Calendar className="mr-2 h-3.5 w-3.5" />
@@ -576,7 +576,7 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
             size="sm"
             className={cn(
               'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
-              !selectedProjectId && 'text-muted-foreground/70 border-dashed border-border/50 hover:border-border hover:bg-muted/30'
+              !selectedProjectId && 'text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30'
             )}
           >
             <FolderKanban className="mr-2 h-3.5 w-3.5" />
@@ -626,7 +626,7 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
               size="sm"
               className={cn(
                 'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
-                !selectedSectionId && 'text-muted-foreground/70 border-dashed border-border/50 hover:border-border hover:bg-muted/30'
+                !selectedSectionId && 'text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30'
               )}
             >
               <Layers className="mr-2 h-3.5 w-3.5" />
@@ -682,7 +682,7 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
             variant="outline"
             size="sm"
             disabled={isPending}
-            className="h-8 px-3 rounded-md border text-[13px] font-medium text-muted-foreground/70 border-dashed border-border/50 hover:border-border hover:bg-muted/30 transition-all"
+            className="h-8 px-3 rounded-md border text-[13px] font-medium text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30 transition-all"
           >
             {isPending ? (
               <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />

@@ -39,7 +39,7 @@ export const CalloutBlock = React.forwardRef<HTMLElement, CalloutBlockProps>(
         }
 
         return (
-            <div className="flex p-4 bg-muted/50 rounded-md gap-3 my-2 border border-border/50">
+            <div className="flex p-4 bg-muted/50 rounded-md gap-3 my-2 border border-border/25">
                 <div className="select-none text-xl leading-snug">💡</div>
                 <div className="flex-1 min-w-0">
                     <ContentEditable

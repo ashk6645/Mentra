@@ -184,7 +184,7 @@ export function TaskRow({ task }: TaskRowProps) {
                     "bg-card border transition-all duration-200",
 
                     // Base border (overridden by specific states below)
-                    "border-border/60",
+                    "border-border/30",
 
                     // Hover state
                     "hover:shadow-sm hover:-translate-y-0.5",
