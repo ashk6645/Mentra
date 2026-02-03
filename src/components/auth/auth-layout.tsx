@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { AuthFeatureSlider } from '@/components/auth/auth-feature-slider'
+
 import logo from '@/app/icon.png'
 
 interface AuthLayoutProps {
@@ -24,14 +24,9 @@ export function AuthLayout({
     footerLinkHref,
 }: AuthLayoutProps) {
     return (
-        <div className="min-h-screen w-full lg:grid lg:grid-cols-2 overflow-hidden bg-white">
-            {/* Left Column - Feature Slider (Hidden on Mobile) */}
-            <div className="hidden lg:block relative border-r border-slate-100 shadow-2xl shadow-slate-200/50">
-                <AuthFeatureSlider />
-            </div>
-
-            {/* Right Column - Auth Form */}
-            <div className="relative flex flex-col items-center justify-center p-4 sm:p-8 overflow-y-auto bg-gradient-to-br from-slate-50/50 via-white to-slate-50/50">
+        <div className="min-h-screen w-full flex items-center justify-center overflow-hidden bg-white">
+            {/* Main Auth Container */}
+            <div className="relative w-full h-full min-h-screen flex flex-col items-center justify-center p-4 sm:p-8 overflow-y-auto bg-gradient-to-br from-slate-50/50 via-white to-slate-50/50">
                 {/* Decorative Elements */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     {/* Mobile Background Gradients */}
