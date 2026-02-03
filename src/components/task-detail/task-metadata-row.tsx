@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 
 import { useState, useTransition, useEffect } from 'react'
 import { Calendar, Clock, Flag, Tag, Loader2, Check, X, Plus, FolderKanban, Layers } from 'lucide-react'
-import { RecurringConfig } from '@/components/tasks/recurring-config'
+import { RecurrenceSelector } from '@/components/tasks/recurrence-selector'
 import { format, isToday, isTomorrow } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -535,27 +535,28 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
         </PopoverContent>
       </Popover>
       {/* Recurring Config */}
-      <RecurringConfig
-        isRecurring={task.isRecurring || false}
-        recurrenceInterval={task.recurrenceInterval}
-        recurrenceStep={task.recurrenceStep}
-        recurrenceDays={task.recurrenceDays}
-        onUpdate={async (config) => {
+      <RecurrenceSelector
+        value={task.isRecurring ? {
+          interval: task.recurrenceInterval,
+          step: task.recurrenceStep || 1,
+          days: task.recurrenceDays || []
+        } as any : undefined}
+        onChange={(val) => {
           startTransition(async () => {
             const result = await updateTask({
               id: task.id,
-              isRecurring: config.isRecurring,
-              recurrenceInterval: config.recurrenceInterval,
-              recurrenceStep: config.recurrenceStep ?? undefined,
-              recurrenceDays: config.recurrenceDays ?? undefined,
+              isRecurring: !!val,
+              recurrenceInterval: val?.interval,
+              recurrenceStep: val?.step,
+              recurrenceDays: val?.days,
             })
 
             if (result.success && result.data) {
               selectTask(task.id, result.data)
               router.refresh()
               toast({
-                title: config.isRecurring ? 'Recurrence set' : 'Recurrence removed',
-                description: config.isRecurring ? 'Task will repeat automatically' : 'Task will not repeat',
+                title: val ? 'Recurrence set' : 'Recurrence removed',
+                description: val ? 'Task will repeat' : 'Task will not repeat',
               })
             } else {
               toast({
