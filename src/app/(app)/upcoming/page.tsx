@@ -1,4 +1,5 @@
 import { CreateTaskInline } from '@/components/tasks/create-task-inline'
+import { TaskSelectionToggle } from '@/components/tasks/task-selection-toggle'
 import { SortableTaskList } from '@/components/tasks/sortable-task-list'
 import { PageShell } from '@/components/layout/page-shell'
 import { PageHeader } from '@/components/layout/page-header'
@@ -89,8 +90,11 @@ export default async function UpcomingPage() {
                 description={`Next 7 days (${format(tomorrow, 'MMM d')} - ${format(nextWeek, 'MMM d')})`}
                 icon={CalendarDays}
                 actions={
-                    <div className="text-sm font-medium text-muted-foreground bg-secondary/50 px-3 py-1 rounded-full">
-                        {upcomingTasks.length} tasks scheduled
+                    <div className="flex items-center gap-2">
+                        <TaskSelectionToggle taskIds={upcomingTasks.map(t => t.id)} />
+                        <div className="text-sm font-medium text-muted-foreground bg-secondary/50 px-3 py-1 rounded-full">
+                            {upcomingTasks.length} tasks scheduled
+                        </div>
                     </div>
                 }
             />
@@ -105,7 +109,7 @@ export default async function UpcomingPage() {
                                 ✨
                             </div>
                         </div>
-                        
+
                         {/* Encouraging copy */}
                         <h3 className="text-xl font-semibold text-foreground mb-2">
                             Your week is wide open!
@@ -113,7 +117,7 @@ export default async function UpcomingPage() {
                         <p className="text-muted-foreground text-center max-w-md mb-6">
                             No tasks scheduled for the next 7 days. Time to plan ahead or enjoy the moment.
                         </p>
-                        
+
                         {/* Clear action */}
                         <CreateTaskInline variant="compact" label="Schedule a task" />
                     </div>

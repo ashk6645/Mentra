@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { TaskSelectionToggle } from '@/components/tasks/task-selection-toggle'
 import { getCompletedTasks } from '@/lib/actions/completed-actions'
 import { PageShell } from '@/components/layout/page-shell'
 import { PageHeader } from '@/components/layout/page-header'
@@ -22,6 +23,11 @@ export default async function CompletedPage() {
                 title="Completed"
                 description="Your accomplishment history"
                 icon={CheckCircle2}
+                actions={<TaskSelectionToggle taskIds={[
+                    ...groupedTasks.today,
+                    ...groupedTasks.yesterday,
+                    ...Object.values(groupedTasks.older).flat()
+                ].map((t: any) => t.id)} />}
             />
 
             <div className="space-y-8">

@@ -5,6 +5,7 @@ import { getSections } from '@/lib/actions/sections'
 import { getTasksByProject } from '@/lib/actions/tasks'
 import { SortableTaskList } from '@/components/tasks/sortable-task-list'
 import { CreateTaskInline } from '@/components/tasks/create-task-inline'
+import { TaskSelectionToggle } from '@/components/tasks/task-selection-toggle'
 import { SectionHeader } from '@/components/projects/section-header'
 import { AddSectionButton } from '@/components/projects/add-section-button'
 import { MoreHorizontal, Edit2, Archive, Trash2 } from 'lucide-react'
@@ -118,29 +119,33 @@ export default async function ProjectPage(props: ProjectPageProps) {
                             </div>
                         </div>
 
-                        {/* Actions Menu */}
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                    <MoreHorizontal className="h-5 w-5" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem>
-                                    <Edit2 className="mr-2 h-4 w-4" />
-                                    Edit Project
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <Archive className="mr-2 h-4 w-4" />
-                                    Archive
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-destructive focus:text-destructive">
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <div className="flex items-center gap-2">
+                            <TaskSelectionToggle taskIds={tasks.map(t => t.id)} />
+
+                            {/* Actions Menu */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                        <MoreHorizontal className="h-5 w-5" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem>
+                                        <Edit2 className="mr-2 h-4 w-4" />
+                                        Edit Project
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                        <Archive className="mr-2 h-4 w-4" />
+                                        Archive
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="text-destructive focus:text-destructive">
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Delete
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
                     </div>
                 </div>
             </div>

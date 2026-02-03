@@ -36,9 +36,8 @@ export function TaskRow({ task }: TaskRowProps) {
     const { selectedTaskId } = useTaskDetailStore()
     const isDetailed = selectedTaskId === task.id
 
-    const { selectedIds, toggleSelection } = useTaskSelectionStore()
+    const { selectedIds, toggleSelection, isSelectionMode } = useTaskSelectionStore()
     const isMultiSelected = selectedIds.has(task.id)
-    const isSelectionMode = selectedIds.size > 0
 
     const [scope, animate] = useAnimate()
 
@@ -213,26 +212,24 @@ export function TaskRow({ task }: TaskRowProps) {
                     )
                 )}>
 
-                {/* Checkbox */}
+                {/* Checkbox Area - Swaps between Completion and Selection based on mode */}
                 <div onClick={(e) => e.stopPropagation()} className="shrink-0 flex items-center justify-center">
-                    <Checkbox
-                        checked={task.completed}
-                        onCheckedChange={handleToggle}
-                        disabled={isPending}
-                        className="h-5 w-5 rounded-md border-2 border-muted-foreground/30 hover:border-muted-foreground/60 hover:bg-accent/20 data-[state=checked]:bg-success data-[state=checked]:border-success transition-all duration-200"
-                    />
-                </div>
-
-                {/* Bulk Selection Checkbox - Visible on hover or when selected or in selection mode */}
-                <div onClick={(e) => e.stopPropagation()} className={cn(
-                    "shrink-0 transition-all duration-200",
-                    isMultiSelected || isSelectionMode ? "w-5 opacity-100" : "w-0 opacity-0 group-hover:w-5 group-hover:opacity-100 overflow-hidden"
-                )}>
-                    <Checkbox
-                        checked={isMultiSelected}
-                        onCheckedChange={() => toggleSelection(task.id)}
-                        className="h-5 w-5 border-2 border-muted-foreground/30 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
-                    />
+                    {isSelectionMode ? (
+                        <div className="shrink-0 transition-all duration-200 animate-in fade-in zoom-in-50">
+                            <Checkbox
+                                checked={isMultiSelected}
+                                onCheckedChange={() => toggleSelection(task.id)}
+                                className="h-5 w-5 border-2 border-muted-foreground/30 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                            />
+                        </div>
+                    ) : (
+                        <Checkbox
+                            checked={task.completed}
+                            onCheckedChange={handleToggle}
+                            disabled={isPending}
+                            className="h-5 w-5 rounded-md border-2 border-muted-foreground/30 hover:border-muted-foreground/60 hover:bg-accent/20 data-[state=checked]:bg-success data-[state=checked]:border-success transition-all duration-200"
+                        />
+                    )}
                 </div>
 
                 {/* Content */}
