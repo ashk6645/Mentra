@@ -174,6 +174,13 @@ export default async function ProjectPage(props: ProjectPageProps) {
                                     taskCount={totalTasks}
                                 />
 
+                                {/* Active Tasks in Section */}
+                                {activeTasks.length > 0 && (
+                                    <div className="mb-4 ml-6">
+                                        <SortableTaskList tasks={activeTasks} />
+                                    </div>
+                                )}
+
                                 {/* Section Quick Add */}
                                 <div className="mb-3 ml-6">
                                     <CreateTaskInline
@@ -183,13 +190,6 @@ export default async function ProjectPage(props: ProjectPageProps) {
                                         variant="compact"
                                     />
                                 </div>
-
-                                {/* Active Tasks in Section */}
-                                {activeTasks.length > 0 && (
-                                    <div className="mb-4 ml-6">
-                                        <SortableTaskList tasks={activeTasks} />
-                                    </div>
-                                )}
 
                                 {/* Completed Tasks in Section */}
                                 {completedTasks.length > 0 && (
