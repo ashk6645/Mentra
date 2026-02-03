@@ -36,9 +36,8 @@ export function TaskRow({ task }: TaskRowProps) {
     const { selectedTaskId } = useTaskDetailStore()
     const isDetailed = selectedTaskId === task.id
 
-    const { selectedIds, toggleSelection } = useTaskSelectionStore()
+    const { selectedIds, toggleSelection, isSelectionMode } = useTaskSelectionStore()
     const isMultiSelected = selectedIds.has(task.id)
-    const isSelectionMode = selectedIds.size > 0
 
     const [scope, animate] = useAnimate()
 
@@ -223,17 +222,16 @@ export function TaskRow({ task }: TaskRowProps) {
                     />
                 </div>
 
-                {/* Bulk Selection Checkbox - Visible on hover or when selected or in selection mode */}
-                <div onClick={(e) => e.stopPropagation()} className={cn(
-                    "shrink-0 transition-all duration-200",
-                    isMultiSelected || isSelectionMode ? "w-5 opacity-100" : "w-0 opacity-0 group-hover:w-5 group-hover:opacity-100 overflow-hidden"
-                )}>
-                    <Checkbox
-                        checked={isMultiSelected}
-                        onCheckedChange={() => toggleSelection(task.id)}
-                        className="h-5 w-5 border-2 border-muted-foreground/30 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
-                    />
-                </div>
+                {/* Bulk Selection Checkbox - Only visible in selection mode */}
+                {isSelectionMode && (
+                    <div onClick={(e) => e.stopPropagation()} className="shrink-0 transition-all duration-200 animate-in fade-in zoom-in-50">
+                        <Checkbox
+                            checked={isMultiSelected}
+                            onCheckedChange={() => toggleSelection(task.id)}
+                            className="h-5 w-5 border-2 border-muted-foreground/30 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                        />
+                    </div>
+                )}
 
                 {/* Content */}
                 <div className="flex-1 min-w-0 space-y-1">

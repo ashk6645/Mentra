@@ -1,4 +1,5 @@
 import { CreateTaskInline } from '@/components/tasks/create-task-inline'
+import { TaskSelectionToggle } from '@/components/tasks/task-selection-toggle'
 import { Inbox as InboxIcon } from 'lucide-react'
 import { PageShell } from '@/components/layout/page-shell'
 import { PageHeader } from '@/components/layout/page-header'
@@ -79,6 +80,7 @@ export default async function InboxPage() {
                         : "Capture everything here"
                 }
                 icon={InboxIcon}
+                actions={<TaskSelectionToggle taskIds={inboxTasks.map(t => t.id)} />}
             />
 
             <div className="space-y-3">

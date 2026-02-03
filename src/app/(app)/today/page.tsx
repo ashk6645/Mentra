@@ -1,4 +1,5 @@
 import { CreateTaskInline } from '@/components/tasks/create-task-inline'
+import { TaskSelectionToggle } from '@/components/tasks/task-selection-toggle'
 import { PageShell } from '@/components/layout/page-shell'
 import { PageHeader } from '@/components/layout/page-header'
 import { TodayTaskList } from '@/components/today/today-task-list'
@@ -84,6 +85,7 @@ export default async function TodayPage() {
                 icon={Sun}
                 actions={
                     <div className="flex items-center gap-2">
+                        <TaskSelectionToggle taskIds={todayTasks.map(t => t.id)} />
                         <div className="text-sm font-medium text-blue-600 bg-blue-50 dark:bg-blue-950/30 px-3 py-1 rounded-full">
                             {todayTasks.length} {todayTasks.length === 1 ? 'Task' : 'Tasks'}
                         </div>
