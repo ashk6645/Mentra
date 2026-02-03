@@ -54,49 +54,59 @@ export function AddSectionButton({ projectId }: AddSectionButtonProps) {
 
     if (isAdding) {
         return (
-            <div className="flex items-center gap-2 py-2 px-1">
-                <Input
-                    value={sectionName}
-                    onChange={(e) => setSectionName(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleSubmit()
-                        if (e.key === 'Escape') handleCancel()
-                    }}
-                    placeholder="Section name..."
-                    className="h-8 text-sm"
-                    autoFocus
-                    disabled={isSubmitting}
-                />
-                <Button
-                    size="sm"
-                    onClick={handleSubmit}
-                    disabled={isSubmitting}
-                    className="h-8"
-                >
-                    {isSubmitting ? 'Adding...' : 'Add'}
-                </Button>
-                <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={handleCancel}
-                    disabled={isSubmitting}
-                    className="h-8"
-                >
-                    Cancel
-                </Button>
+            <div className="">
+                <div className="mb-3">
+                    <Input
+                        value={sectionName}
+                        onChange={(e) => setSectionName(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSubmit()
+                            if (e.key === 'Escape') handleCancel()
+                        }}
+                        placeholder="Name this section"
+                        className="h-10 px-3 py-2 bg-background border-border/60 focus-visible:ring-1 focus-visible:ring-primary/20 transition-all font-medium"
+                        autoFocus
+                        disabled={isSubmitting}
+                    />
+                </div>
+                <div className="flex items-center gap-2">
+                    <Button
+                        size="sm"
+                        onClick={handleSubmit}
+                        disabled={isSubmitting}
+                        className="bg-red-600 hover:bg-red-700 text-white border-transparent h-8 px-4 font-medium"
+                    >
+                        {isSubmitting ? 'Adding...' : 'Add section'}
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleCancel}
+                        disabled={isSubmitting}
+                        className="h-8 px-4 text-muted-foreground hover:text-foreground font-medium"
+                    >
+                        Cancel
+                    </Button>
+                </div>
             </div>
         )
     }
 
     return (
-        <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsAdding(true)}
-            className="w-full justify-start text-muted-foreground hover:text-foreground h-8"
-        >
-            <Plus className="mr-2 h-4 w-4" />
-            Add Section
-        </Button>
+        <div className="group">
+            <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsAdding(true)}
+                className="text-muted-foreground group-hover:text-primary transition-colors h-9 px-2 font-medium"
+            >
+                <div className="flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center justify-center w-5 h-5 rounded-full bg-transparent group-hover:bg-primary/10 transition-colors">
+                        <Plus className="h-4 w-4" />
+                    </div>
+                    <span>Add Section</span>
+                </div>
+            </Button>
+        </div>
     )
 }
