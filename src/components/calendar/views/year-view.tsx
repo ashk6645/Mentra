@@ -27,8 +27,8 @@ export function YearView({ currentDate, tasks }: YearViewProps) {
             <div className="flex flex-col gap-2">
                 <h3 className="font-semibold text-sm pl-1">{format(date, 'MMMM')}</h3>
                 <div className="grid grid-cols-7 gap-y-1 text-center text-[10px]">
-                    {weekDays.map(d => (
-                        <div key={d} className="text-muted-foreground font-medium">{d}</div>
+                    {weekDays.map((d, i) => (
+                        <div key={`${d}-${i}`} className="text-muted-foreground font-medium">{d}</div>
                     ))}
                     {days.map(day => {
                         const isCurrentMonth = isSameMonth(day, date)
