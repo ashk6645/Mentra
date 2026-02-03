@@ -16,9 +16,6 @@ export function TodayTaskList({ tasks }: TodayTaskListProps) {
                     <div className="text-7xl opacity-80 animate-bounce" style={{ animationDuration: '3s' }}>
                         ☀️
                     </div>
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-sm">
-                        ✨
-                    </div>
                 </div>
                 
                 {/* Encouraging copy */}

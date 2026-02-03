@@ -111,9 +111,6 @@ export default async function UpcomingPage() {
                         {/* Friendly visual */}
                         <div className="relative mb-6">
                             <div className="text-7xl opacity-80">📅</div>
-                            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-sm">
-                                ✨
-                            </div>
                         </div>
 
                         {/* Encouraging copy */}
