@@ -59,7 +59,7 @@ export function FocusView({ tasks: initialTasks }: FocusViewProps) {
         if (currentIndex < tasks.length - 1) {
             setCurrentIndex(prev => prev + 1)
         } else {
-            router.push('/')
+            router.push('/today')
         }
     }
 
@@ -94,7 +94,7 @@ export function FocusView({ tasks: initialTasks }: FocusViewProps) {
                         You've cleared your queue. excellent work.
                     </p>
                     <Button
-                        onClick={() => router.push('/')}
+                        onClick={() => router.push('/today')}
                         className="h-12 px-8 rounded-full bg-white text-slate-950 hover:bg-slate-200 mt-8 font-medium"
                     >
                         Return

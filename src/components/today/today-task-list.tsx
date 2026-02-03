@@ -30,7 +30,7 @@ export function TodayTaskList({ tasks }: TodayTaskListProps) {
                 </p>
                 
                 {/* Clear action */}
-                <CreateTaskInline variant="compact" label="Schedule a task" />
+                {/* <CreateTaskInline variant="compact" label="Schedule a task" /> */}
             </div>
         )
     }

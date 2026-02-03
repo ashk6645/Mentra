@@ -118,14 +118,14 @@ export default async function UpcomingPage() {
 
                         {/* Encouraging copy */}
                         <h3 className="text-xl font-semibold text-foreground mb-2">
-                            Your week is wide open!
+                            No upcoming tasks!
                         </h3>
                         <p className="text-muted-foreground text-center max-w-md mb-6">
-                            No tasks scheduled for the next 7 days. Time to plan ahead or enjoy the moment.
+                            Add something when it matters.
                         </p>
 
                         {/* Clear action */}
-                        <CreateTaskInline variant="compact" label="Schedule a task" />
+                        {/* <CreateTaskInline variant="compact" label="Schedule a task" /> */}
                     </div>
                 ) : (
                     <div className="space-y-12">
