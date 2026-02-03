@@ -35,8 +35,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Separator } from '@/components/ui/separator'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUIStore } from '@/stores/use-ui-store'
-import { PanelLeftClose, MoreHorizontal, Trash2 } from 'lucide-react'
-import { deletePage, getPages } from '@/lib/actions/pages'
+import { MoreHorizontal, Trash2 } from 'lucide-react'
+
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -49,19 +49,11 @@ import { CreateProjectDialog } from '@/components/projects/create-project-dialog
 import { ProjectRow } from '@/components/projects/project-row'
 import { type Project } from '@/lib/actions/projects'
 
-interface PageItem {
-    id: string
-    title: string
-    icon: string | null
-    parentPageId: string | null
-    isFavorited: boolean
-    isShared?: boolean
-}
+
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     user: any
     onOpenCommand?: () => void
-    initialPages?: PageItem[]
     initialProjects?: Project[]
     counts?: {
         inbox: number
@@ -71,19 +63,16 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 // Change to non-exported function, exported as memo at bottom
-function SidebarComponent({ className, user, onOpenCommand, initialPages, initialProjects, counts }: SidebarProps) {
+function SidebarComponent({ className, user, onOpenCommand, initialProjects, counts }: SidebarProps) {
     const pathname = usePathname()
     const router = useRouter()
     const supabase = createClient()
     const { isSidebarCollapsed, toggleSidebarCollapsed } = useUIStore()
 
     const [profile, setProfile] = useState<any>(null)
-    const [sharedExpanded, setSharedExpanded] = useState(true)
-    const [pagesExpanded, setPagesExpanded] = useState(true)
     const [projectsExpanded, setProjectsExpanded] = useState(true)
 
     const [showProfileDialog, setShowProfileDialog] = useState(false)
-    const [pages, setPages] = useState<PageItem[]>(initialPages || [])
     const [projects, setProjects] = useState<Project[]>(initialProjects || [])
     const [showNewProjectDialog, setShowNewProjectDialog] = useState(false)
     const [editingProject, setEditingProject] = useState<Project | null>(null)
@@ -91,18 +80,11 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, initia
     // Reset expanded states when sidebar collapses to keep UI clean
     useEffect(() => {
         if (isSidebarCollapsed) {
-            setSharedExpanded(false)
-            setPagesExpanded(false)
             setProjectsExpanded(false)
         }
     }, [isSidebarCollapsed])
 
-    // Sync state with server-provided pages
-    useEffect(() => {
-        if (initialPages) {
-            setPages(initialPages)
-        }
-    }, [initialPages])
+
 
     // Sync state with server-provided projects
     useEffect(() => {
@@ -117,13 +99,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, initia
         }
     }, [user?.id])
 
-    useEffect(() => {
-        // Only fetch client-side if we don't have initial pages
-        // or if we need to refresh (though layout mostly handles this)
-        if (user?.id && !initialPages?.length) {
-            fetchPages()
-        }
-    }, [user?.id])
+
 
     async function fetchProfile() {
         try {
@@ -145,21 +121,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, initia
         }
     }
 
-    async function fetchPages() {
-        console.log("Fetching pages for user:", user?.id)
-        try {
-            const result = await getPages()
 
-            if (result.success && result.pages) {
-                console.log("Fetched pages:", result.pages.length, result.pages)
-                setPages(result.pages as PageItem[])
-            } else {
-                console.error("Error fetching pages via action:", result.error)
-            }
-        } catch (error) {
-            console.error('Error fetching pages:', error)
-        }
-    }
 
     const handleSignOut = async () => {
         await supabase.auth.signOut()
@@ -342,201 +304,9 @@ function SidebarComponent({ className, user, onOpenCommand, initialPages, initia
                 )}
 
 
-                {/* Shared Pages Section */}
-                {!isSidebarCollapsed && pages.some(p => p.isShared) && (
-                    <div className="px-2 mb-2">
-                        <div
-                            className="flex items-center justify-between group mb-1 mt-4 px-2 py-1 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 rounded-sm cursor-pointer transition-colors"
-                            onClick={() => setSharedExpanded(!sharedExpanded)}
-                        >
-                            <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider select-none">
-                                Shared
-                            </span>
-                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                <div className="p-0.5 text-muted-foreground">
-                                    <motion.div
-                                        animate={{ rotate: sharedExpanded ? 90 : 0 }}
-                                        transition={{ duration: 0.2 }}
-                                    >
-                                        <ChevronRight className="h-3 w-3" />
-                                    </motion.div>
-                                </div>
-                            </div>
-                        </div>
 
-                        <AnimatePresence initial={false}>
-                            {sharedExpanded && (
-                                <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: "auto", opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    transition={{ duration: 0.3, ease: "circOut" }}
-                                    className="space-y-0.5 overflow-hidden"
-                                >
-                                    {pages.filter(p => p.isShared).map((page, index) => (
-                                        <motion.div
-                                            key={page.id}
-                                            initial={{ x: -10, opacity: 0 }}
-                                            animate={{ x: 0, opacity: 1 }}
-                                            transition={{ delay: index * 0.05 }}
-                                            className="group/item flex items-center pr-2"
-                                        >
-                                            <Link
-                                                href={`/pages/${page.id}`}
-                                                className={cn(
-                                                    "flex-1 flex items-center gap-2 px-4 py-1.5 text-[14px] rounded-lg transition-colors",
-                                                    pathname === `/pages/${page.id}`
-                                                        ? "text-foreground bg-neutral-200/60 dark:bg-neutral-800/60 font-medium"
-                                                        : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50"
-                                                )}
-                                            >
-                                                <span className="shrink-0 flex items-center justify-center w-5">
-                                                    {(page.icon?.startsWith('http') || page.icon?.startsWith('data:')) ? (
-                                                        <img src={page.icon} alt="" className="w-full h-auto object-contain" />
-                                                    ) : (
-                                                        <span className="text-sm opacity-80">{page.icon || '📄'}</span>
-                                                    )}
-                                                </span>
-                                                <span className="truncate">{page.title}</span>
-                                                <Users2 className="h-3 w-3 text-muted-foreground ml-auto" />
-                                            </Link>
 
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <button
-                                                        className="opacity-0 group-hover/item:opacity-100 p-0.5 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-opacity"
-                                                        aria-label="Page actions"
-                                                        suppressHydrationWarning
-                                                    >
-                                                        <MoreHorizontal className="w-3 h-3 text-muted-foreground" />
-                                                    </button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem
-                                                        onClick={(e) => {
-                                                            e.stopPropagation()
-                                                            deletePage(page.id)
-                                                        }}
-                                                        className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/10 gap-2"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                        Delete Page
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </motion.div>
-                                    ))}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                )}
 
-                {/* Private Pages Section */}
-                {!isSidebarCollapsed && (
-                    <div className="px-2 mb-2">
-                        <div
-                            className="flex items-center justify-between group mb-1 mt-4 px-2 py-1 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 rounded-sm cursor-pointer transition-colors"
-                            onClick={() => setPagesExpanded(!pagesExpanded)}
-                        >
-                            <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider select-none">
-                                Workspace
-                            </span>
-                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                <div className="p-0.5 text-muted-foreground">
-                                    <motion.div
-                                        animate={{ rotate: pagesExpanded ? 90 : 0 }}
-                                        transition={{ duration: 0.2 }}
-                                    >
-                                        <ChevronRight className="h-3 w-3" />
-                                    </motion.div>
-                                </div>
-                                <Link
-                                    href="/pages/new"
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="p-0.5 hover:bg-zinc-300/50 dark:hover:bg-zinc-700/50 rounded-sm transition-all duration-200 text-muted-foreground"
-                                    aria-label="Add private page"
-                                >
-                                    <Plus className="h-3 w-3" />
-                                </Link>
-                            </div>
-                        </div>
-
-                        <AnimatePresence initial={false}>
-                            {pagesExpanded && (
-                                <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: "auto", opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    transition={{ duration: 0.3, ease: "circOut" }}
-                                    className="space-y-0.5 overflow-hidden"
-                                >
-                                    {pages.filter(p => !p.isShared).map((page, index) => (
-                                        <motion.div
-                                            key={page.id}
-                                            initial={{ x: -10, opacity: 0 }}
-                                            animate={{ x: 0, opacity: 1 }}
-                                            transition={{ delay: index * 0.05 }}
-                                            className="group/item flex items-center pr-2"
-                                        >
-                                            <Link
-                                                href={`/pages/${page.id}`}
-                                                className={cn(
-                                                    "flex-1 flex items-center gap-2 px-4 py-1.5 text-[14px] rounded-lg transition-colors",
-                                                    pathname === `/pages/${page.id}`
-                                                        ? "text-foreground bg-neutral-200/60 dark:bg-neutral-800/60 font-medium"
-                                                        : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50"
-                                                )}
-                                            >
-                                                <span className="shrink-0 flex items-center justify-center w-5">
-                                                    {(page.icon?.startsWith('http') || page.icon?.startsWith('data:')) ? (
-                                                        <img src={page.icon} alt="" className="w-full h-auto object-contain" />
-                                                    ) : (
-                                                        <span className="text-sm opacity-80">{page.icon || '📄'}</span>
-                                                    )}
-                                                </span>
-                                                <span className="truncate">{page.title}</span>
-                                            </Link>
-
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <button
-                                                        className="opacity-0 group-hover/item:opacity-100 p-0.5 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-opacity"
-                                                        aria-label="Page actions"
-                                                        suppressHydrationWarning
-                                                    >
-                                                        <MoreHorizontal className="w-3 h-3 text-muted-foreground" />
-                                                    </button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem
-                                                        onClick={(e) => {
-                                                            e.stopPropagation()
-                                                            deletePage(page.id)
-                                                        }}
-                                                        className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/10 gap-2"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                        Delete Page
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </motion.div>
-                                    ))}
-                                    {pages.filter(p => !p.isShared).length === 0 && (
-                                        <Link
-                                            href="/pages/new"
-                                            className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                                        >
-                                            <Plus className="h-3 w-3" />
-                                            <span>New page</span>
-                                        </Link>
-                                    )}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                )}
             </div>
 
             {/* User Profile Area - Moved to Bottom */}

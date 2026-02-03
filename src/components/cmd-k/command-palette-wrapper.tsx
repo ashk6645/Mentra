@@ -10,12 +10,11 @@ import { motion } from 'framer-motion'
 interface CommandPaletteWrapperProps {
     user: any
     children: React.ReactNode
-    initialPages?: any[]
     initialProjects?: any[]
     sidebarCounts?: { inbox: number, today: number, overdue: number }
 }
 
-export function CommandPaletteWrapper({ user, children, initialPages, initialProjects, sidebarCounts }: CommandPaletteWrapperProps) {
+export function CommandPaletteWrapper({ user, children, initialProjects, sidebarCounts }: CommandPaletteWrapperProps) {
     const { isSidebarCollapsed } = useUIStore()
     const { isOpen: isTaskPanelOpen } = useTaskDetailStore()
 
@@ -31,7 +30,6 @@ export function CommandPaletteWrapper({ user, children, initialPages, initialPro
             <Sidebar
                 user={user}
                 onOpenCommand={handleOpenCommand}
-                initialPages={initialPages}
                 initialProjects={initialProjects}
                 counts={sidebarCounts}
             />
