@@ -170,7 +170,7 @@ export function SectionHeader({
                     </div>
                 ) : (
                     <>
-                        <h3 className="flex items-center gap-2 text-[13px] font-semibold text-muted-foreground/80 group-hover:text-foreground transition-colors uppercase tracking-wider">
+                        <h3 className="flex items-center gap-2 text-sm font-bold text-foreground uppercase tracking-wider">
                             {section.name}
                         </h3>
                         <span className="text-[11px] font-medium text-muted-foreground/50 px-2 py-0.5 rounded-full bg-muted/30">

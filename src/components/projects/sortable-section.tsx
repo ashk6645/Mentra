@@ -61,7 +61,7 @@ export function SortableSection({
                     )}
 
                     {/* Section Quick Add */}
-                    <div className="mb-3 ml-8">
+                    <div className="mb-3 ml-8 max-w-xl">
                         <CreateTaskInline
                             defaultProjectId={projectId}
                             defaultSectionId={section.id}
