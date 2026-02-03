@@ -20,9 +20,11 @@ export function AppPreview() {
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
+        whileHover={{ rotateX: 2, rotateY: -2, scale: 1.01 }}
         transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
         viewport={{ once: true }}
         className="relative mx-auto max-w-4xl"
+        style={{ perspective: 1000 }}
       >
         {/* Outer glow ring - Light/Purple tint */}
         <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10 blur-xl opacity-50 -z-10" />

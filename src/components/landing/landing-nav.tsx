@@ -38,7 +38,7 @@ export function LandingNav() {
             </Link>
             <Link href="/signup">
               <Button size="sm" className="text-sm rounded-lg">
-                Get Started
+                Get Started Free
               </Button>
             </Link>
           </div>
