@@ -274,7 +274,7 @@ export async function createTask(data: CreateTaskInput) {
                 isRecurring: result.data.isRecurring || false,
                 recurrenceInterval: result.data.recurrenceInterval,
                 recurrenceStep: result.data.recurrenceStep,
-                recurrenceDays: result.data.recurrenceDays,
+                recurrenceDays: result.data.recurrenceDays || [],
                 recurrenceEnd: result.data.recurrenceEnd ? new Date(result.data.recurrenceEnd) : null,
             },
         })
@@ -329,6 +329,19 @@ export async function updateTask(data: UpdateTaskInput) {
             updateData.scheduledEnd = result.data.scheduledEnd ? new Date(result.data.scheduledEnd) : null
         }
         if (result.data.durationMinutes !== undefined) updateData.durationMinutes = result.data.durationMinutes
+
+        if (result.data.durationMinutes !== undefined) updateData.durationMinutes = result.data.durationMinutes
+
+        if (result.data.isRecurring !== undefined) updateData.isRecurring = result.data.isRecurring
+        if (result.data.recurrenceInterval !== undefined) updateData.recurrenceInterval = result.data.recurrenceInterval
+        if (result.data.recurrenceStep !== undefined) updateData.recurrenceStep = result.data.recurrenceStep
+        if (result.data.recurrenceDays !== undefined) {
+            // Ensure we store an array, defaulting to empty if null/undefined provided but field is present
+            updateData.recurrenceDays = result.data.recurrenceDays || []
+        }
+        if (result.data.recurrenceEnd !== undefined) {
+            updateData.recurrenceEnd = result.data.recurrenceEnd ? new Date(result.data.recurrenceEnd) : null
+        }
 
         // Project & Section
         if (result.data.projectId !== undefined) updateData.projectId = result.data.projectId
