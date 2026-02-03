@@ -35,6 +35,12 @@ export default async function InboxPage() {
             dueDate: true,
             completed: true,
             sortOrder: true,
+            // Recurrence
+            isRecurring: true,
+            recurrenceInterval: true,
+            recurrenceStep: true,
+            recurrenceDays: true,
+            recurrenceEnd: true,
             subtasks: {
                 select: {
                     id: true,

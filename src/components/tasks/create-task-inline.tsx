@@ -62,24 +62,34 @@ export function CreateTaskInline({
         description?: string
         dueDate?: Date
         priority?: 'low' | 'medium' | 'high' | 'urgent' | null
-        tagIds?: string[]
         scheduledTime?: string
         isRecurring?: boolean
         recurrenceInterval?: 'daily' | 'weekly' | 'monthly' | 'yearly'
         recurrenceStep?: number
         recurrenceDays?: number[]
         reminderPattern?: string
+        projectId?: string
+        sectionId?: string
+        tagIds?: string[]
     }) {
         try {
             setIsSubmitting(true)
 
             const result = await createTask({
-                ...data,
+                title: data.title,
+                description: data.description,
                 priority: data.priority || undefined,
                 dueDate: data.dueDate ? data.dueDate.toISOString() : undefined,
                 reminderPattern: data.reminderPattern,
-                projectId: defaultProjectId,
-                sectionId: defaultSectionId,
+                // Use user selected project/section if available, otherwise default
+                projectId: data.projectId || defaultProjectId,
+                sectionId: data.sectionId || defaultSectionId,
+                // Explicitly pass recurrence fields
+                isRecurring: data.isRecurring,
+                recurrenceInterval: data.recurrenceInterval,
+                recurrenceStep: data.recurrenceStep,
+                recurrenceDays: data.recurrenceDays,
+                tagIds: data.tagIds
             })
 
             if (result.success) {

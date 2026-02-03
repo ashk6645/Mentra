@@ -40,6 +40,12 @@ export default async function TodayPage() {
             completed: true,
             completedAt: true,
             sortOrder: true,
+            // Recurrence
+            isRecurring: true,
+            recurrenceInterval: true,
+            recurrenceStep: true,
+            recurrenceDays: true,
+            recurrenceEnd: true,
             tags: {
                 select: {
                     tag: {

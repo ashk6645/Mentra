@@ -264,9 +264,11 @@ export function TaskRow({ task }: TaskRowProps) {
                 <div className="flex items-center gap-3 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     {/* Recurring badge */}
                     {task.isRecurring && (
-                        <div className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400">
-                            <Repeat className="h-3.5 w-3.5" />
-                            <span>{formatRecurrence(task.recurrenceInterval, task.recurrenceStep, task.recurrenceDays)}</span>
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border border-purple-200/50 dark:border-purple-800/30">
+                            <Repeat className="h-3 w-3" />
+                            <span className="max-w-[100px] truncate">
+                                {formatRecurrence(task.recurrenceInterval, task.recurrenceStep, task.recurrenceDays)}
+                            </span>
                         </div>
                     )}
 

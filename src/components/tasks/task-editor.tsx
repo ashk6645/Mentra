@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { CalendarIcon, Flag, Inbox, Clock, X, ChevronDown, Check, Bell, FolderKanban, Layers } from 'lucide-react'
 import { format } from 'date-fns'
+import { RecurrenceSelector, RecurrenceValue } from '@/components/tasks/recurrence-selector'
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -263,6 +264,12 @@ export function TaskEditor({
                         </DropdownMenuContent>
                     </DropdownMenu>
 
+
+                    {/* Recurrence Selector */}
+                    <RecurrenceSelector
+                        value={recurrence}
+                        onChange={(val) => setRecurrence(val)}
+                    />
 
                     {/* Reminder Badge */}
                     {reminderPattern && (

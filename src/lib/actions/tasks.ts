@@ -274,7 +274,7 @@ export async function createTask(data: CreateTaskInput) {
                 isRecurring: result.data.isRecurring || false,
                 recurrenceInterval: result.data.recurrenceInterval,
                 recurrenceStep: result.data.recurrenceStep,
-                recurrenceDays: result.data.recurrenceDays,
+                recurrenceDays: result.data.recurrenceDays || [],
                 recurrenceEnd: result.data.recurrenceEnd ? new Date(result.data.recurrenceEnd) : null,
             },
         })
@@ -329,6 +329,19 @@ export async function updateTask(data: UpdateTaskInput) {
             updateData.scheduledEnd = result.data.scheduledEnd ? new Date(result.data.scheduledEnd) : null
         }
         if (result.data.durationMinutes !== undefined) updateData.durationMinutes = result.data.durationMinutes
+
+        if (result.data.durationMinutes !== undefined) updateData.durationMinutes = result.data.durationMinutes
+
+        if (result.data.isRecurring !== undefined) updateData.isRecurring = result.data.isRecurring
+        if (result.data.recurrenceInterval !== undefined) updateData.recurrenceInterval = result.data.recurrenceInterval
+        if (result.data.recurrenceStep !== undefined) updateData.recurrenceStep = result.data.recurrenceStep
+        if (result.data.recurrenceDays !== undefined) {
+            // Ensure we store an array, defaulting to empty if null/undefined provided but field is present
+            updateData.recurrenceDays = result.data.recurrenceDays || []
+        }
+        if (result.data.recurrenceEnd !== undefined) {
+            updateData.recurrenceEnd = result.data.recurrenceEnd ? new Date(result.data.recurrenceEnd) : null
+        }
 
         // Project & Section
         if (result.data.projectId !== undefined) updateData.projectId = result.data.projectId
@@ -817,24 +830,82 @@ export async function bulkDeleteTasks(ids: string[]) {
  * Handle logic for completing a recurring task
  * Creates the next instance of the task
  */
+/**
+ * Handle logic for completing a recurring task
+ * Creates the next instance of the task
+ */
 async function handleRecurringTaskCompletion(task: Task, userId: string) {
     try {
         if (!task.dueDate || !task.recurrenceInterval) return
 
         let nextDate = new Date(task.dueDate)
         const step = task.recurrenceStep || 1
+        const now = new Date() // Use current time to ensure we don't schedule in the past if task was overdue
 
-        // Calculate next date based on interval
+        // Ensure we calculate from the latest relevant date (dueDate or today)
+        // If task was overdue, we probably want the next occurrence relative to the original schedule
+        // But if it's very old, we might want to "catch up" or just schedule from today.
+        // Standard behavior is usually relative to the last due date to maintain the pattern.
+
         switch (task.recurrenceInterval) {
             case 'daily':
-                nextDate = addDays(nextDate, step)
+                // Weekdays check
+                if (task.recurrenceDays && task.recurrenceDays.length > 0) {
+                    // Logic for specific days (e.g. weekdays or specific selection)
+                    // recurrenceDays: 0=Sun, 1=Mon, ... 6=Sat
+
+                    // Simple "Next Valid Day" finder
+                    let daysToAdd = 1
+                    let found = false
+                    // Look ahead up to 14 days to find the next match
+                    while (!found && daysToAdd <= 14) {
+                        const candidate = addDays(nextDate, daysToAdd)
+                        const dayOfWeek = candidate.getDay()
+                        if (task.recurrenceDays.includes(dayOfWeek)) {
+                            nextDate = candidate
+                            found = true
+                        } else {
+                            daysToAdd++
+                        }
+                    }
+
+                    // If no match found (e.g. empty array), default to standard step
+                    if (!found) nextDate = addDays(nextDate, step)
+                } else {
+                    // Standard Daily
+                    nextDate = addDays(nextDate, step)
+                }
                 break
+
             case 'weekly':
-                nextDate = addWeeks(nextDate, step)
+                // Check if specific days are selected for weekly (e.g. Mon, Wed)
+                if (task.recurrenceDays && task.recurrenceDays.length > 0) {
+                    // Find next valid day in the week
+                    let daysToAdd = 1
+                    let found = false
+
+                    // Look ahead up to 14 days (2 weeks)
+                    while (!found && daysToAdd <= 14) {
+                        const candidate = addDays(nextDate, daysToAdd)
+                        const dayOfWeek = candidate.getDay()
+                        if (task.recurrenceDays.includes(dayOfWeek)) {
+                            nextDate = candidate
+                            found = true
+                        } else {
+                            daysToAdd++
+                        }
+                    }
+                    if (!found) nextDate = addWeeks(nextDate, step)
+                } else {
+                    // Standard Weekly
+                    nextDate = addWeeks(nextDate, step)
+                }
                 break
+
             case 'monthly':
                 nextDate = addMonths(nextDate, step)
                 break
+
             case 'yearly':
                 nextDate = addYears(nextDate, step)
                 break
