@@ -212,26 +212,25 @@ export function TaskRow({ task }: TaskRowProps) {
                     )
                 )}>
 
-                {/* Checkbox */}
+                {/* Checkbox Area - Swaps between Completion and Selection based on mode */}
                 <div onClick={(e) => e.stopPropagation()} className="shrink-0 flex items-center justify-center">
-                    <Checkbox
-                        checked={task.completed}
-                        onCheckedChange={handleToggle}
-                        disabled={isPending}
-                        className="h-5 w-5 rounded-md border-2 border-muted-foreground/30 hover:border-muted-foreground/60 hover:bg-accent/20 data-[state=checked]:bg-success data-[state=checked]:border-success transition-all duration-200"
-                    />
-                </div>
-
-                {/* Bulk Selection Checkbox - Only visible in selection mode */}
-                {isSelectionMode && (
-                    <div onClick={(e) => e.stopPropagation()} className="shrink-0 transition-all duration-200 animate-in fade-in zoom-in-50">
+                    {isSelectionMode ? (
+                        <div className="shrink-0 transition-all duration-200 animate-in fade-in zoom-in-50">
+                            <Checkbox
+                                checked={isMultiSelected}
+                                onCheckedChange={() => toggleSelection(task.id)}
+                                className="h-5 w-5 border-2 border-muted-foreground/30 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                            />
+                        </div>
+                    ) : (
                         <Checkbox
-                            checked={isMultiSelected}
-                            onCheckedChange={() => toggleSelection(task.id)}
-                            className="h-5 w-5 border-2 border-muted-foreground/30 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                            checked={task.completed}
+                            onCheckedChange={handleToggle}
+                            disabled={isPending}
+                            className="h-5 w-5 rounded-md border-2 border-muted-foreground/30 hover:border-muted-foreground/60 hover:bg-accent/20 data-[state=checked]:bg-success data-[state=checked]:border-success transition-all duration-200"
                         />
-                    </div>
-                )}
+                    )}
+                </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0 space-y-1">
