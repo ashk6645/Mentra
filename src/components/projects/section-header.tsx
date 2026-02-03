@@ -170,12 +170,14 @@ export function SectionHeader({
                     </div>
                 ) : (
                     <>
-                        <h3 className="flex items-center gap-2 text-sm font-bold text-foreground uppercase tracking-wider">
+                        <h3 className="flex items-center gap-2 text-base font-semibold text-foreground/90">
                             {section.name}
                         </h3>
-                        <span className="text-[11px] font-medium text-muted-foreground/50 px-2 py-0.5 rounded-full bg-muted/30">
-                            {taskCount}
-                        </span>
+                        {taskCount > 0 && (
+                            <span className="text-[11px] font-medium text-muted-foreground/40 px-1.5 py-0.5 ml-1">
+                                {taskCount}
+                            </span>
+                        )}
                         <div className="flex-1" /> {/* Spacer */}
                     </>
                 )}

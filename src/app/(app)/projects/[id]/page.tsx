@@ -73,61 +73,41 @@ export default async function ProjectPage(props: ProjectPageProps) {
     return (
         <div className="h-full flex flex-col">
             {/* Header */}
-            <div className="border-b border-border/20 bg-gradient-to-b from-background via-background to-muted/20">
-                <div className="max-w-5xl mx-auto px-8 py-10">
+            <div className="w-full">
+                <div className="max-w-4xl mx-auto px-6 pt-12 pb-6">
                     <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-4">
-                            {/* Project Icon with Glow */}
-                            <div className="relative group shrink-0">
-                                <div className="absolute inset-0 bg-primary/10 rounded-2xl blur-xl group-hover:bg-primary/20 transition-colors" />
-                                <div className="relative flex items-center justify-center w-16 h-16 text-4xl bg-card border border-border/25 rounded-2xl shadow-sm">
-                                    {project.icon || '📁'}
-                                </div>
-                            </div>
-
-                            {/* Project Info */}
-                            <div className="flex-1 min-w-0 pt-1">
-                                <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">
+                        <div className="flex flex-col gap-4">
+                            {/* Title Area */}
+                            <div className="flex items-center gap-3">
+                                <span className="text-4xl">{project.icon || '📁'}</span>
+                                <h1 className="text-3xl font-bold tracking-tight text-foreground">
                                     {project.name}
                                 </h1>
-                                {project.description && (
-                                    <p className="text-[15px] text-muted-foreground/80 leading-relaxed max-w-2xl mb-4">
-                                        {project.description}
-                                    </p>
-                                )}
+                            </div>
 
-                                {/* Stats with visual indicators */}
-                                <div className="flex items-center gap-6 text-[13px] font-medium text-muted-foreground">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
-                                        <span>{totalActiveTasks} active</span>
-                                    </div>
-                                    <div className="w-px h-4 bg-border/60" />
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
-                                        <span>{totalCompletedTasks} completed</span>
-                                    </div>
-                                    {sections.length > 0 && (
-                                        <>
-                                            <div className="w-px h-4 bg-border/60" />
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-2 h-2 rounded-full bg-purple-500/50" />
-                                                <span>{sections.length} {sections.length === 1 ? 'section' : 'sections'}</span>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
+                            {/* Description */}
+                            {project.description && (
+                                <p className="text-base text-muted-foreground/80 leading-relaxed max-w-2xl">
+                                    {project.description}
+                                </p>
+                            )}
+
+                            {/* Stats - Minimal */}
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                                <span>{totalActiveTasks} active</span>
+                                <span className="opacity-30">•</span>
+                                <span>{totalCompletedTasks} completed</span>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 self-start mt-1">
                             {tasks.length > 0 && <TaskSelectionToggle taskIds={tasks.map(t => t.id)} />}
 
                             {/* Actions Menu */}
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                        <MoreHorizontal className="h-5 w-5" />
+                                    <Button variant="ghost" size="icon" className="transition-colors hover:bg-muted">
+                                        <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
@@ -153,7 +133,7 @@ export default async function ProjectPage(props: ProjectPageProps) {
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto">
-                <div className="max-w-5xl mx-auto px-6 py-6">
+                <div className="max-w-4xl mx-auto px-6 py-2">
                     {/* Quick Add Task */}
                     <div className="mb-6">
                         <CreateTaskInline
