@@ -8,6 +8,7 @@ import { CreateTaskInline } from '@/components/tasks/create-task-inline'
 import { TaskSelectionToggle } from '@/components/tasks/task-selection-toggle'
 import { SectionHeader } from '@/components/projects/section-header'
 import { AddSectionButton } from '@/components/projects/add-section-button'
+import { SectionList } from '@/components/projects/section-list'
 import { MoreHorizontal, Edit2, Archive, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -161,48 +162,14 @@ export default async function ProjectPage(props: ProjectPageProps) {
                         />
                     </div>
 
-                    {/* Sections */}
-                    {sections.map((section) => {
-                        const activeTasks = getActiveTasks(section.id)
-                        const completedTasks = getCompletedTasks(section.id)
-                        const totalTasks = activeTasks.length + completedTasks.length
-
-                        return (
-                            <div key={section.id} className="mb-8">
-                                <SectionHeader
-                                    section={section}
-                                    taskCount={totalTasks}
-                                />
-
-                                {/* Active Tasks in Section */}
-                                {activeTasks.length > 0 && (
-                                    <div className="mb-4 ml-6">
-                                        <SortableTaskList tasks={activeTasks} />
-                                    </div>
-                                )}
-
-                                {/* Section Quick Add */}
-                                <div className="mb-3 ml-6">
-                                    <CreateTaskInline
-                                        defaultProjectId={params.id}
-                                        defaultSectionId={section.id}
-                                        placeholder={`Add a task to ${section.name}...`}
-                                        variant="compact"
-                                    />
-                                </div>
-
-                                {/* Completed Tasks in Section */}
-                                {completedTasks.length > 0 && (
-                                    <div className="ml-6">
-                                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                                            Completed
-                                        </h4>
-                                        <SortableTaskList tasks={completedTasks} />
-                                    </div>
-                                )}
-                            </div>
-                        )
-                    })}
+                    {/* Sections List */}
+                    <div className="mb-8">
+                        <SectionList
+                            initialSections={sections}
+                            tasksBySection={tasksBySection}
+                            projectId={params.id}
+                        />
+                    </div>
 
                     {/* No Section Tasks */}
                     {tasksBySection['no-section'] && tasksBySection['no-section'].length > 0 && (

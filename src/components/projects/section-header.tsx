@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MoreHorizontal, Edit2, Trash2, GripVertical } from 'lucide-react'
+import { MoreHorizontal, Edit2, Trash2, GripVertical, ChevronRight, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -24,6 +24,7 @@ import { deleteSection, updateSection } from '@/lib/actions/sections'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 
 interface SectionHeaderProps {
     section: {
@@ -32,9 +33,18 @@ interface SectionHeaderProps {
         projectId: string
     }
     taskCount?: number
+    isExpanded?: boolean
+    onToggle?: () => void
+    dragHandleProps?: any
 }
 
-export function SectionHeader({ section, taskCount = 0 }: SectionHeaderProps) {
+export function SectionHeader({
+    section,
+    taskCount = 0,
+    isExpanded = true,
+    onToggle,
+    dragHandleProps
+}: SectionHeaderProps) {
     const router = useRouter()
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
@@ -105,11 +115,26 @@ export function SectionHeader({ section, taskCount = 0 }: SectionHeaderProps) {
 
     return (
         <>
-            <div className="group flex items-center gap-2 py-3 px-1 mb-2 border-b border-border/20 transition-colors hover:border-border/30">
+            <div className="group flex items-center gap-1 py-3 px-1 mb-2 transition-colors">
                 {/* Drag Handle */}
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded">
-                    <GripVertical className="h-4 w-4 text-muted-foreground/50" />
+                <div
+                    {...dragHandleProps}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded text-muted-foreground/40 hover:text-muted-foreground mr-1"
+                >
+                    <GripVertical className="h-4 w-4" />
                 </div>
+
+                {/* Toggle Button */}
+                <button
+                    onClick={onToggle}
+                    className="p-0.5 rounded-sm text-muted-foreground/50 hover:text-foreground hover:bg-muted transition-colors mr-1"
+                >
+                    {isExpanded ? (
+                        <ChevronDown className="h-4 w-4" />
+                    ) : (
+                        <ChevronRight className="h-4 w-4" />
+                    )}
+                </button>
 
                 {/* Section Name */}
                 {isEditing ? (
