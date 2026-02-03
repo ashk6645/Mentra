@@ -97,7 +97,7 @@ export default async function UpcomingPage() {
                 icon={CalendarDays}
                 actions={
                     <div className="flex items-center gap-2">
-                        <TaskSelectionToggle taskIds={upcomingTasks.map(t => t.id)} />
+                        {upcomingTasks.length > 0 && <TaskSelectionToggle taskIds={upcomingTasks.map(t => t.id)} />}
                         <div className="text-sm font-medium text-muted-foreground bg-secondary/50 px-3 py-1 rounded-full">
                             {upcomingTasks.length} tasks scheduled
                         </div>

@@ -17,17 +17,19 @@ export default async function CompletedPage() {
     const result = await getCompletedTasks()
     const groupedTasks = result.success && result.data ? result.data : { today: [], yesterday: [], older: {} }
 
+    const allTaskIds = [
+        ...groupedTasks.today,
+        ...groupedTasks.yesterday,
+        ...Object.values(groupedTasks.older).flat()
+    ].map((t: any) => t.id)
+
     return (
         <PageShell>
             <PageHeader
                 title="Completed"
                 description="Your accomplishment history"
                 icon={CheckCircle2}
-                actions={<TaskSelectionToggle taskIds={[
-                    ...groupedTasks.today,
-                    ...groupedTasks.yesterday,
-                    ...Object.values(groupedTasks.older).flat()
-                ].map((t: any) => t.id)} />}
+                actions={allTaskIds.length > 0 ? <TaskSelectionToggle taskIds={allTaskIds} /> : null}
             />
 
             <div className="space-y-8">

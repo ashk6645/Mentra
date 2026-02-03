@@ -91,7 +91,7 @@ export default async function TodayPage() {
                 icon={Sun}
                 actions={
                     <div className="flex items-center gap-2">
-                        <TaskSelectionToggle taskIds={todayTasks.map(t => t.id)} />
+                        {todayTasks.length > 0 && <TaskSelectionToggle taskIds={todayTasks.map(t => t.id)} />}
                         <div className="text-sm font-medium text-blue-600 bg-blue-50 dark:bg-blue-950/30 px-3 py-1 rounded-full">
                             {todayTasks.length} {todayTasks.length === 1 ? 'Task' : 'Tasks'}
                         </div>

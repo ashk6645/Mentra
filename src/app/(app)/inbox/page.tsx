@@ -86,7 +86,7 @@ export default async function InboxPage() {
                         : "Capture everything here"
                 }
                 icon={InboxIcon}
-                actions={<TaskSelectionToggle taskIds={inboxTasks.map(t => t.id)} />}
+                actions={inboxTasks.length > 0 ? <TaskSelectionToggle taskIds={inboxTasks.map(t => t.id)} /> : null}
             />
 
             <div className="space-y-3">

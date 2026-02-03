@@ -28,7 +28,7 @@ export function InboxTaskList({ tasks }: InboxTaskListProps) {
                 </p>
                 
                 {/* Clear action */}
-                <CreateTaskInline variant="compact" label="Add a task" />
+                {/* <CreateTaskInline variant="compact" label="Add a task" /> */}
             </div>
         )
     }

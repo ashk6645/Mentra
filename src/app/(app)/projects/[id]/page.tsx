@@ -120,7 +120,7 @@ export default async function ProjectPage(props: ProjectPageProps) {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <TaskSelectionToggle taskIds={tasks.map(t => t.id)} />
+                            {tasks.length > 0 && <TaskSelectionToggle taskIds={tasks.map(t => t.id)} />}
 
                             {/* Actions Menu */}
                             <DropdownMenu>
