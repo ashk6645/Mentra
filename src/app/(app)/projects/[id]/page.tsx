@@ -9,15 +9,8 @@ import { TaskSelectionToggle } from '@/components/tasks/task-selection-toggle'
 import { SectionHeader } from '@/components/projects/section-header'
 import { AddSectionButton } from '@/components/projects/add-section-button'
 import { SectionList } from '@/components/projects/section-list'
-import { MoreHorizontal, Edit2, Archive, Trash2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { ProjectActions } from '@/components/projects/project-actions'
+
 
 interface ProjectPageProps {
     params: Promise<{
@@ -104,28 +97,7 @@ export default async function ProjectPage(props: ProjectPageProps) {
                             {tasks.length > 0 && <TaskSelectionToggle taskIds={tasks.map(t => t.id)} />}
 
                             {/* Actions Menu */}
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="transition-colors hover:bg-muted">
-                                        <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>
-                                        <Edit2 className="mr-2 h-4 w-4" />
-                                        Edit Project
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                        <Archive className="mr-2 h-4 w-4" />
-                                        Archive
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive focus:text-destructive">
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Delete
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                            <ProjectActions project={project} />
                         </div>
                     </div>
                 </div>
