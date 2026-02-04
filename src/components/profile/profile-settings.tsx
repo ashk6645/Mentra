@@ -32,7 +32,7 @@ export function ProfileSettings() {
       </div>
 
       {/* Notifications */}
-      <section className="rounded-2xl border border-border/50 bg-background/60 backdrop-blur-sm">
+      <section className="rounded-2xl border border-border bg-card">
         <div className="p-6 space-y-6">
           <div className="flex items-center gap-3 text-foreground">
             <Bell className="h-4 w-4 text-muted-foreground" />
@@ -81,7 +81,7 @@ export function ProfileSettings() {
       </section>
 
       {/* Date & Time */}
-      <section className="rounded-2xl border border-border/50 bg-background/60 backdrop-blur-sm">
+      <section className="rounded-2xl border border-border bg-card">
         <div className="p-6 space-y-6">
           <div className="flex items-center gap-3 text-foreground">
             <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -137,7 +137,7 @@ export function ProfileSettings() {
       </section>
 
       {/* Intelligence */}
-      <section className="rounded-2xl border border-border/50 bg-background/60 backdrop-blur-sm">
+      <section className="rounded-2xl border border-border bg-card">
         <div className="p-6 space-y-6">
           <div className="flex items-center gap-3 text-foreground">
             <Sparkles className="h-4 w-4 text-muted-foreground" />

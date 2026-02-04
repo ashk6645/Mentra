@@ -27,23 +27,23 @@ export function ProfileView() {
             <Tabs defaultValue="account" className="flex-1 flex flex-col md:flex-row h-full">
 
                 {/* Notion-style Sidebar */}
-                <div className="w-full md:w-[240px] border-r border-[#E9E9E8] dark:border-[#2C2C2C] bg-[#F7F7F5] dark:bg-[#1F1F1F] flex-shrink-0 flex flex-col">
+                <div className="w-full md:w-[240px] border-r border-border bg-muted/30 flex-shrink-0 flex flex-col">
                     {/* User Profile Mini Header */}
                     <div className="p-3 mb-1">
-                        <div className="flex items-center gap-3 px-2 py-1 rounded-sm hover:bg-[#EFEFEF] dark:hover:bg-[#2C2C2C] cursor-default transition-colors">
+                        <div className="flex items-center gap-3 px-2 py-1 rounded-sm hover:bg-accent hover:text-accent-foreground cursor-default transition-colors">
                             <Avatar className="h-5 w-5 rounded-sm">
                                 <AvatarImage src={avatarUrl} />
                                 <AvatarFallback className="text-[10px] rounded-sm">{initials}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate text-[#37352F] dark:text-[#D4D4D4] leading-none">{displayName}</p>
-                                <p className="text-[11px] text-[#91918E] dark:text-[#818181] truncate leading-tight mt-0.5">{email}</p>
+                                <p className="text-sm font-medium truncate text-foreground leading-none">{displayName}</p>
+                                <p className="text-[11px] text-muted-foreground truncate leading-tight mt-0.5">{email}</p>
                             </div>
                         </div>
                     </div>
 
                     <div className="px-5 mb-2">
-                        <div className="h-px bg-[#E9E9E8] dark:bg-[#2C2C2C]" />
+                        <div className="h-px bg-border" />
                     </div>
 
                     <div className="px-2">
@@ -53,75 +53,75 @@ export function ProfileView() {
                                 value="account"
                                 className={cn(
                                     "w-full justify-start px-2 py-1 h-[28px] text-sm rounded-sm font-normal",
-                                    "text-[#37352F] dark:text-[#D4D4D4]",
-                                    "hover:bg-[#EFEFEF] dark:hover:bg-[#2C2C2C] transition-colors",
-                                    "data-[state=active]:bg-[#EFEFEF] dark:data-[state=active]:bg-[#2C2C2C]",
-                                    "data-[state=active]:text-[#37352F] dark:data-[state=active]:text-[#D4D4D4]",
+                                    "text-muted-foreground",
+                                    "hover:bg-accent hover:text-accent-foreground transition-colors",
+                                    "data-[state=active]:bg-accent",
+                                    "data-[state=active]:text-accent-foreground",
                                     "data-[state=active]:font-medium",
                                     "data-[state=active]:shadow-none"
                                 )}
                             >
-                                <User className="h-4 w-4 mr-2.5 text-[#91918E] dark:text-[#818181]" />
+                                <User className="h-4 w-4 mr-2.5" />
                                 Account
                             </TabsTrigger>
                             <TabsTrigger
                                 value="settings"
                                 className={cn(
                                     "w-full justify-start px-2 py-1 h-[28px] text-sm rounded-sm font-normal",
-                                    "text-[#37352F] dark:text-[#D4D4D4]",
-                                    "hover:bg-[#EFEFEF] dark:hover:bg-[#2C2C2C] transition-colors",
-                                    "data-[state=active]:bg-[#EFEFEF] dark:data-[state=active]:bg-[#2C2C2C]",
-                                    "data-[state=active]:text-[#37352F] dark:data-[state=active]:text-[#D4D4D4]",
+                                    "text-muted-foreground",
+                                    "hover:bg-accent hover:text-accent-foreground transition-colors",
+                                    "data-[state=active]:bg-accent",
+                                    "data-[state=active]:text-accent-foreground",
                                     "data-[state=active]:font-medium",
                                     "data-[state=active]:shadow-none"
                                 )}
                             >
-                                <Settings className="h-4 w-4 mr-2.5 text-[#91918E] dark:text-[#818181]" />
+                                <Settings className="h-4 w-4 mr-2.5" />
                                 Settings
                             </TabsTrigger>
                             <TabsTrigger
                                 value="theme"
                                 className={cn(
                                     "w-full justify-start px-2 py-1 h-[28px] text-sm rounded-sm font-normal",
-                                    "text-[#37352F] dark:text-[#D4D4D4]",
-                                    "hover:bg-[#EFEFEF] dark:hover:bg-[#2C2C2C] transition-colors",
-                                    "data-[state=active]:bg-[#EFEFEF] dark:data-[state=active]:bg-[#2C2C2C]",
-                                    "data-[state=active]:text-[#37352F] dark:data-[state=active]:text-[#D4D4D4]",
+                                    "text-muted-foreground",
+                                    "hover:bg-accent hover:text-accent-foreground transition-colors",
+                                    "data-[state=active]:bg-accent",
+                                    "data-[state=active]:text-accent-foreground",
                                     "data-[state=active]:font-medium",
                                     "data-[state=active]:shadow-none"
                                 )}
                             >
-                                <Palette className="h-4 w-4 mr-2.5 text-[#91918E] dark:text-[#818181]" />
+                                <Palette className="h-4 w-4 mr-2.5" />
                                 Theme
                             </TabsTrigger>
                             {/* <TabsTrigger
                                 value="achievements"
                                 className={cn(
                                     "w-full justify-start px-2 py-1 h-[28px] text-sm rounded-sm font-normal",
-                                    "text-[#37352F] dark:text-[#D4D4D4]",
-                                    "hover:bg-[#EFEFEF] dark:hover:bg-[#2C2C2C] transition-colors",
-                                    "data-[state=active]:bg-[#EFEFEF] dark:data-[state=active]:bg-[#2C2C2C]",
-                                    "data-[state=active]:text-[#37352F] dark:data-[state=active]:text-[#D4D4D4]",
+                                    "text-muted-foreground",
+                                    "hover:bg-accent hover:text-accent-foreground transition-colors",
+                                    "data-[state=active]:bg-accent",
+                                    "data-[state=active]:text-accent-foreground",
                                     "data-[state=active]:font-medium",
                                     "data-[state=active]:shadow-none"
                                 )}
                             >
-                                <Trophy className="h-4 w-4 mr-2.5 text-[#91918E] dark:text-[#818181]" />
+                                <Trophy className="h-4 w-4 mr-2.5" />
                                 Achievements
                             </TabsTrigger> */}
                             <TabsTrigger
                                 value="activity"
                                 className={cn(
                                     "w-full justify-start px-2 py-1 h-[28px] text-sm rounded-sm font-normal",
-                                    "text-[#37352F] dark:text-[#D4D4D4]",
-                                    "hover:bg-[#EFEFEF] dark:hover:bg-[#2C2C2C] transition-colors",
-                                    "data-[state=active]:bg-[#EFEFEF] dark:data-[state=active]:bg-[#2C2C2C]",
-                                    "data-[state=active]:text-[#37352F] dark:data-[state=active]:text-[#D4D4D4]",
+                                    "text-muted-foreground",
+                                    "hover:bg-accent hover:text-accent-foreground transition-colors",
+                                    "data-[state=active]:bg-accent",
+                                    "data-[state=active]:text-accent-foreground",
                                     "data-[state=active]:font-medium",
                                     "data-[state=active]:shadow-none"
                                 )}
                             >
-                                <Activity className="h-4 w-4 mr-2.5 text-[#91918E] dark:text-[#818181]" />
+                                <Activity className="h-4 w-4 mr-2.5" />
                                 Activity
                             </TabsTrigger>
                         </TabsList>
