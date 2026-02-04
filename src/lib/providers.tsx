@@ -15,8 +15,24 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                 attribute="class"
                 defaultTheme="system"
                 enableSystem
-                disableTransitionOnChange
-                themes={['light', 'dark', 'amoled', 'solarized', 'rose', 'midnight', 'nord', 'forest', 'paper', 'cyberpunk']}
+                disableTransitionOnChange={false}
+                themes={[
+                    'light',
+                    'dark',
+                    'amoled',
+                    'solarized',
+                    'rose',
+                    'midnight',
+                    'nord',
+                    'forest',
+                    'paper',
+                    'cyberpunk',
+                    'ocean',
+                    'sunset',
+                    'lavender',
+                    'mint',
+                    'charcoal'
+                ]}
             >
                 {children}
             </ThemeProvider>
