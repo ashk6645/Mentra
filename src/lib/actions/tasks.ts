@@ -680,12 +680,56 @@ export async function searchTasks(query: string) {
             orderBy: { updatedAt: 'desc' },
             select: {
                 id: true,
+                userId: true,
                 title: true,
                 description: true,
-                completed: true,
-                dueDate: true,
                 priority: true,
+                dueDate: true,
+                completed: true,
+                completedAt: true,
+
+                scheduledStart: true,
+                scheduledEnd: true,
+                durationMinutes: true,
+                createdAt: true,
+                updatedAt: true,
+
+                // Recurrence
                 isRecurring: true,
+                recurrenceInterval: true,
+                recurrenceStep: true,
+                recurrenceDays: true,
+                recurrenceEnd: true,
+
+                tags: {
+                    select: {
+                        tag: {
+                            select: {
+                                id: true,
+                                name: true,
+                                color: true,
+                            }
+                        }
+                    }
+                },
+                subtasks: {
+                    select: {
+                        id: true,
+                        title: true,
+                        completed: true,
+                        sortOrder: true,
+                    },
+                    orderBy: {
+                        sortOrder: 'asc'
+                    }
+                },
+                reminders: {
+                    select: {
+                        id: true,
+                        remindAt: true,
+                        isSent: true,
+                    },
+                },
             }
         })
 

@@ -32,6 +32,7 @@ import {
 import { searchTasks } from "@/lib/actions/tasks"
 import { getProjects } from "@/lib/actions/projects"
 import { cn } from "@/lib/utils"
+import { useTaskDetailStore } from "@/stores/use-task-detail-store"
 
 interface Project {
     id: string
@@ -46,15 +47,9 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
     const router = useRouter()
     const { setTheme } = useTheme()
     const [query, setQuery] = React.useState("")
+    const { selectTask } = useTaskDetailStore()
 
-    const [tasks, setTasks] = React.useState<{
-        id: string
-        title: string
-        description: string | null
-        completed: boolean
-        priority: string | null
-        dueDate: Date | null
-    }[]>([])
+    const [tasks, setTasks] = React.useState<any[]>([])
     const [isSearching, setIsSearching] = React.useState(false)
     const [projects, setProjects] = React.useState<Project[]>([])
 
@@ -167,7 +162,7 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
                     {tasks.length > 0 && (
                         <CommandGroup heading="Tasks">
                             {tasks.map(task => (
-                                <CommandItem key={task.id} onSelect={() => runCommand(() => router.push(`/tasks?taskId=${task.id}`))}>
+                                <CommandItem key={task.id} onSelect={() => runCommand(() => selectTask(task.id, task))}>
                                     <div className={cn("mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary", task.completed ? "bg-primary text-primary-foreground" : "opacity-50")} />
                                     <span className="truncate flex-1">{task.title}</span>
                                 </CommandItem>
