@@ -69,6 +69,7 @@ export default async function ProjectPage(props: ProjectPageProps) {
             <div className="w-full">
                 <div className="max-w-4xl mx-auto px-6 pt-12 pb-6">
                     <div className="flex items-start justify-between">
+                        {/* Left Column: Title & Description */}
                         <div className="flex flex-col gap-4">
                             {/* Title Area */}
                             <div className="flex items-center gap-4">
@@ -86,25 +87,25 @@ export default async function ProjectPage(props: ProjectPageProps) {
                                     {project.description}
                                 </p>
                             )}
-
-                            {/* Stats - Minimal */}
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                                <span className="flex items-center gap-1.5">
-                                    <div className="h-2 w-2 rounded-full bg-blue-500" />
-                                    {totalActiveTasks} active
-                                </span>
-                                <span className="flex items-center gap-1.5">
-                                    <div className="h-2 w-2 rounded-full bg-green-500" />
-                                    {totalCompletedTasks} completed
-                                </span>
-                            </div>
                         </div>
 
-                        <div className="flex items-center gap-1 self-start mt-1">
-                            {tasks.length > 0 && <TaskSelectionToggle taskIds={tasks.map(t => t.id)} />}
+                        {/* Right Column: Actions & Stats */}
+                        <div className="flex flex-col items-end gap-4 self-start mt-1">
+                            <div className="flex items-center gap-1">
+                                {tasks.length > 0 && <TaskSelectionToggle taskIds={tasks.map(t => t.id)} />}
+                                {/* Actions Menu */}
+                                <ProjectActions project={project} />
+                            </div>
 
-                            {/* Actions Menu */}
-                            <ProjectActions project={project} />
+                            {/* Stats - Table Style */}
+                            <div className="flex items-center border border-border/40 rounded-lg bg-background/50 text-sm shadow-sm">
+                                <div className="px-4 py-1.5 border-r border-border/40 text-muted-foreground">
+                                    Active: <span className="font-medium text-foreground">{totalActiveTasks}</span>
+                                </div>
+                                <div className="px-4 py-1.5 text-muted-foreground">
+                                    Completed: <span className="font-medium text-foreground">{totalCompletedTasks}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -177,6 +178,6 @@ export default async function ProjectPage(props: ProjectPageProps) {
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     )
 }
