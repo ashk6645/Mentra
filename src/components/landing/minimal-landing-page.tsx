@@ -33,18 +33,18 @@ export function MinimalLandingPage() {
                             height={32}
                             className="object-contain"
                         />
-                        <span className="text-xl font-bold tracking-tight">Mentra</span>
+                        <span className="text-xl font-bold tracking-tight text-slate-900">Mentra</span>
                     </Link>
 
                     {/* Nav buttons */}
                     <div className="flex items-center gap-3">
                         <Link href="/login">
-                            <Button variant="ghost" size="sm" className="font-medium">
+                            <Button variant="ghost" size="sm" className="font-medium text-slate-700 hover:text-slate-900 hover:bg-white/20">
                                 Sign In
                             </Button>
                         </Link>
                         <Link href="/signup">
-                            <Button size="sm" className="font-semibold">
+                            <Button size="sm" className="font-semibold bg-blue-600 hover:bg-blue-700 text-white border-none">
                                 Get Started
                             </Button>
                         </Link>
@@ -85,17 +85,17 @@ export function MinimalLandingPage() {
                         className="space-y-6"
                     >
                         <div className="space-y-6">
-                            <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
-                                <span className="bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
+                            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-slate-900">
+                                <span className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent">
                                     Focus on what
                                 </span>
                                 <br />
-                                <span className="bg-gradient-to-b from-primary via-blue-600 to-primary/80 bg-clip-text text-transparent">
+                                <span className="bg-gradient-to-b from-blue-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
                                     truly matters
                                 </span>
                             </h1>
 
-                            <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                            <p className="text-xl md:text-2xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
                                 Mentra is an all-in-one productivity system designed for clarity, control, and calm.
                                 No clutter. No stress. Just you and your work.
                             </p>
@@ -112,7 +112,7 @@ export function MinimalLandingPage() {
                         <Link href="/signup">
                             <Button
                                 size="lg"
-                                className="h-14 px-10 text-lg font-semibold rounded-full shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/40 transition-all duration-300 group bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                                className="h-14 px-10 text-lg font-semibold rounded-full shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/40 transition-all duration-300 group bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0"
                             >
                                 Get Started
                                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -125,7 +125,7 @@ export function MinimalLandingPage() {
             {/* Footer */}
             <footer className="absolute bottom-0 left-0 right-0 py-6">
                 <div className="container mx-auto px-6">
-                    <p className="text-center text-sm text-muted-foreground/60">
+                    <p className="text-center text-sm text-slate-500/80">
                         © 2026 Mentra. Built with focus.
                     </p>
                 </div>
