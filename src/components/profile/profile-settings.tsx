@@ -65,7 +65,7 @@ export function ProfileSettings() {
                   Receive a summary of your tasks by email.
                 </p>
               </div>
-              <Select value={emailDigest} onValueChange={setEmailDigest}>
+              <Select value={emailDigest} onValueChange={(value) => setEmailDigest(value as 'daily' | 'weekly' | 'never')}>
                 <SelectTrigger className="w-36 bg-background">
                   <SelectValue />
                 </SelectTrigger>
@@ -101,7 +101,7 @@ export function ProfileSettings() {
                   Choose how your calendar is structured.
                 </p>
               </div>
-              <Select value={weekStartsOn} onValueChange={setWeekStartsOn}>
+              <Select value={weekStartsOn} onValueChange={(value) => setWeekStartsOn(value as '0' | '1')}>
                 <SelectTrigger className="w-36 bg-background">
                   <SelectValue />
                 </SelectTrigger>
@@ -122,7 +122,7 @@ export function ProfileSettings() {
                   Display times in your preferred format.
                 </p>
               </div>
-              <Select value={timeFormat} onValueChange={setTimeFormat}>
+              <Select value={timeFormat} onValueChange={(value) => setTimeFormat(value as '12h' | '24h')}>
                 <SelectTrigger className="w-36 bg-background">
                   <SelectValue />
                 </SelectTrigger>
