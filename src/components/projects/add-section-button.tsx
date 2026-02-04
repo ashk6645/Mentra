@@ -93,20 +93,14 @@ export function AddSectionButton({ projectId }: AddSectionButtonProps) {
     }
 
     return (
-        <div className="group">
-            <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsAdding(true)}
-                className="text-muted-foreground group-hover:text-primary transition-colors h-9 px-2 font-medium"
-            >
-                <div className="flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity">
-                    <div className="flex items-center justify-center w-5 h-5 rounded-full bg-transparent group-hover:bg-primary/10 transition-colors">
-                        <Plus className="h-4 w-4" />
-                    </div>
-                    <span>Add Section</span>
-                </div>
-            </Button>
-        </div>
+        <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsAdding(true)}
+            className="text-muted-foreground/70 hover:text-foreground"
+        >
+            <Plus className="h-3.5 w-3.5 mr-2" />
+            Add section
+        </Button>
     )
 }

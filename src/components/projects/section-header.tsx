@@ -115,7 +115,7 @@ export function SectionHeader({
 
     return (
         <>
-            <div className="group flex items-center gap-1 py-3 px-1 mb-2 transition-colors">
+            <div className="group flex items-center gap-1 py-2 px-1 mb-2 transition-colors">
                 {/* Drag Handle */}
                 <div
                     {...dragHandleProps}
@@ -170,11 +170,11 @@ export function SectionHeader({
                     </div>
                 ) : (
                     <>
-                        <h3 className="flex items-center gap-2 text-base font-semibold text-foreground/90">
+                        <h3 className="flex items-center gap-2 text-[15px] font-semibold text-foreground/90">
                             {section.name}
                         </h3>
                         {taskCount > 0 && (
-                            <span className="text-[11px] font-medium text-muted-foreground/40 px-1.5 py-0.5 ml-1">
+                            <span className="text-xs text-muted-foreground/50 ml-1">
                                 {taskCount}
                             </span>
                         )}

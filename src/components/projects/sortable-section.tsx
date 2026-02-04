@@ -54,10 +54,18 @@ export function SortableSection({
             {isExpanded && (
                 <div className="animate-in slide-in-from-top-2 duration-200">
                     {/* Active Tasks in Section */}
-                    {activeTasks.length > 0 && (
+                    {activeTasks.length > 0 ? (
                         <div className="mb-4 ml-8">
                             <SortableTaskList tasks={activeTasks} />
                         </div>
+                    ) : (
+                        completedTasks.length === 0 && (
+                            <div className="py-6 text-center ml-8">
+                                <p className="text-sm text-muted-foreground/40">
+                                    No tasks in this section
+                                </p>
+                            </div>
+                        )
                     )}
 
                     {/* Section Quick Add */}
@@ -73,7 +81,8 @@ export function SortableSection({
                     {/* Completed Tasks in Section */}
                     {completedTasks.length > 0 && (
                         <div className="ml-8">
-                            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                            <div className="border-t border-border/20 my-6" />
+                            <h4 className="text-sm font-medium text-muted-foreground/70 mb-3">
                                 Completed
                             </h4>
                             <SortableTaskList tasks={completedTasks} />

@@ -71,8 +71,10 @@ export default async function ProjectPage(props: ProjectPageProps) {
                     <div className="flex items-start justify-between">
                         <div className="flex flex-col gap-4">
                             {/* Title Area */}
-                            <div className="flex items-center gap-3">
-                                <span className="text-4xl">{project.icon || '📁'}</span>
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 shadow-sm">
+                                    <span className="text-3xl">{project.icon || '📁'}</span>
+                                </div>
                                 <h1 className="text-3xl font-bold tracking-tight text-foreground">
                                     {project.name}
                                 </h1>
@@ -87,9 +89,14 @@ export default async function ProjectPage(props: ProjectPageProps) {
 
                             {/* Stats - Minimal */}
                             <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                                <span>{totalActiveTasks} active</span>
-                                <span className="opacity-30">•</span>
-                                <span>{totalCompletedTasks} completed</span>
+                                <span className="flex items-center gap-1.5">
+                                    <div className="h-2 w-2 rounded-full bg-blue-500" />
+                                    {totalActiveTasks} active
+                                </span>
+                                <span className="flex items-center gap-1.5">
+                                    <div className="h-2 w-2 rounded-full bg-green-500" />
+                                    {totalCompletedTasks} completed
+                                </span>
                             </div>
                         </div>
 
@@ -143,7 +150,8 @@ export default async function ProjectPage(props: ProjectPageProps) {
                             {/* Completed Tasks */}
                             {getCompletedTasks('no-section').length > 0 && (
                                 <div>
-                                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                                    <div className="border-t border-border/20 my-6" />
+                                    <h4 className="text-sm font-medium text-muted-foreground/70 mb-3">
                                         Completed
                                     </h4>
                                     <SortableTaskList tasks={getCompletedTasks('no-section')} />

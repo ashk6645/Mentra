@@ -47,62 +47,15 @@ export function AddTaskTrigger({
 
     // Default 'inline' variant
     return (
-        <div
+        <button
             onClick={onClick}
-            suppressHydrationWarning={true}
             className={cn(
-                "relative group",
-                "flex items-center gap-3",
-                "px-4 py-3 mx-1", // Added mx-1 to align visually with rows that have borders
-                "rounded-xl",
-                "border-2 border-dashed border-border/20",
-                "bg-muted/10", // Subtle background
-                "transition-all duration-200 ease-out",
-                "cursor-text", // Feels like an input
-
-                // Hover state - becomes solid and lifts slightly
-                "hover:border-solid",
-                "hover:border-primary/20",
-                "hover:bg-background",
-                "hover:shadow-sm",
-                "hover:-translate-y-0.5",
-
+                "flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground/60 hover:text-foreground hover:bg-muted/30 rounded-lg transition-colors w-full text-left",
                 className
             )}
         >
-            {/* Plus icon */}
-            <Plus className={cn(
-                "h-5 w-5",
-                "text-muted-foreground/40",
-                "transition-colors duration-200",
-                "group-hover:text-primary/70"
-            )} />
-
-            {/* Label acting as placeholder */}
-            <span className={cn(
-                "flex-1 font-medium text-[15px]",
-                "text-muted-foreground/60",
-                "transition-colors duration-200",
-                "group-hover:text-foreground/80"
-            )}>
-                {label}
-            </span>
-
-            {/* Keyboard hint (only show on hover) */}
-            <kbd className={cn(
-                "hidden sm:inline-flex items-center justify-center",
-                "px-2 py-1",
-                "h-5 min-w-[20px]",
-                "rounded-[4px]",
-                "border border-border/30",
-                "bg-muted/30",
-                "text-[10px] font-mono font-medium text-muted-foreground/40",
-                "opacity-0 group-hover:opacity-100",
-                "transition-all duration-200",
-                "translate-x-2 group-hover:translate-x-0" // Slide in effect
-            )}>
-                Q
-            </kbd>
-        </div>
+            <Plus className="h-4 w-4" />
+            <span>{label}</span>
+        </button>
     )
 }
