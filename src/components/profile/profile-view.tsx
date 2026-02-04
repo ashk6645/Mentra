@@ -62,7 +62,7 @@ export function ProfileView() {
                                 )}
                             >
                                 <User className="h-4 w-4 mr-2.5 text-[#91918E] dark:text-[#818181]" />
-                                My Account
+                                Account
                             </TabsTrigger>
                             <TabsTrigger
                                 value="settings"
