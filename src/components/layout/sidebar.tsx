@@ -125,6 +125,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
 
     const handleSignOut = async () => {
         await supabase.auth.signOut()
+        router.refresh()
         router.push('/login')
     }
 
