@@ -178,9 +178,9 @@ export function ProfileTheme() {
                                 )}>
                                     {item.label}
                                 </p>
-                                <p className="text-xs text-[#91918E] dark:text-[#818181]">
+                                {/* <p className="text-xs text-[#91918E] dark:text-[#818181]">
                                     {item.description}
-                                </p>
+                                </p> */}
                             </div>
                         </div>
                     )
