@@ -7,24 +7,24 @@ import { useState, useEffect } from 'react'
 
 export function ProfileAchievements() {
   const [streakInfo, setStreakInfo] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const streakResult = await getStreakInfo()
+  // useEffect(() => {
+  //   async function fetchData() {
+  //     try {
+  //       const streakResult = await getStreakInfo()
 
-        if (streakResult.success) {
-          setStreakInfo(streakResult)
-        }
-      } catch (error) {
-        console.error('Error fetching achievement data:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchData()
-  }, [])
+  //       if (streakResult.success) {
+  //         setStreakInfo(streakResult)
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching achievement data:', error)
+  //     } finally {
+  //       setLoading(false)
+  //     }
+  //   }
+  //   fetchData()
+  // }, [])
 
   if (loading) {
     return <div className="p-12 text-center text-muted-foreground">Loading achievements...</div>

@@ -94,7 +94,7 @@ export function ProfileView() {
                                 <Palette className="h-4 w-4 mr-2.5 text-[#91918E] dark:text-[#818181]" />
                                 Theme
                             </TabsTrigger>
-                            <TabsTrigger
+                            {/* <TabsTrigger
                                 value="achievements"
                                 className={cn(
                                     "w-full justify-start px-2 py-1 h-[28px] text-sm rounded-sm font-normal",
@@ -108,7 +108,7 @@ export function ProfileView() {
                             >
                                 <Trophy className="h-4 w-4 mr-2.5 text-[#91918E] dark:text-[#818181]" />
                                 Achievements
-                            </TabsTrigger>
+                            </TabsTrigger> */}
                             <TabsTrigger
                                 value="activity"
                                 className={cn(
@@ -148,14 +148,14 @@ export function ProfileView() {
                                 <ProfileTheme />
                             </TabsContent>
 
-                            <TabsContent value="achievements" className="space-y-6 mt-0 animate-in fade-in-50 duration-200">
+                            {/* <TabsContent value="achievements" className="space-y-6 mt-0 animate-in fade-in-50 duration-200">
                                 <div>
                                     <h3 className="text-base font-medium mb-4 text-[#37352F] dark:text-[#D4D4D4]">Achievements</h3>
                                     <Suspense fallback={<div className="h-32 bg-muted/50 animate-pulse rounded-md" />}>
                                         <ProfileAchievements />
                                     </Suspense>
                                 </div>
-                            </TabsContent>
+                            </TabsContent> */}
 
                             <TabsContent value="activity" className="space-y-6 mt-0 animate-in fade-in-50 duration-200">
                                 <div>
