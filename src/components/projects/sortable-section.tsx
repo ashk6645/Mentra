@@ -81,18 +81,12 @@ export function SortableSection({
                     {/* Completed Tasks in Section */}
                     {completedTasks.length > 0 && (
                         <div className="ml-8">
-                            <div className="border-t border-border/20 my-6" />
-                            <h4 className="text-sm font-medium text-muted-foreground/70 mb-3">
-                                Completed
-                            </h4>
                             <SortableTaskList tasks={completedTasks} />
                         </div>
                     )}
                 </div>
             )}
 
-            {/* Section Separator */}
-            <div className={`border-b border-border/30 w-full ${isExpanded ? 'mt-8' : 'mt-2'}`} />
         </div>
     )
 }

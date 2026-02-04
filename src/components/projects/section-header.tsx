@@ -115,11 +115,11 @@ export function SectionHeader({
 
     return (
         <>
-            <div className="group flex items-center gap-1 py-2 px-1 mb-2 transition-colors">
+            <div className="group flex items-center gap-2 py-2 px-3 mb-2 transition-all bg-muted/40 hover:bg-muted/60 rounded-md border border-transparent hover:border-border/30">
                 {/* Drag Handle */}
                 <div
                     {...dragHandleProps}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded text-muted-foreground/40 hover:text-muted-foreground mr-1"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 hover:bg-white/50 rounded text-muted-foreground/60 hover:text-foreground"
                 >
                     <GripVertical className="h-4 w-4" />
                 </div>
@@ -127,7 +127,7 @@ export function SectionHeader({
                 {/* Toggle Button */}
                 <button
                     onClick={onToggle}
-                    className="p-0.5 rounded-sm text-muted-foreground/50 hover:text-foreground hover:bg-muted transition-colors mr-1"
+                    className="p-1 rounded-sm text-foreground/70 hover:text-foreground hover:bg-white/50 transition-colors"
                 >
                     {isExpanded ? (
                         <ChevronDown className="h-4 w-4" />
@@ -170,7 +170,7 @@ export function SectionHeader({
                     </div>
                 ) : (
                     <>
-                        <h3 className="flex items-center gap-2 text-[15px] font-semibold text-foreground/90">
+                        <h3 className="flex items-center gap-2 text-base font-bold text-foreground">
                             {section.name}
                         </h3>
                         {taskCount > 0 && (
