@@ -42,7 +42,7 @@ export function SortableSection({
     const totalTasks = activeTasks.length + completedTasks.length
 
     return (
-        <div ref={setNodeRef} style={style} className="mb-8">
+        <div ref={setNodeRef} style={style} className={isExpanded ? 'mb-8' : 'mb-2'}>
             <SectionHeader
                 section={section}
                 taskCount={totalTasks}
@@ -90,6 +90,9 @@ export function SortableSection({
                     )}
                 </div>
             )}
+
+            {/* Section Separator */}
+            <div className={`border-b border-border/30 w-full ${isExpanded ? 'mt-8' : 'mt-2'}`} />
         </div>
     )
 }
