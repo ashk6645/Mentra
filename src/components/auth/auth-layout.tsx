@@ -77,10 +77,10 @@ export function AuthLayout({
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.3 }}
-                        className="relative bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/50 p-8 sm:p-10"
+                        className="relative bg-gradient-to-br from-white/95 via-blue-50/80 to-indigo-50/80 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/60 p-8 sm:p-10"
                     >
                         {/* Gradient Border Effect */}
-                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-blue-500/10 opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/50 via-transparent to-blue-400/20 opacity-100 pointer-events-none" />
 
                         <div className="relative z-10">
                             {/* Header */}
