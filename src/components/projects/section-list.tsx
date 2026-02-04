@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
     DndContext,
     closestCenter,
@@ -32,6 +32,10 @@ export function SectionList({
     projectId,
 }: SectionListProps) {
     const [sections, setSections] = useState(initialSections)
+
+    useEffect(() => {
+        setSections(initialSections)
+    }, [initialSections])
 
     const sensors = useSensors(
         useSensor(PointerSensor),
