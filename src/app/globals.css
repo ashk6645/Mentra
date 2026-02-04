@@ -647,6 +647,246 @@
     --chart-5: #4ADE80;
   }
 
+  /* ==================== OCEAN ==================== */
+  .ocean {
+    --background: #0A1929;
+    --foreground: #E3F2FD;
+
+    --card: #0D2238;
+    --card-foreground: #E3F2FD;
+    --popover: #0D2238;
+    --popover-foreground: #E3F2FD;
+
+    --primary: #0EA5E9;
+    --primary-foreground: #FFFFFF;
+    --primary-hover: #0284C7;
+    --primary-active: #0369A1;
+
+    --secondary: #0F2942;
+    --secondary-foreground: #E3F2FD;
+    --muted: #0F2942;
+    --muted-foreground: #90CAF9;
+
+    --accent: #164E63;
+    --accent-foreground: #E3F2FD;
+
+    --border: #1E3A5F;
+    --border-strong: #2E4A6F;
+    --input: #0F2942;
+    --ring: #0EA5E9;
+
+    --text-primary: #E3F2FD;
+    --text-secondary: #90CAF9;
+    --text-tertiary: #64B5F6;
+
+    --sidebar: #071420;
+    --sidebar-foreground: #E3F2FD;
+    --sidebar-primary: #0EA5E9;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #0F2942;
+    --sidebar-accent-foreground: #E3F2FD;
+    --sidebar-border: transparent;
+    --sidebar-ring: #0EA5E9;
+
+    --chart-1: #0EA5E9;
+    --chart-2: #06B6D4;
+    --chart-3: #22D3EE;
+    --chart-4: #67E8F9;
+    --chart-5: #A5F3FC;
+  }
+
+  /* ==================== SUNSET ==================== */
+  .sunset {
+    --background: #FFF8F0;
+    --foreground: #78350F;
+
+    --card: #FFFFFF;
+    --card-foreground: #78350F;
+    --popover: #FFFFFF;
+    --popover-foreground: #78350F;
+
+    --primary: #F97316;
+    --primary-foreground: #FFFFFF;
+    --primary-hover: #EA580C;
+    --primary-active: #C2410C;
+
+    --secondary: #FFEDD5;
+    --secondary-foreground: #78350F;
+    --muted: #FFEDD5;
+    --muted-foreground: #C2410C;
+
+    --accent: #FED7AA;
+    --accent-foreground: #78350F;
+
+    --border: #FDBA74;
+    --border-strong: #FB923C;
+    --input: #FFEDD5;
+    --ring: #F97316;
+
+    --text-primary: #78350F;
+    --text-secondary: #C2410C;
+    --text-tertiary: #EA580C;
+
+    --sidebar: #FFF7ED;
+    --sidebar-foreground: #78350F;
+    --sidebar-primary: #F97316;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #FFEDD5;
+    --sidebar-accent-foreground: #78350F;
+    --sidebar-border: transparent;
+    --sidebar-ring: #F97316;
+
+    --chart-1: #F97316;
+    --chart-2: #FB923C;
+    --chart-3: #FDBA74;
+    --chart-4: #FED7AA;
+    --chart-5: #FFEDD5;
+  }
+
+  /* ==================== LAVENDER ==================== */
+  .lavender {
+    --background: #FAF5FF;
+    --foreground: #581C87;
+
+    --card: #FFFFFF;
+    --card-foreground: #581C87;
+    --popover: #FFFFFF;
+    --popover-foreground: #581C87;
+
+    --primary: #A855F7;
+    --primary-foreground: #FFFFFF;
+    --primary-hover: #9333EA;
+    --primary-active: #7E22CE;
+
+    --secondary: #F3E8FF;
+    --secondary-foreground: #581C87;
+    --muted: #F3E8FF;
+    --muted-foreground: #7E22CE;
+
+    --accent: #E9D5FF;
+    --accent-foreground: #581C87;
+
+    --border: #D8B4FE;
+    --border-strong: #C084FC;
+    --input: #F3E8FF;
+    --ring: #A855F7;
+
+    --text-primary: #581C87;
+    --text-secondary: #7E22CE;
+    --text-tertiary: #9333EA;
+
+    --sidebar: #FDF4FF;
+    --sidebar-foreground: #581C87;
+    --sidebar-primary: #A855F7;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #F3E8FF;
+    --sidebar-accent-foreground: #581C87;
+    --sidebar-border: transparent;
+    --sidebar-ring: #A855F7;
+
+    --chart-1: #A855F7;
+    --chart-2: #C084FC;
+    --chart-3: #D8B4FE;
+    --chart-4: #E9D5FF;
+    --chart-5: #F3E8FF;
+  }
+
+  /* ==================== MINT ==================== */
+  .mint {
+    --background: #F0FDF9;
+    --foreground: #064E3B;
+
+    --card: #FFFFFF;
+    --card-foreground: #064E3B;
+    --popover: #FFFFFF;
+    --popover-foreground: #064E3B;
+
+    --primary: #14B8A6;
+    --primary-foreground: #FFFFFF;
+    --primary-hover: #0D9488;
+    --primary-active: #0F766E;
+
+    --secondary: #CCFBF1;
+    --secondary-foreground: #064E3B;
+    --muted: #CCFBF1;
+    --muted-foreground: #0F766E;
+
+    --accent: #99F6E4;
+    --accent-foreground: #064E3B;
+
+    --border: #5EEAD4;
+    --border-strong: #2DD4BF;
+    --input: #CCFBF1;
+    --ring: #14B8A6;
+
+    --text-primary: #064E3B;
+    --text-secondary: #0F766E;
+    --text-tertiary: #0D9488;
+
+    --sidebar: #F0FDFA;
+    --sidebar-foreground: #064E3B;
+    --sidebar-primary: #14B8A6;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #CCFBF1;
+    --sidebar-accent-foreground: #064E3B;
+    --sidebar-border: transparent;
+    --sidebar-ring: #14B8A6;
+
+    --chart-1: #14B8A6;
+    --chart-2: #2DD4BF;
+    --chart-3: #5EEAD4;
+    --chart-4: #99F6E4;
+    --chart-5: #CCFBF1;
+  }
+
+  /* ==================== CHARCOAL ==================== */
+  .charcoal {
+    --background: #18181B;
+    --foreground: #FAFAFA;
+
+    --card: #27272A;
+    --card-foreground: #FAFAFA;
+    --popover: #27272A;
+    --popover-foreground: #FAFAFA;
+
+    --primary: #71717A;
+    --primary-foreground: #FAFAFA;
+    --primary-hover: #52525B;
+    --primary-active: #3F3F46;
+
+    --secondary: #3F3F46;
+    --secondary-foreground: #FAFAFA;
+    --muted: #3F3F46;
+    --muted-foreground: #A1A1AA;
+
+    --accent: #52525B;
+    --accent-foreground: #FAFAFA;
+
+    --border: #3F3F46;
+    --border-strong: #52525B;
+    --input: #27272A;
+    --ring: #71717A;
+
+    --text-primary: #FAFAFA;
+    --text-secondary: #D4D4D8;
+    --text-tertiary: #A1A1AA;
+
+    --sidebar: #09090B;
+    --sidebar-foreground: #FAFAFA;
+    --sidebar-primary: #71717A;
+    --sidebar-primary-foreground: #FAFAFA;
+    --sidebar-accent: #27272A;
+    --sidebar-accent-foreground: #FAFAFA;
+    --sidebar-border: transparent;
+    --sidebar-ring: #71717A;
+
+    --chart-1: #71717A;
+    --chart-2: #A1A1AA;
+    --chart-3: #D4D4D8;
+    --chart-4: #E4E4E7;
+    --chart-5: #F4F4F5;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
@@ -655,6 +895,41 @@
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Premium Background Patterns */
+  .bg-pattern {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.03;
+  }
+
+  /* Light themes get darker patterns */
+  :root .bg-pattern,
+  .nord .bg-pattern,
+  .paper .bg-pattern,
+  .solarized .bg-pattern,
+  .rose .bg-pattern,
+  .sunset .bg-pattern,
+  .lavender .bg-pattern,
+  .mint .bg-pattern {
+    opacity: 0.025;
+  }
+
+  /* Dark themes get lighter patterns */
+  .dark .bg-pattern,
+  .amoled .bg-pattern,
+  .midnight .bg-pattern,
+  .forest .bg-pattern,
+  .cyberpunk .bg-pattern,
+  .ocean .bg-pattern,
+  .charcoal .bg-pattern {
+    opacity: 0.04;
   }
 
   /* Typography Enhancements */

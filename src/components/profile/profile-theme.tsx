@@ -1,6 +1,6 @@
 import { useTheme } from 'next-themes'
 import { Card } from '@/components/ui/card'
-import { Check, Monitor, Moon, Sun, Smartphone, Flower2, SunMoon, CloudMoon, Snowflake, Trees, Scroll, Zap } from 'lucide-react'
+import { Check, Monitor, Moon, Sun, Smartphone, Flower2, SunMoon, CloudMoon, Snowflake, Trees, Scroll, Zap, Waves, Sunrise, Sparkles, Leaf, Square } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function ProfileTheme() {
@@ -78,6 +78,41 @@ export function ProfileTheme() {
             color: 'bg-[#FFF1F2] border-[#FECDD3]'
         },
         {
+            value: 'ocean',
+            label: 'Ocean',
+            icon: Waves,
+            description: 'Deep blue waters',
+            color: 'bg-gradient-to-br from-[#0A1929] to-[#0D2238] border-[#1E3A5F]'
+        },
+        {
+            value: 'sunset',
+            label: 'Sunset',
+            icon: Sunrise,
+            description: 'Warm orange glow',
+            color: 'bg-gradient-to-br from-[#FFF8F0] to-[#FFEDD5] border-[#FDBA74]'
+        },
+        {
+            value: 'lavender',
+            label: 'Lavender',
+            icon: Sparkles,
+            description: 'Soft purple dream',
+            color: 'bg-gradient-to-br from-[#FAF5FF] to-[#F3E8FF] border-[#D8B4FE]'
+        },
+        {
+            value: 'mint',
+            label: 'Mint',
+            icon: Leaf,
+            description: 'Fresh and cool',
+            color: 'bg-gradient-to-br from-[#F0FDF9] to-[#CCFBF1] border-[#5EEAD4]'
+        },
+        {
+            value: 'charcoal',
+            label: 'Charcoal',
+            icon: Square,
+            description: 'Sophisticated gray',
+            color: 'bg-[#18181B] border-[#3F3F46]'
+        },
+        {
             value: 'system',
             label: 'System',
             icon: Monitor,
@@ -87,15 +122,15 @@ export function ProfileTheme() {
     ]
 
     return (
-        <div className="space-y-6 max-w-2xl">
+        <div className="space-y-6 max-w-4xl">
             <div>
                 <h2 className="text-lg font-medium text-[#37352F] dark:text-[#D4D4D4] mb-1">Appearance</h2>
                 <p className="text-sm text-[#91918E] dark:text-[#818181]">
-                    Customize how Mentra looks on your device.
+                    Customize how Mentra looks on your device. Choose from {themes.length} beautiful themes.
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {themes.map((item) => {
                     const isActive = theme === item.value
 
@@ -109,7 +144,7 @@ export function ProfileTheme() {
                             )}>
                                 <div className={cn("w-full h-full", item.color, "flex items-center justify-center")}>
                                     <item.icon className={cn(
-                                        "w-8 h-8",
+                                        "w-8 h-8 transition-transform group-hover:scale-110",
                                         item.value === 'light' ? "text-zinc-900" :
                                             item.value === 'dark' ? "text-white" :
                                                 item.value === 'amoled' ? "text-white" :
@@ -120,7 +155,12 @@ export function ProfileTheme() {
                                                                     item.value === 'cyberpunk' ? "text-[#7C3AED]" :
                                                                         item.value === 'solarized' ? "text-[#268BD2]" :
                                                                             item.value === 'rose' ? "text-[#E11D48]" :
-                                                                                "text-zinc-500"
+                                                                                item.value === 'ocean' ? "text-[#0EA5E9]" :
+                                                                                    item.value === 'sunset' ? "text-[#F97316]" :
+                                                                                        item.value === 'lavender' ? "text-[#A855F7]" :
+                                                                                            item.value === 'mint' ? "text-[#14B8A6]" :
+                                                                                                item.value === 'charcoal' ? "text-[#71717A]" :
+                                                                                                    "text-zinc-500"
                                     )} />
                                 </div>
 
@@ -146,8 +186,6 @@ export function ProfileTheme() {
                     )
                 })}
             </div>
-
-            {/* Future/Additional Themes could go here to satisfy 'multiple options' request */}
         </div>
     )
 }
