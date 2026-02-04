@@ -238,7 +238,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
                             className="flex items-center justify-between group mb-1 mt-4 px-2 py-1 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 rounded-sm cursor-pointer transition-colors"
                             onClick={() => setProjectsExpanded(!projectsExpanded)}
                         >
-                            <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider select-none">
+                            <span className="text-[15px] font-medium text-foreground">
                                 Projects
                             </span>
                             <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
