@@ -84,7 +84,7 @@ export function MinimalLandingPage() {
                         transition={{ duration: 0.8, delay: 0.4 }}
                         className="space-y-6"
                     >
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
                                 <span className="bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
                                     Focus on what

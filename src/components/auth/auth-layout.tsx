@@ -24,33 +24,21 @@ export function AuthLayout({
     footerLinkHref,
 }: AuthLayoutProps) {
     return (
-        <div className="min-h-screen w-full flex items-center justify-center overflow-hidden bg-white">
-            {/* Main Auth Container */}
-            <div className="relative w-full h-full min-h-screen flex flex-col items-center justify-center p-4 sm:p-8 overflow-y-auto bg-gradient-to-br from-slate-50/50 via-white to-slate-50/50">
-                {/* Decorative Elements */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    {/* Mobile Background Gradients */}
-                    <motion.div
-                        animate={{
-                            scale: [1, 1.1, 1],
-                            opacity: [0.3, 0.5, 0.3],
-                        }}
-                        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-                        className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-gradient-to-br from-indigo-200/40 to-purple-200/40 blur-[100px] lg:hidden"
-                    />
-                    <motion.div
-                        animate={{
-                            scale: [1, 1.15, 1],
-                            opacity: [0.3, 0.5, 0.3],
-                        }}
-                        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-                        className="absolute top-[40%] -right-[10%] w-[60%] h-[60%] rounded-full bg-gradient-to-br from-blue-200/40 to-cyan-200/40 blur-[100px] lg:hidden"
-                    />
+        <div className="min-h-screen w-full flex items-center justify-center overflow-hidden bg-slate-50">
+            {/* Background Image */}
+            <div className="absolute inset-0 z-0">
+                <Image
+                    src="/Landingpage.png"
+                    alt="Background"
+                    fill
+                    className="object-cover object-center"
+                    priority
+                    quality={100}
+                />
+            </div>
 
-                    {/* Desktop Subtle Accents */}
-                    <div className="hidden lg:block absolute top-[10%] right-[10%] w-32 h-32 rounded-full bg-gradient-to-br from-indigo-100/50 to-purple-100/50 blur-[60px]" />
-                    <div className="hidden lg:block absolute bottom-[20%] right-[15%] w-24 h-24 rounded-full bg-gradient-to-br from-blue-100/50 to-cyan-100/50 blur-[50px]" />
-                </div>
+            {/* Main Auth Container */}
+            <div className="relative w-full h-full min-h-screen flex flex-col items-center justify-center p-4 sm:p-8 overflow-y-auto">
 
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
