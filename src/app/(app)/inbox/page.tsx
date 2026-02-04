@@ -21,6 +21,7 @@ export default async function InboxPage() {
     const inboxTasks = await prisma.task.findMany({
         where: {
             userId: user.id,
+            completed: false,
 
             OR: [
                 { dueDate: null },           // Undated tasks
@@ -73,7 +74,7 @@ export default async function InboxPage() {
 
     // Calculate overdue count from the fetched tasks
     const overdueCount = inboxTasks.filter(t =>
-        !t.completed && t.dueDate && new Date(t.dueDate) < new Date()
+        t.dueDate && new Date(t.dueDate) < new Date()
     ).length
 
     return (
