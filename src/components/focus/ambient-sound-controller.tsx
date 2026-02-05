@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Volume2, VolumeX, CloudRain, Coffee, Music, ChevronUp } from 'lucide-react'
+import { Volume2, VolumeX, CloudRain, Leaf, Music, ChevronUp } from 'lucide-react'
 import { Slider } from '@/components/ui/slider'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -13,13 +13,13 @@ const SOUNDS = [
         id: 'rain',
         name: 'Rain',
         icon: CloudRain,
-        src: 'https://cdn.pixabay.com/download/audio/2022/07/04/audio_924df0869e.mp3?filename=soft-rain-ambient-111154.mp3'
+        src: '/rain.mp3'
     },
     {
-        id: 'cafe',
-        name: 'Café',
-        icon: Coffee,
-        src: 'https://cdn.pixabay.com/download/audio/2022/05/23/audio_3316533031.mp3?filename=coffee-shop-chatter-15797.mp3'
+        id: 'calm',
+        name: 'Calm',
+        icon: Leaf,
+        src: '/calm.mp3'
     },
     {
         id: 'lofi',
