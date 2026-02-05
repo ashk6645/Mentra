@@ -6,6 +6,8 @@ import { TodayTaskList } from '@/components/today/today-task-list'
 import { Plus, Sun } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import prisma from '@/lib/prisma'
+import { MidnightRefresher } from '@/components/today/midnight-refresher'
+import { CurrentDateDisplay } from '@/components/today/current-date-display'
 
 export default async function TodayPage() {
     const supabase = await createClient()
@@ -81,13 +83,10 @@ export default async function TodayPage() {
 
     return (
         <PageShell>
+            <MidnightRefresher />
             <PageHeader
                 title="Today"
-                description={
-                    <span className="flex items-center gap-2">
-                        <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
-                    </span>
-                }
+                description={<CurrentDateDisplay />}
                 icon={Sun}
                 actions={
                     <div className="flex items-center gap-2">
