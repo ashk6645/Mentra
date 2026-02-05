@@ -108,11 +108,11 @@
     --popover: var(--white);
     --popover-foreground: var(--neutral-900);
     /* Primary Action - Signature Indigo (more modern than blue) */
-    --primary: 222 70% 58%;
+    --primary: hsl(222 70% 58%);
     /* #6366F1 - Indigo-500 */
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 222 70% 52%;
-    --primary-active: 222 70% 46%;
+    --primary-foreground: hsl(0 0% 100%);
+    --primary-hover: hsl(222 70% 52%);
+    --primary-active: hsl(222 70% 46%);
 
     /* Secondary / Muted */
     --secondary: var(--neutral-100);
@@ -190,11 +190,11 @@
     --popover: #1C1C1C;
     --popover-foreground: #EDEDED;
 
-    --primary: 222 70% 58%;
+    --primary: hsl(222 70% 58%);
     /* #6366F1 - Indigo-500 */
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 222 70% 64%;
-    --primary-active: 222 70% 52%;
+    --primary-foreground: hsl(0 0% 100%);
+    --primary-hover: hsl(222 70% 64%);
+    --primary-active: hsl(222 70% 52%);
 
     --secondary: #222222;
     --secondary-foreground: #EDEDED;
