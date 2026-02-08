@@ -51,6 +51,34 @@ import { type Project } from '@/lib/actions/projects'
 
 
 
+const TodayIcon = ({ className }: { className?: string }) => {
+    const [date, setDate] = useState<number | null>(null)
+
+    useEffect(() => {
+        setDate(new Date().getDate())
+    }, [])
+
+    return (
+        <div className={cn("relative flex items-center justify-center w-4 h-4", className)}>
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 20"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-full h-full"
+            >
+                <path d="M8 2v4" />
+                <path d="M16 2v4" />
+                <rect width="18" height="18" x="3" y="4" rx="2" />
+            </svg>
+            <span className="absolute text-[9px] font-bold pt-1.5 select-none">{date}</span>
+        </div>
+    )
+}
+
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     user: any
     onOpenCommand?: () => void
@@ -134,7 +162,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
 
     const routes = [
         { label: 'Inbox', icon: Inbox, href: '/inbox', badge: counts?.inbox, alert: (counts?.overdue || 0) > 0, shortcut: 'i' },
-        { label: 'Today', icon: Sun, href: '/today', badge: counts?.today, shortcut: 't' },
+        { label: 'Today', icon: TodayIcon, href: '/today', badge: counts?.today, shortcut: 't' },
         { label: 'Upcoming', icon: CalendarDays, href: '/upcoming', shortcut: 'u' },
         { label: 'Completed', icon: CheckCircle2, href: '/completed', shortcut: 'c' },
         { label: 'Calendar', icon: Calendar, href: '/calendar', shortcut: 'l' },
