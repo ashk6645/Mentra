@@ -87,7 +87,6 @@ export default async function TodayPage() {
             <PageHeader
                 title="Today"
                 description={<CurrentDateDisplay />}
-                icon={Sun}
                 actions={
                     <div className="flex items-center gap-2">
                         {todayTasks.length > 0 && <TaskSelectionToggle taskIds={todayTasks.map(t => t.id)} />}

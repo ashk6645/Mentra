@@ -86,7 +86,6 @@ export default async function InboxPage() {
                         ? `${inboxTasks.length} tasks • ${overdueCount} overdue`
                         : "Capture everything here"
                 }
-                icon={InboxIcon}
                 actions={inboxTasks.length > 0 ? <TaskSelectionToggle taskIds={inboxTasks.map(t => t.id)} /> : null}
             />
 

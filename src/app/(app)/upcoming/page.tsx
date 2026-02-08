@@ -94,7 +94,6 @@ export default async function UpcomingPage() {
             <PageHeader
                 title="Upcoming"
                 description={`Next 7 days (${format(tomorrow, 'MMM d')} - ${format(nextWeek, 'MMM d')})`}
-                icon={CalendarDays}
                 actions={
                     <div className="flex items-center gap-2">
                         {upcomingTasks.length > 0 && <TaskSelectionToggle taskIds={upcomingTasks.map(t => t.id)} />}
