@@ -33,7 +33,13 @@ export function CalendarHeader({ currentDate, view, onViewChange, onNavigate }: 
     return (
         <div className="flex items-center justify-between p-4 md:pl-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
             <div className="flex items-center gap-2">
-                <div className="flex items-center rounded-md border shadow-sm bg-background">
+                <h2 className="text-xl font-semibold min-w-[150px]">
+                    {getHeaderText()}
+                </h2>
+            </div>
+
+            <div className="flex items-center gap-2">
+                <div className="flex items-center rounded-md border shadow-sm bg-background mr-2">
                     <Button
                         variant="ghost"
                         size="icon"
@@ -60,12 +66,6 @@ export function CalendarHeader({ currentDate, view, onViewChange, onNavigate }: 
                     </Button>
                 </div>
 
-                <h2 className="text-xl font-semibold ml-4 min-w-[150px]">
-                    {getHeaderText()}
-                </h2>
-            </div>
-
-            <div className="flex items-center gap-2">
                 <Select value={view} onValueChange={(v) => onViewChange(v as CalendarViewType)}>
                     <SelectTrigger className="w-[120px] h-9">
                         <SelectValue placeholder="Select view" />
