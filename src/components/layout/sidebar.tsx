@@ -305,9 +305,6 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
                 )}
 
 
-
-
-
             </div>
 
             {/* User Profile Area - Moved to Bottom */}
@@ -426,7 +423,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
             <motion.button
                 onClick={toggleSidebarCollapsed}
                 className={cn(
-                    "hidden md:flex fixed z-50 top-8 h-6 w-6 items-center justify-center rounded-full border border-black/10 bg-white shadow-sm text-neutral-600 hover:bg-neutral-50 hover:text-black transition-colors outline-none",
+                    "hidden md:flex fixed z-[60] top-8 h-6 w-6 items-center justify-center rounded-full border border-black/10 bg-white shadow-sm text-neutral-600 hover:bg-neutral-50 hover:text-black transition-colors outline-none",
                     isSidebarCollapsed ? "bg-white/80 backdrop-blur" : "bg-white"
                 )}
                 initial={false}

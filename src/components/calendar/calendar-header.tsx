@@ -31,7 +31,7 @@ export function CalendarHeader({ currentDate, view, onViewChange, onNavigate }: 
     }
 
     return (
-        <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <div className="flex items-center justify-between p-4 md:pl-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
             <div className="flex items-center gap-2">
                 <div className="flex items-center rounded-md border shadow-sm bg-background">
                     <Button
