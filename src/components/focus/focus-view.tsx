@@ -22,6 +22,8 @@ export function FocusView({ tasks: initialTasks }: FocusViewProps) {
     const [isCompleted, setIsCompleted] = useState(false)
     const [isFullscreen, setIsFullscreen] = useState(false)
 
+    const [activeDuration, setActiveDuration] = useState(25 * 60)
+
     const currentTask = tasks[currentIndex]
     const nextTask = tasks[currentIndex + 1]
 
@@ -107,7 +109,7 @@ export function FocusView({ tasks: initialTasks }: FocusViewProps) {
     return (
         <div className="relative h-screen w-screen overflow-hidden bg-slate-950 text-white font-sans selection:bg-blue-500/30 flex flex-col">
             {/* Background Layer */}
-            <div className="absolute inset-0 z-0 bg-gradient-to-br from-slate-900 via-[#0B0F19] to-black" />
+            <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-900 via-[#050A15] to-black" />
             <BreathingCircle />
 
             {/* Header */}
@@ -162,7 +164,7 @@ export function FocusView({ tasks: initialTasks }: FocusViewProps) {
                             )}
 
                             {/* Title - Responsive typography, non-breaking words if possible */}
-                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight leading-[1.1] text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70 max-w-5xl mx-auto break-words text-balance">
+                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight leading-[1.1] text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70 max-w-5xl mx-auto break-words text-balance drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]">
                                 {currentTask.title}
                             </h1>
                         </motion.div>
@@ -172,10 +174,11 @@ export function FocusView({ tasks: initialTasks }: FocusViewProps) {
                 {/* Middle Section: Timer (Hero) */}
                 <div className="py-8">
                     <CircularTimer
-                        duration={25 * 60}
+                        duration={activeDuration}
                         className="scale-90 md:scale-100"
                         onComplete={() => { }}
                         autoStart={false}
+                        onDurationChange={setActiveDuration}
                     />
                 </div>
 
