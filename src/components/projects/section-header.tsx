@@ -115,8 +115,8 @@ export function SectionHeader({
 
     return (
         <>
-            <div className="group flex items-center gap-2 py-2 px-3 mb-2 transition-all bg-muted/40 hover:bg-muted/60 rounded-md border border-transparent hover:border-border/30">
-                {/* Drag Handle */}
+            <div className="group flex items-center gap-2 mb-2">
+                {/* Drag Handle - Outside the border */}
                 <div
                     {...dragHandleProps}
                     className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1 hover:bg-white/50 rounded text-muted-foreground/60 hover:text-foreground"
@@ -124,90 +124,93 @@ export function SectionHeader({
                     <GripVertical className="h-4 w-4" />
                 </div>
 
-                {/* Toggle Button */}
-                <button
-                    onClick={onToggle}
-                    className="p-1 rounded-sm text-foreground/70 hover:text-foreground hover:bg-white/50 transition-colors"
-                >
-                    {isExpanded ? (
-                        <ChevronDown className="h-4 w-4" />
-                    ) : (
-                        <ChevronRight className="h-4 w-4" />
-                    )}
-                </button>
-
-                {/* Section Name */}
-                {isEditing ? (
-                    <div className="flex-1 flex items-center gap-2">
-                        <Input
-                            value={editedName}
-                            onChange={(e) => setEditedName(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') handleSave()
-                                if (e.key === 'Escape') handleCancel()
-                            }}
-                            className="h-7 text-sm font-semibold bg-background"
-                            autoFocus
-                            disabled={isUpdating}
-                        />
-                        <Button
-                            size="sm"
-                            onClick={handleSave}
-                            disabled={isUpdating}
-                            className="h-7"
-                        >
-                            Save
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={handleCancel}
-                            disabled={isUpdating}
-                            className="h-7"
-                        >
-                            Cancel
-                        </Button>
-                    </div>
-                ) : (
-                    <>
-                        <h3 className="flex items-center gap-2 text-base font-bold text-foreground">
-                            {section.name}
-                        </h3>
-                        {taskCount > 0 && (
-                            <span className="text-xs text-muted-foreground/50 ml-1">
-                                {taskCount}
-                            </span>
+                {/* Main Section Container with Border */}
+                <div className="flex-1 flex items-center gap-2 py-2 px-3 transition-all bg-muted/40 hover:bg-muted/60 rounded-md border border-transparent hover:border-border/30">
+                    {/* Toggle Button */}
+                    <button
+                        onClick={onToggle}
+                        className="p-1 rounded-sm text-foreground/70 hover:text-foreground hover:bg-white/50 transition-colors"
+                    >
+                        {isExpanded ? (
+                            <ChevronDown className="h-4 w-4" />
+                        ) : (
+                            <ChevronRight className="h-4 w-4" />
                         )}
-                        <div className="flex-1" /> {/* Spacer */}
-                    </>
-                )}
+                    </button>
 
-                {/* Actions */}
-                {!isEditing && (
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                                    <Edit2 className="mr-2 h-4 w-4" />
-                                    Rename
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                    onClick={() => setShowDeleteDialog(true)}
-                                    className="text-destructive focus:text-destructive"
-                                >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                )}
+                    {/* Section Name */}
+                    {isEditing ? (
+                        <div className="flex-1 flex items-center gap-2">
+                            <Input
+                                value={editedName}
+                                onChange={(e) => setEditedName(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSave()
+                                    if (e.key === 'Escape') handleCancel()
+                                }}
+                                className="h-7 text-sm font-semibold bg-background"
+                                autoFocus
+                                disabled={isUpdating}
+                            />
+                            <Button
+                                size="sm"
+                                onClick={handleSave}
+                                disabled={isUpdating}
+                                className="h-7"
+                            >
+                                Save
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={handleCancel}
+                                disabled={isUpdating}
+                                className="h-7"
+                            >
+                                Cancel
+                            </Button>
+                        </div>
+                    ) : (
+                        <>
+                            <h3 className="flex items-center gap-2 text-base font-bold text-foreground">
+                                {section.name}
+                            </h3>
+                            {taskCount > 0 && (
+                                <span className="text-xs text-muted-foreground/50 ml-1">
+                                    {taskCount}
+                                </span>
+                            )}
+                            <div className="flex-1" /> {/* Spacer */}
+                        </>
+                    )}
+
+                    {/* Actions */}
+                    {!isEditing && (
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                                        <Edit2 className="mr-2 h-4 w-4" />
+                                        Rename
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        onClick={() => setShowDeleteDialog(true)}
+                                        className="text-destructive focus:text-destructive"
+                                    >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Delete
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Delete Confirmation Dialog */}
