@@ -25,12 +25,12 @@ export default async function CompletedPage() {
 
     return (
         <PageShell>
-            <PageHeader
+            {/* <PageHeader
                 title="Completed"
                 description="Your accomplishment history"
                 icon={CheckCircle2}
                 actions={allTaskIds.length > 0 ? <TaskSelectionToggle taskIds={allTaskIds} /> : null}
-            />
+            /> */}
 
             <div className="space-y-8">
                 <CompletedTaskList groupedTasks={groupedTasks} />
