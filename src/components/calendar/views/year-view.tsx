@@ -38,16 +38,13 @@ export function YearView({ currentDate, tasks }: YearViewProps) {
                             <div
                                 key={day.toString()}
                                 className={cn(
-                                    "h-6 w-6 flex items-center justify-center rounded-full mx-auto relative",
+                                    "h-6 w-6 flex items-center justify-center rounded-full mx-auto relative transition-colors",
                                     !isCurrentMonth && "text-muted-foreground/30",
                                     isToday(day) && "bg-primary text-primary-foreground font-bold",
-                                    !isToday(day) && hasTask && isCurrentMonth && "font-bold text-foreground"
+                                    !isToday(day) && hasTask && isCurrentMonth && "bg-primary/15 font-bold text-foreground"
                                 )}
                             >
                                 {format(day, 'd')}
-                                {hasTask && isCurrentMonth && !isToday(day) && (
-                                    <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-primary/50" />
-                                )}
                             </div>
                         )
                     })}
