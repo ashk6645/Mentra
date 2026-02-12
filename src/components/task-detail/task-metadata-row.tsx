@@ -543,40 +543,41 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
         </PopoverContent>
       </Popover>
       {/* Recurring Config */}
-      <RecurrenceSelector
-        disabled={isReadOnly}
-        value={task.isRecurring ? {
-          interval: task.recurrenceInterval,
-          step: task.recurrenceStep || 1,
-          days: task.recurrenceDays || []
-        } as any : undefined}
-        onChange={(val) => {
-          startTransition(async () => {
-            const result = await updateTask({
-              id: task.id,
-              isRecurring: !!val,
-              recurrenceInterval: val?.interval,
-              recurrenceStep: val?.step,
-              recurrenceDays: val?.days,
-            })
+      {!isReadOnly && (
+        <RecurrenceSelector
+          value={task.isRecurring ? {
+            interval: task.recurrenceInterval,
+            step: task.recurrenceStep || 1,
+            days: task.recurrenceDays || []
+          } as any : undefined}
+          onChange={(val) => {
+            startTransition(async () => {
+              const result = await updateTask({
+                id: task.id,
+                isRecurring: !!val,
+                recurrenceInterval: val?.interval,
+                recurrenceStep: val?.step,
+                recurrenceDays: val?.days,
+              })
 
-            if (result.success && result.data) {
-              selectTask(task.id, result.data)
-              router.refresh()
-              toast({
-                title: val ? 'Recurrence set' : 'Recurrence removed',
-                description: val ? 'Task will repeat' : 'Task will not repeat',
-              })
-            } else {
-              toast({
-                title: 'Failed to update recurrence',
-                description: result.error || 'Please try again',
-                variant: 'destructive',
-              })
-            }
-          })
-        }}
-      />
+              if (result.success && result.data) {
+                selectTask(task.id, result.data)
+                router.refresh()
+                toast({
+                  title: val ? 'Recurrence set' : 'Recurrence removed',
+                  description: val ? 'Task will repeat' : 'Task will not repeat',
+                })
+              } else {
+                toast({
+                  title: 'Failed to update recurrence',
+                  description: result.error || 'Please try again',
+                  variant: 'destructive',
+                })
+              }
+            })
+          }}
+        />
+      )}
 
       {/* Project */}
       <Popover>
