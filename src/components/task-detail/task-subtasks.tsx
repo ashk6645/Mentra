@@ -21,13 +21,16 @@ interface Task {
 
 interface TaskSubtasksProps {
   task: Task
+  isReadOnly?: boolean
 }
 
-export function TaskSubtasks({ task }: TaskSubtasksProps) {
+export function TaskSubtasks({ task, isReadOnly = false }: TaskSubtasksProps) {
   const [subtasks, setSubtasks] = useState<Subtask[]>(task.subtasks || [])
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
 
   const handleToggleSubtask = async (subtaskId: string, completed: boolean) => {
+    if (isReadOnly) return
+
     setSubtasks((prev) =>
       prev.map((st) =>
         st.id === subtaskId ? { ...st, completed } : st
@@ -39,7 +42,7 @@ export function TaskSubtasks({ task }: TaskSubtasksProps) {
 
   const handleAddSubtask = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newSubtaskTitle.trim()) return
+    if (!newSubtaskTitle.trim() || isReadOnly) return
 
     const tempId = `temp-${Date.now()}`
     const optimisticSubtask: any = {
@@ -64,6 +67,8 @@ export function TaskSubtasks({ task }: TaskSubtasksProps) {
   }
 
   const handleDeleteSubtask = async (subtaskId: string) => {
+    if (isReadOnly) return
+
     setSubtasks((prev) => prev.filter((st) => st.id !== subtaskId))
     await deleteSubtask(subtaskId)
   }
@@ -102,12 +107,14 @@ export function TaskSubtasks({ task }: TaskSubtasksProps) {
                 <button
                   type="button"
                   className={cn(
-                    'h-4 w-4 rounded border-2 flex items-center justify-center cursor-pointer transition-all shrink-0',
+                    'h-4 w-4 rounded border-2 flex items-center justify-center transition-all shrink-0',
                     subtask.completed
                       ? 'bg-primary border-primary scale-100'
-                      : 'border-muted-foreground/40 hover:border-primary hover:scale-110'
+                      : 'border-muted-foreground/40 hover:border-primary hover:scale-110',
+                    isReadOnly ? 'cursor-default' : 'cursor-pointer'
                   )}
                   onClick={() => handleToggleSubtask(subtask.id, !subtask.completed)}
+                  disabled={isReadOnly}
                 >
                   {subtask.completed && (
                     <Check className="h-2.5 w-2.5 text-primary-foreground" strokeWidth={3} />
@@ -121,37 +128,41 @@ export function TaskSubtasks({ task }: TaskSubtasksProps) {
                 >
                   {subtask.title}
                 </span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                  onClick={() => handleDeleteSubtask(subtask.id)}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                {!isReadOnly && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => handleDeleteSubtask(subtask.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
               </div>
             ))}
           </div>
         )}
 
-        <div className="flex items-center gap-3 px-3 py-2.5">
-          <div className="h-4 w-4 flex items-center justify-center shrink-0">
-            <Plus className="h-3.5 w-3.5 text-muted-foreground/60" />
+        {!isReadOnly && (
+          <div className="flex items-center gap-3 px-3 py-2.5">
+            <div className="h-4 w-4 flex items-center justify-center shrink-0">
+              <Plus className="h-3.5 w-3.5 text-muted-foreground/60" />
+            </div>
+            <Input
+              placeholder="Add a subtask..."
+              value={newSubtaskTitle}
+              onChange={(e) => setNewSubtaskTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  handleAddSubtask(e)
+                }
+              }}
+              className="h-7 flex-1 bg-transparent border-0 focus-visible:ring-0 px-0 text-sm placeholder:text-muted-foreground/60 shadow-none"
+            />
           </div>
-          <Input
-            placeholder="Add a subtask..."
-            value={newSubtaskTitle}
-            onChange={(e) => setNewSubtaskTitle(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                handleAddSubtask(e)
-              }
-            }}
-            className="h-7 flex-1 bg-transparent border-0 focus-visible:ring-0 px-0 text-sm placeholder:text-muted-foreground/60 shadow-none"
-          />
-        </div>
+        )}
       </div>
     </div>
   )

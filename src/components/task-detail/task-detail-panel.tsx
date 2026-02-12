@@ -16,7 +16,7 @@ interface TaskDetailPanelProps {
 }
 
 export function TaskDetailPanel({ className }: TaskDetailPanelProps) {
-  const { selectedTask, selectedTaskId, isOpen, closePanel } = useTaskDetailStore()
+  const { selectedTask, selectedTaskId, isOpen, isReadOnly, closePanel } = useTaskDetailStore()
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -55,19 +55,19 @@ export function TaskDetailPanel({ className }: TaskDetailPanelProps) {
             className="flex-1 flex flex-col overflow-hidden"
           >
             {/* Sticky Header */}
-            <TaskDetailHeader task={selectedTask} onClose={closePanel} />
+            <TaskDetailHeader task={selectedTask} onClose={closePanel} isReadOnly={isReadOnly} />
 
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto custom-scrollbar">
               <div className="px-8 py-6 space-y-8">
                 {/* Metadata Pills */}
-                <TaskMetadataRow task={selectedTask} />
+                <TaskMetadataRow task={selectedTask} isReadOnly={isReadOnly} />
 
                 {/* Description */}
-                <TaskDescription task={selectedTask} />
+                <TaskDescription task={selectedTask} isReadOnly={isReadOnly} />
 
                 {/* Subtasks */}
-                <TaskSubtasks task={selectedTask} />
+                <TaskSubtasks task={selectedTask} isReadOnly={isReadOnly} />
 
                 {/* AI Assist */}
                 <TaskAIAssist task={selectedTask} />

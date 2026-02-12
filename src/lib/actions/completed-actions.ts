@@ -51,8 +51,30 @@ export async function getCompletedTasks(): Promise<{ success: boolean; data?: Gr
             select: {
                 id: true,
                 title: true,
+                description: true,
                 completedAt: true,
+                completed: true,
                 priority: true,
+                dueDate: true,
+                sortOrder: true,
+                // Recurrence fields
+                isRecurring: true,
+                recurrenceInterval: true,
+                recurrenceStep: true,
+                recurrenceDays: true,
+                recurrenceEnd: true,
+                // Relations
+                subtasks: {
+                    select: {
+                        id: true,
+                        title: true,
+                        completed: true,
+                        sortOrder: true,
+                    },
+                    orderBy: {
+                        sortOrder: 'asc'
+                    }
+                },
                 tags: {
                     select: {
                         tag: {
@@ -62,6 +84,13 @@ export async function getCompletedTasks(): Promise<{ success: boolean; data?: Gr
                                 color: true,
                             }
                         }
+                    }
+                },
+                project: {
+                    select: {
+                        id: true,
+                        name: true,
+                        color: true,
                     }
                 }
             },

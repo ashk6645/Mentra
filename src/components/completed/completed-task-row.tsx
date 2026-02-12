@@ -3,6 +3,7 @@
 import { Check, Repeat } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format, isToday, isYesterday } from 'date-fns'
+import { useTaskDetailStore } from '@/stores/use-task-detail-store'
 
 interface CompletedTaskRowProps {
     task: {
@@ -19,6 +20,8 @@ interface CompletedTaskRowProps {
 }
 
 export function CompletedTaskRow({ task }: CompletedTaskRowProps) {
+    const { selectTask } = useTaskDetailStore()
+
     const priorityConfig = {
         urgent: { label: 'Urgent', className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
         high: { label: 'High', className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
@@ -45,8 +48,15 @@ export function CompletedTaskRow({ task }: CompletedTaskRowProps) {
         return format(date, 'MMM d · h:mm a')
     }
 
+    const handleClick = () => {
+        selectTask(task.id, task)
+    }
+
     return (
-        <div className="group flex items-center justify-between p-4 hover:bg-muted/40 transition-colors">
+        <div
+            onClick={handleClick}
+            className="group flex items-center justify-between p-4 hover:bg-muted/40 transition-colors cursor-pointer"
+        >
             <div className="flex items-center gap-4 min-w-0 flex-1 mr-4">
                 {/* Checkmark */}
                 <div className="flex items-center justify-center h-6 w-6 rounded-full bg-green-500 text-white shrink-0 shadow-sm ring-1 ring-green-600/20">

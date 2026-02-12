@@ -33,9 +33,10 @@ interface Task {
 interface TaskDetailHeaderProps {
   task: Task
   onClose: () => void
+  isReadOnly?: boolean
 }
 
-export function TaskDetailHeader({ task, onClose }: TaskDetailHeaderProps) {
+export function TaskDetailHeader({ task, onClose, isReadOnly = false }: TaskDetailHeaderProps) {
   const [title, setTitle] = useState(task.title)
   const [isEditing, setIsEditing] = useState(false)
   const [isCompleted, setIsCompleted] = useState(task.completed)
@@ -110,6 +111,12 @@ export function TaskDetailHeader({ task, onClose }: TaskDetailHeaderProps) {
     }
   }
 
+  const handleTitleClick = () => {
+    if (!isReadOnly) {
+      setIsEditing(true)
+    }
+  }
+
   return (
     <>
       <div className="sticky top-0 z-10 bg-gradient-to-b from-background via-background to-muted/30 backdrop-blur-md border-b border-border/20 px-8 py-8">
@@ -123,7 +130,7 @@ export function TaskDetailHeader({ task, onClose }: TaskDetailHeaderProps) {
 
           {/* Title - Stronger hierarchy */}
           <div className="flex-1 min-w-0">
-            {isEditing ? (
+            {isEditing && !isReadOnly ? (
               <input
                 type="text"
                 value={title}
@@ -147,14 +154,20 @@ export function TaskDetailHeader({ task, onClose }: TaskDetailHeaderProps) {
               />
             ) : (
               <h1
-                onClick={() => setIsEditing(true)}
+                onClick={handleTitleClick}
                 className={cn(
-                  'text-[26px] font-bold leading-tight cursor-text transition-colors',
-                  isCompleted ? 'line-through text-muted-foreground/60' : 'text-foreground hover:text-foreground/80'
+                  'text-[26px] font-bold leading-tight transition-colors',
+                  isCompleted ? 'line-through text-muted-foreground/60' : 'text-foreground',
+                  !isReadOnly && 'cursor-text hover:text-foreground/80'
                 )}
               >
                 {title}
               </h1>
+            )}
+            {isReadOnly && (
+              <p className="text-xs text-muted-foreground/60 mt-1">
+                Read-only · Uncheck to edit
+              </p>
             )}
           </div>
 
