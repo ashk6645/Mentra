@@ -21,16 +21,14 @@ export default async function UpcomingPage() {
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
 
-    const nextWeek = new Date(today)
-    nextWeek.setDate(nextWeek.getDate() + 7)
 
-    // Direct query - fetch tasks from tomorrow to next 7 days
+
+    // Direct query - fetch all tasks from tomorrow onwards
     const upcomingTasks = await prisma.task.findMany({
         where: {
             userId: user.id,
             dueDate: {
                 gte: tomorrow,  // Tomorrow onwards
-                lt: nextWeek    // Within next 7 days
             },
             completed: false
         },
@@ -93,7 +91,7 @@ export default async function UpcomingPage() {
         <PageShell>
             <PageHeader
                 title="Upcoming"
-                description={`Next 7 days (${format(tomorrow, 'MMM d')} - ${format(nextWeek, 'MMM d')})`}
+                description="All upcoming tasks"
                 actions={
                     <div className="flex items-center gap-2">
                         {upcomingTasks.length > 0 && <TaskSelectionToggle taskIds={upcomingTasks.map(t => t.id)} />}
