@@ -14,9 +14,10 @@ interface Task {
 
 interface TaskDescriptionProps {
   task: Task
+  isReadOnly?: boolean
 }
 
-export function TaskDescription({ task }: TaskDescriptionProps) {
+export function TaskDescription({ task, isReadOnly = false }: TaskDescriptionProps) {
   const [description, setDescription] = useState(task.description || '')
   const [isFocused, setIsFocused] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -83,7 +84,8 @@ export function TaskDescription({ task }: TaskDescriptionProps) {
           onChange={(e) => setDescription(e.target.value)}
           onFocus={() => setIsFocused(true)}
           onBlur={handleBlur}
-          placeholder="Add notes, context, or steps…"
+          placeholder={isReadOnly ? "No description" : "Add notes, context, or steps…"}
+          disabled={isReadOnly}
           className={cn(
             'min-h-[60px] resize-none',
             'border-0 shadow-none',
@@ -93,14 +95,17 @@ export function TaskDescription({ task }: TaskDescriptionProps) {
             'text-[15px] leading-relaxed',
             'px-3 py-2.5',
             'transition-all duration-200',
-            'overflow-hidden'
+            'overflow-hidden',
+            isReadOnly && 'cursor-default opacity-70'
           )}
         />
       </div>
 
-      <p className="text-[11px] text-muted-foreground/50">
-        Supports markdown formatting
-      </p>
+      {!isReadOnly && (
+        <p className="text-[11px] text-muted-foreground/50">
+          Supports markdown formatting
+        </p>
+      )}
     </div>
   )
 }

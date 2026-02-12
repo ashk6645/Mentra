@@ -52,9 +52,10 @@ interface Task {
 
 interface TaskMetadataRowProps {
   task: Task
+  isReadOnly?: boolean
 }
 
-export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
+export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowProps) {
   // Normalize dates - handle both Date objects and ISO strings
   const normalizeDueDate = (date: Date | string | null | undefined): Date | null => {
     if (!date) return null
@@ -454,13 +455,15 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
     <div className="flex flex-wrap gap-2">
       {/* Due Date */}
       <Popover>
-        <PopoverTrigger asChild>
+        <PopoverTrigger asChild disabled={isReadOnly}>
           <Button
             variant="outline"
             size="sm"
+            disabled={isReadOnly}
             className={cn(
               'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
-              !dueDate && 'text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30'
+              !dueDate && 'text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30',
+              isReadOnly && 'opacity-70 cursor-default'
             )}
           >
             <Calendar className="mr-2 h-3.5 w-3.5" />
@@ -504,11 +507,16 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
 
       {/* Priority */}
       <Popover>
-        <PopoverTrigger asChild>
+        <PopoverTrigger asChild disabled={isReadOnly}>
           <Button
             variant="outline"
             size="sm"
-            className={cn('h-8 px-3 rounded-md border text-[13px] font-medium transition-all', getPriorityColor(priority))}
+            disabled={isReadOnly}
+            className={cn(
+              'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
+              getPriorityColor(priority),
+              isReadOnly && 'opacity-70 cursor-default'
+            )}
           >
             <Flag className="mr-2 h-3.5 w-3.5" />
             {priority === 'none' ? 'Priority' : priority.charAt(0).toUpperCase() + priority.slice(1)}
@@ -535,49 +543,53 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
         </PopoverContent>
       </Popover>
       {/* Recurring Config */}
-      <RecurrenceSelector
-        value={task.isRecurring ? {
-          interval: task.recurrenceInterval,
-          step: task.recurrenceStep || 1,
-          days: task.recurrenceDays || []
-        } as any : undefined}
-        onChange={(val) => {
-          startTransition(async () => {
-            const result = await updateTask({
-              id: task.id,
-              isRecurring: !!val,
-              recurrenceInterval: val?.interval,
-              recurrenceStep: val?.step,
-              recurrenceDays: val?.days,
-            })
+      {!isReadOnly && (
+        <RecurrenceSelector
+          value={task.isRecurring ? {
+            interval: task.recurrenceInterval,
+            step: task.recurrenceStep || 1,
+            days: task.recurrenceDays || []
+          } as any : undefined}
+          onChange={(val) => {
+            startTransition(async () => {
+              const result = await updateTask({
+                id: task.id,
+                isRecurring: !!val,
+                recurrenceInterval: val?.interval,
+                recurrenceStep: val?.step,
+                recurrenceDays: val?.days,
+              })
 
-            if (result.success && result.data) {
-              selectTask(task.id, result.data)
-              router.refresh()
-              toast({
-                title: val ? 'Recurrence set' : 'Recurrence removed',
-                description: val ? 'Task will repeat' : 'Task will not repeat',
-              })
-            } else {
-              toast({
-                title: 'Failed to update recurrence',
-                description: result.error || 'Please try again',
-                variant: 'destructive',
-              })
-            }
-          })
-        }}
-      />
+              if (result.success && result.data) {
+                selectTask(task.id, result.data)
+                router.refresh()
+                toast({
+                  title: val ? 'Recurrence set' : 'Recurrence removed',
+                  description: val ? 'Task will repeat' : 'Task will not repeat',
+                })
+              } else {
+                toast({
+                  title: 'Failed to update recurrence',
+                  description: result.error || 'Please try again',
+                  variant: 'destructive',
+                })
+              }
+            })
+          }}
+        />
+      )}
 
       {/* Project */}
       <Popover>
-        <PopoverTrigger asChild>
+        <PopoverTrigger asChild disabled={isReadOnly}>
           <Button
             variant="outline"
             size="sm"
+            disabled={isReadOnly}
             className={cn(
               'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
-              !selectedProjectId && 'text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30'
+              !selectedProjectId && 'text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30',
+              isReadOnly && 'opacity-70 cursor-default'
             )}
           >
             <FolderKanban className="mr-2 h-3.5 w-3.5" />
@@ -621,13 +633,15 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
       {/* Section (only show if project is selected) */}
       {selectedProjectId && (
         <Popover>
-          <PopoverTrigger asChild>
+          <PopoverTrigger asChild disabled={isReadOnly}>
             <Button
               variant="outline"
               size="sm"
+              disabled={isReadOnly}
               className={cn(
                 'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
-                !selectedSectionId && 'text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30'
+                !selectedSectionId && 'text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30',
+                isReadOnly && 'opacity-70 cursor-default'
               )}
             >
               <Layers className="mr-2 h-3.5 w-3.5" />
@@ -678,12 +692,15 @@ export function TaskMetadataRow({ task }: TaskMetadataRowProps) {
         setShowTagInput(open)
         if (!open) setSearchValue('')
       }}>
-        <PopoverTrigger asChild>
+        <PopoverTrigger asChild disabled={isReadOnly}>
           <Button
             variant="outline"
             size="sm"
-            disabled={isPending}
-            className="h-8 px-3 rounded-md border text-[13px] font-medium text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30 transition-all"
+            disabled={isPending || isReadOnly}
+            className={cn(
+              'h-8 px-3 rounded-md border text-[13px] font-medium text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30 transition-all',
+              isReadOnly && 'opacity-70 cursor-default'
+            )}
           >
             {isPending ? (
               <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
