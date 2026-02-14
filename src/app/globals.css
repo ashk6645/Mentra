@@ -1071,3 +1071,122 @@
     transform: translate(-50%, -50%) scale(1);
   }
 }
+
+/* ==================== INSTANT FEEDBACK UTILITIES ==================== */
+/* Optimized for < 100ms perceived feedback */
+
+/* Ultra-fast transitions for instant feedback (50ms) */
+.transition-instant {
+  transition-property: transform, opacity, background-color, border-color, color;
+  transition-duration: 50ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fast transitions for interactive elements (100ms) */
+.transition-fast {
+  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
+  transition-duration: 100ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Optimized hover states - instant feedback */
+.hover-instant {
+  transition: transform 50ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 50ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-instant:hover {
+  transform: translateY(-1px);
+}
+
+.hover-instant:active {
+  transform: translateY(0);
+}
+
+/* Button press feedback - instant */
+.active-press {
+  transition: transform 50ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.active-press:active {
+  transform: scale(0.97);
+}
+
+/* Optimized for GPU acceleration */
+.gpu-accelerated {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Remove will-change after interaction */
+.gpu-accelerated:not(:hover):not(:focus) {
+  will-change: auto;
+}
+
+/* Instant color transitions */
+.color-instant {
+  transition: background-color 50ms cubic-bezier(0.4, 0, 0.2, 1),
+              color 50ms cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 50ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus ring - instant */
+.focus-instant:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  transition: outline-offset 50ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Ripple effect for clicks */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.ripple-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple-effect::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background: currentColor;
+  border-radius: 50%;
+  transform: scale(0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ripple-effect:active::after {
+  animation: ripple 0.4s ease-out;
+}
+
+/* Optimized shadow transitions */
+.shadow-instant {
+  transition: box-shadow 100ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Performance optimizations */
+@media (prefers-reduced-motion: reduce) {
+  .transition-instant,
+  .transition-fast,
+  .hover-instant,
+  .active-press,
+  .color-instant,
+  .shadow-instant {
+    transition: none !important;
+    animation: none !important;
+  }
+}
