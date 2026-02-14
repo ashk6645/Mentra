@@ -20,7 +20,7 @@ export function SortableSection({
     completedTasks,
     projectId,
 }: SortableSectionProps) {
-    const [isExpanded, setIsExpanded] = useState(true)
+    const [isExpanded, setIsExpanded] = useState(false)
 
     const {
         attributes,
