@@ -10,6 +10,7 @@ import { SectionHeader } from '@/components/projects/section-header'
 import { AddSectionButton } from '@/components/projects/add-section-button'
 import { SectionList } from '@/components/projects/section-list'
 import { ProjectActions } from '@/components/projects/project-actions'
+import { ProjectProgressBar } from '@/components/projects/project-progress-bar'
 
 
 interface ProjectPageProps {
@@ -25,6 +26,7 @@ export default async function ProjectPage(props: ProjectPageProps) {
     if (!user) {
         redirect('/login')
     }
+
 
     // Fetch project details
     const projectResult = await getProject(params.id)
@@ -70,7 +72,7 @@ export default async function ProjectPage(props: ProjectPageProps) {
                 <div className="max-w-4xl mx-auto px-6 pt-12 pb-6">
                     <div className="flex items-start justify-between">
                         {/* Left Column: Title & Description */}
-                        <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-4 flex-1 mr-8">
                             {/* Title Area */}
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 shadow-sm">
@@ -86,6 +88,16 @@ export default async function ProjectPage(props: ProjectPageProps) {
                                 <p className="text-base text-muted-foreground/80 leading-relaxed max-w-2xl">
                                     {project.description}
                                 </p>
+                            )}
+
+                            {/* Progress Bar */}
+                            {tasks.length > 0 && (
+                                <div className="max-w-md">
+                                    <ProjectProgressBar
+                                        totalTasks={tasks.length}
+                                        completedTasks={totalCompletedTasks}
+                                    />
+                                </div>
                             )}
                         </div>
 
