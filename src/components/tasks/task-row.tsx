@@ -50,19 +50,24 @@ export function TaskRow({ task }: TaskRowProps) {
         // but we trigger the side effects here.
 
         try {
-            // 2. Confetti (only on completion)
+            // 2. Confetti (only on completion) - Subtle and premium
             if (checked) {
                 const rect = scope.current.getBoundingClientRect()
                 const x = (rect.left + rect.width / 2) / window.innerWidth
                 const y = (rect.top + rect.height / 2) / window.innerHeight
 
                 confetti({
-                    particleCount: 35,
-                    spread: 60,
+                    particleCount: 25,
+                    spread: 50,
                     origin: { x, y },
                     colors: ['#10b981', '#22c55e', '#86efac'], // Brand-consistent greens
                     disableForReducedMotion: true,
                     zIndex: 1000,
+                    startVelocity: 20,
+                    decay: 0.92,
+                    gravity: 0.8,
+                    ticks: 150,
+                    scalar: 0.8,
                 })
             }
 
