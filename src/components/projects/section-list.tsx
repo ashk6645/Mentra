@@ -58,6 +58,7 @@ export function SectionList({
             // Trigger server action to persist order
             try {
                 await reorderSections(projectId, newSections.map(s => s.id))
+                toast.success('Section reordered')
             } catch (error) {
                 toast.error('Failed to update section order')
             }

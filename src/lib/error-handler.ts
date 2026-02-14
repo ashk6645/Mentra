@@ -1,4 +1,4 @@
-import { toast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 
 export class AppError extends Error {
   constructor(
@@ -39,18 +39,24 @@ export function handleError(error: unknown, context?: string): AppError {
 
 export function showErrorToast(error: unknown, context?: string) {
   const appError = handleError(error, context)
-  
-  toast({
-    title: 'Error',
-    description: appError.userMessage || appError.message,
-    variant: 'destructive',
+
+  toast.error(appError.userMessage || appError.message, {
+    description: context ? `Failed to ${context.toLowerCase()}` : undefined,
+    duration: 4000,
   })
 }
 
 export function showSuccessToast(message: string, description?: string) {
-  toast({
-    title: message,
+  toast.success(message, {
     description,
+    duration: 3000,
+  })
+}
+
+export function showInfoToast(message: string, description?: string) {
+  toast.info(message, {
+    description,
+    duration: 3000,
   })
 }
 
