@@ -213,7 +213,21 @@ export function TaskEditor({
                             >
                                 <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
                                 {date ? format(date, "MMM d") : "Due date"}
-                                {date && <X className="ml-1.5 h-3 w-3 hover:text-red-500" onClick={(e) => { e.stopPropagation(); setDate(undefined) }} />}
+                                {date && (
+                                    <div
+                                        role="button"
+                                        className="ml-1.5 hover:bg-red-100 rounded-full p-0.5 group"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            setDate(undefined)
+                                        }}
+                                        onPointerDown={(e) => {
+                                            e.stopPropagation()
+                                        }}
+                                    >
+                                        <X className="h-3 w-3 text-green-600 group-hover:text-red-600" />
+                                    </div>
+                                )}
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
