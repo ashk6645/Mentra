@@ -1092,7 +1092,7 @@
 /* Optimized hover states - instant feedback */
 .hover-instant {
   transition: transform 50ms cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 50ms cubic-bezier(0.4, 0, 0.2, 1);
+    opacity 50ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hover-instant:hover {
@@ -1127,8 +1127,8 @@
 /* Instant color transitions */
 .color-instant {
   transition: background-color 50ms cubic-bezier(0.4, 0, 0.2, 1),
-              color 50ms cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 50ms cubic-bezier(0.4, 0, 0.2, 1);
+    color 50ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 50ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Focus ring - instant */
@@ -1144,6 +1144,7 @@
     transform: scale(0);
     opacity: 0.5;
   }
+
   100% {
     transform: scale(4);
     opacity: 0;
@@ -1180,6 +1181,7 @@
 
 /* Performance optimizations */
 @media (prefers-reduced-motion: reduce) {
+
   .transition-instant,
   .transition-fast,
   .hover-instant,

@@ -396,7 +396,7 @@ export function TaskEditor({
                         disabled={!title.trim() || isSubmitting}
                         className={cn(
                             "h-8 px-4 font-semibold",
-                            !title.trim() ? "opacity-50" : "bg-[#db4c3f] hover:bg-[#b03d32] text-white" // Todoist red-ish color
+                            !title.trim() && "opacity-50"
                         )}
                     >
                         Add task
