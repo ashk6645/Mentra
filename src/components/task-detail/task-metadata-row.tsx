@@ -26,6 +26,20 @@ import {
   CommandList,
 } from '@/components/ui/command'
 import { Badge } from '@/components/ui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
+
+const priorities = [
+  { value: 'low', label: 'Low', color: 'text-slate-500', fill: 'fill-slate-500' },
+  { value: 'medium', label: 'Medium', color: 'text-blue-500', fill: 'fill-blue-500' },
+  { value: 'high', label: 'High', color: 'text-orange-500', fill: 'fill-orange-500' },
+  { value: 'urgent', label: 'Urgent', color: 'text-red-600', fill: 'fill-red-600' },
+] as const
 
 interface TaskTag {
   tag?: { id: string; name: string; color?: string | null };
@@ -506,42 +520,50 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
       </Popover>
 
       {/* Priority */}
-      <Popover>
-        <PopoverTrigger asChild disabled={isReadOnly}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild disabled={isReadOnly}>
           <Button
             variant="outline"
             size="sm"
             disabled={isReadOnly}
             className={cn(
-              'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
-              getPriorityColor(priority),
+              "h-8 px-2 text-xs font-normal border-dashed",
+              priority !== 'none' && "border-solid",
               isReadOnly && 'opacity-70 cursor-default'
             )}
           >
-            <Flag className="mr-2 h-3.5 w-3.5" />
-            {priority === 'none' ? 'Priority' : priority.charAt(0).toUpperCase() + priority.slice(1)}
+            <Flag
+              className={cn(
+                "mr-1.5 h-3.5 w-3.5",
+                priorities.find(p => p.value === priority)?.color || "text-muted-foreground"
+              )}
+              fill={priority !== 'none' ? "currentColor" : "none"}
+            />
+            {priority === 'none' ? 'Priority' : priorities.find(p => p.value === priority)?.label}
           </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-48 p-2" align="start">
-          <div className="space-y-1">
-            {['urgent', 'high', 'medium', 'low', 'none'].map((p) => (
-              <Button
-                key={p}
-                variant="ghost"
-                size="sm"
-                onClick={() => handlePriorityChange(p)}
-                className={cn(
-                  'w-full justify-start',
-                  priority === p && 'bg-accent'
-                )}
-              >
-                <Flag className="mr-2 h-3.5 w-3.5" />
-                {p === 'none' ? 'No priority' : p.charAt(0).toUpperCase() + p.slice(1)}
-              </Button>
-            ))}
-          </div>
-        </PopoverContent>
-      </Popover>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-48" align="start">
+          {priorities.map((p) => (
+            <DropdownMenuItem
+              key={p.value}
+              onClick={() => handlePriorityChange(p.value)}
+              className="gap-2"
+            >
+              <Flag className={cn("h-4 w-4", p.color)} fill="currentColor" />
+              <span>{p.label}</span>
+              {priority === p.value && <Check className="ml-auto h-4 w-4" />}
+            </DropdownMenuItem>
+          ))}
+          {priority !== 'none' && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handlePriorityChange('none')}>
+                Clear Priority
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
       {/* Recurring Config */}
       {!isReadOnly && (
         <RecurrenceSelector
