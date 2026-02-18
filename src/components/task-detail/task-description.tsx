@@ -101,11 +101,11 @@ export function TaskDescription({ task, isReadOnly = false }: TaskDescriptionPro
         />
       </div>
 
-      {!isReadOnly && (
+      {/* {!isReadOnly && (
         <p className="text-[11px] text-muted-foreground/50">
           Supports markdown formatting
         </p>
-      )}
+      )} */}
     </div>
   )
 }
