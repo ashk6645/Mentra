@@ -235,16 +235,6 @@ export function QuickAddInput({
 
                 {/* Buttons — right side */}
                 <div className="flex items-center gap-1.5 shrink-0">
-                    {onCancel && (
-                        <Button
-                            variant="ghost"
-                            onClick={onCancel}
-                            disabled={isSubmitting}
-                            className="h-8 px-3 text-xs rounded-lg text-muted-foreground hover:text-foreground"
-                        >
-                            Cancel
-                        </Button>
-                    )}
                     <Button
                         onClick={handleSubmit}
                         disabled={!parsedData?.title.trim() || isSubmitting}
@@ -264,6 +254,16 @@ export function QuickAddInput({
                         )}
                         Create
                     </Button>
+                     {onCancel && (
+                        <Button
+                            variant="ghost"
+                            onClick={onCancel}
+                            disabled={isSubmitting}
+                            className="h-8 px-3 text-xs rounded-lg text-muted-foreground hover:text-foreground"
+                        >
+                            Cancel
+                        </Button>
+                    )}
                 </div>
             </div>
 
