@@ -91,7 +91,7 @@ export default async function UpcomingPage() {
         <PageShell>
             <PageHeader
                 title="Upcoming"
-                description="All upcoming tasks"
+                // description="All upcoming tasks"
                 actions={
                     <div className="flex items-center gap-2">
                         {upcomingTasks.length > 0 && <TaskSelectionToggle taskIds={upcomingTasks.map(t => t.id)} />}
