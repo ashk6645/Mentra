@@ -84,11 +84,6 @@ export function GlobalQuickAdd({ className }: GlobalQuickAddProps) {
                             <Zap className="h-5 w-5" />
                             Quick Add Task
                         </DialogTitle>
-                        <p className="text-sm text-muted-foreground">
-                            Press <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded border">Cmd</kbd> +{' '}
-                            <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded border">Shift</kbd> +{' '}
-                            <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded border">A</kbd> anytime
-                        </p>
                     </DialogHeader>
 
                     <QuickAddInput
