@@ -164,7 +164,7 @@ export function TaskSubtasks({ task, isReadOnly = false }: TaskSubtasksProps) {
                   handleAddSubtask(e)
                 }
               }}
-              className="h-7 flex-1 bg-transparent border-0 focus-visible:ring-0 px-0 text-sm placeholder:text-muted-foreground/60 shadow-none"
+              className="h-8 py-1.5 flex-1 bg-transparent border-0 focus-visible:ring-0 px-0 text-sm placeholder:text-muted-foreground/60 shadow-none"
             />
           </div>
         )}

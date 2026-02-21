@@ -47,7 +47,7 @@ export function TaskDescription({ task, isReadOnly = false }: TaskDescriptionPro
     try {
       const result = await updateTask({
         id: task.id,
-        description: description || undefined,
+        description: description,
       })
 
       if (result.success && result.data) {
