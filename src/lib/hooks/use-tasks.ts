@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
 import { getTasks, createTask, updateTask, deleteTask, toggleTaskCompletion, type GetTasksOptions, type CreateTaskInput, type UpdateTaskInput } from '@/lib/actions/tasks'
 import { queryKeys } from '@/lib/react-query'
 import { showErrorToast, showSuccessToast } from '@/lib/error-handler'
@@ -18,6 +19,7 @@ export function useTasks(options: GetTasksOptions = {}) {
 
 export function useCreateTask() {
   const queryClient = useQueryClient()
+  const router = useRouter()
 
   return useMutation({
     mutationFn: async (data: CreateTaskInput) => {
@@ -31,6 +33,7 @@ export function useCreateTask() {
       // Invalidate all task queries to refetch
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
       showSuccessToast('Task created', 'Your task has been created successfully')
+      router.refresh()
     },
     onError: (error: Error) => {
       showErrorToast(error.message, 'Create task')
@@ -40,6 +43,7 @@ export function useCreateTask() {
 
 export function useUpdateTask() {
   const queryClient = useQueryClient()
+  const router = useRouter()
 
   return useMutation({
     mutationFn: async (data: UpdateTaskInput) => {
@@ -52,6 +56,7 @@ export function useUpdateTask() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
       showSuccessToast('Task updated', 'Your task has been updated successfully')
+      router.refresh()
     },
     onError: (error: Error) => {
       showErrorToast(error.message, 'Update task')
@@ -61,6 +66,7 @@ export function useUpdateTask() {
 
 export function useToggleTask() {
   const queryClient = useQueryClient()
+  const router = useRouter()
 
   return useMutation({
     mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
@@ -74,23 +80,23 @@ export function useToggleTask() {
     onMutate: async ({ id, completed }) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: queryKeys.tasks.all })
-      
+
       // Snapshot previous values
       const previousTasks = queryClient.getQueriesData({ queryKey: queryKeys.tasks.all })
-      
+
       // Optimistically update all task queries
       queryClient.setQueriesData({ queryKey: queryKeys.tasks.all }, (old: any) => {
         if (!old) return old
         if (Array.isArray(old)) {
-          return old.map((task: any) => 
-            task.id === id 
+          return old.map((task: any) =>
+            task.id === id
               ? { ...task, completed, completedAt: completed ? new Date().toISOString() : null }
               : task
           )
         }
         return old
       })
-      
+
       // Return context for rollback
       return { previousTasks }
     },
@@ -99,6 +105,7 @@ export function useToggleTask() {
       if (variables.completed) {
         showSuccessToast('Task completed', 'Great job! Keep up the momentum!')
       }
+      router.refresh()
     },
     onError: (error: Error, _, context) => {
       // Rollback on error
@@ -114,6 +121,7 @@ export function useToggleTask() {
 
 export function useDeleteTask() {
   const queryClient = useQueryClient()
+  const router = useRouter()
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -126,6 +134,7 @@ export function useDeleteTask() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
       showSuccessToast('Task deleted', 'Task has been removed')
+      router.refresh()
     },
     onError: (error: Error) => {
       showErrorToast(error.message, 'Delete task')

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Plus, Check, Trash2 } from 'lucide-react'
@@ -25,6 +26,7 @@ interface TaskSubtasksProps {
 }
 
 export function TaskSubtasks({ task, isReadOnly = false }: TaskSubtasksProps) {
+  const router = useRouter()
   const [subtasks, setSubtasks] = useState<Subtask[]>(task.subtasks || [])
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
 
@@ -38,6 +40,7 @@ export function TaskSubtasks({ task, isReadOnly = false }: TaskSubtasksProps) {
     )
 
     await updateSubtask(subtaskId, { completed })
+    router.refresh()
   }
 
   const handleAddSubtask = async (e: React.FormEvent) => {
@@ -61,6 +64,7 @@ export function TaskSubtasks({ task, isReadOnly = false }: TaskSubtasksProps) {
       setSubtasks((prev) =>
         prev.map((st) => (st.id === tempId ? res.data : st))
       )
+      router.refresh()
     } else {
       setSubtasks((prev) => prev.filter((st) => st.id !== tempId))
     }
@@ -71,6 +75,7 @@ export function TaskSubtasks({ task, isReadOnly = false }: TaskSubtasksProps) {
 
     setSubtasks((prev) => prev.filter((st) => st.id !== subtaskId))
     await deleteSubtask(subtaskId)
+    router.refresh()
   }
 
   const completedCount = subtasks.filter((st) => st.completed).length
