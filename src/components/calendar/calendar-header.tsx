@@ -78,10 +78,6 @@ export function CalendarHeader({ currentDate, view, onViewChange, onNavigate }: 
                     </SelectContent>
                 </Select>
 
-                <Button variant="default" size="sm" className="hidden md:flex">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    New Event
-                </Button>
             </div>
         </div>
     )
