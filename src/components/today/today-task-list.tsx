@@ -1,36 +1,31 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { SortableTaskList } from '@/components/tasks/sortable-task-list'
 import { CreateTaskInline } from '@/components/tasks/create-task-inline'
+import { AllDoneAnimation } from '@/components/ui/all-done-animation'
 
 interface TodayTaskListProps {
     tasks: any[]
 }
 
-export function TodayTaskList({ tasks }: TodayTaskListProps) {
-    if (tasks.length === 0) {
+export function TodayTaskList({ tasks: initialTasks }: TodayTaskListProps) {
+    // Keep track of optimistic task count to show animation instantly
+    const [optimisticCount, setOptimisticCount] = useState(initialTasks.length)
+
+    // Reset when server prop changes
+    useEffect(() => {
+        setOptimisticCount(initialTasks.length)
+    }, [initialTasks])
+
+    if (optimisticCount === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-16 px-4">
-                {/* Friendly visual */}
-                <div className="relative mb-6">
-                    <div className="text-7xl opacity-80 animate-bounce" style={{ animationDuration: '3s' }}>
-                        ☀️
-                    </div>
-                </div>
-                
-                {/* Encouraging copy */}
-                <h3 className="text-xl font-semibold text-foreground mb-2">
-                    All clear for today!
-                </h3>
-                <p className="text-muted-foreground text-center max-w-md mb-6">
-                    No tasks scheduled. Take a break, or plan something meaningful.
-                </p>
-                
-                {/* Clear action */}
-                {/* <CreateTaskInline variant="compact" label="Schedule a task" /> */}
-            </div>
+            <AllDoneAnimation />
         )
     }
 
-    return <SortableTaskList tasks={tasks} />
+    return <SortableTaskList
+        tasks={initialTasks}
+        onOptimisticEmpty={() => setOptimisticCount(0)}
+    />
 }

@@ -27,6 +27,7 @@ import { cn } from '@/lib/utils'
 
 interface SortableTaskListProps {
     tasks: any[]
+    onOptimisticEmpty?: () => void
 }
 
 function SortableTaskItem({ task, onOptimisticComplete }: { task: any, onOptimisticComplete: (id: string) => void }) {
@@ -74,7 +75,7 @@ function SortableTaskItem({ task, onOptimisticComplete }: { task: any, onOptimis
     )
 }
 
-export function SortableTaskList({ tasks: initialTasks }: SortableTaskListProps) {
+export function SortableTaskList({ tasks: initialTasks, onOptimisticEmpty }: SortableTaskListProps) {
     const [tasks, setTasks] = useState(initialTasks)
     const [activeId, setActiveId] = useState<string | null>(null)
     const pendingUpdateRef = useRef<{ id: string; sortOrder: number; sectionId?: string | null }[] | null>(null)
@@ -159,7 +160,13 @@ export function SortableTaskList({ tasks: initialTasks }: SortableTaskListProps)
                                 key={task.id}
                                 task={task}
                                 onOptimisticComplete={(id) => {
-                                    setTasks(prev => prev.filter(t => t.id !== id))
+                                    setTasks(prev => {
+                                        const newTasks = prev.filter(t => t.id !== id)
+                                        if (newTasks.length === 0 && onOptimisticEmpty) {
+                                            onOptimisticEmpty()
+                                        }
+                                        return newTasks
+                                    })
                                 }}
                             />
                         ))}
