@@ -1,7 +1,6 @@
 'use client'
 
 import { useAnimate } from 'framer-motion'
-import confetti from 'canvas-confetti'
 
 import { format, isToday, isTomorrow } from 'date-fns'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -50,31 +49,18 @@ export function TaskRow({ task }: TaskRowProps) {
         // but we trigger the side effects here.
 
         try {
-            // 2. Confetti (only on completion) - Subtle and premium
+            // 2. Micro-animation - Subtle scale pop on the row itself before exit
             if (checked) {
-                const rect = scope.current.getBoundingClientRect()
-                const x = (rect.left + rect.width / 2) / window.innerWidth
-                const y = (rect.top + rect.height / 2) / window.innerHeight
-
-                confetti({
-                    particleCount: 25,
-                    spread: 50,
-                    origin: { x, y },
-                    colors: ['#10b981', '#22c55e', '#86efac'], // Brand-consistent greens
-                    disableForReducedMotion: true,
-                    zIndex: 1000,
-                    startVelocity: 20,
-                    decay: 0.92,
-                    gravity: 0.8,
-                    ticks: 150,
-                    scalar: 0.8,
-                })
+                await animate(scope.current,
+                    { scale: [1, 1.02, 1] },
+                    { duration: 0.2, ease: 'easeOut' }
+                )
             }
 
             // 3. Server sync (start parallel with animation)
             const togglePromise = toggleTask({ id: task.id, completed: checked })
 
-            // 4. Exit animation removed - user wants task to stay visible
+            // 4. Exit animation
             if (checked) {
                 await animate(scope.current,
                     {
