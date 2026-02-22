@@ -29,10 +29,7 @@ export default async function TodayPage() {
                 gte: today,    // Start of today (inclusive)
                 lt: tomorrow   // Before tomorrow (exclusive)
             },
-            OR: [
-                { completed: false },
-                { completedAt: { gte: today } }
-            ]
+            completed: false
         },
         select: {
             id: true,
