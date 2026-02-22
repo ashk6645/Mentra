@@ -19,6 +19,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useState, useEffect, useRef, useId } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { TaskRow } from './task-row'
 import { updateTaskOrder } from '@/lib/actions/tasks'
 import { GripVertical } from 'lucide-react'
@@ -28,7 +29,7 @@ interface SortableTaskListProps {
     tasks: any[]
 }
 
-function SortableTaskItem({ task }: { task: any }) {
+function SortableTaskItem({ task, onOptimisticComplete }: { task: any, onOptimisticComplete: (id: string) => void }) {
     const {
         attributes,
         listeners,
@@ -44,7 +45,12 @@ function SortableTaskItem({ task }: { task: any }) {
     }
 
     return (
-        <div
+        <motion.div
+            layout
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+            transition={{ layout: { type: 'spring', stiffness: 300, damping: 30 } }}
             ref={setNodeRef}
             style={style}
             className={cn(
@@ -62,9 +68,9 @@ function SortableTaskItem({ task }: { task: any }) {
             </div>
 
             <div className="flex-1 min-w-0">
-                <TaskRow task={task} />
+                <TaskRow task={task} onOptimisticComplete={() => onOptimisticComplete(task.id)} />
             </div>
-        </div>
+        </motion.div>
     )
 }
 
@@ -146,10 +152,18 @@ export function SortableTaskList({ tasks: initialTasks }: SortableTaskListProps)
                 items={tasks.map(t => t.id)}
                 strategy={verticalListSortingStrategy}
             >
-                <div className="space-y-2">
-                    {tasks.map((task) => (
-                        <SortableTaskItem key={task.id} task={task} />
-                    ))}
+                <div className="space-y-2 relative flex flex-col">
+                    <AnimatePresence initial={false}>
+                        {tasks.map((task) => (
+                            <SortableTaskItem
+                                key={task.id}
+                                task={task}
+                                onOptimisticComplete={(id) => {
+                                    setTasks(prev => prev.filter(t => t.id !== id))
+                                }}
+                            />
+                        ))}
+                    </AnimatePresence>
                 </div>
             </SortableContext>
 

@@ -26,9 +26,10 @@ import { useToggleTask, useDeleteTask } from '@/lib/hooks/use-tasks'
 
 interface TaskRowProps {
     task: any // Using any to avoid type conflicts with shared components for now
+    onOptimisticComplete?: () => void
 }
 
-export function TaskRow({ task }: TaskRowProps) {
+export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
     const router = useRouter()
     const [isPending, setIsPending] = useState(false)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -55,34 +56,23 @@ export function TaskRow({ task }: TaskRowProps) {
                     { scale: [1, 1.02, 1] },
                     { duration: 0.2, ease: 'easeOut' }
                 )
+                // Trigger optimistic removal from parent list
+                task.onOptimisticComplete?.()
+                if (onOptimisticComplete) {
+                    onOptimisticComplete()
+                }
             }
 
-            // 3. Server sync (start parallel with animation)
-            const togglePromise = toggleTask({ id: task.id, completed: checked })
+            // 3. Server sync (run in background, do not await)
+            toggleTask({ id: task.id, completed: checked }).then(() => {
+                router.refresh()
+            }).catch((error) => {
+                console.error('Failed to toggle task', error)
+                router.refresh()
+            })
 
-            // 4. Exit animation
-            if (checked) {
-                await animate(scope.current,
-                    {
-                        opacity: [1, 0.6, 0],
-                        x: [0, 10, 20],
-                        height: [scope.current.offsetHeight, 0],
-                        marginBottom: [12, 0],
-                        paddingBlock: [14, 0],
-                        border: 0
-                    },
-                    {
-                        duration: 0.4, // Slightly longer for smoother feel
-                        ease: [0.32, 0.72, 0, 1] // Custom easing
-                    }
-                )
-            }
-
-
-            await togglePromise
-            router.refresh()
         } catch (error) {
-            console.error('Failed to toggle task', error)
+            console.error('Animation error', error)
             router.refresh()
         } finally {
             setIsPending(false)
