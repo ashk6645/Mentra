@@ -69,7 +69,8 @@ export default async function TodayPage() {
             }  // Required for drag-and-drop
         },
         orderBy: [
-            { sortOrder: 'asc' },  // Primary: User's manual order
+            { dueDate: 'asc' },    // Primary: Chronological time order
+            { sortOrder: 'asc' },  // Secondary: User's manual order
             { createdAt: 'desc' }  // Fallback: Newest first for new tasks
         ]
     })
