@@ -29,6 +29,44 @@ export function TaskSubtasks({ task, isReadOnly = false }: TaskSubtasksProps) {
   const router = useRouter()
   const [subtasks, setSubtasks] = useState<Subtask[]>(task.subtasks || [])
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
+  const [editingSubtaskId, setEditingSubtaskId] = useState<string | null>(null)
+  const [editValue, setEditValue] = useState('')
+
+  const handleSaveEdit = async () => {
+    if (!editingSubtaskId) return
+
+    const subtaskToUpdate = subtasks.find(st => st.id === editingSubtaskId)
+    if (!subtaskToUpdate) {
+      setEditingSubtaskId(null)
+      return
+    }
+
+    const newTitle = editValue.trim()
+    if (!newTitle || newTitle === subtaskToUpdate.title) {
+      setEditingSubtaskId(null)
+      return
+    }
+
+    const currentId = editingSubtaskId
+    const oldTitle = subtaskToUpdate.title
+
+    // Optimistic Update
+    setSubtasks((prev) =>
+      prev.map((st) => (st.id === currentId ? { ...st, title: newTitle } : st))
+    )
+    setEditingSubtaskId(null)
+
+    // Persist
+    const res = await updateSubtask(currentId, { title: newTitle })
+    if (res.success) {
+      router.refresh()
+    } else {
+      // Revert on failure
+      setSubtasks((prev) =>
+        prev.map((st) => (st.id === currentId ? { ...st, title: oldTitle } : st))
+      )
+    }
+  }
 
   const handleToggleSubtask = async (subtaskId: string, completed: boolean) => {
     if (isReadOnly) return
@@ -125,15 +163,41 @@ export function TaskSubtasks({ task, isReadOnly = false }: TaskSubtasksProps) {
                     <Check className="h-2.5 w-2.5 text-primary-foreground" strokeWidth={3} />
                   )}
                 </button>
-                <span
-                  className={cn(
-                    'text-sm flex-1 transition-all',
-                    subtask.completed && 'line-through text-muted-foreground/70'
-                  )}
-                >
-                  {subtask.title}
-                </span>
-                {!isReadOnly && (
+                {editingSubtaskId === subtask.id ? (
+                  <Input
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    onBlur={handleSaveEdit}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        handleSaveEdit()
+                      } else if (e.key === 'Escape') {
+                        e.preventDefault()
+                        setEditingSubtaskId(null)
+                      }
+                    }}
+                    autoFocus
+                    className="h-7 py-1 flex-1 bg-background border border-border/50 focus-visible:ring-1 focus-visible:ring-primary/50 px-2 text-sm shadow-none"
+                  />
+                ) : (
+                  <span
+                    onClick={() => {
+                      if (!isReadOnly && !subtask.completed) {
+                        setEditingSubtaskId(subtask.id)
+                        setEditValue(subtask.title)
+                      }
+                    }}
+                    className={cn(
+                      'text-sm flex-1 transition-all',
+                      subtask.completed && 'line-through text-muted-foreground/70',
+                      !isReadOnly && !subtask.completed && 'cursor-text hover:bg-muted/30 px-1 -mx-1 rounded'
+                    )}
+                  >
+                    {subtask.title}
+                  </span>
+                )}
+                {!isReadOnly && editingSubtaskId !== subtask.id && (
                   <Button
                     type="button"
                     variant="ghost"
