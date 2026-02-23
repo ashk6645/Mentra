@@ -176,21 +176,19 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
                     // Completed state
                     task.completed && "opacity-60",
 
-                    // Priority & Status Indicators (Left Border)
-                    // Priority uses border-l-4 to curve perfectly with the container's radius
+
+                    // Priority & Status Indicators (Left Border) — always preserved, even when selected
                     !task.completed && (
-                        // Overdue State (Red)
                         isOverdue ? "border-l-4 border-l-red-500 bg-red-50/30 dark:bg-red-950/10" :
-                            // Detailed/Selected State (Blue)
-                            isDetailed ? "border-l-2 border-l-primary/80 bg-primary/[0.03] dark:bg-primary/[0.06]" :
-                                // Priority States
-                                task.priority === 'urgent' ? "border-l-4 border-l-red-500" :
-                                    task.priority === 'high' ? "border-l-4 border-l-orange-500" :
-                                        task.priority === 'medium' ? "border-l-4 border-l-blue-500" :
-                                            task.priority === 'low' ? "border-l-4 border-l-gray-400" :
-                                                // Default Hover for non-priority tasks (optional, keeping clean for now)
-                                                "hover:border-border"
-                    )
+                            task.priority === 'urgent' ? "border-l-4 border-l-red-500" :
+                                task.priority === 'high' ? "border-l-4 border-l-orange-500" :
+                                    task.priority === 'medium' ? "border-l-4 border-l-blue-500" :
+                                        task.priority === 'low' ? "border-l-4 border-l-gray-400" :
+                                            "hover:border-border"
+                    ),
+
+                    // Selected state — only background tint, never touches the border
+                    isDetailed && !task.completed && "bg-primary/[0.04] dark:bg-primary/[0.07]"
                 )}>
 
                 {/* Checkbox Area - Swaps between Completion and Selection based on mode */}
