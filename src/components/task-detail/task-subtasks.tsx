@@ -73,22 +73,19 @@ function SortableSubtaskItem({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-3 px-3 py-2.5 group transition-colors",
+        "flex items-center gap-3 px-3 py-2.5 group transition-colors relative",
         isDragging ? "bg-accent shadow-md opacity-90 rounded-md" : "hover:bg-muted/50"
       )}
     >
       {!isReadOnly && (
         <button
-          className="h-5 w-5 flex items-center justify-center text-muted-foreground/40 hover:text-foreground cursor-grab active:cursor-grabbing shrink-0 transition-colors opacity-0 group-hover:opacity-100"
+          className="absolute -left-6 top-1/2 -translate-y-1/2 h-5 w-5 flex items-center justify-center text-muted-foreground/40 hover:text-foreground cursor-grab active:cursor-grabbing shrink-0 transition-colors opacity-0 group-hover:opacity-100"
           {...attributes}
           {...listeners}
         >
           <GripVertical className="h-4 w-4" />
         </button>
       )}
-
-      {/* If read-only, keep the spacing the same by adding an empty div */}
-      {isReadOnly && <div className="h-5 w-5 shrink-0" />}
 
       <button
         type="button"
