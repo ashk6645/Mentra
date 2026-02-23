@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { type Project } from '@/lib/actions/projects'
-import { MoreHorizontal, Edit2, Archive, Trash2 } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { type Project, deleteProject, updateProject } from '@/lib/actions/projects'
+import { MoreHorizontal, Edit2, Archive, ArchiveRestore, Trash2 } from 'lucide-react'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -13,7 +13,6 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { deleteProject } from '@/lib/actions/projects'
 import { toast } from 'sonner'
 import {
     AlertDialog,
@@ -29,6 +28,8 @@ import {
 interface ProjectRowProps {
     project: Project
     onEdit: (project: Project) => void
+    /** 'archived' renders the row in muted style with an unarchive action */
+    variant?: 'active' | 'archived'
 }
 
 const COLOR_CLASSES: Record<string, string> = {
@@ -42,9 +43,11 @@ const COLOR_CLASSES: Record<string, string> = {
     gray: 'border-gray-500',
 }
 
-export function ProjectRow({ project, onEdit }: ProjectRowProps) {
+export function ProjectRow({ project, onEdit, variant = 'active' }: ProjectRowProps) {
     const pathname = usePathname()
+    const router = useRouter()
     const isActive = pathname === `/projects/${project.id}`
+    const isArchived = variant === 'archived'
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
 
@@ -52,10 +55,10 @@ export function ProjectRow({ project, onEdit }: ProjectRowProps) {
         setIsDeleting(true)
         try {
             const result = await deleteProject(project.id, 'hard')
-
             if (result.success) {
                 toast.success('Project deleted')
                 setShowDeleteDialog(false)
+                router.refresh()
             } else {
                 toast.error(result.error || 'Failed to delete project')
             }
@@ -69,9 +72,9 @@ export function ProjectRow({ project, onEdit }: ProjectRowProps) {
     const handleArchive = async () => {
         try {
             const result = await deleteProject(project.id, 'soft')
-
             if (result.success) {
                 toast.success('Project archived')
+                router.refresh()
             } else {
                 toast.error(result.error || 'Failed to archive project')
             }
@@ -80,20 +83,36 @@ export function ProjectRow({ project, onEdit }: ProjectRowProps) {
         }
     }
 
+    const handleUnarchive = async () => {
+        try {
+            const result = await updateProject(project.id, { isArchived: false })
+            if (result.success) {
+                toast.success('Project unarchived')
+                router.refresh()
+            } else {
+                toast.error(result.error || 'Failed to unarchive project')
+            }
+        } catch (err) {
+            toast.error('An unexpected error occurred')
+        }
+    }
+
     return (
         <>
-            <div className="group relative">
+            <div className={`group relative ${isArchived ? 'opacity-60' : ''}`}>
                 <Link
                     href={`/projects/${project.id}`}
                     className={`
-            flex items-center gap-2 px-3 py-1.5 rounded-sm
-            transition-colors duration-200
-            border-l-2
-            ${isActive
-                            ? `bg-accent font-semibold ${COLOR_CLASSES[project.color] || 'border-blue-500'}`
-                            : `border-transparent hover:bg-accent/50 ${COLOR_CLASSES[project.color] || ''}`
+                        flex items-center gap-2 px-3 py-1.5 rounded-sm
+                        transition-colors duration-200
+                        border-l-2
+                        ${isArchived
+                            ? `border-transparent hover:bg-accent/30 ${COLOR_CLASSES[project.color] || ''}`
+                            : isActive
+                                ? `bg-accent font-semibold ${COLOR_CLASSES[project.color] || 'border-blue-500'}`
+                                : `border-transparent hover:bg-accent/50 ${COLOR_CLASSES[project.color] || ''}`
                         }
-          `}
+                    `}
                 >
                     {/* Icon */}
                     <span className="text-base flex-shrink-0">
@@ -125,14 +144,23 @@ export function ProjectRow({ project, onEdit }: ProjectRowProps) {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => onEdit(project)}>
-                                    <Edit2 className="mr-2 h-4 w-4" />
-                                    Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={handleArchive}>
-                                    <Archive className="mr-2 h-4 w-4" />
-                                    Archive
-                                </DropdownMenuItem>
+                                {!isArchived && (
+                                    <DropdownMenuItem onClick={() => onEdit(project)}>
+                                        <Edit2 className="mr-2 h-4 w-4" />
+                                        Edit
+                                    </DropdownMenuItem>
+                                )}
+                                {isArchived ? (
+                                    <DropdownMenuItem onClick={handleUnarchive}>
+                                        <ArchiveRestore className="mr-2 h-4 w-4" />
+                                        Unarchive
+                                    </DropdownMenuItem>
+                                ) : (
+                                    <DropdownMenuItem onClick={handleArchive}>
+                                        <Archive className="mr-2 h-4 w-4" />
+                                        Archive
+                                    </DropdownMenuItem>
+                                )}
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                     onClick={() => setShowDeleteDialog(true)}

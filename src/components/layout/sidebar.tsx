@@ -263,33 +263,38 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
                 {/* Projects Section */}
                 {!isSidebarCollapsed && (
                     <div className="px-2 mb-2">
-                        <div
-                            className="flex items-center justify-between group mb-1 mt-4 px-2 py-1 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 rounded-sm cursor-pointer transition-colors"
-                            onClick={() => setProjectsExpanded(!projectsExpanded)}
-                        >
-                            <span className="text-[15px] font-medium text-foreground">
+                        {/* Row: label navigates to /projects; + opens create; chevron toggles expand */}
+                        <div className="flex items-center mt-4 mb-1">
+                            {/* Label — navigates to /projects */}
+                            <Link
+                                href="/projects"
+                                className="flex-1 px-1 py-1 text-[15px] font-medium text-foreground hover:text-foreground rounded-sm transition-colors truncate"
+                            >
                                 Projects
-                            </span>
-                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                <div className="p-0.5 text-muted-foreground">
-                                    <motion.div
-                                        animate={{ rotate: projectsExpanded ? 90 : 0 }}
-                                        transition={{ duration: 0.2 }}
-                                    >
-                                        <ChevronRight className="h-3 w-3" />
-                                    </motion.div>
-                                </div>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        setShowNewProjectDialog(true)
-                                    }}
-                                    className="p-0.5 hover:bg-zinc-300/50 dark:hover:bg-zinc-700/50 rounded-sm transition-all duration-200 text-muted-foreground"
-                                    aria-label="Add project"
+                            </Link>
+
+                            {/* + button — opens create dialog only */}
+                            <button
+                                onClick={() => setShowNewProjectDialog(true)}
+                                className="flex items-center justify-center w-5 h-5 p-0.5 hover:bg-zinc-300/50 dark:hover:bg-zinc-700/50 rounded-sm transition-all duration-200 text-muted-foreground flex-shrink-0"
+                                aria-label="Add project"
+                            >
+                                <Plus className="h-3 w-3" />
+                            </button>
+
+                            {/* Chevron — only toggles expand/collapse */}
+                            <button
+                                onClick={() => setProjectsExpanded(!projectsExpanded)}
+                                className="flex items-center justify-center w-5 h-5 text-muted-foreground hover:text-foreground transition-colors rounded-sm flex-shrink-0"
+                                aria-label={projectsExpanded ? 'Collapse projects' : 'Expand projects'}
+                            >
+                                <motion.div
+                                    animate={{ rotate: projectsExpanded ? 90 : 0 }}
+                                    transition={{ duration: 0.2 }}
                                 >
-                                    <Plus className="h-3 w-3" />
-                                </button>
-                            </div>
+                                    <ChevronRight className="h-3 w-3" />
+                                </motion.div>
+                            </button>
                         </div>
 
                         <AnimatePresence initial={false}>

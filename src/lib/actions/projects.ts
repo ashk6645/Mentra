@@ -133,6 +133,59 @@ export async function getProjects() {
 }
 
 /**
+ * Get all archived projects for the current user
+ */
+export async function getArchivedProjects() {
+    try {
+        const user = await getCurrentUser()
+        if (!user) {
+            return { success: false, error: 'Unauthorized' }
+        }
+
+        const projects = await prisma.project.findMany({
+            where: {
+                userId: user.id,
+                isArchived: true,
+            },
+            select: {
+                id: true,
+                name: true,
+                icon: true,
+                color: true,
+                description: true,
+                isFavorited: true,
+                isArchived: true,
+                sortOrder: true,
+                createdAt: true,
+                updatedAt: true,
+                _count: {
+                    select: {
+                        tasks: {
+                            where: { completed: false },
+                        },
+                    },
+                },
+            },
+            orderBy: [
+                { sortOrder: 'asc' },
+                { createdAt: 'desc' },
+            ],
+        })
+
+        const projectsWithCount = projects.map((project) => ({
+            ...project,
+            taskCount: project._count.tasks,
+            _count: undefined,
+        }))
+
+        return { success: true, data: projectsWithCount }
+    } catch (error) {
+        console.error('Error fetching archived projects:', error)
+        return { success: false, error: 'Failed to fetch archived projects' }
+    }
+}
+
+/**
  * Get a single project by ID
  */
 export async function getProject(id: string) {
