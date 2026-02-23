@@ -47,11 +47,23 @@ function SortableSubtaskItem({
   isReadOnly,
   onToggle,
   onDelete,
+  isEditing,
+  editValue,
+  onEditChange,
+  onStartEdit,
+  onSaveEdit,
+  onCancelEdit,
 }: {
   subtask: Subtask
   isReadOnly: boolean
   onToggle: (id: string, completed: boolean) => void
   onDelete: (id: string) => void
+  isEditing: boolean
+  editValue: string
+  onEditChange: (value: string) => void
+  onStartEdit: (id: string, title: string) => void
+  onSaveEdit: () => void
+  onCancelEdit: () => void
 }) {
   const {
     attributes,
@@ -103,15 +115,40 @@ function SortableSubtaskItem({
           <Check className="h-2.5 w-2.5 text-primary-foreground" strokeWidth={3} />
         )}
       </button>
-      <span
-        className={cn(
-          'text-sm flex-1 transition-all',
-          subtask.completed && 'line-through text-muted-foreground/70'
-        )}
-      >
-        {subtask.title}
-      </span>
-      {!isReadOnly && (
+      {isEditing && !isReadOnly ? (
+        <Input
+          value={editValue}
+          onChange={(e) => onEditChange(e.target.value)}
+          onBlur={onSaveEdit}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              onSaveEdit()
+            } else if (e.key === 'Escape') {
+              e.preventDefault()
+              onCancelEdit()
+            }
+          }}
+          autoFocus
+          className="h-7 py-1 flex-1 bg-background border border-border/50 focus-visible:ring-1 focus-visible:ring-primary/50 px-2 text-sm shadow-none"
+        />
+      ) : (
+        <span
+          onClick={() => {
+            if (!isReadOnly && !subtask.completed) {
+              onStartEdit(subtask.id, subtask.title)
+            }
+          }}
+          className={cn(
+            'text-sm flex-1 transition-all',
+            subtask.completed && 'line-through text-muted-foreground/70',
+            !isReadOnly && !subtask.completed && 'cursor-text hover:bg-muted/30 px-1 -mx-1 rounded'
+          )}
+        >
+          {subtask.title}
+        </span>
+      )}
+      {!isReadOnly && !isEditing && (
         <Button
           type="button"
           variant="ghost"
@@ -132,6 +169,54 @@ export function TaskSubtasks({ task, isReadOnly = false }: TaskSubtasksProps) {
   const initialSubtasks = [...(task.subtasks || [])].sort((a, b) => a.sortOrder - b.sortOrder)
   const [subtasks, setSubtasks] = useState<Subtask[]>(initialSubtasks)
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
+  const [editingSubtaskId, setEditingSubtaskId] = useState<string | null>(null)
+  const [editValue, setEditValue] = useState('')
+
+  const handleStartEdit = (subtaskId: string, title: string) => {
+    setEditingSubtaskId(subtaskId)
+    setEditValue(title)
+  }
+
+  const handleCancelEdit = () => {
+    setEditingSubtaskId(null)
+    setEditValue('')
+  }
+
+  const handleSaveEdit = async () => {
+    if (!editingSubtaskId) return
+
+    const subtaskToUpdate = subtasks.find(st => st.id === editingSubtaskId)
+    if (!subtaskToUpdate) {
+      handleCancelEdit()
+      return
+    }
+
+    const newTitle = editValue.trim()
+    if (!newTitle || newTitle === subtaskToUpdate.title) {
+      handleCancelEdit()
+      return // No changes or empty string
+    }
+
+    const currentId = editingSubtaskId
+    const oldTitle = subtaskToUpdate.title
+
+    // Optimistic Update
+    setSubtasks((prev) =>
+      prev.map((st) => (st.id === currentId ? { ...st, title: newTitle } : st))
+    )
+    handleCancelEdit()
+
+    // Persist
+    const res = await updateSubtask(currentId, { title: newTitle })
+    if (res.success) {
+      router.refresh()
+    } else {
+      // Revert on failure
+      setSubtasks((prev) =>
+        prev.map((st) => (st.id === currentId ? { ...st, title: oldTitle } : st))
+      )
+    }
+  }
 
   const handleToggleSubtask = async (subtaskId: string, completed: boolean) => {
     if (isReadOnly) return
@@ -257,6 +342,12 @@ export function TaskSubtasks({ task, isReadOnly = false }: TaskSubtasksProps) {
                     isReadOnly={isReadOnly}
                     onToggle={handleToggleSubtask}
                     onDelete={handleDeleteSubtask}
+                    isEditing={editingSubtaskId === subtask.id}
+                    editValue={editValue}
+                    onEditChange={setEditValue}
+                    onStartEdit={handleStartEdit}
+                    onSaveEdit={handleSaveEdit}
+                    onCancelEdit={handleCancelEdit}
                   />
                 ))}
               </SortableContext>
