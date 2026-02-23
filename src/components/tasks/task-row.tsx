@@ -9,7 +9,7 @@ import { formatRecurrence } from '@/lib/utils/recurrence'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-import { MoreHorizontal, Trash, Clock, CheckSquare, Repeat, Bell } from 'lucide-react'
+import { MoreHorizontal, Trash, Clock, CheckSquare, Repeat, Bell, PenLine } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -281,6 +281,20 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
                             {priorityStyles.label}
                         </div>
                     )}
+
+                    {/* Open to edit hint */}
+                    {/* <div
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            const { selectTask } = require('@/stores/use-task-detail-store').useTaskDetailStore.getState()
+                            selectTask(task.id, task)
+                        }}
+                        className="flex items-center gap-1 text-muted-foreground/40 hover:text-muted-foreground transition-colors cursor-pointer"
+                        title="Open to edit"
+                    >
+                        <PenLine className="h-3.5 w-3.5" />
+                    </div> */}
+
 
                     {/* More menu */}
                     <DropdownMenu>
