@@ -263,22 +263,8 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
                 {/* Projects Section */}
                 {!isSidebarCollapsed && (
                     <div className="px-2 mb-2">
-                        {/* Row: label navigates to /projects; chevron toggles expand; + opens create */}
+                        {/* Row: label navigates to /projects; + opens create; chevron toggles expand */}
                         <div className="flex items-center mt-4 mb-1">
-                            {/* Chevron — only toggles expand/collapse */}
-                            <button
-                                onClick={() => setProjectsExpanded(!projectsExpanded)}
-                                className="flex items-center justify-center w-5 h-5 text-muted-foreground hover:text-foreground transition-colors rounded-sm flex-shrink-0"
-                                aria-label={projectsExpanded ? 'Collapse projects' : 'Expand projects'}
-                            >
-                                <motion.div
-                                    animate={{ rotate: projectsExpanded ? 90 : 0 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <ChevronRight className="h-3 w-3" />
-                                </motion.div>
-                            </button>
-
                             {/* Label — navigates to /projects */}
                             <Link
                                 href="/projects"
@@ -294,6 +280,20 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
                                 aria-label="Add project"
                             >
                                 <Plus className="h-3 w-3" />
+                            </button>
+
+                            {/* Chevron — only toggles expand/collapse */}
+                            <button
+                                onClick={() => setProjectsExpanded(!projectsExpanded)}
+                                className="flex items-center justify-center w-5 h-5 text-muted-foreground hover:text-foreground transition-colors rounded-sm flex-shrink-0"
+                                aria-label={projectsExpanded ? 'Collapse projects' : 'Expand projects'}
+                            >
+                                <motion.div
+                                    animate={{ rotate: projectsExpanded ? 90 : 0 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <ChevronRight className="h-3 w-3" />
+                                </motion.div>
                             </button>
                         </div>
 
