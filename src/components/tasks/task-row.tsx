@@ -171,7 +171,7 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
                     "hover:shadow-sm hover:-translate-y-0.5",
 
                     // Focus state
-                    "focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary",
+                    "focus:outline-none focus:ring-1 focus:ring-primary/15",
 
                     // Completed state
                     task.completed && "opacity-60",
@@ -182,7 +182,7 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
                         // Overdue State (Red)
                         isOverdue ? "border-l-4 border-l-red-500 bg-red-50/30 dark:bg-red-950/10" :
                             // Detailed/Selected State (Blue)
-                            isDetailed ? "border-l-4 border-l-blue-500" :
+                            isDetailed ? "border-l-2 border-l-primary/80 bg-primary/[0.03] dark:bg-primary/[0.06]" :
                                 // Priority States
                                 task.priority === 'urgent' ? "border-l-4 border-l-red-500" :
                                     task.priority === 'high' ? "border-l-4 border-l-orange-500" :
