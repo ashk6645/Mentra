@@ -2,7 +2,6 @@ import { Suspense } from 'react'
 import { Activity, Trophy, Settings, User, Palette } from 'lucide-react'
 import { ProfileHeader } from '@/components/profile/profile-header'
 import { ProfileStats } from '@/components/profile/profile-stats'
-import { ProfileActivity } from '@/components/profile/profile-activity'
 import { ProfileSettings } from '@/components/profile/profile-settings'
 import { ProfileAchievements } from '@/components/profile/profile-achievements'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -109,21 +108,6 @@ export function ProfileView() {
                                 <Trophy className="h-4 w-4 mr-2.5" />
                                 Achievements
                             </TabsTrigger> */}
-                            <TabsTrigger
-                                value="activity"
-                                className={cn(
-                                    "w-full justify-start px-2 py-1 h-[28px] text-sm rounded-sm font-normal",
-                                    "text-muted-foreground",
-                                    "hover:bg-accent hover:text-accent-foreground transition-colors",
-                                    "data-[state=active]:bg-accent",
-                                    "data-[state=active]:text-accent-foreground",
-                                    "data-[state=active]:font-medium",
-                                    "data-[state=active]:shadow-none"
-                                )}
-                            >
-                                <Activity className="h-4 w-4 mr-2.5" />
-                                Activity
-                            </TabsTrigger>
                         </TabsList>
                     </div>
                 </div>
@@ -156,15 +140,6 @@ export function ProfileView() {
                                     </Suspense>
                                 </div>
                             </TabsContent> */}
-
-                            <TabsContent value="activity" className="space-y-6 mt-0 animate-in fade-in-50 duration-200">
-                                <div>
-                                    <h3 className="text-base font-medium mb-4 text-[#37352F] dark:text-[#D4D4D4]">Recent Activity</h3>
-                                    <Suspense fallback={<div className="h-32 bg-muted/50 animate-pulse rounded-md" />}>
-                                        <ProfileActivity />
-                                    </Suspense>
-                                </div>
-                            </TabsContent>
                         </div>
                     </div>
                 </div>
