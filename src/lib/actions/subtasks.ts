@@ -105,3 +105,43 @@ export async function deleteSubtask(id: string): Promise<ApiResponse<boolean>> {
         return { success: false, error: 'Failed to delete subtask' }
     }
 }
+
+export async function reorderSubtasks(taskId: string, orderedSubtaskIds: string[]): Promise<ApiResponse<boolean>> {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { success: false, error: 'Unauthorized' }
+    }
+
+    try {
+        // Verify task ownership
+        const task = await prisma.task.findUnique({
+            where: { id: taskId },
+            select: { userId: true }
+        })
+
+        if (!task || task.userId !== user.id) {
+            return { success: false, error: 'Task not found or unauthorized' }
+        }
+
+        // Run transaction to update all sortOrders
+        await prisma.$transaction(
+            orderedSubtaskIds.map((id, index) =>
+                prisma.subtask.update({
+                    where: { id },
+                    data: { sortOrder: index },
+                })
+            )
+        )
+
+        revalidatePath('/tasks')
+        revalidatePath(`/task/${taskId}`)
+
+        return { success: true, data: true }
+    } catch (error) {
+        console.error('Error reordering subtasks:', error)
+        return { success: false, error: 'Failed to reorder subtasks' }
+    }
+}
+
