@@ -45,7 +45,7 @@ function ProjectCard({ project, variant, onUnarchive, isUnarchiving }: ProjectCa
     const cardContent = (
         <div
             className={cn(
-                'relative flex flex-col gap-3 rounded-xl border border-border/50 p-4 transition-all duration-200 h-full',
+                'relative flex flex-col gap-3 rounded-xl border border-border/50 p-4 transition-all duration-200 h-full overflow-hidden',
                 isArchived
                     ? 'opacity-60 bg-muted/30 hover:opacity-80 cursor-default'
                     : 'bg-background hover:shadow-md hover:-translate-y-0.5 hover:border-border cursor-pointer group'
