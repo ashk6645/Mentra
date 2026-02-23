@@ -73,9 +73,13 @@ export function useKeyboardShortcuts() {
                     e.preventDefault()
                     router.push('/completed')
                     break
+                case 'l':
+                    e.preventDefault()
+                    router.push('/calendar')
+                    break
                 case 'f':
                     e.preventDefault()
-                    router.push('/focus') // Make sure this route exists or is intended
+                    router.push('/focus')
                     break
 
                 // cmd+k is handled by command-palette component usually, 
