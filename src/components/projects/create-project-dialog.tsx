@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { createProject, updateProject, type Project } from '@/lib/actions/projects'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 const PROJECT_COLORS = [
     { name: 'Red', value: 'red', bg: 'bg-red-500', hover: 'hover:bg-red-600', ring: 'ring-red-500' },
@@ -128,127 +129,140 @@ export function CreateProjectDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle>{mode === 'edit' ? 'Edit Project' : 'New Project'}</DialogTitle>
-                    <DialogDescription>
-                        {mode === 'edit' ? 'Update your project details' : 'Create a new project to organize your tasks'}
-                    </DialogDescription>
-                </DialogHeader>
+            <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden bg-background/95 backdrop-blur-xl border-border/40 shadow-2xl sm:rounded-2xl">
+                <div className="px-6 py-6 sm:px-8 sm:py-7">
+                    <DialogHeader className="mb-6">
+                        <DialogTitle className="text-2xl font-semibold tracking-tight">
+                            {mode === 'edit' ? 'Edit Project' : 'New Project'}
+                        </DialogTitle>
+                        <DialogDescription className="text-muted-foreground/80 text-[15px] pt-1.5">
+                            {mode === 'edit' ? 'Update your project details and preferences.' : 'Create a new project to organize your tasks.'}
+                        </DialogDescription>
+                    </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Icon Picker */}
-                    <div className="space-y-2">
-                        <Label>Icon</Label>
-                        <div className="grid grid-cols-8 gap-2">
-                            {PROJECT_EMOJIS.map((emoji) => (
-                                <button
-                                    key={emoji}
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Name Input */}
+                        <div className="space-y-2">
+                            <Label htmlFor="name" className="text-[13px] font-semibold text-foreground/70 uppercase tracking-wider">Project Name</Label>
+                            <Input
+                                id="name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="e.g., Marketing Campaign"
+                                maxLength={100}
+                                autoFocus
+                                disabled={isSubmitting}
+                                className="h-11 px-4 rounded-xl bg-muted/40 border-border/50 focus-visible:ring-primary/20 focus-visible:border-primary transition-all text-[15px] shadow-sm"
+                            />
+                        </div>
+
+                        {/* Description */}
+                        <div className="space-y-2">
+                            <Label htmlFor="description" className="text-[13px] font-semibold text-foreground/70 uppercase tracking-wider flex items-center gap-1">
+                                Description <span className="text-muted-foreground/60 font-medium normal-case tracking-normal ml-1">(optional)</span>
+                            </Label>
+                            <Textarea
+                                id="description"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                placeholder="What is this project about?"
+                                rows={2}
+                                maxLength={500}
+                                disabled={isSubmitting}
+                                className="resize-none min-h-[80px] px-4 py-3 rounded-xl bg-muted/40 border-border/50 focus-visible:ring-primary/20 focus-visible:border-primary transition-all text-[15px] shadow-sm"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] gap-8 pt-2">
+                            {/* Icon Picker */}
+                            <div className="space-y-3">
+                                <Label className="text-[13px] font-semibold text-foreground/70 uppercase tracking-wider">Icon</Label>
+                                <div className="grid grid-cols-6 sm:grid-cols-6 md:grid-cols-4 gap-2">
+                                    {PROJECT_EMOJIS.slice(0, 16).map((emoji) => (
+                                        <button
+                                            key={emoji}
+                                            type="button"
+                                            onClick={() => setIcon(emoji)}
+                                            className={cn(
+                                                "flex items-center justify-center h-10 w-10 text-xl rounded-xl transition-all duration-200",
+                                                icon === emoji
+                                                    ? "bg-primary/10 text-primary scale-110 shadow-sm ring-2 ring-primary/20 ring-offset-1 ring-offset-background"
+                                                    : "hover:bg-muted text-muted-foreground hover:scale-105"
+                                            )}
+                                        >
+                                            {emoji}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Color Picker */}
+                            <div className="space-y-3">
+                                <Label className="text-[13px] font-semibold text-foreground/70 uppercase tracking-wider">Color Theme</Label>
+                                <div className="grid grid-cols-4 gap-3">
+                                    {PROJECT_COLORS.map((colorOption) => (
+                                        <button
+                                            key={colorOption.value}
+                                            type="button"
+                                            onClick={() => setColor(colorOption.value)}
+                                            className={cn(
+                                                "h-8 w-8 rounded-full flex items-center justify-center transition-all duration-300 relative mx-auto sm:mx-0",
+                                                colorOption.bg,
+                                                color === colorOption.value
+                                                    ? `ring-4 ring-offset-2 ring-offset-background ${colorOption.ring} scale-110 shadow-md`
+                                                    : `${colorOption.hover} hover:scale-110 shadow-sm opacity-80 hover:opacity-100`
+                                            )}
+                                            title={colorOption.name}
+                                        >
+                                            {color === colorOption.value && (
+                                                <div className="w-2.5 h-2.5 bg-white rounded-full shadow-sm" />
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Error Message */}
+                        {error && (
+                            <div className="p-3 mt-4 rounded-lg bg-destructive/10 text-destructive text-sm font-medium border border-destructive/20 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-destructive flex-shrink-0" />
+                                {error}
+                            </div>
+                        )}
+
+                        <DialogFooter className="pt-6 sm:pt-8 gap-2 sm:gap-0 mt-4">
+                            {mode === 'edit' && (
+                                <Button
                                     type="button"
-                                    onClick={() => setIcon(emoji)}
-                                    className={`
-                    flex items-center justify-center h-10 w-10 rounded-md text-xl
-                    transition-all duration-200
-                    ${icon === emoji
-                                            ? 'bg-accent ring-2 ring-primary ring-offset-2'
-                                            : 'hover:bg-accent/50'
-                                        }
-                  `}
+                                    variant="ghost"
+                                    onClick={handleArchive}
+                                    disabled={isSubmitting}
+                                    className="sm:mr-auto text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl px-4"
                                 >
-                                    {emoji}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Name Input */}
-                    <div className="space-y-2">
-                        <Label htmlFor="name">Name *</Label>
-                        <Input
-                            id="name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Work"
-                            maxLength={100}
-                            autoFocus
-                            disabled={isSubmitting}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                            {name.length}/100 characters
-                        </p>
-                    </div>
-
-                    {/* Color Picker */}
-                    <div className="space-y-2">
-                        <Label>Color</Label>
-                        <div className="flex gap-2">
-                            {PROJECT_COLORS.map((colorOption) => (
-                                <button
-                                    key={colorOption.value}
-                                    type="button"
-                                    onClick={() => setColor(colorOption.value)}
-                                    className={`
-                    h-8 w-8 rounded-full ${colorOption.bg}
-                    transition-all duration-200
-                    ${color === colorOption.value
-                                            ? `ring-2 ring-offset-2 ${colorOption.ring}`
-                                            : `${colorOption.hover} hover:scale-110`
-                                        }
-                  `}
-                                    title={colorOption.name}
-                                />
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Description */}
-                    <div className="space-y-2">
-                        <Label htmlFor="description">Description (optional)</Label>
-                        <Textarea
-                            id="description"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            placeholder="All work-related tasks"
-                            rows={3}
-                            maxLength={500}
-                            disabled={isSubmitting}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                            {description.length}/500 characters
-                        </p>
-                    </div>
-
-                    {/* Error Message */}
-                    {error && (
-                        <p className="text-sm text-destructive">{error}</p>
-                    )}
-
-                    <DialogFooter className="gap-2 sm:gap-0">
-                        {mode === 'edit' && (
+                                    Archive Project
+                                </Button>
+                            )}
                             <Button
                                 type="button"
-                                variant="ghost"
-                                onClick={handleArchive}
+                                variant="outline"
+                                onClick={() => onOpenChange(false)}
                                 disabled={isSubmitting}
-                                className="sm:mr-auto"
+                                className="rounded-xl border-border/50 hover:bg-muted px-6 h-10"
                             >
-                                Archive
+                                Cancel
                             </Button>
-                        )}
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => onOpenChange(false)}
-                            disabled={isSubmitting}
-                        >
-                            Cancel
-                        </Button>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {mode === 'edit' ? 'Save Changes' : 'Create'}
-                        </Button>
-                    </DialogFooter>
-                </form>
+                            <Button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="rounded-xl font-medium shadow-sm hover:shadow-md transition-all px-6 h-10"
+                            >
+                                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {mode === 'edit' ? 'Save Changes' : 'Create Project'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </div>
             </DialogContent>
         </Dialog>
     )
