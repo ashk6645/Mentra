@@ -264,37 +264,57 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
                 {!isSidebarCollapsed && (
                     <div className="px-2 mb-2">
                         {/* Row: label navigates to /projects; + opens create; chevron toggles expand */}
-                        <div className="flex items-center mt-4 mb-1">
+                        <div className={cn(
+                            "flex items-center mt-4 mb-1 px-2 py-1.5 h-9 rounded-lg transition-all duration-200 ease-out group relative",
+                            pathname === '/projects'
+                                ? "bg-neutral-200/60 dark:bg-neutral-800/60"
+                                : "hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50"
+                        )}>
                             {/* Label — navigates to /projects */}
                             <Link
                                 href="/projects"
-                                className="flex-1 px-1 py-1 text-[15px] font-medium text-foreground hover:text-foreground rounded-sm transition-colors truncate"
+                                className={cn(
+                                    "flex-1 text-[15px] transition-colors truncate before:absolute before:inset-0 before:z-0",
+                                    pathname === '/projects'
+                                        ? "text-foreground font-medium"
+                                        : "text-muted-foreground group-hover:text-foreground font-medium"
+                                )}
                             >
                                 Projects
                             </Link>
 
-                            {/* + button — opens create dialog only */}
-                            <button
-                                onClick={() => setShowNewProjectDialog(true)}
-                                className="flex items-center justify-center w-5 h-5 p-0.5 hover:bg-zinc-300/50 dark:hover:bg-zinc-700/50 rounded-sm transition-all duration-200 text-muted-foreground flex-shrink-0"
-                                aria-label="Add project"
-                            >
-                                <Plus className="h-3 w-3" />
-                            </button>
-
-                            {/* Chevron — only toggles expand/collapse */}
-                            <button
-                                onClick={() => setProjectsExpanded(!projectsExpanded)}
-                                className="flex items-center justify-center w-5 h-5 text-muted-foreground hover:text-foreground transition-colors rounded-sm flex-shrink-0"
-                                aria-label={projectsExpanded ? 'Collapse projects' : 'Expand projects'}
-                            >
-                                <motion.div
-                                    animate={{ rotate: projectsExpanded ? 90 : 0 }}
-                                    transition={{ duration: 0.2 }}
+                            <div className="flex items-center relative z-10 space-x-0.5">
+                                {/* + button — opens create dialog only */}
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault()
+                                        e.stopPropagation()
+                                        setShowNewProjectDialog(true)
+                                    }}
+                                    className="flex items-center justify-center w-6 h-6 hover:bg-zinc-300/50 dark:hover:bg-zinc-700/50 rounded-md transition-all duration-200 text-muted-foreground hover:text-foreground flex-shrink-0"
+                                    aria-label="Add project"
                                 >
-                                    <ChevronRight className="h-3 w-3" />
-                                </motion.div>
-                            </button>
+                                    <Plus className="h-4 w-4" />
+                                </button>
+
+                                {/* Chevron — only toggles expand/collapse */}
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault()
+                                        e.stopPropagation()
+                                        setProjectsExpanded(!projectsExpanded)
+                                    }}
+                                    className="flex items-center justify-center w-6 h-6 text-muted-foreground hover:text-foreground hover:bg-zinc-300/50 dark:hover:bg-zinc-700/50 transition-colors rounded-md flex-shrink-0"
+                                    aria-label={projectsExpanded ? 'Collapse projects' : 'Expand projects'}
+                                >
+                                    <motion.div
+                                        animate={{ rotate: projectsExpanded ? 90 : 0 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <ChevronRight className="h-4 w-4" />
+                                    </motion.div>
+                                </button>
+                            </div>
                         </div>
 
                         <AnimatePresence initial={false}>
