@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { createProject, updateProject, type Project } from '@/lib/actions/projects'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Palette, Smile } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const PROJECT_COLORS = [
     { name: 'Red', value: 'red', bg: 'bg-red-500', hover: 'hover:bg-red-600', ring: 'ring-red-500' },
@@ -173,53 +174,74 @@ export function CreateProjectDialog({
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] gap-8 pt-2">
-                            {/* Icon Picker */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                            {/* Icon Picker (Dropdown) */}
                             <div className="space-y-3">
                                 <Label className="text-[13px] font-semibold text-foreground/70 uppercase tracking-wider">Icon</Label>
-                                <div className="grid grid-cols-6 sm:grid-cols-6 md:grid-cols-4 gap-2">
-                                    {PROJECT_EMOJIS.slice(0, 16).map((emoji) => (
-                                        <button
-                                            key={emoji}
-                                            type="button"
-                                            onClick={() => setIcon(emoji)}
-                                            className={cn(
-                                                "flex items-center justify-center h-10 w-10 text-xl rounded-xl transition-all duration-200",
-                                                icon === emoji
-                                                    ? "bg-primary/10 text-primary scale-110 shadow-sm ring-2 ring-primary/20 ring-offset-1 ring-offset-background"
-                                                    : "hover:bg-muted text-muted-foreground hover:scale-105"
-                                            )}
-                                        >
-                                            {emoji}
-                                        </button>
-                                    ))}
-                                </div>
+                                <Select value={icon} onValueChange={setIcon} disabled={isSubmitting}>
+                                    <SelectTrigger className="h-11 rounded-xl bg-muted/40 border-border/50 focus:ring-primary/20 focus:border-primary transition-all text-[15px] shadow-sm">
+                                        <SelectValue placeholder="Select an icon">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-xl leading-none">{icon}</span>
+                                                <span className="text-muted-foreground text-sm">Select icon</span>
+                                            </div>
+                                        </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent className="max-h-[280px] rounded-xl border-border/50 shadow-xl">
+                                        <div className="grid grid-cols-4 gap-1 p-2">
+                                            {PROJECT_EMOJIS.map((emoji) => (
+                                                <SelectItem
+                                                    key={emoji}
+                                                    value={emoji}
+                                                    hideIndicator
+                                                    className={cn(
+                                                        "flex justify-center items-center h-10 w-10 text-xl rounded-lg cursor-pointer transition-all duration-200",
+                                                        icon === emoji ? "bg-primary/10 text-primary" : "hover:bg-muted"
+                                                    )}
+                                                >
+                                                    {emoji}
+                                                </SelectItem>
+                                            ))}
+                                        </div>
+                                    </SelectContent>
+                                </Select>
                             </div>
 
-                            {/* Color Picker */}
+                            {/* Color Picker (Dropdown) */}
                             <div className="space-y-3">
                                 <Label className="text-[13px] font-semibold text-foreground/70 uppercase tracking-wider">Color Theme</Label>
-                                <div className="grid grid-cols-4 gap-3">
-                                    {PROJECT_COLORS.map((colorOption) => (
-                                        <button
-                                            key={colorOption.value}
-                                            type="button"
-                                            onClick={() => setColor(colorOption.value)}
-                                            className={cn(
-                                                "h-8 w-8 rounded-full flex items-center justify-center transition-all duration-300 relative mx-auto sm:mx-0",
-                                                colorOption.bg,
-                                                color === colorOption.value
-                                                    ? `ring-4 ring-offset-2 ring-offset-background ${colorOption.ring} scale-110 shadow-md`
-                                                    : `${colorOption.hover} hover:scale-110 shadow-sm opacity-80 hover:opacity-100`
-                                            )}
-                                            title={colorOption.name}
-                                        >
-                                            {color === colorOption.value && (
-                                                <div className="w-2.5 h-2.5 bg-white rounded-full shadow-sm" />
-                                            )}
-                                        </button>
-                                    ))}
-                                </div>
+                                <Select value={color} onValueChange={setColor} disabled={isSubmitting}>
+                                    <SelectTrigger className="h-11 rounded-xl bg-muted/40 border-border/50 focus:ring-primary/20 focus:border-primary transition-all text-[15px] shadow-sm">
+                                        <SelectValue placeholder="Select a color">
+                                            <div className="flex items-center gap-3">
+                                                <div className={cn(
+                                                    "h-5 w-5 rounded-full shadow-sm border border-black/5 dark:border-white/10 shrink-0",
+                                                    PROJECT_COLORS.find(c => c.value === color)?.bg || "bg-blue-500"
+                                                )} />
+                                                <span className="text-muted-foreground text-sm">
+                                                    {PROJECT_COLORS.find(c => c.value === color)?.name || 'Select color'}
+                                                </span>
+                                            </div>
+                                        </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-xl border-border/50 shadow-xl">
+                                        {PROJECT_COLORS.map((colorOption) => (
+                                            <SelectItem
+                                                key={colorOption.value}
+                                                value={colorOption.value}
+                                                className="cursor-pointer rounded-lg focus:bg-muted py-2.5"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className={cn(
+                                                        "h-5 w-5 rounded-full shadow-sm border border-black/5 dark:border-white/10 shrink-0",
+                                                        colorOption.bg
+                                                    )} />
+                                                    <span className="font-medium text-sm">{colorOption.name}</span>
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
 
@@ -231,7 +253,7 @@ export function CreateProjectDialog({
                             </div>
                         )}
 
-                        <DialogFooter className="pt-6 sm:pt-8 gap-2 sm:gap-0 mt-4">
+                        <DialogFooter className="pt-6 sm:pt-8 gap-3 sm:gap-2 mt-4 flex-row items-center justify-end">
                             {mode === 'edit' && (
                                 <Button
                                     type="button"
