@@ -59,7 +59,7 @@ const TodayIcon = ({ className }: { className?: string }) => {
     }, [])
 
     return (
-        <div className={cn("relative flex items-center justify-center w-4 h-4", className)}>
+        <div className={cn("relative flex items-center justify-center w-5 h-5", className)}>
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 20"
@@ -74,7 +74,7 @@ const TodayIcon = ({ className }: { className?: string }) => {
                 <path d="M16 2v4" />
                 <rect width="18" height="18" x="3" y="4" rx="2" />
             </svg>
-            <span className="absolute text-[9px] font-bold pt-1.5 select-none">{date}</span>
+            <span className="absolute text-[10px] font-bold pt-1.5 select-none">{date}</span>
         </div>
     )
 }
@@ -197,12 +197,12 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
                     <button
                         onClick={onOpenCommand}
                         className={cn(
-                            "flex items-center gap-2 px-3 py-1 text-sm font-medium rounded-sm transition-all duration-200 group relative w-full h-8 mb-2",
+                            "flex items-center gap-3 px-3 py-2 text-[15px] font-medium rounded-lg transition-all duration-200 group relative w-full h-10 mb-2",
                             "text-muted-foreground/80 hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50",
                             isSidebarCollapsed && "justify-center px-1"
                         )}
                     >
-                        <Search className="h-4 w-4 transition-colors shrink-0 opacity-70" />
+                        <Search className="h-5 w-5 transition-colors shrink-0 opacity-70" />
                         {!isSidebarCollapsed && (
                             <span className="truncate">Search</span>
                         )}
@@ -218,7 +218,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
                                 key={route.href}
                                 href={route.href}
                                 className={cn(
-                                    "flex items-center gap-3 px-4 py-2 text-[15px] rounded-lg transition-all duration-200 ease-out group relative h-9",
+                                    "flex items-center gap-3 px-3 py-2 text-[15px] rounded-lg transition-all duration-200 ease-out group relative h-10",
                                     isActive
                                         ? "text-foreground bg-neutral-200/60 dark:bg-neutral-800/60 font-medium"
                                         : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50",
@@ -226,7 +226,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
                                 )}
                             >
                                 <route.icon className={cn(
-                                    "h-4 w-4 transition-colors shrink-0",
+                                    "h-5 w-5 transition-colors shrink-0",
                                     isActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
                                 )} />
                                 {!isSidebarCollapsed && (
@@ -265,7 +265,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
                     <div className="px-2 mb-2">
                         {/* Row: label navigates to /projects; + opens create; chevron toggles expand */}
                         <div className={cn(
-                            "flex items-center mt-4 mb-1 px-2 py-1.5 h-9 rounded-lg transition-all duration-200 ease-out group relative",
+                            "flex items-center mt-6 mb-1 px-3 py-2 h-10 rounded-lg transition-all duration-200 ease-out group relative",
                             pathname === '/projects'
                                 ? "bg-neutral-200/60 dark:bg-neutral-800/60"
                                 : "hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50"
@@ -291,7 +291,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
                                         e.stopPropagation()
                                         setShowNewProjectDialog(true)
                                     }}
-                                    className="flex items-center justify-center w-6 h-6 hover:bg-zinc-300/50 dark:hover:bg-zinc-700/50 rounded-md transition-all duration-200 text-muted-foreground hover:text-foreground flex-shrink-0"
+                                    className="flex items-center justify-center w-7 h-7 hover:bg-zinc-300/50 dark:hover:bg-zinc-700/50 rounded-md transition-all duration-200 text-muted-foreground hover:text-foreground flex-shrink-0"
                                     aria-label="Add project"
                                 >
                                     <Plus className="h-4 w-4" />
@@ -304,7 +304,7 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
                                         e.stopPropagation()
                                         setProjectsExpanded(!projectsExpanded)
                                     }}
-                                    className="flex items-center justify-center w-6 h-6 text-muted-foreground hover:text-foreground hover:bg-zinc-300/50 dark:hover:bg-zinc-700/50 transition-colors rounded-md flex-shrink-0"
+                                    className="flex items-center justify-center w-7 h-7 text-muted-foreground hover:text-foreground hover:bg-zinc-300/50 dark:hover:bg-zinc-700/50 transition-colors rounded-md flex-shrink-0"
                                     aria-label={projectsExpanded ? 'Collapse projects' : 'Expand projects'}
                                 >
                                     <motion.div
@@ -345,9 +345,9 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
                                     {projects.length === 0 && (
                                         <button
                                             onClick={() => setShowNewProjectDialog(true)}
-                                            className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors w-full"
+                                            className="flex items-center gap-3 px-3 py-2 text-[15px] text-muted-foreground hover:text-foreground rounded-lg transition-colors w-full h-10 hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50"
                                         >
-                                            <Plus className="h-3 w-3" />
+                                            <Plus className="h-5 w-5" />
                                             <span>New project</span>
                                         </button>
                                     )}
@@ -368,25 +368,25 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
                             variant="ghost"
                             suppressHydrationWarning
                             className={cn(
-                                "w-full justify-start hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50 h-9 px-2 transition-colors duration-200",
+                                "w-full justify-start hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50 h-10 px-3 transition-colors duration-200",
                                 isSidebarCollapsed && "px-0 justify-center"
                             )}
                         >
-                            <div className={cn("flex items-center gap-2 w-full", isSidebarCollapsed && "justify-center")}>
-                                <Avatar className="h-5 w-5 border border-border/20 shadow-sm shrink-0">
+                            <div className={cn("flex items-center gap-3 w-full", isSidebarCollapsed && "justify-center")}>
+                                <Avatar className="h-6 w-6 border border-border/20 shadow-sm shrink-0">
                                     <AvatarImage src={avatarUrl} />
-                                    <AvatarFallback className="bg-orange-500/10 text-orange-600 text-[10px] font-medium">
+                                    <AvatarFallback className="bg-orange-500/10 text-orange-600 text-[11px] font-medium">
                                         {displayName?.charAt(0).toUpperCase()}
                                     </AvatarFallback>
                                 </Avatar>
                                 {!isSidebarCollapsed && (
                                     <>
-                                        <span className="text-sm font-medium truncate opacity-90">
+                                        <span className="text-[15px] font-medium truncate opacity-90">
                                             {displayName}
                                         </span>
                                         <div className="ml-auto flex items-center text-muted-foreground">
                                             {/* Changed rotation to -90 or 0 depending on preference, kept generic or removed if implied up */}
-                                            <ChevronRight className="h-3 w-3 opacity-50" />
+                                            <ChevronRight className="h-4 w-4 opacity-50" />
                                         </div>
                                     </>
                                 )}

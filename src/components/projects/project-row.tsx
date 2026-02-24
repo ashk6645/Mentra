@@ -103,7 +103,7 @@ export function ProjectRow({ project, onEdit, variant = 'active' }: ProjectRowPr
                 <Link
                     href={`/projects/${project.id}`}
                     className={`
-                        flex items-center gap-2 px-3 py-1.5 rounded-sm
+                        flex items-center gap-3 px-3 py-2 h-10 rounded-lg
                         transition-colors duration-200
                         border-l-2
                         ${isArchived
@@ -115,12 +115,12 @@ export function ProjectRow({ project, onEdit, variant = 'active' }: ProjectRowPr
                     `}
                 >
                     {/* Icon */}
-                    <span className="text-base flex-shrink-0">
+                    <span className="text-lg flex-shrink-0 flex items-center justify-center w-5 h-5">
                         {project.icon || '📁'}
                     </span>
 
                     {/* Name */}
-                    <span className="flex-1 text-sm truncate">
+                    <span className="flex-1 text-[15px] truncate">
                         {project.name}
                     </span>
 
@@ -138,9 +138,9 @@ export function ProjectRow({ project, onEdit, variant = 'active' }: ProjectRowPr
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-6 w-6 p-0"
+                                    className="h-7 w-7 p-0"
                                 >
-                                    <MoreHorizontal className="h-3 w-3" />
+                                    <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
