@@ -7,6 +7,7 @@ import { type Project, updateProject } from '@/lib/actions/projects'
 import { Archive, ArchiveRestore, FolderOpen, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { CreateProjectDialog } from './create-project-dialog'
 
 const COLOR_ACCENTS: Record<string, string> = {
     red: 'bg-red-500',
@@ -137,6 +138,8 @@ export function ProjectsIndexClient({ activeProjects, archivedProjects }: Projec
     const [unarchivingId, setUnarchivingId] = useState<string | null>(null)
     const [isPending, startTransition] = useTransition()
 
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+
     const handleUnarchive = async (id: string) => {
         setUnarchivingId(id)
         try {
@@ -205,13 +208,13 @@ export function ProjectsIndexClient({ activeProjects, archivedProjects }: Projec
                         }
                     </p>
                     {view === 'active' && (
-                        <Link
-                            href="/projects"
+                        <button
+                            onClick={() => setIsCreateDialogOpen(true)}
                             className="mt-4 flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
                         >
                             <Plus className="h-4 w-4" />
                             New project
-                        </Link>
+                        </button>
                     )}
                 </div>
             ) : (
@@ -227,6 +230,15 @@ export function ProjectsIndexClient({ activeProjects, archivedProjects }: Projec
                     ))}
                 </div>
             )}
+
+            <CreateProjectDialog
+                open={isCreateDialogOpen}
+                onOpenChange={setIsCreateDialogOpen}
+                mode="create"
+                onSuccess={() => {
+                    startTransition(() => router.refresh())
+                }}
+            />
         </div>
     )
 }
