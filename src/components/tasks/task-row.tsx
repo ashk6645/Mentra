@@ -1,6 +1,6 @@
 'use client'
 
-import { useAnimate } from 'framer-motion'
+import { useAnimate, motion, AnimatePresence } from 'framer-motion'
 
 import { format, isToday, isTomorrow } from 'date-fns'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -154,21 +154,25 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
     const totalSubtasks = hasSubtasks ? task.subtasks.length : 0
 
     return (
-        <>
-            <div
+        <AnimatePresence>
+            <motion.div
                 ref={scope}
+                layout
+                initial={{ opacity: 1 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
                 onClick={handleRowClick}
                 data-task-id={task.id}
                 tabIndex={0}
                 className={cn(
-                    "group relative flex items-center gap-3 px-4 py-3.5 rounded-xl cursor-pointer",
+                    "group relative flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer min-h-[48px]",
                     "bg-card border transition-all duration-200",
 
                     // Base border (overridden by specific states below)
-                    "border-border/30",
+                    "border-border/20",
 
                     // Hover state
-                    "hover:shadow-sm hover:-translate-y-0.5",
+                    "hover:border-border/40 hover:bg-muted/40 hover:-translate-y-0.5",
 
                     // Focus state
                     "focus:outline-none focus:ring-1 focus:ring-primary/15",
@@ -176,22 +180,22 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
                     // Completed state
                     task.completed && "opacity-60",
 
-
-                    // Priority & Status Indicators (Left Border) — always preserved, even when selected
+                    // Priority & Status Indicators (Left Border)
+                    // Now less aggressive, using 600 weight colors instead of 500
                     !task.completed && (
-                        isOverdue ? "border-l-4 border-l-red-500 bg-red-50/30 dark:bg-red-950/10" :
-                            task.priority === 'urgent' ? "border-l-4 border-l-red-500" :
-                                task.priority === 'high' ? "border-l-4 border-l-orange-500" :
-                                    task.priority === 'medium' ? "border-l-4 border-l-blue-500" :
+                        isOverdue ? "border-l-4 border-l-red-600 bg-red-50/20 dark:bg-red-900/10" :
+                            task.priority === 'urgent' ? "border-l-4 border-l-red-600 dark:border-l-red-400" :
+                                task.priority === 'high' ? "border-l-4 border-l-orange-600 dark:border-l-orange-400" :
+                                    task.priority === 'medium' ? "border-l-4 border-l-blue-600 dark:border-l-blue-400" :
                                         task.priority === 'low' ? "border-l-4 border-l-gray-400" :
-                                            "hover:border-border"
+                                            "hover:border-l-4 hover:border-l-border/40"
                     ),
 
-                    // Selected state — only background tint, never touches the border
-                    isDetailed && !task.completed && "bg-primary/[0.04] dark:bg-primary/[0.07]"
+                    // Selected state
+                    isDetailed && !task.completed && "bg-muted/50 dark:bg-muted/20"
                 )}>
 
-                {/* Checkbox Area - Swaps between Completion and Selection based on mode */}
+                {/* Checkbox Area */}
                 <div onClick={(e) => e.stopPropagation()} className="shrink-0 flex items-center justify-center">
                     {isSelectionMode ? (
                         <div className="shrink-0 transition-all duration-200 animate-in fade-in zoom-in-50">
@@ -206,7 +210,7 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
                             checked={task.completed}
                             onCheckedChange={handleToggle}
                             disabled={isPending}
-                            className="h-5 w-5 rounded-md border-2 border-muted-foreground/30 hover:border-muted-foreground/60 hover:bg-accent/20 data-[state=checked]:bg-success data-[state=checked]:border-success transition-all duration-200"
+                            className="h-5 w-5 rounded-md border-2 border-muted-foreground/30 hover:border-muted-foreground/60 hover:bg-muted/30 data-[state=checked]:bg-success data-[state=checked]:border-success transition-all duration-200"
                         />
                     )}
                 </div>
@@ -216,13 +220,13 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
                     {/* Title and subtask progress */}
                     <div className="flex items-center gap-2">
                         <h3 className={cn(
-                            "font-semibold text-[15px] leading-tight text-foreground",
-                            task.completed && "line-through text-muted-foreground"
+                            "font-normal text-[15px] leading-tight text-foreground",
+                            task.completed && "line-through text-muted-foreground/70"
                         )}>
                             {task.title}
                         </h3>
                         {hasSubtasks && (
-                            <div className="flex items-center gap-1 text-muted-foreground">
+                            <div className="flex items-center gap-1 text-muted-foreground/70">
                                 <CheckSquare className="h-3.5 w-3.5" />
                                 <span className="text-xs font-medium">
                                     {completedSubtasks}/{totalSubtasks}
@@ -233,17 +237,17 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
 
                     {/* Description */}
                     {task.description && (
-                        <p className="text-sm text-muted-foreground/80 leading-relaxed line-clamp-1">
+                        <p className="text-[13px] text-muted-foreground/70 leading-relaxed line-clamp-1 mt-0.5">
                             {task.description}
                         </p>
                     )}
                 </div>
 
-                {/* Right side metadata - Fade in on hover */}
-                <div className="flex items-center gap-3 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                {/* Right side metadata - Much lighter by default, darker on hover */}
+                <div className="flex items-center gap-3 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity duration-200">
                     {/* Recurring badge */}
                     {task.isRecurring && (
-                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border border-purple-200/50 dark:border-purple-800/30">
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400 border border-purple-200/30 dark:border-purple-800/20">
                             <Repeat className="h-3 w-3" />
                             <span className="max-w-[100px] truncate">
                                 {formatRecurrence(task.recurrenceInterval, task.recurrenceStep, task.recurrenceDays)}
@@ -321,7 +325,7 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
-            </div>
+            </motion.div>
 
             <DeleteTaskDialog
                 open={showDeleteDialog}
@@ -329,6 +333,6 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
                 onConfirm={handleDelete}
                 taskTitle={task.title}
             />
-        </>
+        </AnimatePresence>
     )
 }

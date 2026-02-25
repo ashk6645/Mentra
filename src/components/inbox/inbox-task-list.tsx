@@ -1,7 +1,8 @@
 'use client'
 
 import { SortableTaskList } from '@/components/tasks/sortable-task-list'
-import { CreateTaskInline } from '@/components/tasks/create-task-inline'
+import { motion } from 'framer-motion'
+import { Inbox } from 'lucide-react'
 
 interface InboxTaskListProps {
     tasks: any[]
@@ -10,26 +11,47 @@ interface InboxTaskListProps {
 export function InboxTaskList({ tasks }: InboxTaskListProps) {
     if (tasks.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-16 px-4">
-                {/* Friendly visual */}
-                <div className="relative mb-6">
-                    <div className="text-7xl opacity-80">📥</div>
-                    {/* <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-sm">
-                        ✨
-                    </div> */}
-                </div>
-                
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+                className="flex flex-col items-center justify-center py-20 px-4 text-center"
+            >
+                {/* Visual */}
+                <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{
+                        type: "spring",
+                        stiffness: 200,
+                        damping: 15,
+                        delay: 0.2
+                    }}
+                    className="relative mb-6"
+                >
+                    <div className="flex items-center justify-center w-24 h-24 rounded-full bg-blue-50 dark:bg-blue-950/30 text-blue-500 mb-2 ring-8 ring-blue-50/50 dark:ring-blue-900/10">
+                        <Inbox className="w-10 h-10" />
+                    </div>
+                </motion.div>
+
                 {/* Encouraging copy */}
-                <h3 className="text-xl font-semibold text-foreground mb-2">
+                <motion.h3
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.3 }}
+                    className="text-xl font-semibold text-foreground mb-2"
+                >
                     Inbox Zero!
-                </h3>
-                <p className="text-muted-foreground text-center max-w-md mb-6">
-                    All caught up. New tasks will appear here when they arrive.
-                </p>
-                
-                {/* Clear action */}
-                {/* <CreateTaskInline variant="compact" label="Add a task" /> */}
-            </div>
+                </motion.h3>
+                <motion.p
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.4 }}
+                    className="text-[15px] text-muted-foreground/80 max-w-sm mb-6"
+                >
+                    You're all caught up. New ideas and tasks will appear here when you capture them.
+                </motion.p>
+            </motion.div>
         )
     }
 

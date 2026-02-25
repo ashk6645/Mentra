@@ -36,10 +36,10 @@ export function TaskDetailPanel({ className }: TaskDetailPanelProps) {
     <AnimatePresence>
       {isOpen && selectedTask && (
         <motion.aside
-          initial={{ x: '100%' }}
+          initial={{ x: 540 }}
           animate={{ x: 0 }}
-          exit={{ x: '100%' }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
+          exit={{ x: 540 }}
+          transition={{ type: 'spring', bounce: 0.15 }}
           className={cn(
             'fixed top-0 right-0 h-screen w-[540px] z-50',
             'bg-sidebar/95 backdrop-blur-xl border-l border-sidebar-border shadow-sm',
@@ -59,18 +59,26 @@ export function TaskDetailPanel({ className }: TaskDetailPanelProps) {
 
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto custom-scrollbar">
-              <div className="px-8 py-6 space-y-8">
+              <div className="px-8 py-6 flex flex-col pb-20">
                 {/* Metadata Pills */}
-                <TaskMetadataRow task={selectedTask} isReadOnly={isReadOnly} />
+                <div className="pb-8">
+                  <TaskMetadataRow task={selectedTask} isReadOnly={isReadOnly} />
+                </div>
 
                 {/* Description */}
-                <TaskDescription task={selectedTask} isReadOnly={isReadOnly} />
+                <div className="py-8 border-t border-border/10">
+                  <TaskDescription task={selectedTask} isReadOnly={isReadOnly} />
+                </div>
 
                 {/* Subtasks */}
-                <TaskSubtasks task={selectedTask} isReadOnly={isReadOnly} />
+                <div className="py-8 border-t border-border/10">
+                  <TaskSubtasks task={selectedTask} isReadOnly={isReadOnly} />
+                </div>
 
                 {/* AI Assist */}
-                <TaskAIAssist task={selectedTask} />
+                <div className="py-8 border-t border-border/10">
+                  <TaskAIAssist task={selectedTask} />
+                </div>
               </div>
             </div>
 

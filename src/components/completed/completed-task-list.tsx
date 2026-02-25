@@ -1,6 +1,8 @@
 'use client'
 
 import { CompletedTaskRow } from './completed-task-row'
+import { motion } from 'framer-motion'
+import { CheckCircle } from 'lucide-react'
 
 interface CompletedTask {
     id: string
@@ -42,15 +44,42 @@ export function CompletedTaskList({ groupedTasks }: CompletedTaskListProps) {
 
     if (totalTasks === 0) {
         return (
-            <div className="text-center py-16 space-y-4">
-                <div className="text-5xl opacity-50">✨</div>
-                <div className="space-y-1">
-                    <p className="text-lg font-medium text-foreground/80">No completed tasks yet</p>
-                    <p className="text-sm text-muted-foreground">
-                        Your meaningful achievements will appear here.
-                    </p>
-                </div>
-            </div>
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+                className="flex flex-col items-center justify-center py-20 text-center"
+            >
+                <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{
+                        type: "spring",
+                        stiffness: 200,
+                        damping: 15,
+                        delay: 0.2
+                    }}
+                    className="flex justify-center items-center w-24 h-24 rounded-full bg-green-50 dark:bg-green-950/30 text-green-500 mb-6 ring-8 ring-green-50/50 dark:ring-green-900/10"
+                >
+                    <CheckCircle className="w-10 h-10" />
+                </motion.div>
+                <motion.h3
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.3 }}
+                    className="text-lg font-semibold text-foreground mb-2"
+                >
+                    No Completed Tasks
+                </motion.h3>
+                <motion.p
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.4 }}
+                    className="text-[15px] text-muted-foreground/80 max-w-xs mb-6"
+                >
+                    Your meaningful achievements and finished history will appear here.
+                </motion.p>
+            </motion.div>
         )
     }
 

@@ -476,11 +476,11 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
             disabled={isReadOnly}
             className={cn(
               'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
-              !dueDate && 'text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30',
+              !dueDate ? 'text-muted-foreground/60 border-dashed border-border/20 hover:border-border/40 hover:bg-muted/30 hover:text-foreground/80' : 'text-foreground/90 border-border/20 hover:bg-muted/30',
               isReadOnly && 'opacity-70 cursor-default'
             )}
           >
-            <Calendar className="mr-2 h-3.5 w-3.5" />
+            <Calendar className={cn("mr-2 h-3.5 w-3.5", !dueDate ? "text-muted-foreground/50" : "text-muted-foreground")} />
             {formatDueDate(dueDate)}
           </Button>
         </PopoverTrigger>
@@ -527,15 +527,15 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
             size="sm"
             disabled={isReadOnly}
             className={cn(
-              "h-8 px-2 text-xs font-normal border-dashed",
-              priority !== 'none' && "border-solid",
+              "h-8 px-3 text-[13px] font-medium transition-all rounded-md border",
+              priority === 'none' ? 'text-muted-foreground/60 border-dashed border-border/20 hover:border-border/40 hover:bg-muted/30 hover:text-foreground/80' : 'text-foreground/90 border-solid border-border/20 hover:bg-muted/30',
               isReadOnly && 'opacity-70 cursor-default'
             )}
           >
             <Flag
               className={cn(
-                "mr-1.5 h-3.5 w-3.5",
-                priorities.find(p => p.value === priority)?.color || "text-muted-foreground"
+                "mr-2 h-3.5 w-3.5",
+                priority === 'none' ? "text-muted-foreground/50" : priorities.find(p => p.value === priority)?.color || "text-muted-foreground"
               )}
               fill={priority !== 'none' ? "currentColor" : "none"}
             />
@@ -610,11 +610,11 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
             disabled={isReadOnly}
             className={cn(
               'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
-              !selectedProjectId && 'text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30',
+              !selectedProjectId ? 'text-muted-foreground/60 border-dashed border-border/20 hover:border-border/40 hover:bg-muted/30 hover:text-foreground/80' : 'text-foreground/90 border-border/20 hover:bg-muted/30',
               isReadOnly && 'opacity-70 cursor-default'
             )}
           >
-            <FolderKanban className="mr-2 h-3.5 w-3.5" />
+            <FolderKanban className={cn("mr-2 h-3.5 w-3.5", !selectedProjectId ? "text-muted-foreground/50" : "text-muted-foreground")} />
             {selectedProjectId
               ? `${task.project?.icon || '📁'} ${task.project?.name || 'Project'}`
               : 'Project'}
@@ -662,11 +662,11 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
               disabled={isReadOnly}
               className={cn(
                 'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
-                !selectedSectionId && 'text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30',
+                !selectedSectionId ? 'text-muted-foreground/60 border-dashed border-border/20 hover:border-border/40 hover:bg-muted/30 hover:text-foreground/80' : 'text-foreground/90 border-border/20 hover:bg-muted/30',
                 isReadOnly && 'opacity-70 cursor-default'
               )}
             >
-              <Layers className="mr-2 h-3.5 w-3.5" />
+              <Layers className={cn("mr-2 h-3.5 w-3.5", !selectedSectionId ? "text-muted-foreground/50" : "text-muted-foreground")} />
               {selectedSectionId
                 ? task.section?.name || 'Section'
                 : 'Section'}
@@ -720,14 +720,15 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
             size="sm"
             disabled={isPending || isReadOnly}
             className={cn(
-              'h-8 px-3 rounded-md border text-[13px] font-medium text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30 transition-all',
+              'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
+              selectedTagIds.length === 0 ? 'text-muted-foreground/60 border-dashed border-border/20 hover:border-border/40 hover:bg-muted/30 hover:text-foreground/80' : 'text-foreground/90 border-border/20 hover:bg-muted/30',
               isReadOnly && 'opacity-70 cursor-default'
             )}
           >
             {isPending ? (
               <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Tag className="mr-2 h-3.5 w-3.5" />
+              <Tag className={cn("mr-2 h-3.5 w-3.5", selectedTagIds.length === 0 ? "text-muted-foreground/50" : "text-muted-foreground")} />
             )}
             {selectedTagIds.length === 0 ? "Label" :
               selectedTagIds.length === 1 ?

@@ -75,8 +75,8 @@ export function TaskDescription({ task, isReadOnly = false }: TaskDescriptionPro
       </div>
 
       <div className={cn(
-        'rounded-lg transition-all duration-200',
-        isFocused ? 'bg-muted/20' : 'bg-transparent'
+        'rounded-lg transition-all duration-200 border border-transparent',
+        isFocused ? 'bg-muted/30 border-border/20 shadow-sm' : 'bg-transparent hover:bg-muted/10'
       )}>
         <Textarea
           ref={textareaRef}
@@ -87,13 +87,13 @@ export function TaskDescription({ task, isReadOnly = false }: TaskDescriptionPro
           placeholder={isReadOnly ? "No description" : "Add notes, context, or steps…"}
           disabled={isReadOnly}
           className={cn(
-            'min-h-[60px] resize-none',
+            'min-h-[80px] resize-none',
             'border-0 shadow-none',
             'bg-transparent',
             'focus-visible:ring-0 focus-visible:ring-offset-0',
             'placeholder:text-muted-foreground/40',
-            'text-[15px] leading-relaxed',
-            'px-3 py-2.5',
+            'text-[15px] leading-relaxed text-foreground/90',
+            'px-4 py-3',
             'transition-all duration-200',
             'overflow-hidden',
             isReadOnly && 'cursor-default opacity-70'

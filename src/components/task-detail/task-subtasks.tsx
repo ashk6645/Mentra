@@ -85,8 +85,8 @@ function SortableSubtaskItem({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-3 px-3 py-2.5 group transition-colors relative",
-        isDragging ? "bg-accent shadow-md opacity-90 rounded-md" : "hover:bg-muted/50"
+        "flex items-center gap-3 px-3 min-h-[40px] group transition-colors relative",
+        isDragging ? "bg-muted/50 shadow-sm opacity-90 rounded-md" : "hover:bg-muted/40"
       )}
     >
       {!isReadOnly && (
@@ -323,9 +323,9 @@ export function TaskSubtasks({ task, isReadOnly = false }: TaskSubtasksProps) {
         </div>
       </div>
 
-      <div className="border rounded-lg bg-muted/30 divide-y">
+      <div className="border border-border/20 rounded-lg bg-transparent divide-y divide-border/10">
         {subtasks.length > 0 && (
-          <div className="divide-y relative">
+          <div className="divide-y divide-border/10 relative">
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -356,9 +356,9 @@ export function TaskSubtasks({ task, isReadOnly = false }: TaskSubtasksProps) {
         )}
 
         {!isReadOnly && (
-          <div className="flex items-center gap-3 px-3 py-2.5">
+          <div className="flex items-center gap-3 px-3 min-h-[40px] transition-colors hover:bg-muted/20">
             <div className="h-4 w-4 flex items-center justify-center shrink-0">
-              <Plus className="h-3.5 w-3.5 text-muted-foreground/60" />
+              <Plus className="h-3.5 w-3.5 text-muted-foreground/50" />
             </div>
             <Input
               placeholder="Add a subtask..."
@@ -370,7 +370,7 @@ export function TaskSubtasks({ task, isReadOnly = false }: TaskSubtasksProps) {
                   handleAddSubtask(e)
                 }
               }}
-              className="h-8 py-1.5 flex-1 bg-transparent border-0 focus-visible:ring-0 px-0 text-sm placeholder:text-muted-foreground/60 shadow-none"
+              className="h-8 py-1.5 flex-1 bg-transparent border-0 focus-visible:ring-0 px-0 text-[14px] placeholder:text-muted-foreground/50 shadow-none"
             />
           </div>
         )}

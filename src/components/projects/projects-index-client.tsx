@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
 import { type Project, updateProject } from '@/lib/actions/projects'
 import { Archive, ArchiveRestore, FolderOpen, Plus } from 'lucide-react'
 import { toast } from 'sonner'
@@ -191,32 +192,60 @@ export function ProjectsIndexClient({ activeProjects, archivedProjects }: Projec
 
             {/* Project Grid */}
             {isEmpty ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center">
-                    <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.1 }}
+                    className="flex flex-col items-center justify-center py-20 text-center"
+                >
+                    <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{
+                            type: "spring",
+                            stiffness: 200,
+                            damping: 15,
+                            delay: 0.2
+                        }}
+                        className="w-20 h-20 rounded-2xl bg-muted/50 flex flex-col items-center justify-center mb-6 ring-8 ring-muted/20"
+                    >
                         {view === 'archived'
-                            ? <Archive className="h-8 w-8 text-muted-foreground/50" />
-                            : <FolderOpen className="h-8 w-8 text-muted-foreground/50" />
+                            ? <Archive className="h-10 w-10 text-muted-foreground/50" />
+                            : <FolderOpen className="h-10 w-10 text-muted-foreground/50" />
                         }
-                    </div>
-                    <h3 className="text-base font-semibold text-foreground mb-1">
-                        {view === 'archived' ? 'No archived projects' : 'No projects yet'}
-                    </h3>
-                    <p className="text-sm text-muted-foreground max-w-xs">
+                    </motion.div>
+                    <motion.h3
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: 0.3 }}
+                        className="text-lg font-semibold text-foreground mb-2"
+                    >
+                        {view === 'archived' ? 'No Archived Projects' : 'No Projects Yet'}
+                    </motion.h3>
+                    <motion.p
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: 0.4 }}
+                        className="text-[15px] text-muted-foreground/80 max-w-sm mb-6"
+                    >
                         {view === 'archived'
                             ? 'Archived projects will appear here. You can restore them at any time.'
-                            : 'Create your first project to start organizing your tasks.'
+                            : 'Create your first project to start organizing your related tasks and milestones.'
                         }
-                    </p>
+                    </motion.p>
                     {view === 'active' && (
-                        <button
+                        <motion.button
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: 0.5 }}
                             onClick={() => setIsCreateDialogOpen(true)}
-                            className="mt-4 flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                            className="mt-2 flex items-center justify-center gap-2 h-10 px-4 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 transition-colors rounded-lg shadow-sm"
                         >
                             <Plus className="h-4 w-4" />
-                            New project
-                        </button>
+                            New Project
+                        </motion.button>
                     )}
-                </div>
+                </motion.div>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {projects.map((project) => (

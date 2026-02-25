@@ -119,16 +119,16 @@ export function TaskDetailHeader({ task, onClose, isReadOnly = false }: TaskDeta
 
   return (
     <>
-      <div className="sticky top-0 z-10 bg-gradient-to-b from-background via-background to-muted/30 backdrop-blur-md border-b border-border/20 px-8 py-8">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/10 px-8 pt-10 pb-6">
         <div className="flex items-start gap-4">
           {/* Large Checkbox */}
           <Checkbox
             checked={isCompleted}
             onCheckedChange={handleToggleComplete}
-            className="mt-1.5 h-6 w-6 rounded-lg border-2 data-[state=checked]:bg-success data-[state=checked]:border-success transition-all"
+            className="mt-0.5 h-6 w-6 rounded-lg border-2 border-muted-foreground/30 hover:border-muted-foreground/50 data-[state=checked]:bg-success data-[state=checked]:border-success transition-all"
           />
 
-          {/* Title - Stronger hierarchy */}
+          {/* Title - Stronger hierarchy but refined size */}
           <div className="flex-1 min-w-0">
             {isEditing && !isReadOnly ? (
               <input
@@ -150,13 +150,13 @@ export function TaskDetailHeader({ task, onClose, isReadOnly = false }: TaskDeta
                   }
                 }}
                 autoFocus
-                className="w-full text-[26px] font-bold leading-tight bg-transparent border-none outline-none focus:ring-0 p-0 text-foreground"
+                className="w-full text-xl font-semibold leading-tight bg-transparent border-none outline-none focus:ring-0 p-0 text-foreground"
               />
             ) : (
               <h1
                 onClick={handleTitleClick}
                 className={cn(
-                  'text-[26px] font-bold leading-tight transition-colors',
+                  'text-xl font-semibold leading-tight transition-colors',
                   isCompleted ? 'line-through text-muted-foreground/60' : 'text-foreground',
                   !isReadOnly && 'cursor-text hover:text-foreground/80'
                 )}
