@@ -39,7 +39,7 @@ export function TaskDetailPanel({ className }: TaskDetailPanelProps) {
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
+          transition={{ type: 'spring', bounce: 0.15 }}
           className={cn(
             'fixed top-0 right-0 h-screen w-[540px] z-50',
             'bg-sidebar/95 backdrop-blur-xl border-l border-sidebar-border shadow-sm',

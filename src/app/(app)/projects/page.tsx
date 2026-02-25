@@ -26,7 +26,7 @@ export default async function ProjectsPage() {
                 <div className="max-w-4xl mx-auto px-6 pt-12 pb-6">
                     <div className="flex items-end justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                            <h1 className="text-[32px] font-bold tracking-tight leading-tight text-foreground">
                                 Projects
                             </h1>
                         </div>

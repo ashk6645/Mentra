@@ -125,10 +125,10 @@ export function CreateTaskInline({
     return (
         <AnimatePresence>
             <motion.div
-                initial={{ opacity: 0, height: 0, scale: 0.98 }}
-                animate={{ opacity: 1, height: 'auto', scale: 1 }}
+                initial={{ opacity: 0, height: 0, y: -10 }}
+                animate={{ opacity: 1, height: 'auto', y: 0 }}
                 exit={{ opacity: 0, height: 0, scale: 0.98 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
+                transition={{ type: "spring", bounce: 0.3, duration: 0.4 }}
                 className={cn("overflow-hidden", className)}
             >
                 <TaskEditor

@@ -10,7 +10,7 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, icon: Icon, actions, className }: PageHeaderProps) {
     return (
-        <div className={cn("relative mb-10", className)}>
+        <div className={cn("relative mb-8", className)}>
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     {Icon && (
@@ -19,9 +19,9 @@ export function PageHeader({ title, description, icon: Icon, actions, className 
                         </div>
                     )}
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+                        <h1 className="text-[32px] font-bold tracking-tight leading-tight">{title}</h1>
                         {description && (
-                            <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
+                            <p className="text-[15px] text-muted-foreground/80 mt-1">{description}</p>
                         )}
                     </div>
                 </div>
