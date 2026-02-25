@@ -154,7 +154,7 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
     const totalSubtasks = hasSubtasks ? task.subtasks.length : 0
 
     return (
-        <AnimatePresence>
+        <>
             <motion.div
                 ref={scope}
                 layout
@@ -333,6 +333,6 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
                 onConfirm={handleDelete}
                 taskTitle={task.title}
             />
-        </AnimatePresence>
+        </>
     )
 }
