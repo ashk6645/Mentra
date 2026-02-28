@@ -141,7 +141,7 @@ export function FocusView({ tasks: initialTasks }: FocusViewProps) {
                         </h1>
                         <p className="text-sm text-white/30">
                             {tasks.length === 0
-                                ? 'No remaining tasks for today.'
+                                ? ''
                                 : `${tasks.length} task${tasks.length > 1 ? 's' : ''} remaining today`}
                         </p>
                     </motion.div>

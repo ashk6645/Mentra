@@ -237,7 +237,7 @@ export function QuickAddInput({
                 <div className="flex items-center gap-1.5 shrink-0">
                     <Button
                         onClick={handleSubmit}
-                        disabled={!parsedData?.title.trim() || isSubmitting}
+                        disabled={!hasInput || isSubmitting}
                         size="sm"
                         className={cn(
                             'h-8 px-3.5 text-xs font-medium rounded-lg gap-1.5',
