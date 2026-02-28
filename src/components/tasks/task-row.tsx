@@ -214,9 +214,9 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
                 {/* Content */}
                 <div className="flex-1 min-w-0 space-y-1">
                     {/* Title and subtask progress */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
                         <h3 className={cn(
-                            "font-semibold text-[15px] leading-tight text-foreground",
+                            "font-semibold text-[15px] leading-tight text-foreground truncate",
                             task.completed && "line-through text-muted-foreground"
                         )}>
                             {task.title}
@@ -239,13 +239,13 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
                     )}
                 </div>
 
-                {/* Right side metadata - Fade in on hover */}
-                <div className="flex items-center gap-3 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    {/* Recurring badge */}
+                {/* Right side metadata - always visible on mobile, fade in on hover for desktop */}
+                <div className="flex items-center gap-2 sm:gap-3 shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
+                    {/* Recurring badge - hide on very small screens */}
                     {task.isRecurring && (
-                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border border-purple-200/50 dark:border-purple-800/30">
+                        <div className="hidden xs:flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border border-purple-200/50 dark:border-purple-800/30">
                             <Repeat className="h-3 w-3" />
-                            <span className="max-w-[100px] truncate">
+                            <span className="max-w-[80px] truncate">
                                 {formatRecurrence(task.recurrenceInterval, task.recurrenceStep, task.recurrenceDays)}
                             </span>
                         </div>
@@ -269,10 +269,10 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
                         </div>
                     )}
 
-                    {/* Priority badge */}
+                    {/* Priority badge - hide on very small screens */}
                     {priorityStyles && (
                         <div className={cn(
-                            "px-2.5 py-1 rounded-md text-xs font-medium",
+                            "hidden sm:block px-2.5 py-1 rounded-md text-xs font-medium",
                             priorityStyles.bg,
                             priorityStyles.text
                         )}>
@@ -300,7 +300,7 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="h-8 w-8 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                             >
                                 <MoreHorizontal className="h-4 w-4" />
                                 <span className="sr-only">Task actions</span>

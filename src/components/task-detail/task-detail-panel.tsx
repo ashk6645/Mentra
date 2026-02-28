@@ -59,7 +59,7 @@ export function TaskDetailPanel({ className }: TaskDetailPanelProps) {
 
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto custom-scrollbar">
-              <div className="px-8 py-6 space-y-8">
+              <div className="px-4 sm:px-8 py-4 sm:py-6 space-y-6 sm:space-y-8">
                 {/* Metadata Pills */}
                 <TaskMetadataRow task={selectedTask} isReadOnly={isReadOnly} />
 
