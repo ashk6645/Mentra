@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useTaskDetailStore } from '@/stores/use-task-detail-store'
-import { toggleTaskCompletion, deleteTask } from '@/lib/actions/tasks'
+import { toggleTaskCompletion } from '@/lib/actions/tasks'
 import { useTheme } from 'next-themes'
 
 export function useKeyboardShortcuts() {
@@ -11,6 +11,8 @@ export function useKeyboardShortcuts() {
     const pathname = usePathname()
     const { selectTask, selectedTaskId, closePanel } = useTaskDetailStore()
     const { theme, setTheme } = useTheme()
+    const themeRef = useRef(theme)
+    useEffect(() => { themeRef.current = theme }, [theme])
 
     // Helper to get all visible task elements in DOM order
     const getTaskElements = useCallback(() => {
@@ -154,25 +156,7 @@ export function useKeyboardShortcuts() {
 
                 case 'd': {
                     e.preventDefault()
-                    const elements = getTaskElements()
-                    const currentIndex = getCurrentTaskIndex(elements)
-                    if (currentIndex !== -1) {
-                        const element = elements[currentIndex]
-                        const taskId = element.getAttribute('data-task-id')
-                        const title = element.querySelector('h3')?.textContent || 'Task'
-
-                        if (taskId) {
-                            // Trigger delete. 
-                            // Since delete has a confirmation dialog in TaskRow, we might want to trigger that specific flow.
-                            // Finding the delete button in the menu might be hard.
-                            // Alternative: Confirm with system dialog or just direct call if "Single key" implies speed.
-                            // User prompt "d: deleteSelectedTask"
-                            if (confirm(`Delete "${title}"?`)) {
-                                await deleteTask(taskId)
-                                router.refresh()
-                            }
-                        }
-                    }
+                    setTheme(themeRef.current === 'dark' ? 'light' : 'dark')
                     break
                 }
 
