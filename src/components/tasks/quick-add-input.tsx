@@ -23,7 +23,7 @@ export function QuickAddInput({
     onSubmit,
     onCancel,
     availableTags = [],
-    placeholder = 'Add a task… "meeting tomorrow @work p2 !daily"',
+    placeholder = 'meeting tomorrow @work p2 !daily',
     autoFocus = true,
     className,
 }: QuickAddInputProps) {
