@@ -19,6 +19,12 @@ export interface ParsedTaskData {
         days?: number[]
     }
     rawInput: string
+    /** Token ranges in rawInput for inline highlight rendering */
+    extractedRanges: Array<{
+        type: 'date' | 'tag' | 'priority' | 'reminder' | 'recurrence'
+        startIndex: number
+        endIndex: number
+    }>
 }
 
 export interface ParserContext {
@@ -33,12 +39,41 @@ interface ExtractedElement {
 }
 
 /**
+ * Preprocess input to normalize natural language date connectors.
+ * e.g. "bytoday" → "today", "by tomorrow" → "tomorrow"
+ * This runs on the working string before date extraction so chrono can parse it.
+ */
+function preprocessForDateParsing(input: string): string {
+    let result = input
+    // Handle joined forms: "bytoday" → "today", "bytomorrow" → "tomorrow"
+    result = result.replace(/\bby(today|tomorrow|yesterday)\b/gi, '$1')
+    // Handle spaced forms: "by today" → "today" (only before known date anchors)
+    result = result.replace(
+        /\bby\s+(today|tomorrow|yesterday|monday|tuesday|wednesday|thursday|friday|saturday|sunday|next|this)\b/gi,
+        '$1'
+    )
+    // Handle "on today" → "today"
+    result = result.replace(
+        /\bon\s+(today|tomorrow|yesterday)\b/gi,
+        '$1'
+    )
+    // Insert "at" between a date anchor and a bare time so chrono recognises it:
+    // "today 3pm" → "today at 3pm", "tomorrow 10:30" → "tomorrow at 10:30"
+    result = result.replace(
+        /\b(today|tomorrow|yesterday|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm))\b/gi,
+        '$1 at $2'
+    )
+    return result
+}
+
+/**
  * Main parser function - orchestrates all extraction logic
  */
 export function parseTaskNaturalLanguage(
     input: string,
     context: ParserContext = { currentDate: new Date() }
 ): ParsedTaskData {
+    const rawInput = input
     let workingInput = input.trim()
 
     // Extract elements in order (to avoid conflicts)
@@ -69,6 +104,56 @@ export function parseTaskNaturalLanguage(
 
     const title = cleanTaskTitle(workingInput, elementsToRemove)
 
+    // Build extractedRanges for inline highlighting (relative to rawInput)
+    const trimOffset = rawInput.indexOf(workingInput[0] ?? '') >= 0
+        ? rawInput.length - rawInput.trimStart().length
+        : 0
+
+    const extractedRanges: ParsedTaskData['extractedRanges'] = []
+
+    tags.forEach(t => extractedRanges.push({
+        type: 'tag',
+        startIndex: t.startIndex + trimOffset,
+        endIndex: t.endIndex + trimOffset,
+    }))
+    if (priority) extractedRanges.push({
+        type: 'priority',
+        startIndex: priority.startIndex + trimOffset,
+        endIndex: priority.endIndex + trimOffset,
+    })
+    if (reminder) extractedRanges.push({
+        type: 'reminder',
+        startIndex: reminder.startIndex + trimOffset,
+        endIndex: reminder.endIndex + trimOffset,
+    })
+    if (recurrence) extractedRanges.push({
+        type: 'recurrence',
+        startIndex: recurrence.startIndex + trimOffset,
+        endIndex: recurrence.endIndex + trimOffset,
+    })
+    if (dateTime.extracted) {
+        // The date range comes from the preprocessed string; find the actual span in rawInput.
+        // Strategy: search for the matched text in rawInput near the expected offset.
+        const matchedText = dateTime.extracted.value
+        const searchFrom = Math.max(0, dateTime.extracted.startIndex + trimOffset - 3)
+        let origStart = rawInput.indexOf(matchedText, searchFrom)
+        if (origStart === -1) origStart = rawInput.indexOf(matchedText)
+        if (origStart === -1) {
+            // Fallback: use preprocessed offset when text was mutated by normalization
+            // Find the connector prefix that was removed ("by ", "on ") and expand range left
+            const connectorMatch = rawInput
+                .substring(Math.max(0, dateTime.extracted.startIndex + trimOffset - 10), dateTime.extracted.startIndex + trimOffset)
+                .match(/\b(by|on)\s*$/i)
+            const connectorLen = connectorMatch ? connectorMatch[0].length : 0
+            origStart = Math.max(0, dateTime.extracted.startIndex + trimOffset - connectorLen)
+        }
+        extractedRanges.push({
+            type: 'date',
+            startIndex: origStart,
+            endIndex: origStart + matchedText.length,
+        })
+    }
+
     return {
         title: title || 'Untitled Task',
         tagNames: tags.map(t => t.value.substring(1)), // Remove @ prefix
@@ -76,7 +161,8 @@ export function parseTaskNaturalLanguage(
         dueDate: dateTime.date,
         reminderPattern: reminder?.value.substring(1), // Remove ! prefix
         recurrence: recurrence ? parseRecurrence(recurrence.value) : undefined,
-        rawInput: input,
+        rawInput,
+        extractedRanges,
     }
 }
 
@@ -139,41 +225,47 @@ export function extractReminder(input: string): ExtractedElement | null {
 }
 
 /**
- * Extract date and time using chrono-node
+ * Extract date and time using chrono-node.
+ * Preprocesses the input to normalise connectors ("by today", "bytoday") and
+ * bare time-without-"at" patterns before passing to chrono.
  */
 export function extractDateTime(
     input: string,
     baseDate: Date = new Date(),
     excludeRanges: { start: number; end: number }[] = []
 ): { date?: Date; extracted?: ExtractedElement } {
-    // Determine the type of Chrono instance to use based on the input
-    // Using default en/standard configuration
-    const results = chrono.parse(input, baseDate, { forwardDate: true })
+    // Work on a preprocessed copy so chrono handles edge cases better
+    const processed = preprocessForDateParsing(input)
+    const results = chrono.parse(processed, baseDate, { forwardDate: true })
 
     // Find the first result that doesn't overlap with excluded ranges
     for (const result of results) {
-        const start = result.index
-        const end = result.index + result.text.length
+        const matchedText = result.text
+
+        // Map the match back to the ORIGINAL input so returned indices are correct
+        const searchFrom = Math.max(0, result.index - 3)
+        let origStart = input.indexOf(matchedText, searchFrom)
+        if (origStart === -1) origStart = input.indexOf(matchedText)
+        // If text was mutated by preprocessing (e.g. "bytoday" → "today")
+        // fall back to the processed index; calling code will widen it later
+        if (origStart === -1) origStart = result.index
+
+        const origEnd = origStart + matchedText.length
 
         const isOverlapping = excludeRanges.some(range =>
-            (start >= range.start && start < range.end) ||
-            (end > range.start && end <= range.end) ||
-            (start <= range.start && end >= range.end)
+            (origStart >= range.start && origStart < range.end) ||
+            (origEnd > range.start && origEnd <= range.end) ||
+            (origStart <= range.start && origEnd >= range.end)
         )
 
-        if (!isOverlapping) {
-            // Check if chrono matched a loose word that isn't really a date date
-            // e.g. "and" or "at" without time. Chrono is usually good but let's be safe.
-            // If it has no known components, skip it.
-            if (result.start) {
-                return {
-                    date: result.start.date(),
-                    extracted: {
-                        value: result.text,
-                        startIndex: start,
-                        endIndex: end
-                    }
-                }
+        if (!isOverlapping && result.start) {
+            return {
+                date: result.start.date(),
+                extracted: {
+                    value: matchedText,
+                    startIndex: origStart,
+                    endIndex: origEnd,
+                },
             }
         }
     }
