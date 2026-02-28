@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/layout/sidebar'
 import { useUIStore } from '@/stores/use-ui-store'
 import { useTaskDetailStore } from '@/stores/use-task-detail-store'
 import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
 
 
 interface CommandPaletteWrapperProps {
@@ -17,6 +18,16 @@ interface CommandPaletteWrapperProps {
 export function CommandPaletteWrapper({ user, children, initialProjects, sidebarCounts }: CommandPaletteWrapperProps) {
     const { isSidebarCollapsed } = useUIStore()
     const { isOpen: isTaskPanelOpen } = useTaskDetailStore()
+
+    // Track whether we're on a small screen (below md = 768px).
+    // On small screens the sidebar is a Sheet overlay — it takes no layout space.
+    const [isMobile, setIsMobile] = useState(false)
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth < 768)
+        check()
+        window.addEventListener('resize', check)
+        return () => window.removeEventListener('resize', check)
+    }, [])
 
     const handleOpenCommand = () => {
         if (typeof window !== 'undefined') {
@@ -38,8 +49,8 @@ export function CommandPaletteWrapper({ user, children, initialProjects, sidebar
                 className="min-h-screen"
                 initial={false}
                 animate={{
-                    paddingLeft: isSidebarCollapsed ? 0 : 220,
-                    paddingRight: isTaskPanelOpen ? 540 : 0
+                    paddingLeft: (isMobile || isSidebarCollapsed) ? 0 : 220,
+                    paddingRight: (!isMobile && isTaskPanelOpen) ? 540 : 0,
                 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
             >

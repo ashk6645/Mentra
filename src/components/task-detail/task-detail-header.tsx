@@ -191,12 +191,12 @@ export function TaskDetailHeader({ task, onClose, isReadOnly = false }: TaskDeta
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Close - desktop only */}
+            {/* Close */}
             <Button
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="h-8 w-8 hidden md:flex text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 flex text-muted-foreground hover:text-foreground"
             >
               <X className="h-4 w-4" />
             </Button>
