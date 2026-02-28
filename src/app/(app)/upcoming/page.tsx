@@ -107,7 +107,9 @@ export default async function UpcomingPage() {
                     <div className="flex flex-col items-center justify-center py-16 px-4">
                         {/* Friendly visual */}
                         <div className="relative mb-6">
-                            <div className="text-7xl opacity-80">📅</div>
+                            <div className="w-20 h-20 rounded-2xl bg-muted/60 flex items-center justify-center">
+                                <CalendarDays className="w-10 h-10 text-muted-foreground/50" />
+                            </div>
                         </div>
 
                         {/* Encouraging copy */}
