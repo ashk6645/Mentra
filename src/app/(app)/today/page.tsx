@@ -34,6 +34,7 @@ export default async function TodayPage() {
         select: {
             id: true,
             title: true,
+            description: true,
             priority: true,
             dueDate: true,
             completed: true,
