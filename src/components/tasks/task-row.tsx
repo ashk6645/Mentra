@@ -9,18 +9,19 @@ import { formatRecurrence } from '@/lib/utils/recurrence'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-import { MoreHorizontal, Trash, Clock, CheckSquare, Repeat, Bell, PenLine } from 'lucide-react'
+import { MoreHorizontal, Trash, Clock, CheckSquare, Repeat, Bell, PenLine, Copy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { DeleteTaskDialog } from './delete-task-dialog'
 import { useTaskDetailStore } from '@/stores/use-task-detail-store'
 import { useTaskSelectionStore } from '@/stores/use-task-selection-store'
-import { useToggleTask, useDeleteTask } from '@/lib/hooks/use-tasks'
+import { useToggleTask, useDeleteTask, useCreateTask } from '@/lib/hooks/use-tasks'
 
 
 
@@ -43,6 +44,7 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
 
     const { mutateAsync: toggleTask } = useToggleTask()
     const { mutateAsync: deleteTask } = useDeleteTask()
+    const { mutateAsync: createTask } = useCreateTask()
 
     const handleToggle = async (checked: boolean) => {
         setIsPending(true)
@@ -93,6 +95,33 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
 
     const handleDelete = async () => {
         await deleteTask(task.id)
+        router.refresh()
+    }
+
+    const handleOpenDetail = () => {
+        const { selectTask } = require('@/stores/use-task-detail-store').useTaskDetailStore.getState()
+        selectTask(task.id, task)
+    }
+
+    const handleDuplicate = async () => {
+        await createTask({
+            title: `Copy of ${task.title}`,
+            description: task.description ?? undefined,
+            priority: task.priority ?? undefined,
+            dueDate: task.dueDate ? new Date(task.dueDate).toISOString() : undefined,
+            projectId: task.projectId ?? undefined,
+            sectionId: task.sectionId ?? undefined,
+            tagIds: task.tags?.map((t: any) => t.tag?.id ?? t.id).filter(Boolean) ?? [],
+            isRecurring: task.isRecurring ?? undefined,
+            recurrenceInterval: task.recurrenceInterval ?? undefined,
+            recurrenceStep: task.recurrenceStep ?? undefined,
+            recurrenceDays: task.recurrenceDays ?? undefined,
+        })
+        router.refresh()
+    }
+
+    const handleToggleComplete = async () => {
+        await toggleTask({ id: task.id, completed: !task.completed })
         router.refresh()
     }
 
@@ -306,7 +335,39 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
                                 <span className="sr-only">Task actions</span>
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuContent align="end" className="w-48">
+                            {/* Open / Edit */}
+                            <DropdownMenuItem
+                                onClick={(e) => e.stopPropagation()}
+                                onSelect={handleOpenDetail}
+                            >
+                                <PenLine className="mr-2 h-4 w-4" />
+                                Open task
+                            </DropdownMenuItem>
+
+                            {/* Toggle complete */}
+                            <DropdownMenuItem
+                                onClick={(e) => e.stopPropagation()}
+                                onSelect={handleToggleComplete}
+                            >
+                                <Check className="mr-2 h-4 w-4" />
+                                {task.completed ? 'Mark incomplete' : 'Mark complete'}
+                            </DropdownMenuItem>
+
+                            <DropdownMenuSeparator />
+
+                            {/* Duplicate */}
+                            <DropdownMenuItem
+                                onClick={(e) => e.stopPropagation()}
+                                onSelect={handleDuplicate}
+                            >
+                                <Copy className="mr-2 h-4 w-4" />
+                                Duplicate
+                            </DropdownMenuItem>
+
+                            <DropdownMenuSeparator />
+
+                            {/* Delete */}
                             <DropdownMenuItem
                                 className="text-destructive focus:text-destructive"
                                 onClick={(e) => e.stopPropagation()}
