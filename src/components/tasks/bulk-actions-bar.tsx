@@ -28,6 +28,16 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/components/ui/use-toast'
 
@@ -35,6 +45,7 @@ export function BulkActionsBar() {
     const { selectedIds, clearSelection } = useTaskSelectionStore()
     const { toast } = useToast()
     const [isPending, setIsPending] = useState(false)
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
     const count = selectedIds.size
     const ids = Array.from(selectedIds)
@@ -80,8 +91,11 @@ export function BulkActionsBar() {
         }
     }
 
-    const handleDelete = async () => {
-        if (!confirm(`Are you sure you want to delete ${count} tasks?`)) return
+    const handleDelete = () => {
+        setShowDeleteDialog(true)
+    }
+
+    const confirmDelete = async () => {
         setIsPending(true)
         try {
             const result = await bulkDeleteTasks(ids)
@@ -91,10 +105,33 @@ export function BulkActionsBar() {
             }
         } finally {
             setIsPending(false)
+            setShowDeleteDialog(false)
         }
     }
 
     return createPortal(
+        <>
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle className="text-center">Delete {count} Task{count !== 1 ? 's' : ''}?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-center">
+                        <span className="font-medium text-foreground">{count} task{count !== 1 ? 's' : ''}</span> will be permanently deleted. This cannot be undone.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="sm:justify-center gap-2">
+                    <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                        onClick={async (e) => { e.preventDefault(); await confirmDelete() }}
+                        disabled={isPending}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Delete
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
         <div className="fixed bottom-8 left-0 right-0 z-50 flex justify-center pointer-events-none">
             <motion.div
                 initial={{ y: 100, opacity: 0 }}
@@ -162,7 +199,8 @@ export function BulkActionsBar() {
                     </Button>
                 </div>
             </motion.div>
-        </div>,
+        </div>
+        </>,
         document.body
     )
 }
