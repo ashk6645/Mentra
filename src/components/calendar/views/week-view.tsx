@@ -27,11 +27,11 @@ export function WeekView({ currentDate, tasks }: WeekViewProps) {
     }
 
     return (
-        <div className="flex flex-col h-full overflow-hidden">
+        <div className="flex flex-col h-full overflow-y-auto overflow-x-hidden relative">
             {/* Header Row */}
-            <div className="flex border-b bg-background">
+            <div className="flex border-b bg-background sticky top-0 z-10">
                 <div className="w-16 flex-shrink-0 border-r bg-muted/20" /> {/* Time column header */}
-                <div className="flex-1 grid grid-cols-7">
+                <div className="flex-1 grid grid-cols-7 bg-background">
                     {days.map(day => (
                         <div
                             key={day.toString()}
@@ -59,39 +59,37 @@ export function WeekView({ currentDate, tasks }: WeekViewProps) {
             </div>
 
             {/* Time Grid */}
-            <div className="flex-1 overflow-y-auto">
-                <div className="grid grid-cols-[64px_1fr] min-h-[1440px]"> {/* 64px for time labels, rest for content */}
-                    {HOURS.map(hour => (
-                        <div key={hour} className="contents group">
-                            {/* Time Label */}
-                            <div className="border-r border-b px-2 py-2 text-xs text-right text-muted-foreground bg-muted/5 font-medium sticky left-0 relative">
-                                <span className="-top-3 relative block">
-                                    {format(new Date().setHours(hour, 0), 'h a')}
-                                </span>
-                            </div>
-
-                            {/* Days Columns for this hour */}
-                            <div className="grid grid-cols-7 border-b">
-                                {days.map(day => {
-                                    const tasks = getTasksForTimeSlot(day, hour)
-                                    return (
-                                        <div
-                                            key={`${day}-${hour}`}
-                                            className={cn(
-                                                "border-r last:border-r-0 relative hover:bg-muted/5 transition-colors p-1",
-                                                isToday(day) ? "bg-primary/[0.02]" : ""
-                                            )}
-                                        >
-                                            {tasks.map(task => (
-                                                <EventCard key={task.id} event={task} />
-                                            ))}
-                                        </div>
-                                    )
-                                })}
-                            </div>
+            <div className="grid grid-cols-[64px_1fr] min-h-[1440px]"> {/* 64px for time labels, rest for content */}
+                {HOURS.map(hour => (
+                    <div key={hour} className="contents group">
+                        {/* Time Label */}
+                        <div className="border-r border-b px-2 py-2 text-xs text-right text-muted-foreground bg-muted/5 font-medium sticky left-0 relative">
+                            <span className="-top-3 relative block">
+                                {format(new Date().setHours(hour, 0), 'h a')}
+                            </span>
                         </div>
-                    ))}
-                </div>
+
+                        {/* Days Columns for this hour */}
+                        <div className="grid grid-cols-7 border-b">
+                            {days.map(day => {
+                                const tasks = getTasksForTimeSlot(day, hour)
+                                return (
+                                    <div
+                                        key={`${day}-${hour}`}
+                                        className={cn(
+                                            "border-r last:border-r-0 relative hover:bg-muted/5 transition-colors p-1",
+                                            isToday(day) ? "bg-primary/[0.02]" : ""
+                                        )}
+                                    >
+                                        {tasks.map(task => (
+                                            <EventCard key={task.id} event={task} />
+                                        ))}
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+                ))}
             </div>
         </div>
     )
