@@ -63,8 +63,8 @@ export function WeekView({ currentDate, tasks }: WeekViewProps) {
                 {HOURS.map(hour => (
                     <div key={hour} className="contents group">
                         {/* Time Label */}
-                        <div className="border-r border-b px-2 py-2 text-xs text-right text-muted-foreground bg-muted/5 font-medium sticky left-0 relative">
-                            <span className="-top-3 relative block">
+                        <div className="border-r border-b px-2 py-2 text-xs text-center text-muted-foreground bg-muted/5 font-medium flex items-center justify-center sticky left-0">
+                            <span>
                                 {format(new Date().setHours(hour, 0), 'h a')}
                             </span>
                         </div>
