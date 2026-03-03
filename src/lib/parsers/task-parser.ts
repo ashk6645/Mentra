@@ -57,6 +57,13 @@ function preprocessForDateParsing(input: string): string {
         /\bon\s+(today|tomorrow|yesterday)\b/gi,
         '$1'
     )
+    // Handle "<date anchor> by <time>" → "<date anchor> at <time>" so the full
+    // expression is parsed as one result by chrono:
+    // "today by 8pm" → "today at 8pm", "tomorrow by 10:30 am" → "tomorrow at 10:30 am"
+    result = result.replace(
+        /\b(today|tomorrow|yesterday|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+by\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm))\b/gi,
+        '$1 at $2'
+    )
     // Insert "at" between a date anchor and a bare time so chrono recognises it:
     // "today 3pm" → "today at 3pm", "tomorrow 10:30" → "tomorrow at 10:30"
     result = result.replace(
@@ -132,25 +139,12 @@ export function parseTaskNaturalLanguage(
         endIndex: recurrence.endIndex + trimOffset,
     })
     if (dateTime.extracted) {
-        // The date range comes from the preprocessed string; find the actual span in rawInput.
-        // Strategy: search for the matched text in rawInput near the expected offset.
-        const matchedText = dateTime.extracted.value
-        const searchFrom = Math.max(0, dateTime.extracted.startIndex + trimOffset - 3)
-        let origStart = rawInput.indexOf(matchedText, searchFrom)
-        if (origStart === -1) origStart = rawInput.indexOf(matchedText)
-        if (origStart === -1) {
-            // Fallback: use preprocessed offset when text was mutated by normalization
-            // Find the connector prefix that was removed ("by ", "on ") and expand range left
-            const connectorMatch = rawInput
-                .substring(Math.max(0, dateTime.extracted.startIndex + trimOffset - 10), dateTime.extracted.startIndex + trimOffset)
-                .match(/\b(by|on)\s*$/i)
-            const connectorLen = connectorMatch ? connectorMatch[0].length : 0
-            origStart = Math.max(0, dateTime.extracted.startIndex + trimOffset - connectorLen)
-        }
+        // startIndex/endIndex on extracted are already mapped to the original workingInput
+        // by recoverOriginalStart/End in extractDateTime. Just add the trim offset.
         extractedRanges.push({
             type: 'date',
-            startIndex: origStart,
-            endIndex: origStart + matchedText.length,
+            startIndex: dateTime.extracted.startIndex + trimOffset,
+            endIndex: dateTime.extracted.endIndex + trimOffset,
         })
     }
 
@@ -259,18 +253,91 @@ export function extractDateTime(
         )
 
         if (!isOverlapping && result.start) {
+            // Recover the actual span in the original input.
+            // When preprocessing transforms "today by 8 pm" → "today at 8 pm", the
+            // matchedText won't appear verbatim in the original. We need to find the
+            // original span that corresponds to the preprocessed match.
+            const actualOrigStart = recoverOriginalStart(input, processed, result.index, matchedText)
+            const actualOrigEnd = recoverOriginalEnd(input, processed, result.index, matchedText)
+
+            const adjustedStart = actualOrigStart !== -1 ? actualOrigStart : origStart
+            const adjustedEnd = actualOrigEnd !== -1 ? actualOrigEnd : origEnd
+
             return {
                 date: result.start.date(),
                 extracted: {
                     value: matchedText,
-                    startIndex: origStart,
-                    endIndex: origEnd,
+                    startIndex: adjustedStart,
+                    endIndex: adjustedEnd,
                 },
             }
         }
     }
 
     return { date: undefined, extracted: undefined }
+}
+
+/**
+ * Given that the preprocessed string differs from the original (e.g. "by <time>"
+ * was replaced with "at <time>"), recover the start index in the original input
+ * that corresponds to `processedIndex`.
+ */
+function recoverOriginalStart(
+    original: string,
+    processed: string,
+    processedIndex: number,
+    matchedText: string
+): number {
+    // First try: exact match of matched text in original near expected position
+    const searchFrom = Math.max(0, processedIndex - 5)
+    const exactIdx = original.indexOf(matchedText, searchFrom)
+    if (exactIdx !== -1) return exactIdx
+
+    // Second try: the match starts with a word that IS in the original unchanged
+    // e.g. "today at 8 pm" – "today" is intact; find it
+    const firstWord = matchedText.split(/\s+/)[0]
+    if (firstWord) {
+        const wordIdx = original.indexOf(firstWord, searchFrom)
+        if (wordIdx !== -1) return wordIdx
+    }
+
+    // Fallback to processedIndex
+    return processedIndex
+}
+
+/**
+ * Recover the end index in the original input for the matched preprocessed span.
+ * Handles cases where "by <time>" was replaced with "at <time>" (same length
+ * suffix, "by " → "at " is 3 chars → 3 chars, so offset stays identical).
+ * For "today 8pm" → "today at 8pm" ("at " was inserted = 3 added chars), we
+ * need to subtract those 3 chars from the end.
+ */
+function recoverOriginalEnd(
+    original: string,
+    processed: string,
+    processedIndex: number,
+    matchedText: string
+): number {
+    const processedEnd = processedIndex + matchedText.length
+
+    // Count characters added by preprocessing in the matched region
+    // by computing the length delta between processed and original up to processedEnd
+    const processedPrefix = processed.substring(0, processedEnd)
+    const addedChars = processedPrefix.length - original.substring(0, processedEnd).length
+
+    // Heuristic: find start in original, then scan forward to cover the same tokens
+    const origStart = recoverOriginalStart(original, processed, processedIndex, matchedText)
+    if (origStart === -1) return processedEnd
+
+    // Try to find the actual original end by scanning for the last token of matchedText
+    // The last meaningful token (e.g. "8 pm" or "8:30 am") should appear in original
+    const lastToken = matchedText.replace(/.*\s+/, '') // last word
+    const lastTokenIdx = original.lastIndexOf(lastToken, processedEnd + 5)
+    if (lastTokenIdx !== -1 && lastTokenIdx >= origStart) {
+        return lastTokenIdx + lastToken.length
+    }
+
+    return Math.max(origStart, processedEnd - addedChars)
 }
 
 /**
@@ -286,6 +353,11 @@ function cleanTaskTitle(input: string, elements: ExtractedElement[]): string {
         const after = result.substring(element.endIndex)
         result = before + after
     }
+
+    // Strip orphaned date connectors that were adjacent to a removed date/time element:
+    // e.g. "Build a website by" → "Build a website"
+    //      "Build a website on" → "Build a website"
+    result = result.replace(/\s+\b(by|on|at)\s*$/i, '')
 
     // Clean up multiple spaces
     return result.replace(/\s+/g, ' ').trim()

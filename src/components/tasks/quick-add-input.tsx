@@ -254,7 +254,7 @@ export function QuickAddInput({
                         )}
                         Create
                     </Button>
-                     {onCancel && (
+                    {onCancel && (
                         <Button
                             variant="ghost"
                             onClick={onCancel}
