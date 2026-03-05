@@ -228,11 +228,6 @@ export function ProfileAccount() {
                     </div>
 
                     <div className="p-4 space-y-3 bg-muted/30">
-                        <div className="flex items-center gap-2 text-sm font-medium text-destructive">
-                            <AlertTriangle className="h-4 w-4" />
-                            Danger zone
-                        </div>
-
                         <div className="flex items-center justify-between">
                             <p className="text-sm">Reset account data</p>
                             <Button variant="ghost" size="sm" onClick={() => setShowResetDialog(true)}>
