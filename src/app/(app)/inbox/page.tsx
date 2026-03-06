@@ -92,8 +92,8 @@ export default async function InboxPage() {
             <div className="space-y-3">
                 <InboxTaskList tasks={inboxTasks} />
                 <CreateTaskInline
-                    className="ml-6 opacity-50 hover:opacity-100 transition-opacity"
-                    label="Add task to Inbox..."
+                    className="ml-6"
+                    label="Add task to Inbox"
                 />
             </div>
         </PageShell>

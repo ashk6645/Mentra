@@ -112,7 +112,7 @@ export function CreateTaskInline({
 
     if (!isExpanded) {
         return (
-            <div className={cn("transition-all duration-300", className)}>
+            <div className={cn("block", className)}>
                 <AddTaskTrigger
                     onClick={() => setIsExpanded(true)}
                     variant={variant}

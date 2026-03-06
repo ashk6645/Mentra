@@ -116,10 +116,10 @@ export default async function ProjectPage(props: ProjectPageProps) {
             <div className="flex-1 overflow-y-auto">
                 <div className="max-w-4xl mx-auto px-6 py-2">
                     {/* Quick Add Task */}
-                    <div className="mb-6">
+                    <div className="mb-4">
                         <CreateTaskInline
                             defaultProjectId={params.id}
-                            placeholder="Add a task to this project..."
+                            label="Add task"
                         />
                     </div>
 

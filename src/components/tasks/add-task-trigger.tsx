@@ -14,7 +14,7 @@ export function AddTaskTrigger({
     onClick,
     variant = 'inline',
     className,
-    label = "Add task..."
+    label = "Add task"
 }: AddTaskTriggerProps) {
     if (variant === 'compact') {
         return (
@@ -45,17 +45,23 @@ export function AddTaskTrigger({
         )
     }
 
-    // Default 'inline' variant
+    // Default 'inline' variant — minimal, Todoist-style trigger
+    // Does NOT span full width. Stays compact and appears subtly.
     return (
         <button
             onClick={onClick}
             className={cn(
-                "flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground/60 hover:text-foreground hover:bg-muted/30 rounded-lg transition-colors w-full text-left",
+                "group/trigger inline-flex items-center gap-1.5 py-1.5 px-2 rounded-md text-sm",
+                "text-muted-foreground/40 hover:text-muted-foreground",
+                "transition-all duration-150",
+                "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
                 className
             )}
         >
-            <Plus className="h-4 w-4" />
-            <span>{label}</span>
+            <span className="flex items-center justify-center w-4 h-4 rounded-full text-primary/60 group-hover/trigger:text-primary transition-colors duration-150">
+                <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+            </span>
+            <span className="font-normal tracking-normal">{label}</span>
         </button>
     )
 }

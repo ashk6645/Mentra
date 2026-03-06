@@ -142,8 +142,8 @@ export default async function UpcomingPage() {
                 )}
 
                 <CreateTaskInline
-                    className="ml-6 mt-6 opacity-60 hover:opacity-100 transition-opacity"
-                    label="Schedule a task..."
+                    className="ml-6 mt-4"
+                    label="Schedule a task"
                 />
             </div>
         </PageShell>
