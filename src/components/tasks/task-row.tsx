@@ -369,7 +369,7 @@ export function TaskRow({ task, onOptimisticComplete }: TaskRowProps) {
 
                             {/* Delete */}
                             <DropdownMenuItem
-                                className="text-destructive focus:text-destructive"
+                                className="text-destructive focus:text-destructive focus:bg-red-50 dark:focus:bg-red-950/30"
                                 onClick={(e) => e.stopPropagation()}
                                 onSelect={(e) => {
                                     e.preventDefault()
