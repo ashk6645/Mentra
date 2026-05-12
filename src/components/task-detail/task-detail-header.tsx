@@ -119,16 +119,14 @@ export function TaskDetailHeader({ task, onClose, isReadOnly = false }: TaskDeta
 
   return (
     <>
-      <div className="sticky top-0 z-10 bg-gradient-to-b from-background via-background to-muted/30 backdrop-blur-md border-b border-border/20 px-4 sm:px-8 py-5 sm:py-8">
-        <div className="flex items-start gap-4">
-          {/* Large Checkbox */}
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border/35 px-5 sm:px-7 py-4 sm:py-5">
+        <div className="flex items-start gap-3 sm:gap-4">
           <Checkbox
             checked={isCompleted}
             onCheckedChange={handleToggleComplete}
-            className="mt-1.5 h-6 w-6 rounded-lg border-2 data-[state=checked]:bg-success data-[state=checked]:border-success transition-all"
+            className="mt-1 h-5 w-5 rounded-full border-[1.5px] data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-colors"
           />
 
-          {/* Title - Stronger hierarchy */}
           <div className="flex-1 min-w-0">
             {isEditing && !isReadOnly ? (
               <input
@@ -150,34 +148,36 @@ export function TaskDetailHeader({ task, onClose, isReadOnly = false }: TaskDeta
                   }
                 }}
                 autoFocus
-                className="w-full text-xl sm:text-[26px] font-bold leading-tight bg-transparent border-none outline-none focus:ring-0 p-0 text-foreground"
+                className="w-full text-lg sm:text-xl font-semibold tracking-tight leading-snug bg-transparent border-none outline-none focus:ring-0 focus-visible:outline-none p-0 text-foreground placeholder:text-muted-foreground/50"
               />
             ) : (
               <h1
                 onClick={handleTitleClick}
                 className={cn(
-                  'text-xl sm:text-[26px] font-bold leading-tight transition-colors',
-                  isCompleted ? 'line-through text-muted-foreground/60' : 'text-foreground',
-                  !isReadOnly && 'cursor-text hover:text-foreground/80'
+                  'text-lg sm:text-xl font-semibold tracking-tight leading-snug transition-colors',
+                  isCompleted ? 'line-through text-muted-foreground/70' : 'text-foreground',
+                  !isReadOnly && 'cursor-text hover:text-muted-foreground'
                 )}
               >
                 {title}
               </h1>
             )}
             {isReadOnly && (
-              <p className="text-xs text-muted-foreground/60 mt-1">
+              <p className="text-[11px] text-muted-foreground/70 mt-1.5 tracking-wide">
                 Read-only · Uncheck to edit
               </p>
             )}
           </div>
 
-          {/* Actions - Tighter grouping */}
-          <div className="flex items-center gap-1 shrink-0">
-            {/* Delete Action */}
+          <div className="flex items-center gap-0.5 shrink-0 -mr-1">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                  <MoreHorizontal className="h-4 w-4" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                >
+                  <MoreHorizontal className="h-4 w-4 stroke-[1.5]" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -196,9 +196,9 @@ export function TaskDetailHeader({ task, onClose, isReadOnly = false }: TaskDeta
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="h-8 w-8 flex text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4 stroke-[1.5]" />
             </Button>
           </div>
         </div>
@@ -210,8 +210,9 @@ export function TaskDetailHeader({ task, onClose, isReadOnly = false }: TaskDeta
           <AlertDialogHeader>
             <AlertDialogTitle>Delete task?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the task
-              "{task.title}" and all its subtasks.
+              This action cannot be undone. This will permanently delete the task{' '}
+              <span className="font-medium text-foreground">{task.title}</span>
+              {' '}and all its subtasks.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -50,7 +50,7 @@ export function CommandPaletteWrapper({ user, children, initialProjects, sidebar
                 initial={false}
                 animate={{
                     paddingLeft: (isMobile || isSidebarCollapsed) ? 0 : 220,
-                    paddingRight: (!isMobile && isTaskPanelOpen) ? 540 : 0,
+                    paddingRight: (!isMobile && isTaskPanelOpen) ? 520 : 0,
                 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
             >

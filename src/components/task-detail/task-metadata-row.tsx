@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 
 import { useState, useTransition, useEffect } from 'react'
 import { Calendar, Clock, Flag, Tag, Loader2, Check, X, Plus, FolderKanban, Layers } from 'lucide-react'
-import { RecurrenceSelector } from '@/components/tasks/recurrence-selector'
+import { RecurrenceSelector, type RecurrenceValue } from '@/components/tasks/recurrence-selector'
 import { format, isToday, isTomorrow } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -40,6 +40,25 @@ const priorities = [
   { value: 'high', label: 'High', color: 'text-orange-500', fill: 'fill-orange-500' },
   { value: 'urgent', label: 'Urgent', color: 'text-red-600', fill: 'fill-red-600' },
 ] as const
+
+/** Linear / Notion–style property control */
+const propertyChipBase =
+  'h-8 gap-1.5 rounded-md text-[13px] font-medium shadow-none transition-colors border bg-transparent hover:bg-muted/35 focus-visible:ring-2 focus-visible:ring-ring/25'
+
+function priorityChipBorder(priority: string) {
+  switch (priority.toLowerCase()) {
+    case 'urgent':
+      return 'border-destructive/25 text-destructive'
+    case 'high':
+      return 'border-orange-500/25 text-orange-600 dark:text-orange-400'
+    case 'medium':
+      return 'border-primary/20 text-primary'
+    case 'low':
+      return 'border-border/55 text-muted-foreground'
+    default:
+      return ''
+  }
+}
 
 interface TaskTag {
   tag?: { id: string; name: string; color?: string | null };
@@ -98,7 +117,6 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
 
   // Sync local state when task prop changes
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     const normalizedDate = normalizeDueDate(task.dueDate)
     setDueDate(normalizedDate)
     setPriority(task.priority || 'none')
@@ -171,21 +189,6 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
     }
 
     return dateStr
-  }
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case 'urgent':
-        return 'bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400 border-red-200/50 dark:border-red-900/30'
-      case 'high':
-        return 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border-amber-200/50 dark:border-amber-900/30'
-      case 'medium':
-        return 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400 border-blue-200/50 dark:border-blue-900/30'
-      case 'low':
-        return 'bg-slate-50 text-slate-600 dark:bg-slate-950/30 dark:text-slate-400 border-slate-200/50 dark:border-slate-900/30'
-      default:
-        return 'bg-muted/50 text-muted-foreground/70 border-border/30'
-    }
   }
 
   const handleDateChange = async (date: Date | undefined) => {
@@ -297,17 +300,15 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
     // Also update dueDate to include the time component (same as EditTaskDialog logic)
     const newDueDate = new Date(scheduledStart)
 
-    let scheduledEnd: Date | undefined
     const duration = task.durationMinutes || 30
-    const endDate = new Date(scheduledStart.getTime() + duration * 60000)
-    scheduledEnd = endDate
+    const scheduledEnd = new Date(scheduledStart.getTime() + duration * 60000)
 
     startTransition(async () => {
       const updatePayload: UpdateTaskInput = {
         id: task.id,
         scheduledStart: scheduledStart.toISOString(),
         dueDate: newDueDate.toISOString(), // Sync due date time
-        scheduledEnd: scheduledEnd ? scheduledEnd.toISOString() : undefined
+        scheduledEnd: scheduledEnd.toISOString(),
       }
 
       if (!dueDate) {
@@ -466,8 +467,7 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
-      {/* Due Date */}
+    <div className="flex flex-wrap gap-1.5">
       <Popover>
         <PopoverTrigger asChild disabled={isReadOnly}>
           <Button
@@ -475,12 +475,15 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
             size="sm"
             disabled={isReadOnly}
             className={cn(
-              'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
-              !dueDate && 'text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30',
-              isReadOnly && 'opacity-70 cursor-default'
+              propertyChipBase,
+              'px-2.5 font-normal',
+              dueDate
+                ? 'border-border/60 text-foreground'
+                : 'border-dashed border-border/45 text-muted-foreground hover:border-border/65',
+              isReadOnly && 'opacity-70 cursor-default pointer-events-none'
             )}
           >
-            <Calendar className="mr-2 h-3.5 w-3.5" />
+            <Calendar className="h-3.5 w-3.5 shrink-0 opacity-70 stroke-[1.5]" />
             {formatDueDate(dueDate)}
           </Button>
         </PopoverTrigger>
@@ -527,19 +530,22 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
             size="sm"
             disabled={isReadOnly}
             className={cn(
-              "h-8 px-2 text-xs font-normal border-dashed",
-              priority !== 'none' && "border-solid",
-              isReadOnly && 'opacity-70 cursor-default'
+              propertyChipBase,
+              'px-2.5 font-normal',
+              priority === 'none'
+                ? 'border-dashed border-border/45 text-muted-foreground hover:border-border/65'
+                : cn('border-solid', priorityChipBorder(priority)),
+              isReadOnly && 'opacity-70 cursor-default pointer-events-none'
             )}
           >
             <Flag
               className={cn(
-                "mr-1.5 h-3.5 w-3.5",
-                priorities.find(p => p.value === priority)?.color || "text-muted-foreground"
+                'h-3.5 w-3.5 shrink-0 stroke-[1.5]',
+                priorities.find((p) => p.value === priority)?.color || 'text-muted-foreground'
               )}
-              fill={priority !== 'none' ? "currentColor" : "none"}
+              fill={priority !== 'none' ? 'currentColor' : 'none'}
             />
-            {priority === 'none' ? 'Priority' : priorities.find(p => p.value === priority)?.label}
+            {priority === 'none' ? 'Priority' : priorities.find((p) => p.value === priority)?.label}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-48" align="start">
@@ -567,11 +573,22 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
       {/* Recurring Config */}
       {!isReadOnly && (
         <RecurrenceSelector
-          value={task.isRecurring ? {
-            interval: task.recurrenceInterval,
-            step: task.recurrenceStep || 1,
-            days: task.recurrenceDays || []
-          } as any : undefined}
+          className={cn(
+            propertyChipBase,
+            'px-2.5 font-normal',
+            task.isRecurring
+              ? 'border-border/60 text-foreground'
+              : 'border-dashed border-border/45 text-muted-foreground hover:border-border/65'
+          )}
+          value={
+            task.isRecurring && task.recurrenceInterval
+              ? ({
+                  interval: task.recurrenceInterval,
+                  step: task.recurrenceStep || 1,
+                  days: task.recurrenceDays ?? [],
+                } satisfies RecurrenceValue)
+              : undefined
+          }
           onChange={(val) => {
             startTransition(async () => {
               const result = await updateTask({
@@ -609,12 +626,15 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
             size="sm"
             disabled={isReadOnly}
             className={cn(
-              'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
-              !selectedProjectId && 'text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30',
-              isReadOnly && 'opacity-70 cursor-default'
+              propertyChipBase,
+              'px-2.5 font-normal',
+              selectedProjectId
+                ? 'border-border/60 text-foreground'
+                : 'border-dashed border-border/45 text-muted-foreground hover:border-border/65',
+              isReadOnly && 'opacity-70 cursor-default pointer-events-none'
             )}
           >
-            <FolderKanban className="mr-2 h-3.5 w-3.5" />
+            <FolderKanban className="h-3.5 w-3.5 shrink-0 opacity-70 stroke-[1.5]" />
             {selectedProjectId
               ? `${task.project?.icon || '📁'} ${task.project?.name || 'Project'}`
               : 'Project'}
@@ -655,23 +675,26 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
       {/* Section (only show if project is selected) */}
       {selectedProjectId && (
         <Popover>
-          <PopoverTrigger asChild disabled={isReadOnly}>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={isReadOnly}
-              className={cn(
-                'h-8 px-3 rounded-md border text-[13px] font-medium transition-all',
-                !selectedSectionId && 'text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30',
-                isReadOnly && 'opacity-70 cursor-default'
-              )}
-            >
-              <Layers className="mr-2 h-3.5 w-3.5" />
-              {selectedSectionId
-                ? task.section?.name || 'Section'
-                : 'Section'}
-            </Button>
-          </PopoverTrigger>
+            <PopoverTrigger asChild disabled={isReadOnly}>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isReadOnly}
+                className={cn(
+                  propertyChipBase,
+                  'px-2.5 font-normal',
+                  selectedSectionId
+                    ? 'border-border/60 text-foreground'
+                    : 'border-dashed border-border/45 text-muted-foreground hover:border-border/65',
+                  isReadOnly && 'opacity-70 cursor-default pointer-events-none'
+                )}
+              >
+                <Layers className="h-3.5 w-3.5 shrink-0 opacity-70 stroke-[1.5]" />
+                {selectedSectionId
+                  ? task.section?.name || 'Section'
+                  : 'Section'}
+              </Button>
+            </PopoverTrigger>
           <PopoverContent className="w-52 p-2" align="start">
             <div className="space-y-1 max-h-64 overflow-y-auto">
               {selectedSectionId && (
@@ -720,14 +743,18 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
             size="sm"
             disabled={isPending || isReadOnly}
             className={cn(
-              'h-8 px-3 rounded-md border text-[13px] font-medium text-muted-foreground/70 border-dashed border-border/25 hover:border-border hover:bg-muted/30 transition-all',
-              isReadOnly && 'opacity-70 cursor-default'
+              propertyChipBase,
+              'px-2.5 font-normal',
+              selectedTagIds.length > 0
+                ? 'border-border/60 text-foreground'
+                : 'border-dashed border-border/45 text-muted-foreground hover:border-border/65',
+              isReadOnly && 'opacity-70 cursor-default pointer-events-none'
             )}
           >
             {isPending ? (
-              <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin opacity-70" />
             ) : (
-              <Tag className="mr-2 h-3.5 w-3.5" />
+              <Tag className="h-3.5 w-3.5 shrink-0 opacity-70 stroke-[1.5]" />
             )}
             {selectedTagIds.length === 0 ? "Label" :
               selectedTagIds.length === 1 ?
@@ -761,7 +788,7 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
                       ) : (
                         <Plus className="mr-2 h-3 w-3" />
                       )}
-                      Create "{searchValue}"
+                      Create &ldquo;{searchValue}&rdquo;
                     </Button>
                   )}
                 </div>
@@ -800,7 +827,7 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
               <Badge
                 key={tagId}
                 variant="secondary"
-                className="h-6 px-2 text-[10px] font-normal gap-1 bg-muted/40 hover:bg-muted/60"
+                className="h-6 px-2 text-[11px] font-medium gap-1 border border-border/40 bg-muted/15 text-foreground/90 hover:bg-muted/25"
               >
                 {tag.name}
                 <div

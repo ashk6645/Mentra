@@ -39,10 +39,11 @@ export function TaskDetailPanel({ className }: TaskDetailPanelProps) {
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
-          transition={{ type: 'spring', bounce: 0.15 }}
+          transition={{ type: 'tween', duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
           className={cn(
-            'fixed top-0 right-0 h-screen w-full md:w-[540px] z-50',
-            'bg-sidebar/95 backdrop-blur-xl border-l border-sidebar-border shadow-sm',
+            'fixed top-0 right-0 h-screen w-full md:w-[520px] z-50',
+            'bg-background/92 backdrop-blur-xl backdrop-saturate-150',
+            'border-l border-border/40',
             'flex flex-col overflow-hidden',
             className
           )}
@@ -59,7 +60,7 @@ export function TaskDetailPanel({ className }: TaskDetailPanelProps) {
 
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto custom-scrollbar">
-              <div className="px-4 sm:px-8 py-4 sm:py-6 space-y-6 sm:space-y-8">
+              <div className="px-5 sm:px-7 py-6 sm:py-8 space-y-8">
                 {/* Metadata Pills */}
                 <TaskMetadataRow task={selectedTask} isReadOnly={isReadOnly} />
 

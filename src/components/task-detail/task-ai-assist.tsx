@@ -3,11 +3,10 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Sparkles, ChevronDown, ChevronUp, ListTree, Wand2, Clock, Flag, Loader2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { useToast } from '@/components/ui/use-toast'
 import { generateSubtasks, rewriteTaskTitle, estimateTaskDuration, getTaskSuggestions } from '@/lib/actions/ai'
 import { createSubtask } from '@/lib/actions/subtasks'
-import { updateTask } from '@/lib/actions/tasks'
+import { updateTask, type UpdateTaskInput } from '@/lib/actions/tasks'
 import { getTags } from '@/lib/actions/tags'
 import { useTaskDetailStore } from '@/stores/use-task-detail-store'
 import { useRouter } from 'next/navigation'
@@ -89,9 +88,8 @@ export function TaskAIAssist({ task }: TaskAIAssistProps) {
     try {
       const minutes = await estimateTaskDuration(task.title, task.description || undefined)
       if (minutes) {
-        const updateData: any = { id: task.id, durationMinutes: minutes }
+        const updateData: UpdateTaskInput = { id: task.id, durationMinutes: minutes }
 
-        // If scheduled, update end time
         if (task.scheduledStart) {
           const start = new Date(task.scheduledStart)
           const end = new Date(start.getTime() + minutes * 60000)
@@ -123,7 +121,7 @@ export function TaskAIAssist({ task }: TaskAIAssistProps) {
         availableTags.map(t => ({ id: t.id, name: t.name }))
       )
 
-      const updateData: any = { id: task.id }
+      const updateData: UpdateTaskInput = { id: task.id }
       let updated = false
 
       if (suggestions.priority) {
@@ -162,39 +160,40 @@ export function TaskAIAssist({ task }: TaskAIAssistProps) {
   }
 
   return (
-    <div className="space-y-3">
+    <section className="border-t border-border/30 pt-7">
       <button
+        type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center justify-between w-full p-3 rounded-lg border border-border/25 hover:border-primary/30 hover:bg-primary/5 transition-all group"
+        className="flex items-center justify-between w-full rounded-lg border border-border/45 bg-muted/[0.04] px-3 py-2.5 text-left transition-colors hover:bg-muted/20 hover:border-border/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25"
       >
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium">AI Assist</span>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <Sparkles className="h-4 w-4 shrink-0 text-foreground/55 stroke-[1.5]" />
+          <span className="text-[13px] font-medium text-foreground/90 truncate">AI Assist</span>
         </div>
         {isExpanded ? (
-          <ChevronUp className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+          <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground stroke-[1.5]" />
         ) : (
-          <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground stroke-[1.5]" />
         )}
       </button>
 
       {isExpanded && (
-        <div className="space-y-2 pl-4 border-l-2 border-primary/20">
+        <div className="mt-2 space-y-0.5 pl-1 border-l border-border/35 ml-1.5">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleBreakIntoSubtasks}
             disabled={!!isLoading}
-            className="w-full justify-start h-auto py-3 text-left relative"
+            className="w-full justify-start h-auto py-2.5 px-2.5 rounded-md text-left font-normal hover:bg-muted/25"
           >
             {isLoading === 'break-into-subtasks' ? (
-              <Loader2 className="mr-3 h-4 w-4 shrink-0 animate-spin text-primary" />
+              <Loader2 className="mr-3 h-4 w-4 shrink-0 animate-spin text-muted-foreground stroke-[1.5]" />
             ) : (
-              <ListTree className="mr-3 h-4 w-4 shrink-0 text-primary" />
+              <ListTree className="mr-3 h-4 w-4 shrink-0 text-muted-foreground stroke-[1.5]" />
             )}
-            <div className="flex-1">
-              <div className="font-medium text-sm">Break into subtasks</div>
-              <div className="text-xs text-muted-foreground">
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-medium text-foreground/90">Break into subtasks</div>
+              <div className="text-[11px] text-muted-foreground/80 leading-snug mt-0.5">
                 AI suggests logical steps
               </div>
             </div>
@@ -205,17 +204,17 @@ export function TaskAIAssist({ task }: TaskAIAssistProps) {
             size="sm"
             onClick={handleRewriteClearly}
             disabled={!!isLoading}
-            className="w-full justify-start h-auto py-3 text-left"
+            className="w-full justify-start h-auto py-2.5 px-2.5 rounded-md text-left font-normal hover:bg-muted/25"
           >
             {isLoading === 'rewrite-clearly' ? (
-              <Loader2 className="mr-3 h-4 w-4 shrink-0 animate-spin text-primary" />
+              <Loader2 className="mr-3 h-4 w-4 shrink-0 animate-spin text-muted-foreground stroke-[1.5]" />
             ) : (
-              <Wand2 className="mr-3 h-4 w-4 shrink-0 text-primary" />
+              <Wand2 className="mr-3 h-4 w-4 shrink-0 text-muted-foreground stroke-[1.5]" />
             )}
-            <div className="flex-1">
-              <div className="font-medium text-sm">Rewrite clearly</div>
-              <div className="text-xs text-muted-foreground">
-                Make task title more actionable
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-medium text-foreground/90">Rewrite clearly</div>
+              <div className="text-[11px] text-muted-foreground/80 leading-snug mt-0.5">
+                More actionable title
               </div>
             </div>
           </Button>
@@ -225,17 +224,17 @@ export function TaskAIAssist({ task }: TaskAIAssistProps) {
             size="sm"
             onClick={handleEstimateTime}
             disabled={!!isLoading}
-            className="w-full justify-start h-auto py-3 text-left"
+            className="w-full justify-start h-auto py-2.5 px-2.5 rounded-md text-left font-normal hover:bg-muted/25"
           >
             {isLoading === 'estimate-time' ? (
-              <Loader2 className="mr-3 h-4 w-4 shrink-0 animate-spin text-primary" />
+              <Loader2 className="mr-3 h-4 w-4 shrink-0 animate-spin text-muted-foreground stroke-[1.5]" />
             ) : (
-              <Clock className="mr-3 h-4 w-4 shrink-0 text-primary" />
+              <Clock className="mr-3 h-4 w-4 shrink-0 text-muted-foreground stroke-[1.5]" />
             )}
-            <div className="flex-1">
-              <div className="font-medium text-sm">Estimate time</div>
-              <div className="text-xs text-muted-foreground">
-                How long will this take?
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-medium text-foreground/90">Estimate time</div>
+              <div className="text-[11px] text-muted-foreground/80 leading-snug mt-0.5">
+                Suggested duration
               </div>
             </div>
           </Button>
@@ -245,22 +244,22 @@ export function TaskAIAssist({ task }: TaskAIAssistProps) {
             size="sm"
             onClick={handleSuggestPriority}
             disabled={!!isLoading}
-            className="w-full justify-start h-auto py-3 text-left"
+            className="w-full justify-start h-auto py-2.5 px-2.5 rounded-md text-left font-normal hover:bg-muted/25"
           >
             {isLoading === 'suggest-priority' ? (
-              <Loader2 className="mr-3 h-4 w-4 shrink-0 animate-spin text-primary" />
+              <Loader2 className="mr-3 h-4 w-4 shrink-0 animate-spin text-muted-foreground stroke-[1.5]" />
             ) : (
-              <Flag className="mr-3 h-4 w-4 shrink-0 text-primary" />
+              <Flag className="mr-3 h-4 w-4 shrink-0 text-muted-foreground stroke-[1.5]" />
             )}
-            <div className="flex-1">
-              <div className="font-medium text-sm">Suggest priority</div>
-              <div className="text-xs text-muted-foreground">
-                Based on urgency and impact
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-medium text-foreground/90">Suggest priority</div>
+              <div className="text-[11px] text-muted-foreground/80 leading-snug mt-0.5">
+                From title and context
               </div>
             </div>
           </Button>
         </div>
       )}
-    </div>
+    </section>
   )
 }

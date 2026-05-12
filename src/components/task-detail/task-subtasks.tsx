@@ -86,7 +86,7 @@ function SortableSubtaskItem({
       style={style}
       className={cn(
         "flex items-center gap-3 px-3 py-2.5 group transition-colors relative",
-        isDragging ? "bg-accent shadow-md opacity-90 rounded-md" : "hover:bg-muted/50"
+        isDragging ? 'bg-muted/50 shadow-sm opacity-95' : 'hover:bg-muted/[0.07]'
       )}
     >
       {!isReadOnly && (
@@ -236,9 +236,8 @@ export function TaskSubtasks({ task, isReadOnly = false }: TaskSubtasksProps) {
     if (!newSubtaskTitle.trim() || isReadOnly) return
 
     const tempId = `temp-${Date.now()}`
-    const optimisticSubtask: any = {
+    const optimisticSubtask: Subtask = {
       id: tempId,
-      taskId: task.id,
       title: newSubtaskTitle,
       completed: false,
       sortOrder: subtasks.length,
@@ -305,25 +304,25 @@ export function TaskSubtasks({ task, isReadOnly = false }: TaskSubtasksProps) {
   const progressPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-muted-foreground">
+    <section className="space-y-3 border-t border-border/30 pt-7">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground/75">
           Subtasks
-        </label>
-        <div className="flex items-center gap-2">
-          <div className="h-1.5 w-20 bg-muted rounded-full overflow-hidden">
+        </h2>
+        <div className="flex items-center gap-2.5">
+          <div className="h-0.5 w-16 bg-muted/80 rounded-full overflow-hidden">
             <div
-              className="h-full bg-primary transition-all duration-300 rounded-full"
+              className="h-full bg-foreground/20 transition-[width] duration-300 ease-out rounded-full"
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
-          <span className="text-xs font-medium text-muted-foreground tabular-nums">
+          <span className="text-[11px] font-medium text-muted-foreground tabular-nums tracking-tight">
             {completedCount}/{totalCount}
           </span>
         </div>
       </div>
 
-      <div className="border rounded-lg bg-muted/30 divide-y">
+      <div className="rounded-lg border border-border/40 bg-muted/[0.04] divide-y divide-border/35 overflow-hidden">
         {subtasks.length > 0 && (
           <div className="divide-y relative">
             <DndContext
@@ -375,6 +374,6 @@ export function TaskSubtasks({ task, isReadOnly = false }: TaskSubtasksProps) {
           </div>
         )}
       </div>
-    </div>
+    </section>
   )
 }
