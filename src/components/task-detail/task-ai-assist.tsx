@@ -11,6 +11,15 @@ import { getTags } from '@/lib/actions/tags'
 import { useTaskDetailStore } from '@/stores/use-task-detail-store'
 import { useRouter } from 'next/navigation'
 
+const VALID_PRIORITIES = ['low', 'medium', 'high', 'urgent'] as const
+
+function normalizeAiPriority(raw: string): (typeof VALID_PRIORITIES)[number] | undefined {
+  const p = raw.trim().toLowerCase()
+  return (VALID_PRIORITIES as readonly string[]).includes(p)
+    ? (p as (typeof VALID_PRIORITIES)[number])
+    : undefined
+}
+
 interface TaskTag {
   tag?: { id: string; name: string };
   id?: string;
@@ -125,8 +134,11 @@ export function TaskAIAssist({ task }: TaskAIAssistProps) {
       let updated = false
 
       if (suggestions.priority) {
-        updateData.priority = suggestions.priority.toLowerCase() // Ensure lowercase match with schema enum
-        updated = true
+        const priority = normalizeAiPriority(suggestions.priority)
+        if (priority) {
+          updateData.priority = priority
+          updated = true
+        }
       }
 
       if (suggestions.tagIds && suggestions.tagIds.length > 0) {
