@@ -4,7 +4,7 @@ import { CommandPalette } from './command-palette'
 import { Sidebar } from '@/components/layout/sidebar'
 import { useUIStore } from '@/stores/use-ui-store'
 import { useTaskDetailStore } from '@/stores/use-task-detail-store'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 
 
@@ -18,6 +18,7 @@ interface CommandPaletteWrapperProps {
 export function CommandPaletteWrapper({ user, children, initialProjects, sidebarCounts }: CommandPaletteWrapperProps) {
     const { isSidebarCollapsed } = useUIStore()
     const { isOpen: isTaskPanelOpen } = useTaskDetailStore()
+    const prefersReducedMotion = useReducedMotion()
 
     // Track whether we're on a small screen (below md = 768px).
     // On small screens the sidebar is a Sheet overlay — it takes no layout space.
@@ -52,7 +53,14 @@ export function CommandPaletteWrapper({ user, children, initialProjects, sidebar
                     paddingLeft: (isMobile || isSidebarCollapsed) ? 0 : 220,
                     paddingRight: (!isMobile && isTaskPanelOpen) ? 520 : 0,
                 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
+                transition={
+                    prefersReducedMotion
+                        ? { duration: 0.01 }
+                        : {
+                            duration: 0.38,
+                            ease: [0.22, 0.61, 0.36, 1],
+                        }
+                }
             >
                 <div className="h-full pt-16 md:pt-0 relative">
                     {children}
