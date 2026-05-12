@@ -49,6 +49,7 @@ export function RecurrenceSelector({ value, onChange, className }: RecurrenceSel
     const isYearly = value?.interval === 'yearly' && (value.step === 1 || !value.step)
     const isCustom = value && !isDaily && !isWeekly && !isMonthly && !isYearly && !isWeekdays
 
+    /* eslint-disable react-hooks/set-state-in-effect -- sync custom recurrence fields from value when popover opens */
     useEffect(() => {
         if (value) {
             setCustomInterval(value.interval)
@@ -56,6 +57,7 @@ export function RecurrenceSelector({ value, onChange, className }: RecurrenceSel
             setCustomDays(value.days || [])
         }
     }, [value, isOpen])
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const handlePreset = (type: 'daily' | 'weekdays' | 'weekly' | 'monthly' | 'yearly' | 'none') => {
         if (type === 'none') {
@@ -134,12 +136,14 @@ export function RecurrenceSelector({ value, onChange, className }: RecurrenceSel
                     variant="outline"
                     size="sm"
                     className={cn(
-                        "h-8 px-2 text-xs font-normal border-dashed",
-                        value && "border-solid text-blue-600 border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-900",
+                        'h-8 gap-1.5 px-2.5 text-[13px] font-medium rounded-md border bg-transparent shadow-none transition-colors hover:bg-muted/35 focus-visible:ring-2 focus-visible:ring-ring/25',
+                        value
+                            ? 'border-border/60 text-foreground'
+                            : 'border-dashed border-border/45 text-muted-foreground hover:border-border/65',
                         className
                     )}
                 >
-                    <Repeat className="mr-1.5 h-3.5 w-3.5" />
+                    <Repeat className="h-3.5 w-3.5 shrink-0 opacity-80 stroke-[1.5]" />
                     {getLabel()}
                 </Button>
             </PopoverTrigger>
@@ -205,7 +209,7 @@ export function RecurrenceSelector({ value, onChange, className }: RecurrenceSel
                                 />
                                 <Select
                                     value={customInterval}
-                                    onValueChange={(v: any) => setCustomInterval(v)}
+                                    onValueChange={(v: 'daily' | 'weekly' | 'monthly' | 'yearly') => setCustomInterval(v)}
                                 >
                                     <SelectTrigger className="h-8 flex-1">
                                         <SelectValue />

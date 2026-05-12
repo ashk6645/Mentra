@@ -30,13 +30,11 @@ export function TaskDetailFooter({ task }: TaskDetailFooterProps) {
     }
   }
 
-  const creatorName = task.user?.displayName || 'Unknown'
-
   return (
-    <div className="border-t border-border/25 p-6 bg-muted/20">
-      <div className="flex items-center justify-center text-xs text-muted-foreground w-full">
-        Last Updated: {formatDate(task.updatedAt)}
-      </div>
-    </div>
+    <footer className="border-t border-border/30 px-5 sm:px-7 py-4 bg-transparent shrink-0">
+      <p className="text-center text-[11px] text-muted-foreground/70 tabular-nums tracking-wide">
+        Updated {formatDate(task.updatedAt)}
+      </p>
+    </footer>
   )
 }

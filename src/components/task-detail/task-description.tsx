@@ -17,6 +17,9 @@ interface TaskDescriptionProps {
   isReadOnly?: boolean
 }
 
+const sectionLabel =
+  'text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground/75'
+
 export function TaskDescription({ task, isReadOnly = false }: TaskDescriptionProps) {
   const [description, setDescription] = useState(task.description || '')
   const [isFocused, setIsFocused] = useState(false)
@@ -64,48 +67,40 @@ export function TaskDescription({ task, isReadOnly = false }: TaskDescriptionPro
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <label className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wide">
-          Description
-        </label>
+    <section className="space-y-2 border-t border-border/30 pt-7">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className={sectionLabel}>Description</h2>
         {isSaving && (
-          <span className="text-xs text-muted-foreground/60">Saving...</span>
+          <span className="text-[11px] text-muted-foreground/60 tabular-nums">Saving…</span>
         )}
       </div>
 
-      <div className={cn(
-        'rounded-lg transition-all duration-200',
-        isFocused ? 'bg-muted/20' : 'bg-transparent'
-      )}>
+      <div
+        className={cn(
+          '-mx-1 rounded-lg px-1 transition-colors duration-150',
+          isFocused ? 'bg-muted/25' : 'bg-transparent hover:bg-muted/[0.08]'
+        )}
+      >
         <Textarea
           ref={textareaRef}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           onFocus={() => setIsFocused(true)}
           onBlur={handleBlur}
-          placeholder={isReadOnly ? "No description" : "Add notes, context, or steps…"}
+          placeholder={isReadOnly ? 'No description' : 'Add details…'}
           disabled={isReadOnly}
           className={cn(
-            'min-h-[60px] resize-none',
-            'border-0 shadow-none',
-            'bg-transparent',
+            'min-h-[72px] resize-none',
+            'border-0 bg-transparent shadow-none',
             'focus-visible:ring-0 focus-visible:ring-offset-0',
-            'placeholder:text-muted-foreground/40',
-            'text-[15px] leading-relaxed',
-            'px-3 py-2.5',
-            'transition-all duration-200',
+            'placeholder:text-muted-foreground/45',
+            'text-[15px] leading-[1.6] text-foreground/95',
+            'px-2 py-2',
             'overflow-hidden',
-            isReadOnly && 'cursor-default opacity-70'
+            isReadOnly && 'cursor-default opacity-60'
           )}
         />
       </div>
-
-      {/* {!isReadOnly && (
-        <p className="text-[11px] text-muted-foreground/50">
-          Supports markdown formatting
-        </p>
-      )} */}
-    </div>
+    </section>
   )
 }
