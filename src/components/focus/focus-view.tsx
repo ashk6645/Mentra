@@ -280,7 +280,7 @@ export function FocusView({ tasks: initialTasks }: FocusViewProps) {
             </header>
 
             <main className="relative z-10 flex min-h-0 flex-1 flex-col px-4 pb-[max(1.5rem,calc(env(safe-area-inset-bottom)+1.25rem))] sm:px-6 md:px-10">
-                <div className="mx-auto flex w-full min-h-0 max-w-3xl flex-1 flex-col items-stretch">
+                <div className="mx-auto flex w-full min-h-0 max-w-3xl flex-1 flex-col items-center">
                     <div className="flex w-full shrink-0 flex-col items-center justify-center py-2 sm:py-4">
                         <AnimatePresence mode="wait">
                             <motion.div
@@ -325,58 +325,57 @@ export function FocusView({ tasks: initialTasks }: FocusViewProps) {
                         />
                     </div>
 
-                    <div className="mt-auto flex w-full max-w-md shrink-0 flex-col items-center gap-5 pb-1 pt-6 sm:gap-6 sm:pt-8">
-                        <motion.div
-                            layout
-                            className="flex w-full flex-wrap items-center justify-center gap-2.5 sm:gap-3"
-                        >
-                            <Button
-                                className={cn(
-                                    'h-11 min-h-[44px] flex-1 rounded-full px-5 text-[13px] font-medium transition-colors sm:h-12 sm:min-w-[10.5rem] sm:flex-none sm:px-8 sm:text-sm',
-                                    isCompleted
-                                        ? 'bg-emerald-600 text-white hover:bg-emerald-500'
-                                        : 'bg-white text-zinc-950 hover:bg-zinc-100'
-                                )}
-                                onClick={handleTaskCompletion}
-                                disabled={isCompleted}
-                            >
-                                <AnimatePresence mode="wait">
-                                    {isCompleted ? (
-                                        <motion.div
-                                            key="complete"
-                                            initial={{ opacity: 0, scale: 0.96 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            className="flex items-center justify-center gap-2"
-                                        >
-                                            <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                                            <span>Done</span>
-                                        </motion.div>
-                                    ) : (
-                                        <motion.span
-                                            key="label"
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            className="block truncate"
-                                        >
-                                            Complete task
-                                        </motion.span>
-                                    )}
-                                </AnimatePresence>
-                            </Button>
-
-                            {!isCompleted && (
+                    <div className="mx-auto mt-auto flex w-full min-w-0 max-w-md shrink-0 flex-col items-center gap-5 px-2 pb-6 pt-4 sm:gap-6 sm:pb-8 sm:pt-6">
+                        <div className="flex w-fit max-w-full flex-col items-center -translate-y-1 sm:-translate-y-2">
+                            <div className="flex flex-nowrap items-center justify-center gap-2.5 sm:gap-3">
                                 <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="h-11 min-h-[44px] min-w-[44px] shrink-0 rounded-full border-white/[0.1] bg-white/[0.03] text-white/50 hover:border-white/[0.16] hover:bg-white/[0.06] hover:text-white sm:h-12 sm:w-12"
-                                    onClick={handleNext}
-                                    title="Skip task"
-                                    aria-label="Skip to next task"
+                                    className={cn(
+                                        'h-11 min-h-[44px] min-w-[11.5rem] shrink-0 rounded-full px-6 text-[13px] font-medium transition-colors sm:h-12 sm:min-w-[12.5rem] sm:px-8 sm:text-sm',
+                                        isCompleted
+                                            ? 'bg-emerald-600 text-white hover:bg-emerald-500'
+                                            : 'bg-white text-zinc-950 hover:bg-zinc-100'
+                                    )}
+                                    onClick={handleTaskCompletion}
+                                    disabled={isCompleted}
                                 >
-                                    <ChevronRight className="h-5 w-5" />
+                                    <AnimatePresence mode="wait">
+                                        {isCompleted ? (
+                                            <motion.div
+                                                key="complete"
+                                                initial={{ opacity: 0, scale: 0.96 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                className="flex items-center justify-center gap-2"
+                                            >
+                                                <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                                                <span>Done</span>
+                                            </motion.div>
+                                        ) : (
+                                            <motion.span
+                                                key="label"
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                className="block truncate"
+                                            >
+                                                Complete task
+                                            </motion.span>
+                                        )}
+                                    </AnimatePresence>
                                 </Button>
-                            )}
-                        </motion.div>
+
+                                {!isCompleted && (
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        className="h-11 min-h-[44px] min-w-[44px] shrink-0 rounded-full border-white/[0.1] bg-white/[0.03] text-white/50 hover:border-white/[0.16] hover:bg-white/[0.06] hover:text-white sm:h-12 sm:w-12"
+                                        onClick={handleNext}
+                                        title="Skip task"
+                                        aria-label="Skip to next task"
+                                    >
+                                        <ChevronRight className="h-5 w-5" />
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
 
                         {nextTask && (
                             <div className="w-full max-w-sm px-2 text-center">
