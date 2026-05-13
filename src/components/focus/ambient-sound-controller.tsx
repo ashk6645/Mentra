@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Volume2, VolumeX, CloudRain, Leaf, Music, ChevronUp } from 'lucide-react'
+import { Volume2, VolumeX, CloudRain, Leaf, Music } from 'lucide-react'
 import { Slider } from '@/components/ui/slider'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -91,7 +91,7 @@ export function AmbientSoundController() {
 
     return (
         <div
-            className="fixed bottom-8 right-8 z-50 flex flex-col items-end gap-2"
+            className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-50 flex flex-col items-end gap-2"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >

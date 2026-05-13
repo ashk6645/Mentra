@@ -4,33 +4,30 @@ import { motion } from 'framer-motion'
 
 export function BreathingCircle() {
     return (
-        <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden z-0">
-            {/* Core Glow */}
+        <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-hidden">
             <motion.div
-                className="w-[40vw] h-[40vw] max-w-[600px] max-h-[600px] rounded-full bg-blue-500/10 blur-[100px]"
+                className="h-[min(42vw,28rem)] w-[min(42vw,28rem)] rounded-full bg-white/[0.03] blur-[120px]"
                 animate={{
-                    scale: [0.8, 1.2, 0.8],
-                    opacity: [0.3, 0.6, 0.3],
+                    scale: [0.92, 1.05, 0.92],
+                    opacity: [0.35, 0.55, 0.35],
                 }}
                 transition={{
-                    duration: 12, // 4s inhale + 2s hold + 6s exhale cycle approx
+                    duration: 14,
                     repeat: Infinity,
-                    ease: "easeInOut"
+                    ease: 'easeInOut',
                 }}
             />
-
-            {/* Secondary Aura */}
             <motion.div
-                className="absolute w-[30vw] h-[30vw] max-w-[500px] max-h-[500px] rounded-full bg-indigo-500/10 blur-[80px]"
+                className="absolute h-[min(32vw,22rem)] w-[min(32vw,22rem)] rounded-full bg-white/[0.02] blur-[90px]"
                 animate={{
-                    scale: [1, 1.3, 1],
-                    opacity: [0.2, 0.4, 0.2],
+                    scale: [1, 1.08, 1],
+                    opacity: [0.2, 0.35, 0.2],
                 }}
                 transition={{
-                    duration: 12,
+                    duration: 14,
                     repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: 1
+                    ease: 'easeInOut',
+                    delay: 1.5,
                 }}
             />
         </div>
