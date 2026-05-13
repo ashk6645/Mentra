@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, useId } from 'react'
+import { useState, useEffect, useRef, useCallback, useId, useLayoutEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Play, Pause, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -14,34 +14,68 @@ interface CircularTimerProps {
     onDurationChange?: (duration: number) => void
 }
 
+const viewBoxSize = 100
+const strokeWidth = 2.25
+const radius = viewBoxSize / 2 - strokeWidth / 2 - 1
+const center = viewBoxSize / 2
+const circumference = 2 * Math.PI * radius
+
+function formatTimeParts(totalSeconds: number) {
+    const s = Math.max(0, totalSeconds)
+    const mins = Math.floor(s / 60)
+    const secs = s % 60
+    return { mins, secs }
+}
+
 export function CircularTimer({ duration, onComplete, className, autoStart = false, onDurationChange }: CircularTimerProps) {
-    const [timeRemaining, setTimeRemaining] = useState(duration)
     const [isActive, setIsActive] = useState(autoStart)
+    const [pausedRemaining, setPausedRemaining] = useState(duration)
+    const [displayWholeSeconds, setDisplayWholeSeconds] = useState(duration)
     const [showDurationPicker, setShowDurationPicker] = useState(false)
+
     const lastFrameRef = useRef<number | null>(null)
     const rafRef = useRef<number | null>(null)
     const onCompleteRef = useRef(onComplete)
     const completionFiredRef = useRef(false)
     const remainingRef = useRef(duration)
+    const lastShownWholeRef = useRef(duration)
+    const progressCircleRef = useRef<SVGCircleElement>(null)
     const gradientId = useId().replace(/:/g, '')
 
     useEffect(() => {
         onCompleteRef.current = onComplete
     }, [onComplete])
 
-    const progress = duration > 0 ? (timeRemaining / duration) * 100 : 0
-    const displaySeconds = Math.max(0, Math.ceil(timeRemaining - 1e-6))
+    const applyRingDash = useCallback((remaining: number) => {
+        const el = progressCircleRef.current
+        if (!el) return
+        const p = duration > 0 ? (remaining / duration) * 100 : 0
+        const strokeDashoffset = circumference - (p / 100) * circumference
+        el.style.strokeDashoffset = `${strokeDashoffset}`
+    }, [duration])
+
+    useLayoutEffect(() => {
+        const r = isActive ? remainingRef.current : pausedRemaining
+        applyRingDash(r)
+    }, [isActive, pausedRemaining, duration, applyRingDash])
 
     useEffect(() => {
-        setTimeRemaining(duration)
-        setIsActive(autoStart)
         completionFiredRef.current = false
         remainingRef.current = duration
+        setPausedRemaining(duration)
+        lastShownWholeRef.current = duration
+        setDisplayWholeSeconds(duration)
+        setIsActive(autoStart)
     }, [duration, autoStart])
 
     useEffect(() => {
-        remainingRef.current = timeRemaining
-    }, [timeRemaining])
+        if (!isActive) {
+            setPausedRemaining(remainingRef.current)
+            const whole = Math.max(0, Math.ceil(remainingRef.current - 1e-9))
+            lastShownWholeRef.current = whole
+            setDisplayWholeSeconds(whole)
+        }
+    }, [isActive])
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -77,7 +111,13 @@ export function CircularTimer({ duration, onComplete, className, autoStart = fal
 
             const next = Math.max(0, remainingRef.current - delta)
             remainingRef.current = next
-            setTimeRemaining(next)
+            applyRingDash(next)
+
+            const whole = Math.max(0, Math.ceil(next - 1e-9))
+            if (whole !== lastShownWholeRef.current) {
+                lastShownWholeRef.current = whole
+                setDisplayWholeSeconds(whole)
+            }
 
             if (next <= 0) {
                 setIsActive(false)
@@ -94,21 +134,18 @@ export function CircularTimer({ duration, onComplete, className, autoStart = fal
         lastFrameRef.current = null
         rafRef.current = requestAnimationFrame(tick)
         return stopRaf
-    }, [isActive, stopRaf])
+    }, [isActive, stopRaf, applyRingDash])
 
     const toggleTimer = () => setIsActive((a) => !a)
 
     const resetTimer = () => {
         setIsActive(false)
-        setTimeRemaining(duration)
         remainingRef.current = duration
+        setPausedRemaining(duration)
+        lastShownWholeRef.current = duration
+        setDisplayWholeSeconds(duration)
         completionFiredRef.current = false
-    }
-
-    const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60)
-        const secs = seconds % 60
-        return `${mins}:${secs.toString().padStart(2, '0')}`
+        applyRingDash(duration)
     }
 
     const handleDurationSelect = (newDuration: number) => {
@@ -117,12 +154,7 @@ export function CircularTimer({ duration, onComplete, className, autoStart = fal
         setIsActive(false)
     }
 
-    const viewBoxSize = 100
-    const strokeWidth = 2.25
-    const radius = viewBoxSize / 2 - strokeWidth / 2 - 1
-    const center = viewBoxSize / 2
-    const circumference = 2 * Math.PI * radius
-    const strokeDashoffset = circumference - (progress / 100) * circumference
+    const { mins, secs } = formatTimeParts(displayWholeSeconds)
 
     return (
         <div className={cn('flex w-full max-w-[min(100%,20rem)] flex-col items-center gap-6 sm:gap-8', className)}>
@@ -133,7 +165,6 @@ export function CircularTimer({ duration, onComplete, className, autoStart = fal
                     onClick={() => !isActive && setShowDurationPicker((v) => !v)}
                     aria-label={isActive ? 'Timer running' : 'Choose focus duration'}
                 >
-                    {/* Soft ambient ring — Vercel / Linear–style depth */}
                     <div
                         className={cn(
                             'pointer-events-none absolute inset-[-8%] rounded-full opacity-0 transition-opacity duration-700',
@@ -162,12 +193,12 @@ export function CircularTimer({ duration, onComplete, className, autoStart = fal
                             cy={center}
                             r={radius}
                             fill="none"
-                            stroke="rgba(255,255,255,0.06)"
+                            stroke="rgba(255, 255, 255, 0.06)"
                             strokeWidth={strokeWidth}
-                            className="transition-[stroke] duration-500"
                         />
 
                         <circle
+                            ref={progressCircleRef}
                             cx={center}
                             cy={center}
                             r={radius}
@@ -176,25 +207,24 @@ export function CircularTimer({ duration, onComplete, className, autoStart = fal
                             strokeWidth={strokeWidth}
                             strokeLinecap="round"
                             strokeDasharray={circumference}
-                            strokeDashoffset={strokeDashoffset}
-                            className={cn(
-                                'transition-[stroke-opacity] duration-300',
-                                isActive ? 'stroke-opacity-100' : 'stroke-opacity-70'
-                            )}
+                            className={cn('transition-[stroke-opacity] duration-300', isActive ? 'stroke-opacity-100' : 'stroke-opacity-70')}
                             style={{ willChange: 'stroke-dashoffset' }}
                         />
                     </svg>
 
                     <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                        <motion.span
-                            key={displaySeconds}
-                            className="font-mono text-[clamp(2.5rem,11vw,3.75rem)] font-light tabular-nums tracking-[-0.02em] text-white"
-                            initial={{ opacity: 0.85, y: 1 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                        <time
+                            dateTime={`PT${displayWholeSeconds}S`}
+                            className="flex items-baseline justify-center gap-[0.12em] font-mono text-[clamp(2.5rem,11vw,3.75rem)] font-medium tabular-nums tracking-tight text-white [font-variant-numeric:tabular-nums]"
+                            aria-live="polite"
+                            aria-atomic="true"
                         >
-                            {formatTime(displaySeconds)}
-                        </motion.span>
+                            <span className="inline-block min-w-[2ch] text-right">{mins}</span>
+                            <span className="translate-y-[-0.06em] opacity-40" aria-hidden>
+                                :
+                            </span>
+                            <span className="inline-block min-w-[2ch] text-left">{secs.toString().padStart(2, '0')}</span>
+                        </time>
                         <span
                             className={cn(
                                 'mt-2 text-[10px] font-medium uppercase tracking-[0.22em] text-white/35',
@@ -216,19 +246,17 @@ export function CircularTimer({ duration, onComplete, className, autoStart = fal
                             className="absolute left-1/2 top-[calc(100%+0.75rem)] z-30 w-[min(100%,14rem)] -translate-x-1/2 rounded-xl border border-white/[0.08] bg-zinc-950/90 p-1 shadow-[0_12px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl"
                         >
                             <div className="grid grid-cols-2 gap-0.5 p-0.5">
-                                {[15, 25, 45, 60].map((mins) => (
+                                {[15, 25, 45, 60].map((m) => (
                                     <button
-                                        key={mins}
+                                        key={m}
                                         type="button"
-                                        onClick={() => handleDurationSelect(mins * 60)}
+                                        onClick={() => handleDurationSelect(m * 60)}
                                         className={cn(
                                             'rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors',
-                                            duration === mins * 60
-                                                ? 'bg-white text-zinc-950'
-                                                : 'text-white/50 hover:bg-white/[0.06] hover:text-white/90'
+                                            duration === m * 60 ? 'bg-white text-zinc-950' : 'text-white/50 hover:bg-white/[0.06] hover:text-white/90'
                                         )}
                                     >
-                                        {mins} min
+                                        {m} min
                                     </button>
                                 ))}
                             </div>

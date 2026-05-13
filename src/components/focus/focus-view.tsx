@@ -279,9 +279,9 @@ export function FocusView({ tasks: initialTasks }: FocusViewProps) {
                 </Button>
             </header>
 
-            <main className="relative z-10 flex min-h-0 flex-1 flex-col px-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6 md:px-10">
-                <div className="mx-auto flex w-full min-h-0 max-w-3xl flex-1 flex-col items-center">
-                    <div className="flex w-full shrink-0 flex-col items-center justify-center py-3 sm:py-5">
+            <main className="relative z-10 flex min-h-0 flex-1 flex-col px-4 pb-[max(1.5rem,calc(env(safe-area-inset-bottom)+1.25rem))] sm:px-6 md:px-10">
+                <div className="mx-auto flex w-full min-h-0 max-w-3xl flex-1 flex-col items-stretch">
+                    <div className="flex w-full shrink-0 flex-col items-center justify-center py-2 sm:py-4">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={currentTask.id}
@@ -316,7 +316,7 @@ export function FocusView({ tasks: initialTasks }: FocusViewProps) {
                         </AnimatePresence>
                     </div>
 
-                    <div className="flex min-h-0 flex-1 flex-col items-center justify-center py-2 sm:py-4">
+                    <div className="flex shrink-0 flex-col items-center justify-start py-2 sm:py-3">
                         <CircularTimer
                             duration={activeDuration}
                             onComplete={() => {}}
@@ -325,7 +325,7 @@ export function FocusView({ tasks: initialTasks }: FocusViewProps) {
                         />
                     </div>
 
-                    <div className="flex w-full max-w-md shrink-0 flex-col items-center gap-6 pt-2 sm:gap-8 sm:pt-4">
+                    <div className="mt-auto flex w-full max-w-md shrink-0 flex-col items-center gap-5 pb-1 pt-6 sm:gap-6 sm:pt-8">
                         <motion.div
                             layout
                             className="flex w-full flex-wrap items-center justify-center gap-2.5 sm:gap-3"
