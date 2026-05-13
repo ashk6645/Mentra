@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback, useId } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Play, Pause, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 interface CircularTimerProps {
-    duration: number // in seconds
+    duration: number // seconds
     onComplete?: () => void
     className?: string
     autoStart?: boolean
@@ -15,57 +15,94 @@ interface CircularTimerProps {
 }
 
 export function CircularTimer({ duration, onComplete, className, autoStart = false, onDurationChange }: CircularTimerProps) {
-    const [timeLeft, setTimeLeft] = useState(duration)
+    const [timeRemaining, setTimeRemaining] = useState(duration)
     const [isActive, setIsActive] = useState(autoStart)
-    const [progress, setProgress] = useState(100)
     const [showDurationPicker, setShowDurationPicker] = useState(false)
+    const lastFrameRef = useRef<number | null>(null)
+    const rafRef = useRef<number | null>(null)
+    const onCompleteRef = useRef(onComplete)
+    const completionFiredRef = useRef(false)
+    const remainingRef = useRef(duration)
+    const gradientId = useId().replace(/:/g, '')
 
     useEffect(() => {
-        setTimeLeft(duration)
+        onCompleteRef.current = onComplete
+    }, [onComplete])
+
+    const progress = duration > 0 ? (timeRemaining / duration) * 100 : 0
+    const displaySeconds = Math.max(0, Math.ceil(timeRemaining - 1e-6))
+
+    useEffect(() => {
+        setTimeRemaining(duration)
         setIsActive(autoStart)
-        setProgress(100)
+        completionFiredRef.current = false
+        remainingRef.current = duration
     }, [duration, autoStart])
 
-    // Handle spacebar
+    useEffect(() => {
+        remainingRef.current = timeRemaining
+    }, [timeRemaining])
+
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.code === 'Space') {
                 e.preventDefault()
-                setIsActive(prev => !prev)
+                setIsActive((prev) => !prev)
             }
         }
         window.addEventListener('keydown', handleKeyDown)
         return () => window.removeEventListener('keydown', handleKeyDown)
     }, [])
 
-    useEffect(() => {
-        let interval: NodeJS.Timeout
+    const stopRaf = useCallback(() => {
+        if (rafRef.current != null) {
+            cancelAnimationFrame(rafRef.current)
+            rafRef.current = null
+        }
+        lastFrameRef.current = null
+    }, [])
 
-        if (isActive && timeLeft > 0) {
-            interval = setInterval(() => {
-                setTimeLeft((prev) => {
-                    const next = prev - 1
-                    setProgress((next / duration) * 100)
-                    if (next <= 0) {
-                        clearInterval(interval)
-                        setIsActive(false)
-                        onComplete?.()
-                        return 0
-                    }
-                    return next
-                })
-            }, 1000)
+    useEffect(() => {
+        if (!isActive) {
+            stopRaf()
+            return
         }
 
-        return () => clearInterval(interval)
-    }, [isActive, timeLeft, duration, onComplete])
+        const tick = (now: number) => {
+            if (lastFrameRef.current == null) {
+                lastFrameRef.current = now
+            }
+            const delta = (now - lastFrameRef.current) / 1000
+            lastFrameRef.current = now
 
-    const toggleTimer = () => setIsActive(!isActive)
+            const next = Math.max(0, remainingRef.current - delta)
+            remainingRef.current = next
+            setTimeRemaining(next)
+
+            if (next <= 0) {
+                setIsActive(false)
+                if (!completionFiredRef.current) {
+                    completionFiredRef.current = true
+                    onCompleteRef.current?.()
+                }
+                return
+            }
+
+            rafRef.current = requestAnimationFrame(tick)
+        }
+
+        lastFrameRef.current = null
+        rafRef.current = requestAnimationFrame(tick)
+        return stopRaf
+    }, [isActive, stopRaf])
+
+    const toggleTimer = () => setIsActive((a) => !a)
 
     const resetTimer = () => {
         setIsActive(false)
-        setTimeLeft(duration)
-        setProgress(100)
+        setTimeRemaining(duration)
+        remainingRef.current = duration
+        completionFiredRef.current = false
     }
 
     const formatTime = (seconds: number) => {
@@ -80,104 +117,118 @@ export function CircularTimer({ duration, onComplete, className, autoStart = fal
         setIsActive(false)
     }
 
-    // SVG parameters
-    const size = 320
-    const strokeWidth = 6
-    const center = size / 2
-    const radius = size / 2 - strokeWidth / 2
+    const viewBoxSize = 100
+    const strokeWidth = 2.25
+    const radius = viewBoxSize / 2 - strokeWidth / 2 - 1
+    const center = viewBoxSize / 2
     const circumference = 2 * Math.PI * radius
-
     const strokeDashoffset = circumference - (progress / 100) * circumference
 
     return (
-        <div className={cn("flex flex-col items-center gap-12", className)}>
-            <div className="relative flex items-center justify-center group">
-                {/* Background Glow */}
-                <div className={cn(
-                    "absolute inset-0 rounded-full transition-all duration-1000 blur-[80px] opacity-40",
-                    isActive ? "bg-blue-500/30" : "bg-transparent"
-                )} />
-
-                <div
-                    className="relative cursor-pointer"
-                    onClick={() => setShowDurationPicker(!showDurationPicker)}
+        <div className={cn('flex w-full max-w-[min(100%,20rem)] flex-col items-center gap-6 sm:gap-8', className)}>
+            <div className="relative flex w-full flex-col items-center">
+                <button
+                    type="button"
+                    className="group relative aspect-square w-[min(78vw,17.5rem)] sm:w-[min(72vw,18rem)] outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 rounded-full"
+                    onClick={() => !isActive && setShowDurationPicker((v) => !v)}
+                    aria-label={isActive ? 'Timer running' : 'Choose focus duration'}
                 >
-                    <svg width={size} height={size} className="transform -rotate-90 relative z-10">
-                        {/* Track */}
+                    {/* Soft ambient ring — Vercel / Linear–style depth */}
+                    <div
+                        className={cn(
+                            'pointer-events-none absolute inset-[-8%] rounded-full opacity-0 transition-opacity duration-700',
+                            isActive ? 'opacity-100' : 'opacity-40'
+                        )}
+                        style={{
+                            background:
+                                'radial-gradient(55% 55% at 50% 45%, rgba(255,255,255,0.06) 0%, transparent 70%)',
+                        }}
+                    />
+
+                    <svg
+                        viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
+                        className="relative z-10 h-full w-full -rotate-90 drop-shadow-[0_1px_0_rgba(255,255,255,0.04)]"
+                        aria-hidden
+                    >
+                        <defs>
+                            <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stopColor="rgba(255,255,255,0.95)" />
+                                <stop offset="100%" stopColor="rgba(255,255,255,0.45)" />
+                            </linearGradient>
+                        </defs>
+
                         <circle
                             cx={center}
                             cy={center}
                             r={radius}
-                            fill="transparent"
-                            stroke="rgba(255, 255, 255, 0.05)"
+                            fill="none"
+                            stroke="rgba(255,255,255,0.06)"
                             strokeWidth={strokeWidth}
+                            className="transition-[stroke] duration-500"
                         />
-                        {/* Progress */}
-                        <motion.circle
+
+                        <circle
                             cx={center}
                             cy={center}
                             r={radius}
-                            fill="transparent"
-                            stroke="white"
+                            fill="none"
+                            stroke={`url(#${gradientId})`}
                             strokeWidth={strokeWidth}
+                            strokeLinecap="round"
                             strokeDasharray={circumference}
                             strokeDashoffset={strokeDashoffset}
-                            strokeLinecap="round"
-                            initial={{ strokeDashoffset: circumference }}
-                            animate={{ strokeDashoffset }}
-                            transition={{
-                                duration: 1,
-                                ease: "linear"
-                            }}
                             className={cn(
-                                "drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] transition-all duration-500",
-                                isActive ? "stroke-white" : "stroke-white/60"
+                                'transition-[stroke-opacity] duration-300',
+                                isActive ? 'stroke-opacity-100' : 'stroke-opacity-70'
                             )}
+                            style={{ willChange: 'stroke-dashoffset' }}
                         />
                     </svg>
 
-                    {/* Time Display */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center z-20 pointer-events-none">
+                    <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                         <motion.span
-                            key={timeLeft}
-                            className="text-7xl font-mono font-light tracking-widest tabular-nums text-white"
-                            initial={{ scale: 0.95, opacity: 0.8 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.2 }}
+                            key={displaySeconds}
+                            className="font-mono text-[clamp(2.5rem,11vw,3.75rem)] font-light tabular-nums tracking-[-0.02em] text-white"
+                            initial={{ opacity: 0.85, y: 1 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                         >
-                            {formatTime(timeLeft)}
+                            {formatTime(displaySeconds)}
                         </motion.span>
-                        <span className={cn(
-                            "mt-4 text-[10px] uppercase tracking-[0.3em] font-medium transition-all duration-500",
-                            isActive ? "text-blue-300 drop-shadow-[0_0_8px_rgba(147,197,253,0.5)]" : "text-white/30"
-                        )}>
-                            {isActive ? 'Session Active' : 'Paused'}
+                        <span
+                            className={cn(
+                                'mt-2 text-[10px] font-medium uppercase tracking-[0.22em] text-white/35',
+                                isActive && 'text-white/55'
+                            )}
+                        >
+                            {isActive ? 'Focusing' : 'Ready'}
                         </span>
                     </div>
-                </div>
+                </button>
 
-                {/* Duration Picker Popover */}
                 <AnimatePresence>
                     {showDurationPicker && !isActive && (
                         <motion.div
-                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                            initial={{ opacity: 0, y: 6, scale: 0.98 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                            className="absolute z-30 top-full mt-4 bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl p-2 shadow-2xl w-48"
+                            exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                            className="absolute left-1/2 top-[calc(100%+0.75rem)] z-30 w-[min(100%,14rem)] -translate-x-1/2 rounded-xl border border-white/[0.08] bg-zinc-950/90 p-1 shadow-[0_12px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl"
                         >
-                            <div className="grid grid-cols-2 gap-1">
+                            <div className="grid grid-cols-2 gap-0.5 p-0.5">
                                 {[15, 25, 45, 60].map((mins) => (
                                     <button
                                         key={mins}
+                                        type="button"
                                         onClick={() => handleDurationSelect(mins * 60)}
                                         className={cn(
-                                            "px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                                            'rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors',
                                             duration === mins * 60
-                                                ? "bg-white text-black"
-                                                : "text-white/60 hover:text-white hover:bg-white/10"
+                                                ? 'bg-white text-zinc-950'
+                                                : 'text-white/50 hover:bg-white/[0.06] hover:text-white/90'
                                         )}
                                     >
-                                        {mins}m
+                                        {mins} min
                                     </button>
                                 ))}
                             </div>
@@ -186,30 +237,43 @@ export function CircularTimer({ duration, onComplete, className, autoStart = fal
                 </AnimatePresence>
             </div>
 
-            {/* Controls */}
-            <div className="flex items-center gap-8 -mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 hover:opacity-100">
+            <div className="flex w-full max-w-[16rem] items-center justify-center gap-3 sm:gap-4">
                 <Button
+                    type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-12 w-12 rounded-full text-white/30 hover:text-white hover:bg-white/5 transition-all"
-                    onClick={(e) => { e.stopPropagation(); resetTimer() }}
+                    className="h-11 w-11 shrink-0 rounded-full border border-white/[0.08] bg-white/[0.03] text-white/45 hover:bg-white/[0.06] hover:text-white"
+                    onClick={(e) => {
+                        e.stopPropagation()
+                        resetTimer()
+                    }}
+                    aria-label="Reset timer"
                 >
-                    <RotateCcw className="h-5 w-5" />
+                    <RotateCcw className="h-4 w-4" />
                 </Button>
 
                 <Button
+                    type="button"
                     variant="ghost"
                     size="lg"
-                    className="h-20 w-20 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 text-white transition-all scale-100 hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.05)]"
-                    onClick={(e) => { e.stopPropagation(); toggleTimer() }}
+                    className="h-14 w-14 shrink-0 rounded-full border border-white/[0.12] bg-white/[0.06] text-white shadow-[0_0_0_1px_rgba(255,255,255,0.04)_inset] transition-transform hover:bg-white/[0.1] active:scale-[0.97] sm:h-16 sm:w-16"
+                    onClick={(e) => {
+                        e.stopPropagation()
+                        toggleTimer()
+                    }}
+                    aria-label={isActive ? 'Pause' : 'Start'}
                 >
                     {isActive ? (
-                        <Pause className="h-8 w-8 fill-current" />
+                        <Pause className="h-6 w-6 fill-current sm:h-7 sm:w-7" />
                     ) : (
-                        <Play className="h-8 w-8 fill-current ml-1" />
+                        <Play className="ml-0.5 h-6 w-6 fill-current sm:h-7 sm:w-7" />
                     )}
                 </Button>
             </div>
+
+            <p className="text-center text-[10px] font-medium uppercase tracking-[0.18em] text-white/25">
+                Space to {isActive ? 'pause' : 'start'}
+            </p>
         </div>
     )
 }
