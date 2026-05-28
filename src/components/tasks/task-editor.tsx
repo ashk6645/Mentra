@@ -66,6 +66,7 @@ export function TaskEditor({
     const [title, setTitle] = useState('')
     const [description, setDescription] = useState('')
     const [date, setDate] = useState<Date | undefined>(undefined)
+    const [time, setTime] = useState<string>('')
     const [priority, setPriority] = useState<string | null>(null)
     const [recurrence, setRecurrence] = useState<{
         interval: 'daily' | 'weekly' | 'monthly' | 'yearly'
@@ -158,6 +159,7 @@ export function TaskEditor({
             title: parsedTitle || title, // Use parsed title if available
             description,
             dueDate: date,
+            scheduledTime: time || undefined,
             priority: priority as any,
             isRecurring: !!recurrence,
             recurrenceInterval: recurrence?.interval,
@@ -230,13 +232,40 @@ export function TaskEditor({
                                 )}
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-auto p-0 rounded-xl overflow-hidden shadow-xl border border-border/40" align="start">
                             <Calendar
                                 mode="single"
                                 selected={date}
                                 onSelect={setDate}
                                 initialFocus
                             />
+                            <div className="p-4 border-t border-border/40 bg-muted/10">
+                                <div className="space-y-2">
+                                    <label className="text-[0.65rem] font-semibold tracking-wider text-muted-foreground uppercase">Time</label>
+                                    <div className="flex items-center gap-2">
+                                        <Clock className="w-4 h-4 text-muted-foreground" />
+                                        <Input
+                                            type="time"
+                                            value={time}
+                                            onChange={(e) => setTime(e.target.value)}
+                                            className="h-9 text-sm rounded-lg border-border/50 focus-visible:ring-[#f96f3a] focus-visible:border-[#f96f3a]"
+                                        />
+                                    </div>
+                                </div>
+                                {(date || time) && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                            setDate(undefined);
+                                            setTime('');
+                                        }}
+                                        className="w-full text-xs h-8 mt-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
+                                    >
+                                        Clear date & time
+                                    </Button>
+                                )}
+                            </div>
                         </PopoverContent>
                     </Popover>
 

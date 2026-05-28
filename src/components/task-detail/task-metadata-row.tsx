@@ -487,24 +487,24 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
             {formatDueDate(dueDate)}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-auto p-0 rounded-xl overflow-hidden shadow-xl border border-border/40" align="start">
           <CalendarComponent
             mode="single"
             selected={dueDate || undefined}
             onSelect={handleDateChange}
             initialFocus
           />
-          <div className="p-3 border-t bg-muted/10 space-y-3">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Time</label>
+          <div className="p-4 border-t border-border/40 bg-muted/10">
+            <div className="space-y-2">
+              <label className="text-[0.65rem] font-semibold tracking-wider text-muted-foreground uppercase">Time</label>
               <div className="flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                <Clock className="w-4 h-4 text-muted-foreground" />
                 <Input
                   type="time"
                   value={time}
                   onChange={(e) => handleTimeChange(e.target.value)}
                   onBlur={(e) => saveTime(e.target.value)}
-                  className="h-8 text-xs"
+                  className="h-9 text-sm rounded-lg border-border/50 focus-visible:ring-[#f96f3a] focus-visible:border-[#f96f3a]"
                 />
               </div>
             </div>
@@ -513,7 +513,7 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
                 variant="ghost"
                 size="sm"
                 onClick={() => handleDateChange(undefined)}
-                className="w-full text-xs h-8 text-muted-foreground hover:text-destructive"
+                className="w-full text-xs h-8 mt-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
               >
                 Clear date & time
               </Button>
