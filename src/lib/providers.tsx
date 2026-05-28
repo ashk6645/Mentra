@@ -3,18 +3,22 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { ThemeProvider } from 'next-themes'
 import { makeQueryClient } from './react-query'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
     const [queryClient] = useState(() => makeQueryClient())
+    const pathname = usePathname()
+    const isThemeLocked = pathname === '/' || pathname.startsWith('/login') || pathname.startsWith('/signup') || pathname.startsWith('/signin')
 
     return (
         <QueryClientProvider client={queryClient}>
             <ThemeProvider
                 attribute="class"
                 defaultTheme="system"
-                enableSystem
+                enableSystem={!isThemeLocked}
+                forcedTheme={isThemeLocked ? 'light' : undefined}
                 disableTransitionOnChange={false}
                 themes={[
                     'light',
