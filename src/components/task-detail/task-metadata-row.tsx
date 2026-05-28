@@ -487,24 +487,25 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
             {formatDueDate(dueDate)}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-auto p-0 rounded-xl overflow-hidden shadow-xl border border-border/40" align="start">
           <CalendarComponent
             mode="single"
             selected={dueDate || undefined}
             onSelect={handleDateChange}
             initialFocus
+            className="rounded-b-none border-b-0 shadow-none pb-2"
           />
-          <div className="p-3 border-t bg-muted/10 space-y-3">
+          <div className="p-3 border-t border-border/40 bg-muted/10">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Time</label>
-              <div className="flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+              <label className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase ml-1">Time</label>
+              <div className="flex items-center gap-2 group">
+                <Clock className="w-3.5 h-3.5 text-muted-foreground ml-1 group-focus-within:text-foreground transition-colors" />
                 <Input
                   type="time"
                   value={time}
                   onChange={(e) => handleTimeChange(e.target.value)}
                   onBlur={(e) => saveTime(e.target.value)}
-                  className="h-8 text-xs"
+                  className="h-7 text-[13px] bg-transparent border-transparent hover:border-border hover:bg-muted/50 focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-ring transition-all w-full rounded-md px-2 shadow-none"
                 />
               </div>
             </div>
@@ -513,7 +514,7 @@ export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowPro
                 variant="ghost"
                 size="sm"
                 onClick={() => handleDateChange(undefined)}
-                className="w-full text-xs h-8 text-muted-foreground hover:text-destructive"
+                className="w-full text-xs h-7 mt-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
               >
                 Clear date & time
               </Button>
