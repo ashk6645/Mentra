@@ -238,6 +238,7 @@ export function TaskEditor({
                                 selected={date}
                                 onSelect={setDate}
                                 initialFocus
+                                className="rounded-b-none border-b-0 shadow-none pb-2"
                             />
                             <div className="p-3 border-t border-border/40 bg-muted/10">
                                 <div className="space-y-1.5">

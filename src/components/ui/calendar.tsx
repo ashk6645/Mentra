@@ -34,7 +34,7 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       fixedWeeks
       className={cn(
-        "bg-background group/calendar p-3 shadow-md rounded-xl border border-black/5 dark:border-white/10 [--cell-size:--spacing(7)] sm:[--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
+        "bg-background group/calendar p-3 shadow-md rounded-xl [--cell-size:--spacing(7)] sm:[--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className
@@ -53,7 +53,7 @@ function Calendar({
         ),
         month: cn("flex flex-col w-full gap-3", defaultClassNames.month),
         nav: cn(
-          "flex items-center gap-1 w-full absolute top-0 inset-x-0 justify-between",
+          "flex items-center gap-1 w-full absolute top-0.5 inset-x-0 justify-between",
           defaultClassNames.nav
         ),
         button_previous: cn(
@@ -67,7 +67,7 @@ function Calendar({
           defaultClassNames.button_next
         ),
         month_caption: cn(
-          "flex items-center justify-center h-7 font-medium text-[13px]",
+          "flex items-center justify-center h-8 font-medium text-[13px] border-b border-border/40 w-full mb-2",
           defaultClassNames.month_caption
         ),
         dropdowns: cn(
