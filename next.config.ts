@@ -43,9 +43,6 @@ const nextConfig: NextConfig = {
     ]
   },
 
-
-module.exports = nextConfig
-
   
   // Image optimization
   images: {
