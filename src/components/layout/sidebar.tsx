@@ -35,7 +35,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Separator } from '@/components/ui/separator'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUIStore } from '@/stores/use-ui-store'
-import { MoreHorizontal, Trash2 } from 'lucide-react'
+import { MoreHorizontal, Trash2, Kanban } from 'lucide-react'
 
 import {
     DropdownMenu,
@@ -357,6 +357,41 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
                     </div>
                 )}
 
+                {/* Kanban Section */}
+                {!isSidebarCollapsed && (
+                    <div className="px-2 mb-2">
+                        <Link
+                            href="/kanban"
+                            className={cn(
+                                "flex items-center gap-3 mt-2 px-3 py-2 h-10 rounded-lg transition-all duration-200 ease-out group relative",
+                                pathname === '/kanban'
+                                    ? "text-foreground bg-neutral-200/60 dark:bg-neutral-800/60 font-medium"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50 font-medium"
+                            )}
+                        >
+                            <Kanban className={cn(
+                                "h-5 w-5 shrink-0 transition-colors",
+                                pathname === '/kanban' ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
+                            )} />
+                            <span className="text-[15px] truncate">Kanban (Demo)</span>
+                        </Link>
+                    </div>
+                )}
+
+                {isSidebarCollapsed && (
+                    <Link
+                        href="/kanban"
+                        className={cn(
+                            "flex items-center justify-center px-1 py-2 h-10 rounded-lg transition-all duration-200 ease-out mx-1",
+                            pathname === '/kanban'
+                                ? "text-foreground bg-neutral-200/60 dark:bg-neutral-800/60"
+                                : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50"
+                        )}
+                        title="Kanban"
+                    >
+                        <Kanban className="h-5 w-5 shrink-0" />
+                    </Link>
+                )}
 
             </div>
 
