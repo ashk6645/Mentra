@@ -386,6 +386,15 @@
   }
 }
 
+/* Hide scrollbar but keep scroll functionality */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Smooth scrollbar styling */
 /* Smooth scrollbar styling */
 .custom-scrollbar {
