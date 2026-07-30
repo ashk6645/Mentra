@@ -185,14 +185,12 @@ export function PageEditor({ page }: PageEditorProps) {
 
     const handleUpdateBlock = async (id: string, updates: any) => {
         if (!canEdit) return
-        console.log('PageEditor handleUpdateBlock called:', id, updates)
         // Debounced save for content updates
         if (saveTimeoutRef.current) {
             clearTimeout(saveTimeoutRef.current)
         }
 
         saveTimeoutRef.current = setTimeout(async () => {
-            console.log('PageEditor execution save for:', id)
             setIsSaving(true)
             try {
                 // Map updates from BlockEditor to the expected format for updateBlock action
