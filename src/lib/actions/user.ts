@@ -96,8 +96,13 @@ export async function deleteUserAccount() {
                 console.log(`✅ Deleted auth user: ${userId}`)
             }
         } else {
-            console.log('⚠️ Service role key not configured - user auth account not deleted')
-            console.log('   Database data deleted successfully. User profile is gone.')
+            // Warn, not log: the account is now half-deleted — profile data is gone
+            // but the auth user survives and can still sign in. Needs to surface in
+            // log-level filters rather than blend into normal output.
+            console.warn(
+                'Service role key not configured: database records deleted but auth user retained',
+                { userId }
+            )
         }
 
         // Step 3: Sign out the user
