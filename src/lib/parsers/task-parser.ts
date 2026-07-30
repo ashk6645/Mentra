@@ -4,7 +4,6 @@
  * Supports Todoist-style syntax: @tag p1-p4 !reminder dates/times
  */
 
-import { addDays, addWeeks, addMonths, setHours, setMinutes, startOfDay, parse, isValid } from 'date-fns'
 import * as chrono from 'chrono-node'
 
 export interface ParsedTaskData {
@@ -81,7 +80,7 @@ export function parseTaskNaturalLanguage(
     context: ParserContext = { currentDate: new Date() }
 ): ParsedTaskData {
     const rawInput = input
-    let workingInput = input.trim()
+    const workingInput = input.trim()
 
     // Extract elements in order (to avoid conflicts)
     const tags = extractTags(workingInput)
@@ -204,7 +203,10 @@ export function extractPriority(input: string): ExtractedElement | null {
  * Supports: !30min, !1hour, !2hours, !1day, !14:00
  */
 export function extractReminder(input: string): ExtractedElement | null {
-    const regex = /!(\d+(?:min|hour|hours|day|days)|\d{1,2}:\d{2})/i
+    // Optional-suffix groups rather than `hour|hours`: regex alternation is
+    // first-match-wins, so the shorter branch won and "!2hours" matched as
+    // "!2hour", stranding the trailing "s" in the task title.
+    const regex = /!(\d+(?:min(?:ute)?s?|hours?|days?)|\d{1,2}:\d{2})/i
     const match = input.match(regex)
 
     if (match) {
@@ -488,6 +490,14 @@ export function extractRecurrence(input: string): ExtractedElement | null {
     return null
 }
 
+/** Singular unit as written by the user -> the interval value stored on the task. */
+const UNIT_TO_INTERVAL = {
+    day: 'daily',
+    week: 'weekly',
+    month: 'monthly',
+    year: 'yearly',
+} as const
+
 /**
  * Parse extracted recurrence string into structured data
  */
@@ -546,10 +556,13 @@ export function parseRecurrence(input: string): ParsedTaskData['recurrence'] | u
     const stepMatch = lower.match(/every (\d+) (day|week|month|year)s?/)
     if (stepMatch) {
         const step = parseInt(stepMatch[1])
-        const unit = stepMatch[2] as 'day' | 'week' | 'month' | 'year'
+        const unit = stepMatch[2] as keyof typeof UNIT_TO_INTERVAL
+
+        // Must be a lookup, not `unit + 'ly'` — that yields "dayly", which is not a
+        // valid recurrenceInterval and is rejected by the schema on save.
         return {
-            interval: (unit + 'ly') as 'daily' | 'weekly' | 'monthly' | 'yearly',
-            step: step
+            interval: UNIT_TO_INTERVAL[unit],
+            step: step,
         }
     }
 
