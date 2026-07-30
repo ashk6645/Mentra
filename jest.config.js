@@ -1,3 +1,8 @@
+// Pin the timezone before any test constructs a Date. Without this, date-heavy
+// suites (recurrence, natural-language parsing) pass locally and fail in CI purely
+// because the runner sits in a different offset.
+process.env.TZ = 'UTC'
+
 const nextJest = require('next/jest')
 
 const createJestConfig = nextJest({

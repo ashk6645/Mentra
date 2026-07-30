@@ -7,7 +7,8 @@ import { z } from 'zod'
 import { Task } from '@prisma/client'
 import { updateStreak } from '@/lib/actions/activity'
 import { AppError, ErrorCodes, ErrorMessages } from '@/lib/error-handler'
-import { addDays, addWeeks, addMonths, addYears } from 'date-fns'
+import { getNextOccurrence, type RecurrenceInterval } from '@/lib/utils/recurrence'
+import { assertRelationsOwned } from '@/lib/security/ownership'
 
 // Schemas
 const createTaskSchema = z.object({
@@ -214,7 +215,6 @@ export async function getTaskById(taskId: string) {
 
 export async function createTask(data: CreateTaskInput) {
     try {
-        console.log('createTask called with:', data)
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
 
@@ -230,7 +230,7 @@ export async function createTask(data: CreateTaskInput) {
         const result = createTaskSchema.safeParse(data)
 
         if (!result.success) {
-            console.error('createTask: Validation failed', result.error)
+            console.error('createTask: Validation failed', result.error.flatten().fieldErrors)
             throw new AppError(
                 'Validation failed',
                 ErrorCodes.VALIDATION_ERROR,
@@ -239,7 +239,12 @@ export async function createTask(data: CreateTaskInput) {
             )
         }
 
-
+        // Zod checked the shape; this checks the owner. Must run before the write.
+        await assertRelationsOwned(prisma, user.id, {
+            projectId: result.data.projectId,
+            sectionId: result.data.sectionId,
+            tagIds: result.data.tagIds,
+        })
 
         // Ensure profile exists before creating task
         await prisma.profile.upsert({
@@ -279,8 +284,7 @@ export async function createTask(data: CreateTaskInput) {
             },
         })
 
-        console.log('createTask: Success', task)
-            ; (revalidateTag as any)(`tasks-${user.id}`)
+        ; (revalidateTag as any)(`tasks-${user.id}`)
         revalidatePath('/', 'layout')
         return { success: true, data: task }
     } catch (error) {
@@ -330,8 +334,6 @@ export async function updateTask(data: UpdateTaskInput) {
         }
         if (result.data.durationMinutes !== undefined) updateData.durationMinutes = result.data.durationMinutes
 
-        if (result.data.durationMinutes !== undefined) updateData.durationMinutes = result.data.durationMinutes
-
         if (result.data.isRecurring !== undefined) updateData.isRecurring = result.data.isRecurring
         if (result.data.recurrenceInterval !== undefined) updateData.recurrenceInterval = result.data.recurrenceInterval
         if (result.data.recurrenceStep !== undefined) updateData.recurrenceStep = result.data.recurrenceStep
@@ -347,16 +349,33 @@ export async function updateTask(data: UpdateTaskInput) {
         if (result.data.projectId !== undefined) updateData.projectId = result.data.projectId
         if (result.data.sectionId !== undefined) updateData.sectionId = result.data.sectionId
 
+        // Moving a task out of a project must also drop its section, otherwise the
+        // task keeps a section pointing into a project it no longer belongs to and
+        // stops appearing in every grouped view.
+        if (result.data.projectId === null && result.data.sectionId === undefined) {
+            updateData.sectionId = null
+        }
+
         const task = await prisma.$transaction(async (tx) => {
             // Verify ownership first
             const existing = await tx.task.findUnique({
                 where: { id: result.data.id },
-                select: { userId: true }
+                select: { userId: true, projectId: true }
             })
 
             if (!existing || existing.userId !== user.id) {
                 throw new AppError('Task not found', ErrorCodes.NOT_FOUND, 404)
             }
+
+            // Owning the task is not enough — the relations it is being pointed at
+            // must belong to the same user. Inside the transaction so the check and
+            // the write see the same snapshot.
+            await assertRelationsOwned(tx, user.id, {
+                projectId: result.data.projectId,
+                sectionId: updateData.sectionId,
+                tagIds: result.data.tagIds,
+                fallbackProjectId: existing.projectId,
+            })
 
             if (result.data.tagIds !== undefined) {
                 // First delete existing tags
@@ -406,6 +425,11 @@ export async function updateTask(data: UpdateTaskInput) {
         return { success: true, data: task }
     } catch (error: any) {
         console.error('updateTask: Database error', error)
+
+        // Ownership and validation failures carry their own user-facing message
+        if (error instanceof AppError) {
+            return { success: false, error: error.userMessage || error.message }
+        }
 
         // Handle Prisma specific errors
         if (error.code === 'P2025') {
@@ -882,85 +906,25 @@ async function handleRecurringTaskCompletion(task: Task, userId: string) {
     try {
         if (!task.dueDate || !task.recurrenceInterval) return
 
-        let nextDate = new Date(task.dueDate)
-        const step = task.recurrenceStep || 1
-        const now = new Date() // Use current time to ensure we don't schedule in the past if task was overdue
+        // Date maths lives in lib/utils/recurrence so it can be unit tested without
+        // a database. It also skips past occurrences, so completing a long-neglected
+        // recurring task schedules the next one for today rather than for a date
+        // that is already overdue.
+        const nextDate = getNextOccurrence(task.dueDate, {
+            interval: task.recurrenceInterval as RecurrenceInterval,
+            step: task.recurrenceStep,
+            days: task.recurrenceDays,
+            end: task.recurrenceEnd,
+        })
 
-        // Ensure we calculate from the latest relevant date (dueDate or today)
-        // If task was overdue, we probably want the next occurrence relative to the original schedule
-        // But if it's very old, we might want to "catch up" or just schedule from today.
-        // Standard behavior is usually relative to the last due date to maintain the pattern.
+        // null means the rule is exhausted (past recurrenceEnd) — stop the chain.
+        if (!nextDate) return
 
-        switch (task.recurrenceInterval) {
-            case 'daily':
-                // Weekdays check
-                if (task.recurrenceDays && task.recurrenceDays.length > 0) {
-                    // Logic for specific days (e.g. weekdays or specific selection)
-                    // recurrenceDays: 0=Sun, 1=Mon, ... 6=Sat
+        const inheritedTags = await prisma.taskTag.findMany({
+            where: { taskId: task.id },
+            select: { tagId: true },
+        })
 
-                    // Simple "Next Valid Day" finder
-                    let daysToAdd = 1
-                    let found = false
-                    // Look ahead up to 14 days to find the next match
-                    while (!found && daysToAdd <= 14) {
-                        const candidate = addDays(nextDate, daysToAdd)
-                        const dayOfWeek = candidate.getDay()
-                        if (task.recurrenceDays.includes(dayOfWeek)) {
-                            nextDate = candidate
-                            found = true
-                        } else {
-                            daysToAdd++
-                        }
-                    }
-
-                    // If no match found (e.g. empty array), default to standard step
-                    if (!found) nextDate = addDays(nextDate, step)
-                } else {
-                    // Standard Daily
-                    nextDate = addDays(nextDate, step)
-                }
-                break
-
-            case 'weekly':
-                // Check if specific days are selected for weekly (e.g. Mon, Wed)
-                if (task.recurrenceDays && task.recurrenceDays.length > 0) {
-                    // Find next valid day in the week
-                    let daysToAdd = 1
-                    let found = false
-
-                    // Look ahead up to 14 days (2 weeks)
-                    while (!found && daysToAdd <= 14) {
-                        const candidate = addDays(nextDate, daysToAdd)
-                        const dayOfWeek = candidate.getDay()
-                        if (task.recurrenceDays.includes(dayOfWeek)) {
-                            nextDate = candidate
-                            found = true
-                        } else {
-                            daysToAdd++
-                        }
-                    }
-                    if (!found) nextDate = addWeeks(nextDate, step)
-                } else {
-                    // Standard Weekly
-                    nextDate = addWeeks(nextDate, step)
-                }
-                break
-
-            case 'monthly':
-                nextDate = addMonths(nextDate, step)
-                break
-
-            case 'yearly':
-                nextDate = addYears(nextDate, step)
-                break
-        }
-
-        // If recurrence end date is set and passed, stop
-        if (task.recurrenceEnd && nextDate > task.recurrenceEnd) {
-            return
-        }
-
-        // Create the new task
         await prisma.task.create({
             data: {
                 userId,
@@ -968,6 +932,11 @@ async function handleRecurringTaskCompletion(task: Task, userId: string) {
                 description: task.description,
                 priority: task.priority,
                 dueDate: nextDate,
+                durationMinutes: task.durationMinutes,
+                // Stay in the same project and section. Without this a recurring task
+                // silently falls out of its project on every completion.
+                projectId: task.projectId,
+                sectionId: task.sectionId,
                 // Inherit recurrence settings
                 isRecurring: true,
                 recurrenceInterval: task.recurrenceInterval,
@@ -976,10 +945,7 @@ async function handleRecurringTaskCompletion(task: Task, userId: string) {
                 recurrenceEnd: task.recurrenceEnd,
                 // Copy tags
                 tags: {
-                    create: (await prisma.taskTag.findMany({
-                        where: { taskId: task.id },
-                        select: { tagId: true }
-                    })).map(tt => ({
+                    create: inheritedTags.map(tt => ({
                         tag: { connect: { id: tt.tagId } }
                     }))
                 }

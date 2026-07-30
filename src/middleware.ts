@@ -2,26 +2,40 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { rateLimit } from '@/lib/rate-limit'
 
+/** Requests per minute per client IP, for /api/* only. */
+const API_RATE_LIMIT = 30
+
 const limiter = rateLimit({
-    interval: 60000, // 1 minute
-    uniqueTokenPerInterval: 100, // 100 requests per minute per IP
+    interval: 60_000,
+    uniqueTokenPerInterval: API_RATE_LIMIT,
 })
 
-export async function updateSession(request: NextRequest) {
-    // Apply rate limiting to API routes
-    if (request.nextUrl.pathname.startsWith('/api/')) {
-        const rateLimitResult = await limiter.check(request, 30) // 30 requests per minute for API
+function rateLimitHeaders(result: { limit: number; remaining: number; resetTime: number }) {
+    return {
+        'X-RateLimit-Limit': String(result.limit),
+        'X-RateLimit-Remaining': String(result.remaining),
+        'X-RateLimit-Reset': new Date(result.resetTime).toISOString(),
+    }
+}
 
-        if (!rateLimitResult.success) {
+export async function updateSession(request: NextRequest) {
+    const isApiRoute = request.nextUrl.pathname.startsWith('/api/')
+
+    // Apply rate limiting to API routes
+    if (isApiRoute) {
+        const result = await limiter.check(request)
+
+        if (!result.success) {
+            const retryAfterSeconds = Math.max(1, Math.ceil((result.resetTime - Date.now()) / 1000))
+
             return NextResponse.json(
                 { error: 'Too many requests. Please try again later.' },
                 {
                     status: 429,
                     headers: {
-                        'X-RateLimit-Limit': '30',
-                        'X-RateLimit-Remaining': '0',
-                        'X-RateLimit-Reset': new Date(rateLimitResult.resetTime || Date.now()).toISOString(),
-                    }
+                        ...rateLimitHeaders(result),
+                        'Retry-After': String(retryAfterSeconds),
+                    },
                 }
             )
         }
@@ -42,7 +56,7 @@ export async function updateSession(request: NextRequest) {
                     return request.cookies.getAll()
                 },
                 setAll(cookiesToSet) {
-                    cookiesToSet.forEach(({ name, value, options }) =>
+                    cookiesToSet.forEach(({ name, value }) =>
                         request.cookies.set(name, value)
                     )
 

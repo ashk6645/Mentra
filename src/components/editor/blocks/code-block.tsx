@@ -20,7 +20,6 @@ export const CodeBlock = React.forwardRef<HTMLElement, CodeBlockProps>(
         React.useImperativeHandle(ref, () => innerRef.current!)
 
         const handleChange = (e: ContentEditableEvent) => {
-            console.log('CodeBlock handleChange:', e.target.value)
             onChange({ ...content, text: e.target.value })
         }
 

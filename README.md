@@ -1,318 +1,270 @@
-# 🚀 **Premium Task & Life Management Application**
+# Mentra
 
-A production-grade task management SaaS built with Next.js 15, Supabase, Prisma, and Gemini AI. This application achieves feature parity with Microsoft To Do, Todoist, and Things while differentiating through intelligent AI automation and exceptional UX.
+A task manager built around scheduling and follow-through: capture a task in plain
+English, put it on a date, and get reminded before it slips.
 
-## ✨ **Features**
+Built with Next.js 16 (App Router), Supabase, Prisma and Postgres.
 
-### **Core Task Management**
-- ✅ Create, edit, delete tasks with rich descriptions
-- 📦 Nested subtasks (unlimited depth)
-- 🎯 Priority levels (High, Medium, Low, None)
-- 📅 Due dates with time picker
-- 🔁 Recurring tasks (daily, weekly, monthly, custom)
-- 📎 Task attachments support
-- 🏷️ Tags and labels (multi-select)
+---
 
--  Global search and filters
-- ⌨️ Keyboard shortcuts (CMD+K)
-- 🎯 Smart lists (Today, Upcoming, Overdue)
+## Features
 
-### **🤖 AI-Powered Features**
-- 💬 Natural language task parsing
-  - "Finish DSA assignment tomorrow at 7pm high priority" → Auto-parsed task
-- 🎯 AI task breakdown
-  - Automatically suggest subtasks for complex tasks
-- 🧠 Intelligent scheduling suggestions
-- 📊 Productivity insights and patterns
-- 📝 Complete AI activity logging
+### Tasks
+- Create, edit, complete and delete tasks
+- One level of subtasks per task, with a completion progress bar
+- Priority levels — urgent, high, medium, low
+- Due dates with a time picker, plus optional scheduled start/end and a duration
+- Tags, with colours and a tag manager
+- Drag-and-drop reordering
+- Full-text search across titles and descriptions
+- Bulk select, bulk edit and bulk delete
 
+### Views
+- **Today** — due today, refreshing automatically at midnight
+- **Upcoming** — grouped by day
+- **Inbox** — anything unscheduled
+- **Completed** — grouped by completion date
+- **Calendar** — month view
+- **Kanban** — drag tasks between columns
+- **Projects** — projects with sections, each with its own progress
 
+### Recurring tasks
+Daily, weekly, monthly and yearly, with a custom step ("every 3 weeks"), specific
+weekdays ("every weekday", "every Monday") and a specific day of the month
+("1st of month"). Completing an occurrence schedules the next one; if a task has
+been left for a while, the next occurrence is scheduled forward rather than
+arriving already overdue.
 
-### **🧘 Mental Health-Friendly**
-- Low energy mode (show only 3 tasks)
-- Soft reminders (no aggressive alerts)
-- Task forgiveness (easy rescheduling)
-- "One Thing Today" mode
+### Reminders and notifications
+- Web push notifications (VAPID) and email
+- Reminders at an offset before the due time (`!30min`, `!2hours`, `!1day`)
+- Overdue digests
+- Delivered by a cron endpoint (`/api/cron/process-reminders`), scheduled daily at
+  09:00 UTC in `vercel.json`
 
-### **🔁 Habits Tracking**
-- Daily/weekly habit creation
-- Visual streak calendar
-- Automatic task generation from habits
-- Habit completion tracking
+### Natural language capture
+Type a task the way you'd say it and the parser fills in the fields:
 
-### **⏱️ Focus & Execution**
-- Built-in Pomodoro timer (customizable)
-- Focus mode (distraction-free)
-- Task-based time tracking
-- Focus session analytics
-
-## 🛠️ **Tech Stack**
-
-### **Frontend**
-- **Framework:** Next.js 15 (App Router, React Server Components)
-- **Language:** TypeScript (strict mode)
-- **Styling:** Tailwind CSS + shadcn/ui
-- **Animations:** Framer Motion
-- **State Management:** 
-  - Zustand (UI/local state)
-  - TanStack Query (server state, caching)
-- **Forms:** React Hook Form + Zod validation
-
-### **Backend & Database**
-- **Platform:** Supabase (PostgreSQL, Auth, Realtime, Storage)
-- **ORM:** Prisma (type-safe database access)
-- **Authentication:** Supabase Auth (OAuth, email/password, magic links)
-- **Security:** Row Level Security (RLS) on all tables
-
-### **AI Integration**
-- **LLM:** Gemini API (Google AI)
-- **Use Cases:** NLP parsing, task breakdown, smart scheduling, insights
-
-## 📋 **Prerequisites**
-
-- **Node.js** 18+ and npm/yarn/pnpm
-- **Supabase account** ([supabase.com](https://supabase.com))
-- **Gemini API key** ([Google AI Studio](https://makersuite.google.com/app/apikey))
-
-## 🚀 **Getting Started**
-
-### **1. Clone the Repository**
-
-```bash
-git clone <your-repo-url>
-cd task-app
+```
+Submit report tomorrow at 5pm p2 @work !1hour
+└─ title ──────┘ └─ due ───────┘ │  │      └─ remind 1h before
+                                 │  └─ tag: work
+                                 └─ priority: high
 ```
 
-### **2. Install Dependencies**
+Supported: dates and times via [chrono-node](https://github.com/wanasit/chrono),
+`@tag`, `p1`–`p4` for priority, `!<offset>` for reminders, and recurrence phrases.
+Unknown tags are created on the fly.
+
+### AI assist (Gemini)
+Suggests a subtask breakdown for a task, and logs each interaction to
+`ai_activity_logs`. Requires `GEMINI_API_KEY`; the rest of the app works without it.
+
+### Focus mode
+Pomodoro timer with a circular progress ring, ambient sound (rain / calm), a
+breathing guide, and sessions recorded to `focus_sessions`.
+
+### Elsewhere
+- Command palette (`Cmd/Ctrl+K`) and keyboard shortcuts
+- Light and dark themes
+- Completion streaks and achievements on the profile
+- Installable as a PWA (manifest + service worker)
+
+---
+
+## Tech stack
+
+| Layer | Choice |
+|---|---|
+| Framework | Next.js 16, App Router, React Server Components |
+| Language | TypeScript, `strict: true` |
+| Styling | Tailwind CSS + shadcn/ui (Radix primitives) |
+| Animation | Framer Motion |
+| Client state | Zustand |
+| Server state | TanStack Query |
+| Forms | React Hook Form + Zod |
+| Drag and drop | dnd-kit |
+| Database | Postgres via Supabase |
+| ORM | Prisma |
+| Auth | Supabase Auth (email/password, Google OAuth) |
+| AI | Gemini API |
+| Tests | Jest |
+
+---
+
+## Getting started
+
+### Prerequisites
+- Node.js 18+
+- A [Supabase](https://supabase.com) project
+- A [Gemini API key](https://aistudio.google.com/app/apikey) — optional, only for AI assist
+
+### 1. Install
 
 ```bash
 npm install
-# or
-yarn install
-# or
-pnpm install
 ```
 
-### **3. Environment Setup**
-
-Copy the `.env.example` file to `.env` and fill in your credentials:
+### 2. Configure
 
 ```bash
 cp .env.example .env
 ```
 
-**Required variables:**
+Fill in at minimum:
+
 ```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=your-project-url.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-
-# Database (get from Supabase settings)
-DATABASE_URL="postgres://..."
-DIRECT_URL="postgres://..."
-
-# Gemini AI
-GEMINI_API_KEY=your-gemini-api-key
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
+DATABASE_URL="postgresql://..."
 ```
 
-### **4. Database Setup**
+Optional:
 
-#### **Push Prisma Schema to Supabase**
+| Variable | Enables |
+|---|---|
+| `GEMINI_API_KEY` | AI subtask breakdown |
+| `SUPABASE_SERVICE_ROLE_KEY` | Full account deletion (auth user, not just data) |
+| `UPSTASH_REDIS_REST_URL` / `_TOKEN` | Rate limiting shared across instances — see [Rate limiting](#rate-limiting) |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | Web push (`node scripts/generate-vapid-keys.js`) |
+
+### 3. Set up the database
 
 ```bash
 npx prisma generate
 npx prisma db push
 ```
 
-#### **Apply Row Level Security Policies**
+Then apply Row Level Security in the Supabase SQL editor. The policies live in
+`Complete Migration codes/` — note that this directory is **gitignored**, so on a
+fresh clone you will need to obtain it separately or write the policies yourself.
 
-Run the RLS migration in your Supabase SQL Editor:
-
-```bash
-# Copy content from:
-supabase/migrations/0000_initial_rls_policies.sql
-```
-
-### **5. Run Development Server**
+### 4. Run
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the application.
-
-### **6. Create Your First User**
-
-1. Navigate to `/signup`
-2. Create an account
-3. Start managing your tasks!
-
-## 📁 **Project Structure**
-
-```
-task-app/
-├── prisma/
-│   └── schema.prisma          # Database schema
-├── public/                    # Static assets
-├── src/
-│   ├── app/                   # Next.js app router
-│   │   ├── (auth)/           # Auth pages (login, signup)
-│   │   ├── (app)/            # Protected app pages
-│   │   │   ├── inbox/
-│   │   │   ├── today/
-│   │   │   ├── upcoming/
-
-│   │   ├── habits/           # Habit tracking
-│   │   ├── focus/            # Pomodoro timer
-│   ├── lib/                  # Utilities & actions
-│   │   ├── actions/          # Server actions
-│   │   ├── supabase/         # Supabase clients
-│   │   ├── ai/               # AI utilities
-│   │   ├── gemini.ts         # Gemini configuration
-│   │   ├── prisma.ts         # Prisma client
-│   │   └── utils.ts          # Helper functions
-│   ├── stores/               # Zustand stores
-│   ├── types/                # TypeScript types
-│   └── middleware.ts         # Auth middleware
-└── supabase/
-    └── migrations/           # SQL migrations
-```
-
-## 🔐 **Security**
-
-### **Row Level Security (RLS)**
-All database tables are protected with RLS policies ensuring users can only access their own data.
-
-### **Authentication**
-- JWT-based authentication via Supabase
-- Secure session management
-- Email verification support
-- OAuth providers ready (Google, GitHub, etc.)
-
-### **Data Protection**
-- HTTPS only
-- Encrypted data at rest (Supabase default)
-- API rate limiting (Supabase default)
-- Input validation with Zod
-- SQL injection prevention (Prisma)
-
-## 🎨 **Design System**
-
-### **Principles**
-- **Minimal:** Remove everything unnecessary
-- **Elegant:** Thoughtful spacing, typography, motion
-- **Calm:** Soft colors, no aggressive alerts
-- **Fast:** Perceived performance < 100ms
-- **Delightful:** Subtle animations, smart defaults
-
-### **Color Palette**
-- Neutral base (Gray scale)
-- Accent color (Blue/Purple/Green)
-- Semantic colors (Success, Warning, Danger)
-- Full dark mode support
-
-## 📊 **Database Schema**
-
-Key tables:
-- `profiles` - User profiles
-- `tasks` - Core task data with subtasks support
-- `tags` - Task tagging system
-- `habits` - Habit tracking
-- `focus_sessions` - Pomodoro sessions
-- `ai_activity_logs` - AI interaction logs
-
-## 🤝 **Contributing**
-
-This is a production-grade project. Contributions should maintain the high quality standards:
-
-1. **TypeScript strict mode** - No `any` types
-2. **Complete implementations** - No TODOs in PRs
-3. **Type safety** - All props and functions typed
-4. **Error handling** - Proper try-catch blocks
-5. **Security first** - RLS policies for new tables
-6. **Performance** - Code splitting, lazy loading
-7. **Accessibility** - WCAG 2.1 AA compliance
-
-## 📝 **Development Guidelines**
-
-### **Code Quality Standards**
-- Follow DRY, SOLID, KISS, YAGNI principles
-- No `any` types (use `unknown` if needed)
-- Proper error handling for all async operations
-- Meaningful component and function names
-
-### **Component Structure**
-```typescript
-import { Type } from '@prisma/client'
-
-interface ComponentProps {
-  data: Type
-  onAction: (id: string) => void
-}
-
-export function Component({ data, onAction }: ComponentProps) {
-  // Implementation
-}
-```
-
-### **Server Actions**
-- Always validate input with Zod
-- Check authentication
-- Revalidate paths after mutations
-- Proper error handling and logging
-
-## 🚢 **Deployment** (After Development)
-
-### **Recommended Stack**
-- **Hosting:** Vercel (frontend + API routes)
-- **Database:** Supabase (managed PostgreSQL)
-- **Storage:** Supabase Storage (attachments)
-- **Monitoring:** Sentry (errors) + PostHog (analytics)
-
-### **Environment Variables for Production**
-Ensure all environment variables are set in your deployment platform.
-
-## 📈 **Roadmap**
-
-### **Phase 1: Core** ✅
-- Task CRUD, Smart lists, Drag-and-drop, Search
-
-### **Phase 2: Advanced** ✅
-- Recurring tasks, Tags, Real-time sync
-
-### **Phase 3: AI Integration** ✅
-- Natural language parsing, Task breakdown, Smart scheduling
-
-### **Phase 4: Differentiation** ✅
-- Habits, Focus mode, Mental health features
-
-### **Phase 5: Production** 🚧
-- Performance optimization
-- PWA support
-- Offline mode
-- Push notifications
-- Email notifications
-- Analytics integration
-
-### **Phase 6: Collaboration** 📋
-- Shared projects
-- Task assignment
-- Comments and mentions
-- Team workspaces
-
-## 📄 **License**
-
-This project is built as a production SaaS application.
-
-## 🙏 **Acknowledgments**
-
-- **Next.js** - React framework
-- **Supabase** - Backend infrastructure
-- **Prisma** - Database ORM
-- **shadcn/ui** - UI components
-- **Gemini AI** - AI intelligence
-- **Vercel** - Deployment platform
+Then open http://localhost:3000 and sign up at `/signup`.
 
 ---
 
-**Built for productivity and mental well-being**
+## Scripts
+
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Development server |
+| `npm run build` | Production build (runs `prisma generate` first) |
+| `npm start` | Serve the production build |
+| `npm run lint` | ESLint |
+| `npm test` | Jest |
+| `npm run test:coverage` | Jest with coverage |
+| `npm run prisma:studio` | Browse the database |
+
+---
+
+## Project layout
+
+```
+prisma/schema.prisma        Database schema (18 models)
+src/
+├── app/
+│   ├── (auth)/             login, signup
+│   ├── (app)/              Authenticated routes; the layout redirects
+│   │                       unauthenticated users, so every route below is
+│   │                       protected by construction
+│   │   ├── today/ upcoming/ inbox/ completed/
+│   │   ├── calendar/ kanban/
+│   │   └── projects/[id]/
+│   ├── focus/
+│   └── api/                auth callback, reminder cron, health, pages data
+├── components/             Feature-grouped UI; ui/ holds shadcn primitives
+├── lib/
+│   ├── actions/            Server actions — every mutation lives here
+│   ├── security/           Tenancy guards (see Security)
+│   ├── parsers/            Natural language task parser
+│   ├── notifications/      Push, email, overdue processing
+│   ├── supabase/           Browser and server clients
+│   └── utils/              Dates, recurrence maths
+├── stores/                 Zustand stores
+└── middleware.ts           Session refresh + API rate limiting
+```
+
+---
+
+## Security
+
+**Authentication.** Supabase Auth issues the session; `middleware.ts` refreshes it
+on each request. The `(app)` route group's layout redirects anyone without a
+session, so protection does not depend on remembering a check in each page.
+
+**Tenancy.** Two separate boundaries, both enforced:
+- *Reads* are scoped by `userId` in every query.
+- *Writes* additionally verify that any relation id the client sends —
+  `projectId`, `sectionId`, `tagIds` — belongs to the caller. Zod validates the
+  shape of an id, never its owner. See `src/lib/security/ownership.ts`.
+
+Postgres Row Level Security is applied on top of both.
+
+**Input validation.** Every server action validates with Zod before touching the
+database. Prisma parameterises all queries.
+
+**Headers.** HSTS, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`
+and a restrictive `Permissions-Policy` are set in `next.config.ts`.
+
+### Rate limiting
+
+`/api/*` is limited to 30 requests per minute per IP. The limiter keys on IP only
+— User-Agent is client-controlled and would be trivially rotated.
+
+Set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` to share counters
+across instances. Without them it falls back to per-process counters, which means
+the real ceiling becomes `30 x number of running instances` — fine locally, not
+sufficient for a multi-instance deploy.
+
+---
+
+## Testing
+
+```bash
+npm test
+```
+
+174 tests cover the pure, high-risk logic: the natural language parser, recurrence
+date maths, the rate limiter (including the in-memory and Upstash backends), the
+tenancy guards, and error handling.
+
+Not yet covered: React components, and server actions end to end — both need a
+test database or a Prisma mock layer that does not exist yet.
+
+---
+
+## Deployment
+
+Deploys to Vercel as-is. `vercel.json` registers the reminder cron.
+
+Before going live:
+- Set every variable from `.env.example` in the platform's environment
+- Set the Upstash variables (see [Rate limiting](#rate-limiting))
+- Apply the RLS policies to the production database
+
+---
+
+## Status
+
+Built and maintained solo. Working and deployable; not a finished commercial product.
+
+Known gaps:
+- **Pages / block editor** — a Notion-style block editor, database blocks and page
+  sharing are implemented under `src/components/pages/` and `src/components/editor/`,
+  but the routes are parked in `src/app/(app)/_pages_archive/`. The underscore makes
+  the folder private to the App Router, so the feature does not currently ship.
+- No component or integration tests (see [Testing](#testing)).
+- Roughly 150 `any` annotations remain, mostly in Prisma `where` clauses and
+  server-action payload builders.
+
+---
+
+## Licence
+
+No licence has been chosen yet, so default copyright applies: all rights reserved.
