@@ -1,12 +1,15 @@
 'use client'
 
-import { memo, useMemo } from 'react'
+import { memo, useCallback, useMemo, useRef } from 'react'
 import { motion } from 'framer-motion'
+import { Flame } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Habit } from '@/lib/second-brain/types'
 import { shortDayName, dayOfMonth, todayKey, isFuture } from '@/lib/second-brain/date'
 import { isScheduled, completionFor, dayCompletion, currentStreak } from '@/lib/second-brain/stats'
+import { HabitIcon } from '@/lib/second-brain/icons'
 import { SBCheckbox } from './checkbox'
+import { AnimatedNumber } from './animated-number'
 import { SURFACE, SURFACE_SOLID, HAIRLINE, LABEL, NUM, FOCUS, BAR_SPRING } from '@/lib/second-brain/ui'
 
 interface HabitGridProps {
@@ -24,6 +27,8 @@ const Cell = memo(function Cell({
     scheduled,
     done,
     future,
+    row,
+    col,
     onToggle,
 }: {
     habitId: string
@@ -32,18 +37,20 @@ const Cell = memo(function Cell({
     scheduled: boolean
     done: boolean
     future: boolean
+    row: number
+    col: number
     onToggle: (habitId: string, date: string) => void
 }) {
     if (!scheduled) {
         return (
             <td className="px-1 text-center align-middle">
-                {/* A rest day is not a miss. Notion's table has only checkboxes, so an
+                {/* A rest day is not a miss. A plain table has only checkboxes, so an
                     unscheduled Sunday reads identically to one you skipped. */}
                 <span
                     className="inline-flex h-8 w-8 items-center justify-center"
                     title={`${habitName} isn't scheduled on this day`}
                 >
-                    <span className="h-[3px] w-[3px] rounded-full bg-black/15 dark:bg-white/20" />
+                    <span className="h-[3px] w-[3px] rounded-full bg-foreground/20" />
                 </span>
             </td>
         )
@@ -53,12 +60,15 @@ const Cell = memo(function Cell({
         <td className="px-1 text-center align-middle">
             <button
                 type="button"
+                data-cell
+                data-row={row}
+                data-col={col}
                 onClick={() => onToggle(habitId, date)}
                 aria-label={`${habitName} on ${date}`}
                 aria-pressed={done}
                 className={cn(
                     'inline-flex h-8 w-8 items-center justify-center rounded-[8px]',
-                    'transition-colors duration-150 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]',
+                    'transition-colors duration-150 hover:bg-foreground/[0.06]',
                     FOCUS,
                     future && !done && 'opacity-40'
                 )}
@@ -69,20 +79,19 @@ const Cell = memo(function Cell({
     )
 })
 
-/** Percentage plus a bar that springs to width. */
 function RowProgress({ percent, dim }: { percent: number; dim: boolean }) {
     return (
         <div className="flex items-center justify-end gap-2.5">
-            <span
+            <AnimatedNumber
+                value={percent}
+                suffix="%"
                 className={cn(
                     'w-8 text-right text-[11.5px]',
                     NUM,
                     dim ? 'text-muted-foreground/50' : 'text-muted-foreground'
                 )}
-            >
-                {percent}%
-            </span>
-            <div className="h-[3px] w-14 overflow-hidden rounded-full bg-black/[0.07] dark:bg-white/[0.09]">
+            />
+            <div className="h-[3px] w-14 overflow-hidden rounded-full bg-foreground/[0.09]">
                 <motion.div
                     className={cn(
                         'h-full rounded-full',
@@ -100,14 +109,14 @@ function RowProgress({ percent, dim }: { percent: number; dim: boolean }) {
 /**
  * Days as rows, habits as columns.
  *
- * Two capabilities a generic database table can't express, which is the whole
- * reason not to just use one:
+ * Two capabilities a generic database table can't express:
  *   1. "Not scheduled" is a dot, not an unchecked box, and is excluded from the
  *      completion denominator — so a weekday habit reads 100%, not 71%.
  *   2. A live streak sits in each column header, where it actually motivates.
  */
 export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: HabitGridProps) {
     const today = todayKey()
+    const gridRef = useRef<HTMLTableElement>(null)
 
     const perHabit = useMemo(
         () =>
@@ -119,20 +128,53 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
         [habits, isDone, days]
     )
 
-    if (habits.length === 0) {
-        return (
-            <div className={cn('rounded-[14px] px-6 py-16 text-center', SURFACE)}>
-                <p className="text-[13.5px] text-muted-foreground">
-                    No habits yet — add one to start tracking.
-                </p>
-            </div>
+    /**
+     * Arrow-key navigation across the grid.
+     *
+     * 7 days x 5 habits is 35 tab stops; reaching the middle of the week by Tab alone
+     * is not a real option. Arrows move by cell and step over unscheduled days (which
+     * render as dots, not buttons); Space and Enter toggle via the button itself.
+     */
+    const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLTableElement>) => {
+        const arrows = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']
+        if (!arrows.includes(event.key)) return
+
+        const active = document.activeElement as HTMLElement | null
+        if (!active?.dataset.cell) return
+
+        event.preventDefault()
+
+        const row = Number(active.dataset.row)
+        const col = Number(active.dataset.col)
+        const cells = Array.from(
+            gridRef.current?.querySelectorAll<HTMLElement>('[data-cell]') ?? []
         )
-    }
+
+        const dRow = event.key === 'ArrowDown' ? 1 : event.key === 'ArrowUp' ? -1 : 0
+        const dCol = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
+
+        // Keep stepping until a rendered cell turns up — gaps are unscheduled days.
+        for (let step = 1; step <= 12; step++) {
+            const targetRow = row + dRow * step
+            const targetCol = col + dCol * step
+
+            const next = cells.find(
+                c => Number(c.dataset.row) === targetRow && Number(c.dataset.col) === targetCol
+            )
+
+            if (next) {
+                next.focus()
+                return
+            }
+        }
+    }, [])
+
+    if (habits.length === 0) return null
 
     return (
         <div className={cn('overflow-hidden rounded-[14px]', SURFACE)}>
             <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
+                <table ref={gridRef} onKeyDown={handleKeyDown} className="w-full border-collapse">
                     <thead>
                         <tr className={cn('border-b', HAIRLINE)}>
                             <th
@@ -140,7 +182,7 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
                                 className={cn(
                                     // Same token as the card, so the sticky column
                                     // composites to an identical colour — no seam.
-                                    'sticky left-0 z-20 px-4 py-2.5 text-left',
+                                    'sticky left-0 z-20 px-4 py-3 text-left',
                                     SURFACE_SOLID
                                 )}
                             >
@@ -148,43 +190,43 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
                             </th>
 
                             {perHabit.map(({ habit, streak }) => (
-                                <th key={habit.id} scope="col" className="px-1.5 py-2.5">
-                                    <div className="mx-auto flex w-[88px] flex-col items-center gap-1.5">
-                                        <span aria-hidden className="text-[17px] leading-none">
-                                            {habit.icon}
-                                        </span>
+                                <th key={habit.id} scope="col" className="px-1.5 py-3">
+                                    <div className="mx-auto flex w-[92px] flex-col items-center gap-2">
+                                        <HabitIcon
+                                            icon={habit.icon}
+                                            className="h-[17px] w-[17px] text-foreground/65"
+                                        />
                                         <span
                                             className="line-clamp-2 text-center text-[11.5px] font-medium leading-[1.3] text-foreground/80"
                                             title={habit.name}
                                         >
                                             {habit.name}
                                         </span>
-                                        {/* Neutral, so it never competes with the emerald ticks. */}
+                                        {/* Height is reserved whether or not there's a
+                                            streak, so headers stay on one baseline. */}
                                         <span
                                             className={cn(
-                                                'flex items-center gap-0.5 text-[10px] font-semibold leading-none',
+                                                'flex h-[13px] items-center gap-1 text-[10px] font-semibold leading-none',
                                                 NUM,
-                                                streak > 0
-                                                    ? 'text-muted-foreground'
-                                                    : 'text-transparent select-none'
+                                                streak > 0 ? 'text-muted-foreground' : 'opacity-0'
                                             )}
                                             title={streak > 0 ? `${streak} day streak` : undefined}
                                         >
-                                            <span className="text-[9px]">🔥</span>
-                                            {streak > 0 ? streak : 0}
+                                            <Flame className="h-[11px] w-[11px]" strokeWidth={2} />
+                                            {streak > 0 ? streak : ''}
                                         </span>
                                     </div>
                                 </th>
                             ))}
 
-                            <th scope="col" className="px-4 py-2.5 text-right">
+                            <th scope="col" className="px-4 py-3 text-right">
                                 <span className={LABEL}>Progress</span>
                             </th>
                         </tr>
                     </thead>
 
                     <tbody>
-                        {days.map(day => {
+                        {days.map((day, rowIndex) => {
                             const isToday = day === today
                             const future = isFuture(day)
                             const progress = dayCompletion(habits, isDone, day)
@@ -195,7 +237,7 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
                                     className={cn(
                                         'group border-b last:border-b-0 transition-colors',
                                         HAIRLINE,
-                                        !isToday && 'hover:bg-black/[0.015] dark:hover:bg-white/[0.025]'
+                                        !isToday && 'hover:bg-foreground/[0.02]'
                                     )}
                                 >
                                     <th
@@ -210,14 +252,14 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
                                             onClick={() => onSelectDay?.(day)}
                                             title="Open this day"
                                             className={cn(
-                                                'relative flex items-center gap-2.5 rounded-[8px] py-1 pl-2.5 pr-2 text-left transition-colors',
-                                                'hover:bg-black/[0.04] dark:hover:bg-white/[0.06]',
+                                                'relative flex items-center gap-2.5 rounded-[8px] py-1.5 pl-2.5 pr-2 text-left transition-colors',
+                                                'hover:bg-foreground/[0.05]',
                                                 FOCUS,
                                                 future && 'opacity-50'
                                             )}
                                         >
-                                            {/* Today marker: a 2px rule, not a filled pill. Quiet
-                                                enough to leave completion as the only strong colour. */}
+                                            {/* Today: a 2px rule, not a filled pill — quiet
+                                                enough to leave completion the only strong colour. */}
                                             {isToday && (
                                                 <span className="absolute -left-[9px] top-1/2 h-[15px] w-[2px] -translate-y-1/2 rounded-full bg-primary" />
                                             )}
@@ -246,7 +288,7 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
                                         </button>
                                     </th>
 
-                                    {habits.map(habit => (
+                                    {habits.map((habit, colIndex) => (
                                         <Cell
                                             key={habit.id}
                                             habitId={habit.id}
@@ -255,6 +297,8 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
                                             scheduled={isScheduled(habit, day)}
                                             done={isDone(habit.id, day)}
                                             future={future}
+                                            row={rowIndex}
+                                            col={colIndex}
                                             onToggle={onToggle}
                                         />
                                     ))}
@@ -274,31 +318,34 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
                         <tr className={cn('border-t', HAIRLINE)}>
                             <th
                                 scope="row"
-                                className={cn('sticky left-0 z-10 px-4 py-2.5 text-left', SURFACE_SOLID)}
+                                className={cn('sticky left-0 z-10 px-4 py-3 text-left', SURFACE_SOLID)}
                             >
                                 <span className={LABEL}>Rate</span>
                             </th>
 
                             {perHabit.map(({ habit, completion }) => (
-                                <td key={habit.id} className="px-1.5 py-2.5 text-center">
-                                    <span
-                                        className={cn(
-                                            'text-[11.5px] font-semibold',
-                                            NUM,
-                                            completion.scheduled === 0
-                                                ? 'text-muted-foreground/40'
-                                                : completion.percent === 100
+                                <td key={habit.id} className="px-1.5 py-3 text-center">
+                                    {completion.scheduled === 0 ? (
+                                        <span className="text-[11.5px] font-semibold text-muted-foreground/40">
+                                            —
+                                        </span>
+                                    ) : (
+                                        <AnimatedNumber
+                                            value={completion.percent}
+                                            suffix="%"
+                                            className={cn(
+                                                'text-[11.5px] font-semibold',
+                                                NUM,
+                                                completion.percent === 100
                                                     ? 'text-emerald-600 dark:text-emerald-400'
                                                     : 'text-muted-foreground'
-                                        )}
-                                        title={`${completion.done} of ${completion.scheduled} scheduled days`}
-                                    >
-                                        {completion.scheduled === 0 ? '—' : `${completion.percent}%`}
-                                    </span>
+                                            )}
+                                        />
+                                    )}
                                 </td>
                             ))}
 
-                            <td className="px-4 py-2.5" />
+                            <td className="px-4 py-3" />
                         </tr>
                     </tfoot>
                 </table>
