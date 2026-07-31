@@ -1,7 +1,10 @@
 'use client'
 
 import { useMemo } from 'react'
+import { Flame } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { HabitIcon } from '@/lib/second-brain/icons'
+import { AnimatedNumber } from './animated-number'
 import type { Habit } from '@/lib/second-brain/types'
 import { todayKey, weekdayOf, dayOfMonth } from '@/lib/second-brain/date'
 import { isScheduled, completionFor, currentStreak } from '@/lib/second-brain/stats'
@@ -84,15 +87,7 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
         [habits, isDone, days]
     )
 
-    if (habits.length === 0) {
-        return (
-            <div className={cn('rounded-[14px] px-6 py-16 text-center', SURFACE)}>
-                <p className="text-[13.5px] text-muted-foreground">
-                    No habits yet — add one to start tracking.
-                </p>
-            </div>
-        )
-    }
+    if (habits.length === 0) return null
 
     return (
         <div className="flex flex-col gap-3">
@@ -133,9 +128,10 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
                                 style={{ width: LABEL_W }}
                                 className="flex shrink-0 items-center gap-2"
                             >
-                                <span aria-hidden className="shrink-0 text-[15px] leading-none">
-                                    {habit.icon}
-                                </span>
+                                <HabitIcon
+                                    icon={habit.icon}
+                                    className="h-[15px] w-[15px] shrink-0 text-foreground/60"
+                                />
                                 <span
                                     className="flex-1 truncate text-[12.5px] text-foreground/85"
                                     title={habit.name}
@@ -150,7 +146,7 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
                                         )}
                                         title={`${streak} day streak`}
                                     >
-                                        <span className="text-[9px]">🔥</span>
+                                        <Flame className="h-[10px] w-[10px]" strokeWidth={2} />
                                         {streak}
                                     </span>
                                 )}
@@ -177,7 +173,11 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
                                 )}
                                 title={`${completion.done} of ${completion.scheduled} scheduled days`}
                             >
-                                {completion.scheduled === 0 ? '—' : `${completion.percent}%`}
+                                {completion.scheduled === 0 ? (
+                                    '—'
+                                ) : (
+                                    <AnimatedNumber value={completion.percent} suffix="%" />
+                                )}
                             </span>
                         </div>
                     ))}
