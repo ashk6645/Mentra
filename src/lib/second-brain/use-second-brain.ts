@@ -9,6 +9,7 @@ import {
     entryKey,
 } from './types'
 import { loadState, saveState, resetState, createId } from './storage'
+import { DEFAULT_ICON_ID } from './icons'
 import { weekdayOf } from './date'
 
 /**
@@ -128,7 +129,7 @@ export function useSecondBrain() {
                 const habit: Habit = {
                     id: createId('habit'),
                     name,
-                    icon: input.icon || '✅',
+                    icon: input.icon || DEFAULT_ICON_ID,
                     timeOfDay: input.timeOfDay,
                     scheduleDays: input.scheduleDays,
                     createdAt: new Date().toISOString(),
