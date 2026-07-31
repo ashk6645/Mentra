@@ -1,57 +1,91 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Flame, Target, CalendarCheck } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import type { Habit } from '@/lib/second-brain/types'
 import { todayKey } from '@/lib/second-brain/date'
 import { isScheduled, completionFor, currentStreak } from '@/lib/second-brain/stats'
+import { SURFACE, HAIRLINE, LABEL, NUM, BAR_SPRING } from '@/lib/second-brain/ui'
 
 interface SummaryBarProps {
     days: string[]
     habits: Habit[]
     isDone: (habitId: string, date: string) => boolean
-    /** Label for the range being summarised, e.g. "this week". */
     rangeLabel: string
 }
 
+/** Circular gauge. Reads at a glance in a way a horizontal bar of the same size doesn't. */
+function Ring({ percent }: { percent: number }) {
+    const R = 15
+    const C = 2 * Math.PI * R
+
+    return (
+        <div className="relative h-9 w-9 shrink-0">
+            <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
+                <circle
+                    cx="18"
+                    cy="18"
+                    r={R}
+                    fill="none"
+                    strokeWidth={3}
+                    className="stroke-black/[0.07] dark:stroke-white/[0.09]"
+                />
+                <motion.circle
+                    cx="18"
+                    cy="18"
+                    r={R}
+                    fill="none"
+                    strokeWidth={3}
+                    strokeLinecap="round"
+                    className={cn(
+                        percent === 100 ? 'stroke-emerald-500' : 'stroke-foreground/85'
+                    )}
+                    strokeDasharray={C}
+                    initial={false}
+                    animate={{ strokeDashoffset: C - (C * percent) / 100 }}
+                    transition={BAR_SPRING}
+                />
+            </svg>
+        </div>
+    )
+}
+
 function Stat({
-    icon: Icon,
     value,
     label,
-    accent,
+    children,
 }: {
-    icon: typeof Flame
     value: string
     label: string
-    accent?: string
+    children?: React.ReactNode
 }) {
     return (
-        <div className="flex flex-1 items-center gap-3 px-4 py-3">
-            <span
-                className={cn(
-                    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
-                    accent ?? 'bg-neutral-100 text-muted-foreground dark:bg-neutral-800'
-                )}
-            >
-                <Icon className="h-4 w-4" />
-            </span>
-            <div className="flex min-w-0 flex-col">
-                <span className="text-[17px] font-semibold leading-tight tabular-nums text-foreground">
+        <div className="flex items-center gap-3 px-4 py-3.5">
+            {children}
+            <div className="flex min-w-0 flex-col gap-0.5">
+                <span
+                    className={cn(
+                        'text-[19px] font-semibold leading-none tracking-[-0.02em] text-foreground',
+                        NUM
+                    )}
+                >
                     {value}
                 </span>
-                <span className="truncate text-[11px] text-muted-foreground">{label}</span>
+                <span className="truncate text-[11.5px] leading-none text-muted-foreground">
+                    {label}
+                </span>
             </div>
         </div>
     )
 }
 
 /**
- * Three numbers that answer "how am I doing" without reading the grid.
+ * Three figures that answer "how am I doing" without reading the grid.
  *
- * Deliberately only three. The reference dashboards bury the signal in a footer of
- * per-column percentages; the useful summary is today's progress, the range rate,
- * and the streak worth protecting.
+ * Deliberately three, and deliberately unlabelled by icon — the reference
+ * dashboards bury the signal under a row of coloured glyphs. A ring, a number and
+ * a caption carry it.
  */
 export function SummaryBar({ days, habits, isDone, rangeLabel }: SummaryBarProps) {
     const stats = useMemo(() => {
@@ -60,7 +94,6 @@ export function SummaryBar({ days, habits, isDone, rangeLabel }: SummaryBarProps
         const todayHabits = habits.filter(h => isScheduled(h, today))
         const todayDone = todayHabits.filter(h => isDone(h.id, today)).length
 
-        // Aggregate rate across every habit in the range.
         let done = 0
         let scheduled = 0
         for (const habit of habits) {
@@ -74,41 +107,54 @@ export function SummaryBar({ days, habits, isDone, rangeLabel }: SummaryBarProps
         const bestHabit = habits[streaks.indexOf(best)]
 
         return {
-            todayLabel: todayHabits.length === 0 ? '—' : `${todayDone}/${todayHabits.length}`,
+            todayDone,
+            todayTotal: todayHabits.length,
+            todayPercent:
+                todayHabits.length === 0 ? 0 : Math.round((todayDone / todayHabits.length) * 100),
             rate: scheduled === 0 ? 0 : Math.round((done / scheduled) * 100),
             best,
-            bestHabitName: best > 0 && bestHabit ? bestHabit.name : 'No active streak',
+            bestHabitName: best > 0 && bestHabit ? bestHabit.name : null,
         }
     }, [days, habits, isDone])
 
     return (
-        <div className="grid grid-cols-1 divide-y divide-neutral-200 rounded-xl border border-neutral-200 sm:grid-cols-3 sm:divide-x sm:divide-y-0 dark:divide-neutral-800 dark:border-neutral-800">
+        <div
+            className={cn(
+                'grid grid-cols-1 overflow-hidden rounded-[14px] sm:grid-cols-3',
+                'divide-y sm:divide-x sm:divide-y-0',
+                SURFACE,
+                `divide-black/[0.07] dark:divide-white/[0.07] ${HAIRLINE}`
+            )}
+        >
             <Stat
-                icon={CalendarCheck}
-                value={stats.todayLabel}
+                value={stats.todayTotal === 0 ? '—' : `${stats.todayDone}/${stats.todayTotal}`}
                 label="Done today"
-                accent="bg-primary/10 text-primary"
-            />
+            >
+                <Ring percent={stats.todayPercent} />
+            </Stat>
+
+            <Stat value={`${stats.rate}%`} label={`Completion ${rangeLabel}`}>
+                <Ring percent={stats.rate} />
+            </Stat>
+
             <Stat
-                icon={Target}
-                value={`${stats.rate}%`}
-                label={`Completion ${rangeLabel}`}
-                accent={
-                    stats.rate >= 80
-                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500'
-                        : undefined
-                }
-            />
-            <Stat
-                icon={Flame}
-                value={stats.best > 0 ? `${stats.best}` : '0'}
-                label={stats.best > 0 ? `Day streak · ${stats.bestHabitName}` : 'No active streak'}
-                accent={
-                    stats.best > 0
-                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-500'
-                        : undefined
-                }
-            />
+                value={String(stats.best)}
+                label={stats.bestHabitName ? `Day streak · ${stats.bestHabitName}` : 'No active streak'}
+            >
+                {/* Neutral, not amber. Completion owns the only saturated colour here. */}
+                <span
+                    className={cn(
+                        'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[15px]',
+                        stats.best > 0
+                            ? 'bg-black/[0.05] dark:bg-white/[0.07]'
+                            : 'bg-black/[0.03] opacity-40 dark:bg-white/[0.04]'
+                    )}
+                >
+                    🔥
+                </span>
+            </Stat>
         </div>
     )
 }
+
+export { LABEL }
