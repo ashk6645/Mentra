@@ -9,13 +9,11 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { TIME_OF_DAY_ORDER, TIME_OF_DAY_LABEL, type TimeOfDay } from '@/lib/second-brain/types'
+import { LABEL, HAIRLINE, FOCUS } from '@/lib/second-brain/ui'
 
-/** Sunday-first to match JS weekday numbering, which is what we store. */
+/** Sunday-first, matching the JS weekday numbering we store. */
 const WEEKDAYS = [
     { value: 0, label: 'S', full: 'Sunday' },
     { value: 1, label: 'M', full: 'Monday' },
@@ -28,6 +26,12 @@ const WEEKDAYS = [
 
 const ICON_CHOICES = ['🏋️', '📚', '📖', '🎯', '🧘', '🏃', '💧', '🌙', '✍️', '🎧', '🥗', '💻']
 
+const PRESETS = [
+    { label: 'Every day', days: [] as number[] },
+    { label: 'Weekdays', days: [1, 2, 3, 4, 5] },
+    { label: 'Weekends', days: [0, 6] },
+]
+
 interface AddHabitDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
@@ -37,6 +41,17 @@ interface AddHabitDialogProps {
         timeOfDay: TimeOfDay
         scheduleDays: number[]
     }) => void
+}
+
+/** Shared chip styling for the icon, slot, preset and weekday pickers. */
+function chip(selected: boolean) {
+    return cn(
+        'rounded-[9px] border text-[12.5px] font-medium transition-colors duration-150',
+        FOCUS,
+        selected
+            ? 'border-transparent bg-foreground text-background'
+            : `${HAIRLINE} text-muted-foreground hover:bg-black/[0.03] hover:text-foreground dark:hover:bg-white/[0.05]`
+    )
 }
 
 export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProps) {
@@ -65,35 +80,53 @@ export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProp
     }
 
     const toggleDay = (value: number) =>
-        setDays(prev =>
-            prev.includes(value) ? prev.filter(d => d !== value) : [...prev, value]
-        )
+        setDays(prev => (prev.includes(value) ? prev.filter(d => d !== value) : [...prev, value]))
+
+    const matchesPreset = (preset: number[]) =>
+        preset.length === days.length && preset.every(d => days.includes(d))
 
     return (
         <Dialog open={open} onOpenChange={close}>
-            <DialogContent className="sm:max-w-[440px]">
+            <DialogContent className="sm:max-w-[420px]">
                 <DialogHeader>
-                    <DialogTitle>New habit</DialogTitle>
-                    <DialogDescription>
-                        Something you repeat. Leave the days unselected for every day.
+                    <DialogTitle className="text-[16px] font-semibold tracking-[-0.01em]">
+                        New habit
+                    </DialogTitle>
+                    <DialogDescription className="text-[13px]">
+                        Something you repeat. Leave the days unset for every day.
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="flex flex-col gap-5 py-2">
+                <div className="flex flex-col gap-6 py-1">
+                    {/* Name, with the icon inline — one row instead of two fields. */}
                     <div className="flex flex-col gap-2">
-                        <Label htmlFor="habit-name">Name</Label>
-                        <Input
-                            id="habit-name"
-                            value={name}
-                            onChange={e => setName(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && submit()}
-                            placeholder="Morning run"
-                            autoFocus
-                        />
+                        <label htmlFor="habit-name" className={LABEL}>
+                            Name
+                        </label>
+                        <div
+                            className={cn(
+                                'flex items-center gap-2 rounded-[10px] border px-2.5 py-2 transition-colors',
+                                HAIRLINE,
+                                'focus-within:border-primary/40'
+                            )}
+                        >
+                            <span aria-hidden className="text-[16px] leading-none">
+                                {icon}
+                            </span>
+                            <input
+                                id="habit-name"
+                                value={name}
+                                onChange={e => setName(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && submit()}
+                                placeholder="Morning run"
+                                autoFocus
+                                className="flex-1 bg-transparent text-[13.5px] outline-none placeholder:text-muted-foreground/60"
+                            />
+                        </div>
                     </div>
 
                     <div className="flex flex-col gap-2">
-                        <Label>Icon</Label>
+                        <span className={LABEL}>Icon</span>
                         <div className="flex flex-wrap gap-1.5">
                             {ICON_CHOICES.map(choice => (
                                 <button
@@ -103,11 +136,11 @@ export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProp
                                     aria-label={`Icon ${choice}`}
                                     aria-pressed={icon === choice}
                                     className={cn(
-                                        'flex h-9 w-9 items-center justify-center rounded-lg border text-base transition-colors',
-                                        'outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                                        'flex h-8 w-8 items-center justify-center rounded-[9px] border text-[15px] transition-all duration-150',
+                                        FOCUS,
                                         icon === choice
-                                            ? 'border-foreground/30 bg-neutral-100 dark:bg-neutral-800'
-                                            : 'border-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800/60'
+                                            ? 'border-foreground/25 bg-black/[0.05] scale-105 dark:bg-white/[0.08]'
+                                            : `${HAIRLINE} hover:bg-black/[0.03] dark:hover:bg-white/[0.05]`
                                     )}
                                 >
                                     {choice}
@@ -117,7 +150,7 @@ export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProp
                     </div>
 
                     <div className="flex flex-col gap-2">
-                        <Label>Time of day</Label>
+                        <span className={LABEL}>Time of day</span>
                         <div className="flex gap-1.5">
                             {TIME_OF_DAY_ORDER.map(slot => (
                                 <button
@@ -125,13 +158,7 @@ export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProp
                                     type="button"
                                     onClick={() => setTimeOfDay(slot)}
                                     aria-pressed={timeOfDay === slot}
-                                    className={cn(
-                                        'flex-1 rounded-lg border px-3 py-2 text-[13px] font-medium transition-colors',
-                                        'outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                                        timeOfDay === slot
-                                            ? 'border-foreground/30 bg-neutral-100 dark:bg-neutral-800'
-                                            : 'border-neutral-200 text-muted-foreground hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800/60'
-                                    )}
+                                    className={cn('flex-1 py-2', chip(timeOfDay === slot))}
                                 >
                                     {TIME_OF_DAY_LABEL[slot]}
                                 </button>
@@ -139,13 +166,29 @@ export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProp
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-2">
-                        <Label>
-                            Repeat on{' '}
-                            <span className="font-normal text-muted-foreground">
-                                {days.length === 0 ? '— every day' : ''}
+                    <div className="flex flex-col gap-2.5">
+                        <div className="flex items-baseline justify-between">
+                            <span className={LABEL}>Repeat</span>
+                            <span className="text-[11.5px] text-muted-foreground">
+                                {days.length === 0 ? 'Every day' : `${days.length} day${days.length > 1 ? 's' : ''}`}
                             </span>
-                        </Label>
+                        </div>
+
+                        {/* Presets first — most habits are one of these three, and
+                            tapping seven letters to mean "weekdays" is busywork. */}
+                        <div className="flex gap-1.5">
+                            {PRESETS.map(preset => (
+                                <button
+                                    key={preset.label}
+                                    type="button"
+                                    onClick={() => setDays(preset.days)}
+                                    className={cn('flex-1 py-1.5', chip(matchesPreset(preset.days)))}
+                                >
+                                    {preset.label}
+                                </button>
+                            ))}
+                        </div>
+
                         <div className="flex gap-1.5">
                             {WEEKDAYS.map(day => (
                                 <button
@@ -154,13 +197,7 @@ export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProp
                                     onClick={() => toggleDay(day.value)}
                                     aria-label={day.full}
                                     aria-pressed={days.includes(day.value)}
-                                    className={cn(
-                                        'flex h-9 flex-1 items-center justify-center rounded-lg border text-[13px] font-medium transition-colors',
-                                        'outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                                        days.includes(day.value)
-                                            ? 'border-transparent bg-primary text-primary-foreground'
-                                            : 'border-neutral-200 text-muted-foreground hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800/60'
-                                    )}
+                                    className={cn('h-8 flex-1', chip(days.includes(day.value)))}
                                 >
                                     {day.label}
                                 </button>
@@ -169,13 +206,30 @@ export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProp
                     </div>
                 </div>
 
-                <DialogFooter>
-                    <Button variant="ghost" onClick={() => close(false)}>
+                <DialogFooter className="gap-2">
+                    <button
+                        type="button"
+                        onClick={() => close(false)}
+                        className={cn(
+                            'rounded-[9px] px-3 py-2 text-[13px] font-medium text-muted-foreground',
+                            'transition-colors hover:bg-black/[0.04] hover:text-foreground dark:hover:bg-white/[0.06]',
+                            FOCUS
+                        )}
+                    >
                         Cancel
-                    </Button>
-                    <Button onClick={submit} disabled={!name.trim()}>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={submit}
+                        disabled={!name.trim()}
+                        className={cn(
+                            'rounded-[9px] bg-foreground px-3.5 py-2 text-[13px] font-medium text-background',
+                            'transition-opacity hover:opacity-90 disabled:opacity-30',
+                            FOCUS
+                        )}
+                    >
                         Add habit
-                    </Button>
+                    </button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
