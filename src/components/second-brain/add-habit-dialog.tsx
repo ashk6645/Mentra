@@ -12,6 +12,7 @@ import {
 import { cn } from '@/lib/utils'
 import { TIME_OF_DAY_ORDER, TIME_OF_DAY_LABEL, type TimeOfDay } from '@/lib/second-brain/types'
 import { LABEL, HAIRLINE, FOCUS } from '@/lib/second-brain/ui'
+import { HABIT_ICONS, DEFAULT_ICON_ID, HabitIcon } from '@/lib/second-brain/icons'
 
 /** Sunday-first, matching the JS weekday numbering we store. */
 const WEEKDAYS = [
@@ -23,8 +24,6 @@ const WEEKDAYS = [
     { value: 5, label: 'F', full: 'Friday' },
     { value: 6, label: 'S', full: 'Saturday' },
 ]
-
-const ICON_CHOICES = ['🏋️', '📚', '📖', '🎯', '🧘', '🏃', '💧', '🌙', '✍️', '🎧', '🥗', '💻']
 
 const PRESETS = [
     { label: 'Every day', days: [] as number[] },
@@ -56,13 +55,13 @@ function chip(selected: boolean) {
 
 export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProps) {
     const [name, setName] = useState('')
-    const [icon, setIcon] = useState(ICON_CHOICES[0])
+    const [icon, setIcon] = useState(DEFAULT_ICON_ID)
     const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('morning')
     const [days, setDays] = useState<number[]>([])
 
     const reset = () => {
         setName('')
-        setIcon(ICON_CHOICES[0])
+        setIcon(DEFAULT_ICON_ID)
         setTimeOfDay('morning')
         setDays([])
     }
@@ -110,9 +109,7 @@ export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProp
                                 'focus-within:border-primary/40'
                             )}
                         >
-                            <span aria-hidden className="text-[16px] leading-none">
-                                {icon}
-                            </span>
+                            <HabitIcon icon={icon} className="h-[16px] w-[16px] shrink-0 text-foreground/70" />
                             <input
                                 id="habit-name"
                                 value={name}
@@ -127,23 +124,24 @@ export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProp
 
                     <div className="flex flex-col gap-2">
                         <span className={LABEL}>Icon</span>
-                        <div className="flex flex-wrap gap-1.5">
-                            {ICON_CHOICES.map(choice => (
+                        <div className="grid grid-cols-8 gap-1.5">
+                            {HABIT_ICONS.map(({ id, label, Icon }) => (
                                 <button
-                                    key={choice}
+                                    key={id}
                                     type="button"
-                                    onClick={() => setIcon(choice)}
-                                    aria-label={`Icon ${choice}`}
-                                    aria-pressed={icon === choice}
+                                    onClick={() => setIcon(id)}
+                                    aria-label={label}
+                                    title={label}
+                                    aria-pressed={icon === id}
                                     className={cn(
-                                        'flex h-8 w-8 items-center justify-center rounded-[9px] border text-[15px] transition-all duration-150',
+                                        'flex h-8 items-center justify-center rounded-[9px] border transition-colors duration-150',
                                         FOCUS,
-                                        icon === choice
-                                            ? 'border-foreground/25 bg-black/[0.05] scale-105 dark:bg-white/[0.08]'
-                                            : `${HAIRLINE} hover:bg-black/[0.03] dark:hover:bg-white/[0.05]`
+                                        icon === id
+                                            ? 'border-transparent bg-foreground text-background'
+                                            : `${HAIRLINE} text-foreground/60 hover:bg-foreground/[0.04] hover:text-foreground`
                                     )}
                                 >
-                                    {choice}
+                                    <Icon className="h-[15px] w-[15px]" strokeWidth={1.75} />
                                 </button>
                             ))}
                         </div>
