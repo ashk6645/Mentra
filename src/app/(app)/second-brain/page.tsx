@@ -14,20 +14,26 @@ export const metadata = {
  */
 export default function SecondBrainPage() {
     return (
-        <div className="h-full flex flex-col">
-            <div className="w-full">
-                <div className="max-w-5xl mx-auto px-6 pt-12 pb-6">
-                    <h1 className="text-[32px] font-bold tracking-tight leading-tight text-foreground">
+        <div className="flex h-full flex-col">
+            <header className="w-full">
+                <div className="mx-auto max-w-5xl px-8 pb-7 pt-14">
+                    {/*
+                      * Tighter tracking and a slightly smaller, less heavy weight than the
+                      * other pages. At 32px/700 the title shouts; display type in this
+                      * class of interface sits around 28px with negative tracking, which
+                      * reads as deliberate rather than defaulted.
+                      */}
+                    <h1 className="text-[28px] font-semibold leading-[1.15] tracking-[-0.025em] text-foreground">
                         Second Brain
                     </h1>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="mt-2 text-[14px] leading-[1.5] text-muted-foreground">
                         Track your habits and daily routine.
                     </p>
                 </div>
-            </div>
+            </header>
 
             <div className="flex-1 overflow-y-auto">
-                <div className="max-w-5xl mx-auto px-6 pb-16">
+                <div className="mx-auto max-w-5xl px-8 pb-20">
                     <SecondBrainView />
                 </div>
             </div>
