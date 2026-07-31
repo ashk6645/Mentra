@@ -1,9 +1,10 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Plus, RotateCcw, CalendarDays, LayoutGrid, Rows3 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { Segmented, type SegmentOption } from './segmented'
 import { WeekStrip } from './week-strip'
 import { DayPanel } from './day-panel'
 import { HabitGrid } from './habit-grid'
@@ -13,10 +14,11 @@ import { AddHabitDialog } from './add-habit-dialog'
 import { useSecondBrain } from '@/lib/second-brain/use-second-brain'
 import { weekDays, todayKey, weekRangeLabel } from '@/lib/second-brain/date'
 import { monthDays, monthLabel } from '@/lib/second-brain/stats'
+import { SURFACE, HAIRLINE, FOCUS, QUICK } from '@/lib/second-brain/ui'
 
 type ViewMode = 'day' | 'week' | 'month'
 
-const VIEWS: { id: ViewMode; label: string; icon: typeof Rows3 }[] = [
+const VIEWS: SegmentOption<ViewMode>[] = [
     { id: 'day', label: 'Day', icon: Rows3 },
     { id: 'week', label: 'Week', icon: LayoutGrid },
     { id: 'month', label: 'Month', icon: CalendarDays },
@@ -25,9 +27,36 @@ const VIEWS: { id: ViewMode; label: string; icon: typeof Rows3 }[] = [
 function LoadingShell() {
     return (
         <div className="flex flex-col gap-6" aria-busy>
-            <div className="h-[72px] animate-pulse rounded-xl bg-neutral-100 dark:bg-neutral-800/50" />
-            <div className="h-[280px] animate-pulse rounded-xl bg-neutral-100 dark:bg-neutral-800/50" />
+            <div className="h-[74px] animate-pulse rounded-[14px] bg-black/[0.035] dark:bg-white/[0.04]" />
+            <div className="h-[300px] animate-pulse rounded-[14px] bg-black/[0.035] dark:bg-white/[0.04]" />
         </div>
+    )
+}
+
+/** Icon-only chevron, used for range navigation. */
+function NavButton({
+    onClick,
+    label,
+    children,
+}: {
+    onClick: () => void
+    label: string
+    children: React.ReactNode
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            aria-label={label}
+            className={cn(
+                'flex h-7 w-7 items-center justify-center rounded-[8px] text-muted-foreground',
+                'transition-colors duration-150',
+                'hover:bg-black/[0.045] hover:text-foreground dark:hover:bg-white/[0.07]',
+                FOCUS
+            )}
+        >
+            {children}
+        </button>
     )
 }
 
@@ -36,7 +65,7 @@ export function SecondBrainView() {
 
     const [view, setView] = useState<ViewMode>('week')
     // Anchored to a date inside the visible range rather than an index, so month
-    // and year boundaries fall out of the date helpers rather than arithmetic here.
+    // and year boundaries fall out of the date helpers.
     const [anchor, setAnchor] = useState(() => new Date())
     const [selectedDate, setSelectedDate] = useState(() => todayKey())
     const [addOpen, setAddOpen] = useState(false)
@@ -52,8 +81,7 @@ export function SecondBrainView() {
         const next = new Date(anchor)
 
         if (view === 'month') {
-            // Snap to the 1st before shifting: from the 31st, "next month" would
-            // otherwise skip a short month entirely.
+            // Snap to the 1st first: from the 31st, "next month" would skip a short one.
             next.setDate(1)
             next.setMonth(next.getMonth() + delta)
         } else {
@@ -62,8 +90,8 @@ export function SecondBrainView() {
 
         setAnchor(next)
 
-        // Keep the same weekday selected when paging weeks — that's what you want
-        // when scanning "how are my Thursdays going".
+        // Hold the same weekday when paging weeks — that's what you want when
+        // scanning "how are my Thursdays going".
         if (view !== 'month') {
             const nextWeek = weekDays(next)
             const index = weekDays(anchor).indexOf(selectedDate)
@@ -87,47 +115,43 @@ export function SecondBrainView() {
         <div className="flex flex-col gap-6">
             {/* Toolbar */}
             <div className="flex flex-wrap items-center justify-between gap-3">
-                {/* View switcher */}
-                <div
-                    role="tablist"
-                    aria-label="View"
-                    className="flex items-center gap-0.5 rounded-lg bg-neutral-100 p-0.5 dark:bg-neutral-800/60"
-                >
-                    {VIEWS.map(({ id, label, icon: Icon }) => (
-                        <button
-                            key={id}
-                            role="tab"
-                            aria-selected={view === id}
-                            onClick={() => setView(id)}
-                            className={cn(
-                                'flex items-center gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[13px] font-medium transition-all',
-                                'outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                                view === id
-                                    ? 'bg-background text-foreground shadow-sm'
-                                    : 'text-muted-foreground hover:text-foreground'
-                            )}
-                        >
-                            <Icon className="h-3.5 w-3.5" />
-                            {label}
-                        </button>
-                    ))}
-                </div>
+                <Segmented options={VIEWS} value={view} onChange={setView} ariaLabel="View" />
 
-                <div className="flex items-center gap-1.5">
-                    {!showingToday && (
-                        <Button variant="ghost" size="sm" onClick={jumpToToday} className="h-8 text-[13px]">
-                            Today
-                        </Button>
-                    )}
-                    <Button
-                        variant="outline"
-                        size="sm"
+                <div className="flex items-center gap-2">
+                    <AnimatePresence initial={false}>
+                        {!showingToday && (
+                            <motion.button
+                                type="button"
+                                onClick={jumpToToday}
+                                initial={{ opacity: 0, scale: 0.94 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.94 }}
+                                transition={QUICK}
+                                className={cn(
+                                    'rounded-[9px] px-2.5 py-[7px] text-[13px] font-medium text-muted-foreground',
+                                    'transition-colors hover:bg-black/[0.045] hover:text-foreground dark:hover:bg-white/[0.07]',
+                                    FOCUS
+                                )}
+                            >
+                                Today
+                            </motion.button>
+                        )}
+                    </AnimatePresence>
+
+                    <button
+                        type="button"
                         onClick={() => setAddOpen(true)}
-                        className="h-8 gap-1.5 text-[13px]"
+                        className={cn(
+                            'flex items-center gap-1.5 rounded-[9px] border px-2.5 py-[7px]',
+                            'text-[13px] font-medium text-foreground',
+                            HAIRLINE,
+                            'transition-colors hover:bg-black/[0.03] dark:hover:bg-white/[0.05]',
+                            FOCUS
+                        )}
                     >
                         <Plus className="h-3.5 w-3.5" />
                         <span className="hidden sm:inline">New habit</span>
-                    </Button>
+                    </button>
                 </div>
             </div>
 
@@ -143,71 +167,76 @@ export function SecondBrainView() {
                     />
 
                     {/* Range navigation */}
-                    <div className="flex items-center gap-1">
-                        <button
-                            type="button"
+                    <div className="flex items-center gap-0.5">
+                        <NavButton
                             onClick={() => step(-1)}
-                            aria-label={view === 'month' ? 'Previous month' : 'Previous week'}
-                            className={cn(
-                                'flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors',
-                                'hover:bg-neutral-100 hover:text-foreground dark:hover:bg-neutral-800/60',
-                                'outline-none focus-visible:ring-2 focus-visible:ring-ring'
-                            )}
+                            label={view === 'month' ? 'Previous month' : 'Previous week'}
                         >
                             <ChevronLeft className="h-4 w-4" />
-                        </button>
+                        </NavButton>
 
-                        <span className="min-w-[130px] text-center text-[13px] font-medium text-foreground">
+                        <span className="min-w-[128px] text-center text-[12.5px] font-medium tracking-[-0.01em] text-foreground">
                             {rangeLabel}
                         </span>
 
-                        <button
-                            type="button"
+                        <NavButton
                             onClick={() => step(1)}
-                            aria-label={view === 'month' ? 'Next month' : 'Next week'}
-                            className={cn(
-                                'flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors',
-                                'hover:bg-neutral-100 hover:text-foreground dark:hover:bg-neutral-800/60',
-                                'outline-none focus-visible:ring-2 focus-visible:ring-ring'
-                            )}
+                            label={view === 'month' ? 'Next month' : 'Next week'}
                         >
                             <ChevronRight className="h-4 w-4" />
-                        </button>
+                        </NavButton>
                     </div>
 
-                    {view === 'week' && (
-                        <HabitGrid
-                            days={days}
-                            habits={api.habits}
-                            isDone={api.isHabitDone}
-                            onToggle={api.toggleHabit}
-                            onSelectDay={openDay}
-                        />
-                    )}
+                    {/* Keyed remount rather than AnimatePresence.
+                        `mode="wait"` deadlocked here — the outgoing view's exit never
+                        resolved, so the incoming one never mounted and Month was
+                        unreachable. Changing the key unmounts the old tree outright and
+                        replays `initial` on the new one: same fade-in, no exit to stall. */}
+                    <motion.div
+                        key={view}
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={QUICK}
+                    >
+                            {view === 'week' && (
+                                <HabitGrid
+                                    days={days}
+                                    habits={api.habits}
+                                    isDone={api.isHabitDone}
+                                    onToggle={api.toggleHabit}
+                                    onSelectDay={openDay}
+                                />
+                            )}
 
-                    {view === 'month' && (
-                        <MonthView
-                            days={days}
-                            habits={api.habits}
-                            isDone={api.isHabitDone}
-                            onToggle={api.toggleHabit}
-                        />
-                    )}
+                            {view === 'month' && (
+                                <MonthView
+                                    days={days}
+                                    habits={api.habits}
+                                    isDone={api.isHabitDone}
+                                    onToggle={api.toggleHabit}
+                                />
+                            )}
 
-                    {view === 'day' && (
-                        <div className="flex flex-col gap-7">
-                            <WeekStrip
-                                days={weekDays(anchor)}
-                                selectedDate={selectedDate}
-                                progressFor={api.progressForDate}
-                                onSelect={setSelectedDate}
-                            />
-                            <DayPanel date={selectedDate} api={api} />
-                        </div>
-                    )}
+                            {view === 'day' && (
+                                <div className="flex flex-col gap-7">
+                                    <WeekStrip
+                                        days={weekDays(anchor)}
+                                        selectedDate={selectedDate}
+                                        progressFor={api.progressForDate}
+                                        onSelect={setSelectedDate}
+                                    />
+                                    <DayPanel date={selectedDate} api={api} />
+                                </div>
+                            )}
+                    </motion.div>
 
-                    <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-200/70 pt-5 dark:border-neutral-800">
-                        <p className="text-[12px] text-muted-foreground">
+                    <footer
+                        className={cn(
+                            'mt-2 flex flex-wrap items-center justify-between gap-3 border-t pt-5',
+                            HAIRLINE
+                        )}
+                    >
+                        <p className="text-[11.5px] text-muted-foreground/80">
                             Demo — saved in this browser only. Not synced, and separate from your tasks.
                         </p>
                         <button
@@ -219,9 +248,9 @@ export function SecondBrainView() {
                                 }
                             }}
                             className={cn(
-                                'flex items-center gap-1.5 rounded-lg px-2 py-1 text-[12px] text-muted-foreground transition-colors',
-                                'hover:bg-neutral-100 hover:text-foreground dark:hover:bg-neutral-800/60',
-                                'outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                                'flex items-center gap-1.5 rounded-[8px] px-2 py-1 text-[11.5px] text-muted-foreground',
+                                'transition-colors hover:bg-black/[0.04] hover:text-foreground dark:hover:bg-white/[0.06]',
+                                FOCUS
                             )}
                         >
                             <RotateCcw className="h-3 w-3" />
@@ -235,3 +264,5 @@ export function SecondBrainView() {
         </div>
     )
 }
+
+export { SURFACE }
