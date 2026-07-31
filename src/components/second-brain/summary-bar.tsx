@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { Flame } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Habit } from '@/lib/second-brain/types'
 import { todayKey } from '@/lib/second-brain/date'
@@ -150,7 +151,13 @@ export function SummaryBar({ days, habits, isDone, rangeLabel }: SummaryBarProps
                             : 'bg-black/[0.03] opacity-40 dark:bg-white/[0.04]'
                     )}
                 >
-                    🔥
+                    <Flame
+                        className={cn(
+                            'h-[15px] w-[15px]',
+                            stats.best > 0 ? 'text-foreground/70' : 'text-foreground/40'
+                        )}
+                        strokeWidth={1.75}
+                    />
                 </span>
             </Stat>
         </div>
