@@ -1,15 +1,17 @@
 'use client'
 
 import { memo } from 'react'
-import { Check, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { SBCheckbox } from './checkbox'
+import { FOCUS, HOVER } from '@/lib/second-brain/ui'
 
 interface CheckRowProps {
     id: string
     label: string
     icon?: string
     completed: boolean
-    /** Shown on the right on hover — "every Mon, Wed, Fri" and the like. */
+    /** Quiet right-aligned metadata, e.g. "Weekdays". */
     hint?: string
     onToggle: (id: string) => void
     onDelete?: (id: string) => void
@@ -17,11 +19,11 @@ interface CheckRowProps {
 }
 
 /**
- * One tickable line — a habit or a one-off task.
+ * One tickable line — a habit or a one-off item.
  *
- * The whole row is the button, so the tap target is comfortable on a phone. Delete
- * is a separate control layered on top, with `stopPropagation` so it cannot also
- * toggle the row.
+ * The whole row is the hit target so it stays comfortable on a phone. Delete sits
+ * on top with `stopPropagation`, and reserves its width at all times so revealing
+ * it on hover doesn't shift the label.
  */
 export const CheckRow = memo(function CheckRow({
     id,
@@ -34,42 +36,31 @@ export const CheckRow = memo(function CheckRow({
     deleteLabel = 'Delete',
 }: CheckRowProps) {
     return (
-        <div className="group relative flex items-stretch">
+        <div className="group relative flex items-center">
             <button
                 type="button"
                 onClick={() => onToggle(id)}
                 aria-pressed={completed}
                 className={cn(
-                    'flex flex-1 items-center gap-3 rounded-lg px-2.5 py-2.5 text-left',
-                    'transition-colors duration-150 outline-none',
-                    'hover:bg-neutral-100/80 dark:hover:bg-neutral-800/50',
-                    'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background'
+                    'flex flex-1 items-center gap-3 rounded-[10px] px-2 py-2 text-left',
+                    'transition-colors duration-150',
+                    HOVER,
+                    FOCUS
                 )}
             >
-                {/* Checkbox */}
-                <span
-                    aria-hidden
-                    className={cn(
-                        'flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[6px] border transition-all duration-150',
-                        completed
-                            ? 'border-emerald-500 bg-emerald-500 text-white'
-                            : 'border-neutral-300 dark:border-neutral-600 group-hover:border-neutral-400 dark:group-hover:border-neutral-500'
-                    )}
-                >
-                    {completed && <Check className="h-3 w-3" strokeWidth={3} />}
-                </span>
+                <SBCheckbox checked={completed} />
 
                 {icon && (
-                    <span aria-hidden className="shrink-0 text-base leading-none">
+                    <span aria-hidden className="shrink-0 text-[15px] leading-none">
                         {icon}
                     </span>
                 )}
 
                 <span
                     className={cn(
-                        'flex-1 text-[14px] leading-snug transition-colors duration-150',
+                        'flex-1 text-[13.5px] leading-[1.45] transition-all duration-200',
                         completed
-                            ? 'text-muted-foreground line-through decoration-neutral-400'
+                            ? 'text-muted-foreground line-through decoration-black/25 dark:decoration-white/25'
                             : 'text-foreground'
                     )}
                 >
@@ -77,30 +68,34 @@ export const CheckRow = memo(function CheckRow({
                 </span>
 
                 {hint && (
-                    <span className="hidden shrink-0 text-[11px] text-muted-foreground sm:block">
+                    <span className="hidden shrink-0 text-[11px] text-muted-foreground/80 sm:block">
                         {hint}
                     </span>
                 )}
             </button>
 
-            {onDelete && (
-                <button
-                    type="button"
-                    onClick={e => {
-                        e.stopPropagation()
-                        onDelete(id)
-                    }}
-                    aria-label={`${deleteLabel}: ${label}`}
-                    className={cn(
-                        'ml-1 flex w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground',
-                        'opacity-0 transition-all duration-150 group-hover:opacity-100 focus-visible:opacity-100',
-                        'hover:bg-neutral-200/70 hover:text-foreground dark:hover:bg-neutral-700/60',
-                        'outline-none focus-visible:ring-2 focus-visible:ring-ring'
-                    )}
-                >
-                    <X className="h-3.5 w-3.5" />
-                </button>
-            )}
+            {/* Width is always reserved — revealing this must not reflow the row. */}
+            <div className="w-7 shrink-0">
+                {onDelete && (
+                    <button
+                        type="button"
+                        onClick={e => {
+                            e.stopPropagation()
+                            onDelete(id)
+                        }}
+                        aria-label={`${deleteLabel}: ${label}`}
+                        className={cn(
+                            'flex h-7 w-7 items-center justify-center rounded-[8px] text-muted-foreground/70',
+                            'opacity-0 transition-all duration-150',
+                            'group-hover:opacity-100 focus-visible:opacity-100',
+                            'hover:bg-black/[0.05] hover:text-foreground dark:hover:bg-white/[0.07]',
+                            FOCUS
+                        )}
+                    >
+                        <X className="h-3.5 w-3.5" />
+                    </button>
+                )}
+            </div>
         </div>
     )
 })
