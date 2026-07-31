@@ -11,6 +11,7 @@ import { HabitGrid } from './habit-grid'
 import { MonthView } from './month-view'
 import { SummaryBar } from './summary-bar'
 import { AddHabitDialog } from './add-habit-dialog'
+import { EmptyState } from './empty-state'
 import { useSecondBrain } from '@/lib/second-brain/use-second-brain'
 import { weekDays, todayKey, weekRangeLabel } from '@/lib/second-brain/date'
 import { monthDays, monthLabel } from '@/lib/second-brain/stats'
@@ -159,15 +160,18 @@ export function SecondBrainView() {
                 <LoadingShell />
             ) : (
                 <>
-                    <SummaryBar
-                        days={days}
-                        habits={api.habits}
-                        isDone={api.isHabitDone}
-                        rangeLabel={view === 'month' ? 'this month' : 'this week'}
-                    />
+                    {api.habits.length > 0 && (
+                        <SummaryBar
+                            days={days}
+                            habits={api.habits}
+                            isDone={api.isHabitDone}
+                            rangeLabel={view === 'month' ? 'this month' : 'this week'}
+                        />
+                    )}
 
-                    {/* Range navigation */}
-                    <div className="flex items-center gap-0.5">
+                    {/* Range navigation. Hidden while empty — there is nothing to
+                        page through, and it just frames the empty state with clutter. */}
+                    <div className={cn('flex items-center gap-0.5', api.habits.length === 0 && 'hidden')}>
                         <NavButton
                             onClick={() => step(-1)}
                             label={view === 'month' ? 'Previous month' : 'Previous week'}
@@ -198,6 +202,10 @@ export function SecondBrainView() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={QUICK}
                     >
+                            {api.habits.length === 0 ? (
+                                <EmptyState onAdd={() => setAddOpen(true)} />
+                            ) : (
+                              <>
                             {view === 'week' && (
                                 <HabitGrid
                                     days={days}
@@ -227,6 +235,8 @@ export function SecondBrainView() {
                                     />
                                     <DayPanel date={selectedDate} api={api} />
                                 </div>
+                            )}
+                              </>
                             )}
                     </motion.div>
 
