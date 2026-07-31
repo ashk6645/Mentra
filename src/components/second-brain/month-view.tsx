@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import type { Habit } from '@/lib/second-brain/types'
 import { todayKey, weekdayOf, dayOfMonth } from '@/lib/second-brain/date'
 import { isScheduled, completionFor, currentStreak } from '@/lib/second-brain/stats'
+import { SURFACE, HAIRLINE, LABEL, NUM, FOCUS, intensityClass } from '@/lib/second-brain/ui'
 
 interface MonthViewProps {
     days: string[]
@@ -14,15 +15,15 @@ interface MonthViewProps {
 }
 
 /**
- * Cell geometry, shared by the header ruler and every habit row so the day
- * numbers stay aligned with their squares. Sized so a full 31-day month plus the
- * label and rate columns fits without horizontal scrolling at typical widths —
- * a heatmap you have to scroll defeats the point of seeing the month at once.
+ * Cell geometry, shared by the ruler and every row so day numbers stay aligned
+ * with their squares. Sized so a 31-day month plus the label and rate columns fits
+ * without horizontal scrolling — a heatmap you have to scroll defeats its purpose.
  */
 const CELL = 14
-const GAP = 2
+const GAP = 3
+const LABEL_W = 168
+const RATE_W = 40
 
-/** Squares for one habit across the month. */
 function HabitRow({
     habit,
     days,
@@ -43,7 +44,6 @@ function HabitRow({
                 const done = isDone(habit.id, day)
                 const isToday = day === today
                 const future = day > today
-                const weekend = weekdayOf(day) === 0 || weekdayOf(day) === 6
 
                 return (
                     <button
@@ -56,16 +56,13 @@ function HabitRow({
                         title={`${habit.name} · ${day}${scheduled ? (done ? ' · done' : '') : ' · not scheduled'}`}
                         style={{ width: CELL, height: CELL }}
                         className={cn(
-                            'shrink-0 rounded-[4px] transition-all duration-150',
-                            'outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                            !scheduled && 'cursor-default bg-neutral-100 dark:bg-neutral-800/40',
-                            scheduled && done && 'bg-emerald-500 hover:bg-emerald-600',
-                            scheduled && !done && !weekend && 'bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-700/70 dark:hover:bg-neutral-600',
-                            // Weekends a shade softer, so the weekly rhythm is readable
-                            // without needing gridlines.
-                            scheduled && !done && weekend && 'bg-neutral-200/60 hover:bg-neutral-300 dark:bg-neutral-700/40 dark:hover:bg-neutral-600',
-                            scheduled && !done && future && 'opacity-50',
-                            isToday && 'ring-2 ring-primary ring-offset-1 ring-offset-background'
+                            'shrink-0 rounded-[3px] transition-all duration-150',
+                            FOCUS,
+                            intensityClass(done, scheduled),
+                            scheduled && 'hover:scale-[1.25] hover:brightness-110',
+                            !scheduled && 'cursor-default',
+                            scheduled && !done && future && 'opacity-45',
+                            isToday && 'ring-[1.5px] ring-primary ring-offset-[1.5px] ring-offset-background'
                         )}
                     />
                 )
@@ -89,8 +86,8 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
 
     if (habits.length === 0) {
         return (
-            <div className="rounded-xl border border-dashed border-neutral-200 px-6 py-12 text-center dark:border-neutral-800">
-                <p className="text-[14px] text-muted-foreground">
+            <div className={cn('rounded-[14px] px-6 py-16 text-center', SURFACE)}>
+                <p className="text-[13.5px] text-muted-foreground">
                     No habits yet — add one to start tracking.
                 </p>
             </div>
@@ -98,50 +95,63 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
     }
 
     return (
-        <div className="flex flex-col gap-4">
-            <div className="overflow-x-auto rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
-                <div className="flex min-w-max flex-col gap-2.5">
-                    {/* Date ruler — without it the squares are an unreadable stripe. */}
-                    <div className="flex items-end gap-3">
-                        <div className="w-[168px] shrink-0" />
+        <div className="flex flex-col gap-3">
+            <div className={cn('overflow-x-auto rounded-[14px] px-5 py-5', SURFACE)}>
+                <div className="flex min-w-max flex-col gap-3">
+                    {/* Date ruler — without it 31 identical squares are unreadable. */}
+                    <div className="flex items-end gap-3.5">
+                        <div style={{ width: LABEL_W }} className="shrink-0" />
                         <div className="flex" style={{ gap: GAP }}>
                             {days.map(day => {
                                 const n = dayOfMonth(day)
-                                const show = n === 1 || n % 5 === 0
+                                const isToday = day === today
+                                const show = n === 1 || n % 5 === 0 || isToday
+
                                 return (
                                     <span
                                         key={day}
                                         style={{ width: CELL }}
                                         className={cn(
-                                            'shrink-0 text-center text-[9px] tabular-nums leading-none',
-                                            day === today
-                                                ? 'font-semibold text-primary'
-                                                : 'text-muted-foreground/70'
+                                            'shrink-0 text-center text-[9px] leading-none',
+                                            NUM,
+                                            isToday
+                                                ? 'font-bold text-primary'
+                                                : 'font-medium text-muted-foreground/60'
                                         )}
                                     >
-                                        {show || day === today ? n : ''}
+                                        {show ? n : ''}
                                     </span>
                                 )
                             })}
                         </div>
-                        <div className="w-[38px] shrink-0" />
+                        <div style={{ width: RATE_W }} className="shrink-0" />
                     </div>
 
                     {rows.map(({ habit, completion, streak }) => (
-                        <div key={habit.id} className="flex items-center gap-3">
-                            <div className="flex w-[168px] shrink-0 items-center gap-2">
-                                <span aria-hidden className="shrink-0 text-sm leading-none">
+                        <div key={habit.id} className="flex items-center gap-3.5">
+                            <div
+                                style={{ width: LABEL_W }}
+                                className="flex shrink-0 items-center gap-2"
+                            >
+                                <span aria-hidden className="shrink-0 text-[15px] leading-none">
                                     {habit.icon}
                                 </span>
-                                <span className="flex-1 truncate text-[13px] text-foreground" title={habit.name}>
+                                <span
+                                    className="flex-1 truncate text-[12.5px] text-foreground/85"
+                                    title={habit.name}
+                                >
                                     {habit.name}
                                 </span>
                                 {streak > 0 && (
                                     <span
-                                        className="shrink-0 text-[10px] font-semibold tabular-nums text-amber-600 dark:text-amber-500"
+                                        className={cn(
+                                            'flex shrink-0 items-center gap-0.5 text-[10px] font-semibold text-muted-foreground',
+                                            NUM
+                                        )}
                                         title={`${streak} day streak`}
                                     >
-                                        {streak}🔥
+                                        <span className="text-[9px]">🔥</span>
+                                        {streak}
                                     </span>
                                 )}
                             </div>
@@ -155,12 +165,14 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
                             />
 
                             <span
+                                style={{ width: RATE_W }}
                                 className={cn(
-                                    'w-[38px] shrink-0 text-right text-[12px] font-semibold tabular-nums',
-                                    completion.percent === 100
-                                        ? 'text-emerald-600 dark:text-emerald-500'
-                                        : completion.percent >= 50
-                                            ? 'text-foreground'
+                                    'shrink-0 text-right text-[11.5px] font-semibold',
+                                    NUM,
+                                    completion.scheduled === 0
+                                        ? 'text-muted-foreground/40'
+                                        : completion.percent === 100
+                                            ? 'text-emerald-600 dark:text-emerald-400'
                                             : 'text-muted-foreground'
                                 )}
                                 title={`${completion.done} of ${completion.scheduled} scheduled days`}
@@ -172,20 +184,20 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
                 </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 px-1 text-[11px] text-muted-foreground">
-                <span className="flex items-center gap-1.5">
-                    <span className="h-[11px] w-[11px] rounded-[3px] bg-emerald-500" />
-                    Done
-                </span>
-                <span className="flex items-center gap-1.5">
-                    <span className="h-[11px] w-[11px] rounded-[3px] bg-neutral-200 dark:bg-neutral-700/70" />
-                    Missed
-                </span>
-                <span className="flex items-center gap-1.5">
-                    <span className="h-[11px] w-[11px] rounded-[3px] bg-neutral-100 dark:bg-neutral-800/40" />
-                    Not scheduled
-                </span>
+            <div className="flex flex-wrap items-center gap-4 px-1.5">
+                {[
+                    { cls: intensityClass(true, true), text: 'Done' },
+                    { cls: intensityClass(false, true), text: 'Missed' },
+                    { cls: intensityClass(false, false), text: 'Not scheduled' },
+                ].map(({ cls, text }) => (
+                    <span key={text} className="flex items-center gap-1.5">
+                        <span className={cn('h-[10px] w-[10px] rounded-[3px]', cls)} />
+                        <span className="text-[11px] text-muted-foreground">{text}</span>
+                    </span>
+                ))}
             </div>
         </div>
     )
 }
+
+export { HAIRLINE, LABEL, weekdayOf }
