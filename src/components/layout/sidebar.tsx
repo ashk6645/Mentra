@@ -35,7 +35,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Separator } from '@/components/ui/separator'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUIStore } from '@/stores/use-ui-store'
-import { MoreHorizontal, Trash2, Kanban } from 'lucide-react'
+import { MoreHorizontal, Trash2, Kanban, BrainCircuit } from 'lucide-react'
 
 import {
     DropdownMenu,
@@ -375,6 +375,22 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
                             )} />
                             <span className="text-[15px] truncate">Kanban (Demo)</span>
                         </Link>
+
+                        <Link
+                            href="/second-brain"
+                            className={cn(
+                                "flex items-center gap-3 mt-1 px-3 py-2 h-10 rounded-lg transition-all duration-200 ease-out group relative",
+                                pathname === '/second-brain'
+                                    ? "text-foreground bg-neutral-200/60 dark:bg-neutral-800/60 font-medium"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50 font-medium"
+                            )}
+                        >
+                            <BrainCircuit className={cn(
+                                "h-5 w-5 shrink-0 transition-colors",
+                                pathname === '/second-brain' ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
+                            )} />
+                            <span className="text-[15px] truncate">Second Brain</span>
+                        </Link>
                     </div>
                 )}
 
@@ -390,6 +406,21 @@ function SidebarComponent({ className, user, onOpenCommand, initialProjects, cou
                         title="Kanban"
                     >
                         <Kanban className="h-5 w-5 shrink-0" />
+                    </Link>
+                )}
+
+                {isSidebarCollapsed && (
+                    <Link
+                        href="/second-brain"
+                        className={cn(
+                            "flex items-center justify-center px-1 py-2 h-10 rounded-lg transition-all duration-200 ease-out mx-1",
+                            pathname === '/second-brain'
+                                ? "text-foreground bg-neutral-200/60 dark:bg-neutral-800/60"
+                                : "text-muted-foreground hover:text-foreground hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50"
+                        )}
+                        title="Second Brain"
+                    >
+                        <BrainCircuit className="h-5 w-5 shrink-0" />
                     </Link>
                 )}
 
