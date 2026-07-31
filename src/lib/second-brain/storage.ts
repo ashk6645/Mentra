@@ -27,11 +27,11 @@ function seedState(): SecondBrainState {
     return {
         habits: [
             // Mon-Sat, rest on Sunday
-            habit('h-gym', 'Gym', '🏋️', 'morning', [1, 2, 3, 4, 5, 6]),
-            habit('h-read', 'Read 20 pages', '📖', 'morning', []),
-            habit('h-study', 'Study', '📚', 'afternoon', [1, 2, 3, 4, 5]),
-            habit('h-deep', 'Deep work block', '🎯', 'afternoon', [1, 2, 3, 4, 5]),
-            habit('h-review', 'Review the day', '🌙', 'evening', []),
+            habit('h-gym', 'Gym', 'dumbbell', 'morning', [1, 2, 3, 4, 5, 6]),
+            habit('h-read', 'Read 20 pages', 'book', 'morning', []),
+            habit('h-study', 'Study', 'brain', 'afternoon', [1, 2, 3, 4, 5]),
+            habit('h-deep', 'Deep work block', 'target', 'afternoon', [1, 2, 3, 4, 5]),
+            habit('h-review', 'Review the day', 'moon', 'evening', []),
         ],
         entries: [],
         tasks: [],
