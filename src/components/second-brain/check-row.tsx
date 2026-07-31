@@ -4,6 +4,7 @@ import { memo } from 'react'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { SBCheckbox } from './checkbox'
+import { HabitIcon } from '@/lib/second-brain/icons'
 import { FOCUS, HOVER } from '@/lib/second-brain/ui'
 
 interface CheckRowProps {
@@ -51,9 +52,13 @@ export const CheckRow = memo(function CheckRow({
                 <SBCheckbox checked={completed} />
 
                 {icon && (
-                    <span aria-hidden className="shrink-0 text-[15px] leading-none">
-                        {icon}
-                    </span>
+                    <HabitIcon
+                        icon={icon}
+                        className={cn(
+                            'h-[15px] w-[15px] shrink-0 transition-colors',
+                            completed ? 'text-muted-foreground/60' : 'text-foreground/60'
+                        )}
+                    />
                 )}
 
                 <span
