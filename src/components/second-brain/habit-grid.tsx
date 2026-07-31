@@ -1,22 +1,22 @@
 'use client'
 
 import { memo, useMemo } from 'react'
-import { Check, Minus } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import type { Habit } from '@/lib/second-brain/types'
 import { shortDayName, dayOfMonth, todayKey, isFuture } from '@/lib/second-brain/date'
 import { isScheduled, completionFor, dayCompletion, currentStreak } from '@/lib/second-brain/stats'
+import { SBCheckbox } from './checkbox'
+import { SURFACE, SURFACE_SOLID, HAIRLINE, LABEL, NUM, FOCUS, BAR_SPRING } from '@/lib/second-brain/ui'
 
 interface HabitGridProps {
     days: string[]
     habits: Habit[]
     isDone: (habitId: string, date: string) => boolean
     onToggle: (habitId: string, date: string) => void
-    /** Clicking a day label jumps to that day's detailed view. */
     onSelectDay?: (date: string) => void
 }
 
-/** A single grid cell: tickable when scheduled, an inert dash when not. */
 const Cell = memo(function Cell({
     habitId,
     date,
@@ -36,61 +36,61 @@ const Cell = memo(function Cell({
 }) {
     if (!scheduled) {
         return (
-            <td className="px-1 py-0 text-center align-middle">
-                {/* A dash, not an empty box. Notion's table cannot tell "wasn't
-                    scheduled" apart from "didn't do it" — every cell is a checkbox,
-                    so rest days read as failures. */}
+            <td className="px-1 text-center align-middle">
+                {/* A rest day is not a miss. Notion's table has only checkboxes, so an
+                    unscheduled Sunday reads identically to one you skipped. */}
                 <span
-                    className="inline-flex h-7 w-7 items-center justify-center text-neutral-300 dark:text-neutral-700"
+                    className="inline-flex h-8 w-8 items-center justify-center"
                     title={`${habitName} isn't scheduled on this day`}
                 >
-                    <Minus className="h-3 w-3" />
+                    <span className="h-[3px] w-[3px] rounded-full bg-black/15 dark:bg-white/20" />
                 </span>
             </td>
         )
     }
 
     return (
-        <td className="px-1 py-0 text-center align-middle">
+        <td className="px-1 text-center align-middle">
             <button
                 type="button"
                 onClick={() => onToggle(habitId, date)}
                 aria-label={`${habitName} on ${date}`}
                 aria-pressed={done}
                 className={cn(
-                    'inline-flex h-7 w-7 items-center justify-center rounded-[7px] border transition-all duration-150',
-                    'outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background',
-                    done
-                        ? 'border-emerald-500 bg-emerald-500 text-white hover:bg-emerald-600'
-                        : 'border-neutral-300 hover:border-neutral-400 hover:bg-neutral-100 dark:border-neutral-600 dark:hover:border-neutral-500 dark:hover:bg-neutral-800',
-                    future && !done && 'opacity-45'
+                    'inline-flex h-8 w-8 items-center justify-center rounded-[8px]',
+                    'transition-colors duration-150 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]',
+                    FOCUS,
+                    future && !done && 'opacity-40'
                 )}
             >
-                {done && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+                <SBCheckbox checked={done} size="sm" />
             </button>
         </td>
     )
 })
 
-/** Compact percentage + bar, used in the row and footer. */
-function MiniBar({ percent, muted = false }: { percent: number; muted?: boolean }) {
+/** Percentage plus a bar that springs to width. */
+function RowProgress({ percent, dim }: { percent: number; dim: boolean }) {
     return (
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center justify-end gap-2.5">
             <span
                 className={cn(
-                    'w-9 text-right text-[11px] tabular-nums',
-                    muted ? 'text-muted-foreground' : 'text-foreground'
+                    'w-8 text-right text-[11.5px]',
+                    NUM,
+                    dim ? 'text-muted-foreground/50' : 'text-muted-foreground'
                 )}
             >
                 {percent}%
             </span>
-            <div className="h-1.5 w-12 overflow-hidden rounded-full bg-neutral-200/80 dark:bg-neutral-700/60">
-                <div
+            <div className="h-[3px] w-14 overflow-hidden rounded-full bg-black/[0.07] dark:bg-white/[0.09]">
+                <motion.div
                     className={cn(
-                        'h-full rounded-full transition-all duration-300',
-                        percent === 100 ? 'bg-emerald-500' : 'bg-primary'
+                        'h-full rounded-full',
+                        percent === 100 ? 'bg-emerald-500' : 'bg-foreground/55'
                     )}
-                    style={{ width: `${percent}%` }}
+                    initial={false}
+                    animate={{ width: `${percent}%` }}
+                    transition={BAR_SPRING}
                 />
             </div>
         </div>
@@ -98,14 +98,13 @@ function MiniBar({ percent, muted = false }: { percent: number; muted?: boolean 
 }
 
 /**
- * Days as rows, habits as columns — the layout that makes patterns visible.
+ * Days as rows, habits as columns.
  *
- * Two things this does that a generic database table can't:
- *   1. Distinguishes "not scheduled" from "not done", so rest days aren't misses.
- *   2. Shows a live streak per habit in the header, where it's actually motivating.
- *
- * The first two columns are sticky so the day stays readable once enough habits
- * exist to scroll horizontally.
+ * Two capabilities a generic database table can't express, which is the whole
+ * reason not to just use one:
+ *   1. "Not scheduled" is a dot, not an unchecked box, and is excluded from the
+ *      completion denominator — so a weekday habit reads 100%, not 71%.
+ *   2. A live streak sits in each column header, where it actually motivates.
  */
 export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: HabitGridProps) {
     const today = todayKey()
@@ -122,8 +121,8 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
 
     if (habits.length === 0) {
         return (
-            <div className="rounded-xl border border-dashed border-neutral-200 px-6 py-12 text-center dark:border-neutral-800">
-                <p className="text-[14px] text-muted-foreground">
+            <div className={cn('rounded-[14px] px-6 py-16 text-center', SURFACE)}>
+                <p className="text-[13.5px] text-muted-foreground">
                     No habits yet — add one to start tracking.
                 </p>
             </div>
@@ -131,165 +130,179 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
     }
 
     return (
-        <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
-            <table className="w-full border-collapse text-[13px]">
-                <thead>
-                    <tr className="border-b border-neutral-200 bg-neutral-50/70 dark:border-neutral-800 dark:bg-neutral-900/40">
-                        <th
-                            scope="col"
-                            className="sticky left-0 z-10 bg-neutral-50/70 px-3 py-2.5 text-left font-medium text-muted-foreground backdrop-blur dark:bg-neutral-900/40"
-                        >
-                            <span className="text-[11px] font-semibold uppercase tracking-wider">Day</span>
-                        </th>
-
-                        {perHabit.map(({ habit, streak }) => (
-                            <th key={habit.id} scope="col" className="px-1.5 py-2 text-center font-medium">
-                                <div className="mx-auto flex w-[84px] flex-col items-center gap-1">
-                                    <span aria-hidden className="text-base leading-none">
-                                        {habit.icon}
-                                    </span>
-                                    {/* Wrap to two lines rather than truncating — "Read 20 pages"
-                                        and "Deep work block" are unreadable clipped, and the
-                                        column is the only place the name appears in this view. */}
-                                    <span
-                                        className="line-clamp-2 text-[11px] leading-tight text-muted-foreground"
-                                        title={habit.name}
-                                    >
-                                        {habit.name}
-                                    </span>
-                                    {streak > 0 && (
-                                        <span
-                                            className="text-[10px] font-semibold tabular-nums text-amber-600 dark:text-amber-500"
-                                            title={`${streak} day streak`}
-                                        >
-                                            {streak}🔥
-                                        </span>
-                                    )}
-                                </div>
-                            </th>
-                        ))}
-
-                        <th
-                            scope="col"
-                            className="px-3 py-2.5 text-right font-medium text-muted-foreground"
-                        >
-                            <span className="text-[11px] font-semibold uppercase tracking-wider">
-                                Progress
-                            </span>
-                        </th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {days.map(day => {
-                        const isToday = day === today
-                        const future = isFuture(day)
-                        const progress = dayCompletion(habits, isDone, day)
-
-                        return (
-                            <tr
-                                key={day}
+        <div className={cn('overflow-hidden rounded-[14px]', SURFACE)}>
+            <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                    <thead>
+                        <tr className={cn('border-b', HAIRLINE)}>
+                            <th
+                                scope="col"
                                 className={cn(
-                                    'border-b border-neutral-100 transition-colors last:border-b-0 dark:border-neutral-800/70',
-                                    isToday
-                                        ? 'bg-primary/[0.04] dark:bg-primary/[0.07]'
-                                        : 'hover:bg-neutral-50/70 dark:hover:bg-neutral-900/30'
+                                    // Same token as the card, so the sticky column
+                                    // composites to an identical colour — no seam.
+                                    'sticky left-0 z-20 px-4 py-2.5 text-left',
+                                    SURFACE_SOLID
                                 )}
                             >
-                                <th
-                                    scope="row"
+                                <span className={LABEL}>Day</span>
+                            </th>
+
+                            {perHabit.map(({ habit, streak }) => (
+                                <th key={habit.id} scope="col" className="px-1.5 py-2.5">
+                                    <div className="mx-auto flex w-[88px] flex-col items-center gap-1.5">
+                                        <span aria-hidden className="text-[17px] leading-none">
+                                            {habit.icon}
+                                        </span>
+                                        <span
+                                            className="line-clamp-2 text-center text-[11.5px] font-medium leading-[1.3] text-foreground/80"
+                                            title={habit.name}
+                                        >
+                                            {habit.name}
+                                        </span>
+                                        {/* Neutral, so it never competes with the emerald ticks. */}
+                                        <span
+                                            className={cn(
+                                                'flex items-center gap-0.5 text-[10px] font-semibold leading-none',
+                                                NUM,
+                                                streak > 0
+                                                    ? 'text-muted-foreground'
+                                                    : 'text-transparent select-none'
+                                            )}
+                                            title={streak > 0 ? `${streak} day streak` : undefined}
+                                        >
+                                            <span className="text-[9px]">🔥</span>
+                                            {streak > 0 ? streak : 0}
+                                        </span>
+                                    </div>
+                                </th>
+                            ))}
+
+                            <th scope="col" className="px-4 py-2.5 text-right">
+                                <span className={LABEL}>Progress</span>
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {days.map(day => {
+                            const isToday = day === today
+                            const future = isFuture(day)
+                            const progress = dayCompletion(habits, isDone, day)
+
+                            return (
+                                <tr
+                                    key={day}
                                     className={cn(
-                                        'sticky left-0 z-10 px-3 py-1.5 text-left font-normal backdrop-blur',
-                                        isToday
-                                            ? 'bg-[#f7f8fd] dark:bg-[#15161c]'
-                                            : 'bg-background'
+                                        'group border-b last:border-b-0 transition-colors',
+                                        HAIRLINE,
+                                        !isToday && 'hover:bg-black/[0.015] dark:hover:bg-white/[0.025]'
                                     )}
                                 >
-                                    <button
-                                        type="button"
-                                        onClick={() => onSelectDay?.(day)}
+                                    <th
+                                        scope="row"
                                         className={cn(
-                                            'flex items-baseline gap-2 rounded-md px-1 py-0.5 text-left transition-colors',
-                                            'outline-none hover:bg-neutral-200/50 focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-neutral-700/40',
-                                            future && 'opacity-60'
+                                            'sticky left-0 z-10 py-1 pl-4 pr-3 text-left font-normal',
+                                            SURFACE_SOLID
                                         )}
                                     >
-                                        <span
+                                        <button
+                                            type="button"
+                                            onClick={() => onSelectDay?.(day)}
+                                            title="Open this day"
                                             className={cn(
-                                                'w-8 text-[13px]',
-                                                isToday ? 'font-semibold text-foreground' : 'text-foreground'
+                                                'relative flex items-center gap-2.5 rounded-[8px] py-1 pl-2.5 pr-2 text-left transition-colors',
+                                                'hover:bg-black/[0.04] dark:hover:bg-white/[0.06]',
+                                                FOCUS,
+                                                future && 'opacity-50'
                                             )}
                                         >
-                                            {shortDayName(day)}
-                                        </span>
-                                        <span
-                                            className={cn(
-                                                'text-[12px] tabular-nums',
-                                                isToday
-                                                    ? 'font-semibold text-primary'
+                                            {/* Today marker: a 2px rule, not a filled pill. Quiet
+                                                enough to leave completion as the only strong colour. */}
+                                            {isToday && (
+                                                <span className="absolute -left-[9px] top-1/2 h-[15px] w-[2px] -translate-y-1/2 rounded-full bg-primary" />
+                                            )}
+
+                                            <span
+                                                className={cn(
+                                                    'w-8 text-[12.5px]',
+                                                    isToday
+                                                        ? 'font-semibold text-foreground'
+                                                        : 'text-foreground/75'
+                                                )}
+                                            >
+                                                {shortDayName(day)}
+                                            </span>
+                                            <span
+                                                className={cn(
+                                                    'text-[12.5px]',
+                                                    NUM,
+                                                    isToday
+                                                        ? 'font-semibold text-foreground'
+                                                        : 'text-muted-foreground/70'
+                                                )}
+                                            >
+                                                {dayOfMonth(day)}
+                                            </span>
+                                        </button>
+                                    </th>
+
+                                    {habits.map(habit => (
+                                        <Cell
+                                            key={habit.id}
+                                            habitId={habit.id}
+                                            date={day}
+                                            habitName={habit.name}
+                                            scheduled={isScheduled(habit, day)}
+                                            done={isDone(habit.id, day)}
+                                            future={future}
+                                            onToggle={onToggle}
+                                        />
+                                    ))}
+
+                                    <td className="py-1 pl-3 pr-4">
+                                        <RowProgress
+                                            percent={progress.percent}
+                                            dim={progress.scheduled === 0}
+                                        />
+                                    </td>
+                                </tr>
+                            )
+                        })}
+                    </tbody>
+
+                    <tfoot>
+                        <tr className={cn('border-t', HAIRLINE)}>
+                            <th
+                                scope="row"
+                                className={cn('sticky left-0 z-10 px-4 py-2.5 text-left', SURFACE_SOLID)}
+                            >
+                                <span className={LABEL}>Rate</span>
+                            </th>
+
+                            {perHabit.map(({ habit, completion }) => (
+                                <td key={habit.id} className="px-1.5 py-2.5 text-center">
+                                    <span
+                                        className={cn(
+                                            'text-[11.5px] font-semibold',
+                                            NUM,
+                                            completion.scheduled === 0
+                                                ? 'text-muted-foreground/40'
+                                                : completion.percent === 100
+                                                    ? 'text-emerald-600 dark:text-emerald-400'
                                                     : 'text-muted-foreground'
-                                            )}
-                                        >
-                                            {dayOfMonth(day)}
-                                        </span>
-                                    </button>
-                                </th>
-
-                                {habits.map(habit => (
-                                    <Cell
-                                        key={habit.id}
-                                        habitId={habit.id}
-                                        date={day}
-                                        habitName={habit.name}
-                                        scheduled={isScheduled(habit, day)}
-                                        done={isDone(habit.id, day)}
-                                        future={future}
-                                        onToggle={onToggle}
-                                    />
-                                ))}
-
-                                <td className="px-3 py-1.5">
-                                    <MiniBar percent={progress.percent} muted={progress.scheduled === 0} />
+                                        )}
+                                        title={`${completion.done} of ${completion.scheduled} scheduled days`}
+                                    >
+                                        {completion.scheduled === 0 ? '—' : `${completion.percent}%`}
+                                    </span>
                                 </td>
-                            </tr>
-                        )
-                    })}
-                </tbody>
+                            ))}
 
-                {/* Per-habit completion across the visible range */}
-                <tfoot>
-                    <tr className="border-t border-neutral-200 bg-neutral-50/70 dark:border-neutral-800 dark:bg-neutral-900/40">
-                        <th
-                            scope="row"
-                            className="sticky left-0 z-10 bg-neutral-50/70 px-3 py-2 text-left backdrop-blur dark:bg-neutral-900/40"
-                        >
-                            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                                Rate
-                            </span>
-                        </th>
-
-                        {perHabit.map(({ habit, completion }) => (
-                            <td key={habit.id} className="px-1 py-2 text-center">
-                                <span
-                                    className={cn(
-                                        'text-[11px] font-semibold tabular-nums',
-                                        completion.percent === 100
-                                            ? 'text-emerald-600 dark:text-emerald-500'
-                                            : completion.percent >= 50
-                                                ? 'text-foreground'
-                                                : 'text-muted-foreground'
-                                    )}
-                                    title={`${completion.done} of ${completion.scheduled} scheduled days`}
-                                >
-                                    {completion.scheduled === 0 ? '—' : `${completion.percent}%`}
-                                </span>
-                            </td>
-                        ))}
-
-                        <td className="px-3 py-2" />
-                    </tr>
-                </tfoot>
-            </table>
+                            <td className="px-4 py-2.5" />
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
         </div>
     )
 }
