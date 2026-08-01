@@ -62,18 +62,18 @@ function Stat({
     children?: React.ReactNode
 }) {
     return (
-        <div className="flex items-center gap-3 px-4 py-3.5">
+        <div className="flex items-center gap-3 px-4 py-3">
             {children}
             <div className="flex min-w-0 flex-col gap-0.5">
                 <span
                     className={cn(
-                        'text-[19px] font-semibold leading-none tracking-[-0.02em] text-foreground',
+                        'text-[20px] font-semibold leading-none tracking-[-0.02em] text-foreground',
                         NUM
                     )}
                 >
                     {value}
                 </span>
-                <span className="truncate text-[11.5px] leading-none text-muted-foreground">
+                <span className="truncate text-[11px] leading-none text-muted-foreground">
                     {label}
                 </span>
             </div>
@@ -121,7 +121,7 @@ export function SummaryBar({ days, habits, isDone, rangeLabel }: SummaryBarProps
     return (
         <div
             className={cn(
-                'grid grid-cols-1 overflow-hidden rounded-[14px] sm:grid-cols-3',
+                'grid grid-cols-1 overflow-hidden rounded-[12px] sm:grid-cols-3',
                 'divide-y sm:divide-x sm:divide-y-0',
                 SURFACE,
                 `divide-black/[0.07] dark:divide-white/[0.07] ${HAIRLINE}`
