@@ -45,7 +45,7 @@ interface AddHabitDialogProps {
 /** Shared chip styling for the icon, slot, preset and weekday pickers. */
 function chip(selected: boolean) {
     return cn(
-        'rounded-[9px] border text-[12.5px] font-medium transition-colors duration-150',
+        'rounded-[8px] border text-[13px] font-medium transition-colors duration-150',
         FOCUS,
         selected
             ? 'border-transparent bg-foreground text-background'
@@ -104,7 +104,7 @@ export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProp
                         </label>
                         <div
                             className={cn(
-                                'flex items-center gap-2 rounded-[10px] border px-2.5 py-2 transition-colors',
+                                'flex items-center gap-2 rounded-[8px] border px-2.5 py-2 transition-colors',
                                 HAIRLINE,
                                 'focus-within:border-primary/40'
                             )}
@@ -117,7 +117,7 @@ export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProp
                                 onKeyDown={e => e.key === 'Enter' && submit()}
                                 placeholder="Morning run"
                                 autoFocus
-                                className="flex-1 bg-transparent text-[13.5px] outline-none placeholder:text-muted-foreground/60"
+                                className="flex-1 bg-transparent text-[13px] outline-none placeholder:text-muted-foreground/60"
                             />
                         </div>
                     </div>
@@ -134,7 +134,7 @@ export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProp
                                     title={label}
                                     aria-pressed={icon === id}
                                     className={cn(
-                                        'flex h-8 items-center justify-center rounded-[9px] border transition-colors duration-150',
+                                        'flex h-8 items-center justify-center rounded-[8px] border transition-colors duration-150',
                                         FOCUS,
                                         icon === id
                                             ? 'border-transparent bg-foreground text-background'
@@ -164,10 +164,10 @@ export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProp
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-2.5">
+                    <div className="flex flex-col gap-2">
                         <div className="flex items-baseline justify-between">
                             <span className={LABEL}>Repeat</span>
-                            <span className="text-[11.5px] text-muted-foreground">
+                            <span className="text-[11px] text-muted-foreground">
                                 {days.length === 0 ? 'Every day' : `${days.length} day${days.length > 1 ? 's' : ''}`}
                             </span>
                         </div>
@@ -209,7 +209,7 @@ export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProp
                         type="button"
                         onClick={() => close(false)}
                         className={cn(
-                            'rounded-[9px] px-3 py-2 text-[13px] font-medium text-muted-foreground',
+                            'rounded-[8px] px-3 py-2 text-[13px] font-medium text-muted-foreground',
                             'transition-colors hover:bg-black/[0.04] hover:text-foreground dark:hover:bg-white/[0.06]',
                             FOCUS
                         )}
@@ -221,7 +221,7 @@ export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProp
                         onClick={submit}
                         disabled={!name.trim()}
                         className={cn(
-                            'rounded-[9px] bg-foreground px-3.5 py-2 text-[13px] font-medium text-background',
+                            'rounded-[8px] bg-foreground px-3.5 py-2 text-[13px] font-medium text-background',
                             'transition-opacity hover:opacity-90 disabled:opacity-30',
                             FOCUS
                         )}
