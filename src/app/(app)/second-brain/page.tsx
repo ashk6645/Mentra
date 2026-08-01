@@ -1,42 +1,52 @@
-import { SecondBrainView } from '@/components/second-brain/second-brain-view'
+import { CommandCenter, type ServerSnapshot } from '@/components/second-brain/command-center'
+import { SecondBrainPage } from '@/components/second-brain/page-shell'
+import { getSidebarCounts } from '@/lib/actions/tasks'
+import { getProjects } from '@/lib/actions/projects'
+
+/*
+ * Reads the signed-in user's tasks and projects, so it can never be prerendered.
+ * Declaring it here matches the convention already used by /calendar, /upcoming
+ * and /completed, and stops the build attempting a static pass that fails on
+ * `cookies()` and logs a caught error for every request.
+ */
+export const dynamic = 'force-dynamic'
 
 export const metadata = {
     title: 'Second Brain – Mentra',
-    description: 'Daily routine and habit tracker',
+    description: 'Your command center — habits, routines, goals and today at a glance.',
 }
 
 /**
- * Second Brain — a self-contained routine tracker.
+ * Second Brain command center.
  *
- * Intentionally independent of the task system: it has its own data shapes, its own
- * storage, and shares nothing with `Task`. State lives in the browser while the shape
- * of the feature is still being worked out, so nothing here needs a migration to try.
+ * A server component so the task counts and project list come from Mentra's real
+ * database rather than being re-implemented against localStorage. That split is
+ * the point of the feature: habits, routines and goals live in the local store
+ * (they have no backend yet), while tasks and projects are read from the ones
+ * that already exist. Two sources, one screen — which is what makes this a hub
+ * rather than another isolated dashboard.
  */
-export default function SecondBrainPage() {
-    return (
-        <div className="flex h-full flex-col">
-            <header className="w-full">
-                <div className="mx-auto max-w-5xl px-8 pb-7 pt-14">
-                    {/*
-                      * Tighter tracking and a slightly smaller, less heavy weight than the
-                      * other pages. At 32px/700 the title shouts; display type in this
-                      * class of interface sits around 28px with negative tracking, which
-                      * reads as deliberate rather than defaulted.
-                      */}
-                    <h1 className="text-[28px] font-semibold leading-[1.15] tracking-[-0.025em] text-foreground">
-                        Second Brain
-                    </h1>
-                    <p className="mt-2 text-[14px] leading-[1.5] text-muted-foreground">
-                        Track your habits and daily routine.
-                    </p>
-                </div>
-            </header>
+export default async function SecondBrainHomePage() {
+    // Both are already user-scoped and fail closed, so a logged-out request that
+    // somehow reached here renders zeroes rather than another user's data.
+    const [counts, projects] = await Promise.all([getSidebarCounts(), getProjects()])
 
-            <div className="flex-1 overflow-y-auto">
-                <div className="mx-auto max-w-5xl px-8 pb-20">
-                    <SecondBrainView />
-                </div>
-            </div>
-        </div>
+    const server: ServerSnapshot = {
+        todayTaskCount: counts.data?.today ?? 0,
+        overdueCount: counts.data?.overdue ?? 0,
+        activeProjects:
+            projects.success && projects.data
+                ? projects.data.map(project => ({
+                    id: project.id,
+                    name: project.name,
+                    color: project.color ?? null,
+                }))
+                : [],
+    }
+
+    return (
+        <SecondBrainPage>
+            <CommandCenter server={server} />
+        </SecondBrainPage>
     )
 }
