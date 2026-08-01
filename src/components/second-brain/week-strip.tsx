@@ -62,7 +62,7 @@ export const WeekStrip = memo(function WeekStrip({
                     >
                         <span
                             className={cn(
-                                'text-[10px] font-semibold uppercase tracking-[0.07em]',
+                                'text-[11px] font-semibold uppercase tracking-[0.07em]',
                                 isSelected ? 'text-foreground/70' : 'text-muted-foreground/70'
                             )}
                         >

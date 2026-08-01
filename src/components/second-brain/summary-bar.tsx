@@ -4,9 +4,9 @@ import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Flame } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { Habit } from '@/lib/second-brain/types'
+import type { Habit } from '@/lib/second-brain/domain/types'
 import { todayKey } from '@/lib/second-brain/date'
-import { isScheduled, completionFor, currentStreak } from '@/lib/second-brain/stats'
+import { isScheduledOn, habitCompletion, habitStreak } from '@/lib/second-brain/domain/selectors'
 import { SURFACE, HAIRLINE, LABEL, NUM, BAR_SPRING } from '@/lib/second-brain/ui'
 
 interface SummaryBarProps {
@@ -62,18 +62,18 @@ function Stat({
     children?: React.ReactNode
 }) {
     return (
-        <div className="flex items-center gap-3 px-4 py-3.5">
+        <div className="flex items-center gap-3 px-4 py-3">
             {children}
             <div className="flex min-w-0 flex-col gap-0.5">
                 <span
                     className={cn(
-                        'text-[19px] font-semibold leading-none tracking-[-0.02em] text-foreground',
+                        'text-[20px] font-semibold leading-none tracking-[-0.02em] text-foreground',
                         NUM
                     )}
                 >
                     {value}
                 </span>
-                <span className="truncate text-[11.5px] leading-none text-muted-foreground">
+                <span className="truncate text-[11px] leading-none text-muted-foreground">
                     {label}
                 </span>
             </div>
@@ -92,18 +92,18 @@ export function SummaryBar({ days, habits, isDone, rangeLabel }: SummaryBarProps
     const stats = useMemo(() => {
         const today = todayKey()
 
-        const todayHabits = habits.filter(h => isScheduled(h, today))
+        const todayHabits = habits.filter(h => isScheduledOn(h, today))
         const todayDone = todayHabits.filter(h => isDone(h.id, today)).length
 
         let done = 0
         let scheduled = 0
         for (const habit of habits) {
-            const c = completionFor(habit, isDone, days)
+            const c = habitCompletion(habit, isDone, days)
             done += c.done
-            scheduled += c.scheduled
+            scheduled += c.expected
         }
 
-        const streaks = habits.map(h => currentStreak(h, isDone))
+        const streaks = habits.map(h => habitStreak(h, isDone))
         const best = streaks.length > 0 ? Math.max(...streaks) : 0
         const bestHabit = habits[streaks.indexOf(best)]
 
@@ -121,7 +121,7 @@ export function SummaryBar({ days, habits, isDone, rangeLabel }: SummaryBarProps
     return (
         <div
             className={cn(
-                'grid grid-cols-1 overflow-hidden rounded-[14px] sm:grid-cols-3',
+                'grid grid-cols-1 overflow-hidden rounded-[12px] sm:grid-cols-3',
                 'divide-y sm:divide-x sm:divide-y-0',
                 SURFACE,
                 `divide-black/[0.07] dark:divide-white/[0.07] ${HAIRLINE}`

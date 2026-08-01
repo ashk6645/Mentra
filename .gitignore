@@ -45,3 +45,4 @@ next-env.d.ts
 # Database migration files (already applied in production)
 /Complete Migration codes/
 PRODUCTION_MIGRATION.sql
+.claude/launch.json

@@ -43,7 +43,7 @@ export const CheckRow = memo(function CheckRow({
                 onClick={() => onToggle(id)}
                 aria-pressed={completed}
                 className={cn(
-                    'flex flex-1 items-center gap-3 rounded-[10px] px-2 py-2 text-left',
+                    'flex flex-1 items-center gap-3 rounded-[8px] px-2 py-2 text-left',
                     'transition-colors duration-150',
                     HOVER,
                     FOCUS
@@ -63,7 +63,7 @@ export const CheckRow = memo(function CheckRow({
 
                 <span
                     className={cn(
-                        'flex-1 text-[13.5px] leading-[1.45] transition-all duration-200',
+                        'flex-1 text-[13px] leading-[1.45] transition-all duration-200',
                         completed
                             ? 'text-muted-foreground line-through decoration-black/25 dark:decoration-white/25'
                             : 'text-foreground'

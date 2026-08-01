@@ -33,6 +33,7 @@ import { searchTasks } from "@/lib/actions/tasks"
 import { getProjects } from "@/lib/actions/projects"
 import { cn } from "@/lib/utils"
 import { useTaskDetailStore } from "@/stores/use-task-detail-store"
+import { SecondBrainCommands, SECOND_BRAIN_SECTIONS } from "./second-brain-commands"
 
 interface Project {
     id: string
@@ -153,10 +154,23 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
                     onValueChange={setQuery}
                 />
                 <CommandList>
-                    {/* Custom Empty State */}
-                    {query && tasks.length === 0 && mainNav.length === 0 && themes.length === 0 && !isSearching && (
-                        <CommandEmpty>No results found.</CommandEmpty>
-                    )}
+                    {/*
+                      * Empty state.
+                      *
+                      * `shouldFilter` is off, so cmdk cannot count matches for us and
+                      * this has to be asked directly. The length check covers Second
+                      * Brain: from three characters on it always offers to capture the
+                      * query as an idea, so there is never genuinely nothing to show.
+                      */}
+                    {query && !isSearching &&
+                        query.trim().length < 3 &&
+                        tasks.length === 0 &&
+                        mainNav.length === 0 &&
+                        themes.length === 0 &&
+                        filteredProjects.length === 0 &&
+                        !SECOND_BRAIN_SECTIONS.some(s => s.label.toLowerCase().includes(query.trim().toLowerCase())) && (
+                            <CommandEmpty>No results found.</CommandEmpty>
+                        )}
 
                     {/* Tasks Results */}
                     {tasks.length > 0 && (
@@ -209,6 +223,11 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
                     )}
 
 
+
+                    {/* Second Brain — search, sections and quick capture.
+                        Mounted only while the dialog is open, so the store
+                        subscription does not outlive it. */}
+                    <SecondBrainCommands query={query} run={runCommand} />
 
                     {/* Themes */}
                     {themes.length > 0 && (

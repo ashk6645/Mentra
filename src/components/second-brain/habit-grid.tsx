@@ -4,9 +4,9 @@ import { memo, useCallback, useMemo, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Flame } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { Habit } from '@/lib/second-brain/types'
+import type { Habit } from '@/lib/second-brain/domain/types'
 import { shortDayName, dayOfMonth, todayKey, isFuture } from '@/lib/second-brain/date'
-import { isScheduled, completionFor, dayCompletion, currentStreak } from '@/lib/second-brain/stats'
+import { isScheduledOn, habitCompletion, dayCompletion, habitStreak } from '@/lib/second-brain/domain/selectors'
 import { HabitIcon } from '@/lib/second-brain/icons'
 import { SBCheckbox } from './checkbox'
 import { AnimatedNumber } from './animated-number'
@@ -81,12 +81,12 @@ const Cell = memo(function Cell({
 
 function RowProgress({ percent, dim }: { percent: number; dim: boolean }) {
     return (
-        <div className="flex items-center justify-end gap-2.5">
+        <div className="flex items-center justify-end gap-2">
             <AnimatedNumber
                 value={percent}
                 suffix="%"
                 className={cn(
-                    'w-8 text-right text-[11.5px]',
+                    'w-8 text-right text-[11px]',
                     NUM,
                     dim ? 'text-muted-foreground/50' : 'text-muted-foreground'
                 )}
@@ -122,8 +122,8 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
         () =>
             habits.map(habit => ({
                 habit,
-                completion: completionFor(habit, isDone, days),
-                streak: currentStreak(habit, isDone),
+                completion: habitCompletion(habit, isDone, days),
+                streak: habitStreak(habit, isDone),
             })),
         [habits, isDone, days]
     )
@@ -143,6 +143,9 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
         if (!active?.dataset.cell) return
 
         event.preventDefault()
+        // Also stop it bubbling: the view binds the same arrows to previous/next
+        // period, so without this one press would move a cell *and* page the week.
+        event.stopPropagation()
 
         const row = Number(active.dataset.row)
         const col = Number(active.dataset.col)
@@ -172,7 +175,7 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
     if (habits.length === 0) return null
 
     return (
-        <div className={cn('overflow-hidden rounded-[14px]', SURFACE)}>
+        <div className={cn('overflow-hidden rounded-[12px]', SURFACE)}>
             <div className="overflow-x-auto">
                 <table ref={gridRef} onKeyDown={handleKeyDown} className="w-full border-collapse">
                     <thead>
@@ -197,7 +200,7 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
                                             className="h-[17px] w-[17px] text-foreground/65"
                                         />
                                         <span
-                                            className="line-clamp-2 text-center text-[11.5px] font-medium leading-[1.3] text-foreground/80"
+                                            className="line-clamp-2 text-center text-[11px] font-medium leading-[1.3] text-foreground/80"
                                             title={habit.name}
                                         >
                                             {habit.name}
@@ -206,7 +209,7 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
                                             streak, so headers stay on one baseline. */}
                                         <span
                                             className={cn(
-                                                'flex h-[13px] items-center gap-1 text-[10px] font-semibold leading-none',
+                                                'flex h-[13px] items-center gap-1 text-[11px] font-semibold leading-none',
                                                 NUM,
                                                 streak > 0 ? 'text-muted-foreground' : 'opacity-0'
                                             )}
@@ -252,7 +255,7 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
                                             onClick={() => onSelectDay?.(day)}
                                             title="Open this day"
                                             className={cn(
-                                                'relative flex items-center gap-2.5 rounded-[8px] py-1.5 pl-2.5 pr-2 text-left transition-colors',
+                                                'relative flex items-center gap-2 rounded-[8px] py-1.5 pl-2.5 pr-2 text-left transition-colors',
                                                 'hover:bg-foreground/[0.05]',
                                                 FOCUS,
                                                 future && 'opacity-50'
@@ -266,7 +269,7 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
 
                                             <span
                                                 className={cn(
-                                                    'w-8 text-[12.5px]',
+                                                    'w-8 text-[13px]',
                                                     isToday
                                                         ? 'font-semibold text-foreground'
                                                         : 'text-foreground/75'
@@ -276,7 +279,7 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
                                             </span>
                                             <span
                                                 className={cn(
-                                                    'text-[12.5px]',
+                                                    'text-[13px]',
                                                     NUM,
                                                     isToday
                                                         ? 'font-semibold text-foreground'
@@ -294,7 +297,7 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
                                             habitId={habit.id}
                                             date={day}
                                             habitName={habit.name}
-                                            scheduled={isScheduled(habit, day)}
+                                            scheduled={isScheduledOn(habit, day)}
                                             done={isDone(habit.id, day)}
                                             future={future}
                                             row={rowIndex}
@@ -306,7 +309,7 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
                                     <td className="py-1 pl-3 pr-4">
                                         <RowProgress
                                             percent={progress.percent}
-                                            dim={progress.scheduled === 0}
+                                            dim={progress.expected === 0}
                                         />
                                     </td>
                                 </tr>
@@ -325,8 +328,8 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
 
                             {perHabit.map(({ habit, completion }) => (
                                 <td key={habit.id} className="px-1.5 py-3 text-center">
-                                    {completion.scheduled === 0 ? (
-                                        <span className="text-[11.5px] font-semibold text-muted-foreground/40">
+                                    {completion.expected === 0 ? (
+                                        <span className="text-[11px] font-semibold text-muted-foreground/40">
                                             —
                                         </span>
                                     ) : (
@@ -334,7 +337,7 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
                                             value={completion.percent}
                                             suffix="%"
                                             className={cn(
-                                                'text-[11.5px] font-semibold',
+                                                'text-[11px] font-semibold',
                                                 NUM,
                                                 completion.percent === 100
                                                     ? 'text-emerald-600 dark:text-emerald-400'

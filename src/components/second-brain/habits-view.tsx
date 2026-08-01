@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Plus, RotateCcw, CalendarDays, LayoutGrid, Rows3 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -12,10 +12,13 @@ import { MonthView } from './month-view'
 import { SummaryBar } from './summary-bar'
 import { AddHabitDialog } from './add-habit-dialog'
 import { EmptyState } from './empty-state'
-import { useSecondBrain } from '@/lib/second-brain/use-second-brain'
+import { ShortcutsSheet } from './shortcuts-sheet'
+import { Kbd } from './kbd'
+import { useShortcuts, type Shortcut } from '@/lib/second-brain/use-shortcuts'
+import { useHabitsView } from '@/lib/second-brain/use-habits-view'
 import { weekDays, todayKey, weekRangeLabel } from '@/lib/second-brain/date'
-import { monthDays, monthLabel } from '@/lib/second-brain/stats'
-import { SURFACE, HAIRLINE, FOCUS, QUICK } from '@/lib/second-brain/ui'
+import { monthDays, monthLabel } from '@/lib/second-brain/date'
+import { HAIRLINE, FOCUS, QUICK, R, T, INK } from '@/lib/second-brain/ui'
 
 type ViewMode = 'day' | 'week' | 'month'
 
@@ -28,8 +31,8 @@ const VIEWS: SegmentOption<ViewMode>[] = [
 function LoadingShell() {
     return (
         <div className="flex flex-col gap-6" aria-busy>
-            <div className="h-[74px] animate-pulse rounded-[14px] bg-black/[0.035] dark:bg-white/[0.04]" />
-            <div className="h-[300px] animate-pulse rounded-[14px] bg-black/[0.035] dark:bg-white/[0.04]" />
+            <div className="h-[74px] animate-pulse rounded-[12px] bg-foreground/[0.04]" />
+            <div className="h-[300px] animate-pulse rounded-[12px] bg-foreground/[0.04]" />
         </div>
     )
 }
@@ -50,9 +53,8 @@ function NavButton({
             onClick={onClick}
             aria-label={label}
             className={cn(
-                'flex h-7 w-7 items-center justify-center rounded-[8px] text-muted-foreground',
-                'transition-colors duration-150',
-                'hover:bg-black/[0.045] hover:text-foreground dark:hover:bg-white/[0.07]',
+                'flex h-7 w-7 items-center justify-center', R.md, INK.muted,
+                'transition-colors duration-150 hover:bg-foreground/[0.06] hover:text-foreground',
                 FOCUS
             )}
         >
@@ -61,8 +63,8 @@ function NavButton({
     )
 }
 
-export function SecondBrainView() {
-    const api = useSecondBrain()
+export function HabitsView() {
+    const api = useHabitsView()
 
     const [view, setView] = useState<ViewMode>('week')
     // Anchored to a date inside the visible range rather than an index, so month
@@ -70,6 +72,7 @@ export function SecondBrainView() {
     const [anchor, setAnchor] = useState(() => new Date())
     const [selectedDate, setSelectedDate] = useState(() => todayKey())
     const [addOpen, setAddOpen] = useState(false)
+    const [shortcutsOpen, setShortcutsOpen] = useState(false)
 
     const days = useMemo(
         () => (view === 'month' ? monthDays(anchor) : weekDays(anchor)),
@@ -78,7 +81,7 @@ export function SecondBrainView() {
 
     const rangeLabel = view === 'month' ? monthLabel(anchor) : weekRangeLabel(weekDays(anchor))
 
-    const step = (delta: number) => {
+    const step = useCallback((delta: number) => {
         const next = new Date(anchor)
 
         if (view === 'month') {
@@ -98,12 +101,12 @@ export function SecondBrainView() {
             const index = weekDays(anchor).indexOf(selectedDate)
             setSelectedDate(nextWeek[index === -1 ? 0 : index])
         }
-    }
+    }, [view, anchor, selectedDate])
 
-    const jumpToToday = () => {
+    const jumpToToday = useCallback(() => {
         setAnchor(new Date())
         setSelectedDate(todayKey())
-    }
+    }, [])
 
     const showingToday = days.includes(todayKey())
 
@@ -111,6 +114,43 @@ export function SecondBrainView() {
         setSelectedDate(date)
         setView('day')
     }
+
+    /**
+     * Single-key shortcuts. Unmodified keys are safe because the hook ignores
+     * keystrokes aimed at inputs; anything with a modifier is left to the browser.
+     *
+     * One hook, one listener, one source of truth. An earlier version split this
+     * across two `useShortcuts` calls — a gated set plus an always-live `?` — and
+     * the two bindings for the same key raced, so `?` opened the sheet but never
+     * closed it. Gating inside `run` keeps exactly one binding per key.
+     *
+     * Rebuilds when the sheet toggles or the visible range moves — a handful of
+     * times per session, not per render — in exchange for a listener that reads
+     * current state directly and cannot desync.
+     */
+    const shortcuts = useMemo<Shortcut[]>(() => {
+        // Suspended while the sheet is up, so pressing M to read the list doesn't
+        // silently switch the view behind it. `?` is never gated — it has to be
+        // able to close what it opened.
+        const gated = (fn: () => void) => () => {
+            if (shortcutsOpen) return
+            fn()
+        }
+
+        return [
+            { key: 'd', display: 'D', description: 'Day view', group: 'Views', run: gated(() => setView('day')) },
+            { key: 'w', display: 'W', description: 'Week view', group: 'Views', run: gated(() => setView('week')) },
+            { key: 'm', display: 'M', description: 'Month view', group: 'Views', run: gated(() => setView('month')) },
+            { key: 'ArrowLeft', display: '\u2190', description: 'Previous period', group: 'Navigate', run: gated(() => step(-1)) },
+            { key: 'ArrowRight', display: '\u2192', description: 'Next period', group: 'Navigate', run: gated(() => step(1)) },
+            { key: 't', display: 'T', description: 'Jump to today', group: 'Navigate', run: gated(jumpToToday) },
+            { key: 'n', display: 'N', description: 'New habit', group: 'Actions', run: gated(() => setAddOpen(true)) },
+            { key: '?', display: '?', description: 'Show this list', group: 'Actions', run: () => setShortcutsOpen(o => !o) },
+        ]
+    }, [jumpToToday, shortcutsOpen, step])
+
+    // Disabled outright behind the add dialog, where the name field takes the keys.
+    useShortcuts(shortcuts, !addOpen)
 
     return (
         <div className="flex flex-col gap-6">
@@ -129,8 +169,8 @@ export function SecondBrainView() {
                                 exit={{ opacity: 0, scale: 0.94 }}
                                 transition={QUICK}
                                 className={cn(
-                                    'rounded-[9px] px-2.5 py-[7px] text-[13px] font-medium text-muted-foreground',
-                                    'transition-colors hover:bg-black/[0.045] hover:text-foreground dark:hover:bg-white/[0.07]',
+                                    'px-2.5 py-1.5', R.md, T.button, INK.muted,
+                                    'transition-colors hover:bg-foreground/[0.06] hover:text-foreground',
                                     FOCUS
                                 )}
                             >
@@ -142,16 +182,23 @@ export function SecondBrainView() {
                     <button
                         type="button"
                         onClick={() => setAddOpen(true)}
+                        // The label collapses below `sm`, which would otherwise leave a
+                        // button announced as just "button". Named explicitly instead.
+                        aria-label="New habit"
                         className={cn(
-                            'flex items-center gap-1.5 rounded-[9px] border px-2.5 py-[7px]',
-                            'text-[13px] font-medium text-foreground',
-                            HAIRLINE,
-                            'transition-colors hover:bg-black/[0.03] dark:hover:bg-white/[0.05]',
+                            'group flex items-center gap-1.5 border px-2.5 py-1.5',
+                            R.md, T.button, INK.strong, HAIRLINE,
+                            'transition-colors hover:bg-foreground/[0.04]',
                             FOCUS
                         )}
                     >
                         <Plus className="h-3.5 w-3.5" />
                         <span className="hidden sm:inline">New habit</span>
+                        {/* The shortcut surfaces on hover — the way you find out a
+                            keyboard layer exists without reading documentation. */}
+                        <Kbd className="ml-0.5 hidden opacity-0 transition-opacity group-hover:opacity-100 sm:inline-flex">
+                            N
+                        </Kbd>
                     </button>
                 </div>
             </div>
@@ -179,7 +226,7 @@ export function SecondBrainView() {
                             <ChevronLeft className="h-4 w-4" />
                         </NavButton>
 
-                        <span className="min-w-[128px] text-center text-[12.5px] font-medium tracking-[-0.01em] text-foreground">
+                        <span className={cn('min-w-[128px] text-center', T.button, INK.strong)}>
                             {rangeLabel}
                         </span>
 
@@ -246,9 +293,22 @@ export function SecondBrainView() {
                             HAIRLINE
                         )}
                     >
-                        <p className="text-[11.5px] text-muted-foreground/80">
-                            Demo — saved in this browser only. Not synced, and separate from your tasks.
-                        </p>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                            <button
+                                type="button"
+                                onClick={() => setShortcutsOpen(true)}
+                                className={cn(
+                                    'flex items-center gap-1.5 px-1.5 py-1', R.sm, T.label, INK.muted,
+                                    'transition-colors hover:text-foreground', FOCUS
+                                )}
+                            >
+                                <Kbd>?</Kbd>
+                                Shortcuts
+                            </button>
+                            <p className={cn(T.label, INK.subtle)}>
+                                Demo — saved in this browser only, separate from your tasks.
+                            </p>
+                        </div>
                         <button
                             type="button"
                             onClick={() => {
@@ -258,8 +318,8 @@ export function SecondBrainView() {
                                 }
                             }}
                             className={cn(
-                                'flex items-center gap-1.5 rounded-[8px] px-2 py-1 text-[11.5px] text-muted-foreground',
-                                'transition-colors hover:bg-black/[0.04] hover:text-foreground dark:hover:bg-white/[0.06]',
+                                'flex items-center gap-1.5 px-2 py-1', R.sm, T.label, INK.muted,
+                                'transition-colors hover:bg-foreground/[0.05] hover:text-foreground',
                                 FOCUS
                             )}
                         >
@@ -271,8 +331,12 @@ export function SecondBrainView() {
             )}
 
             <AddHabitDialog open={addOpen} onOpenChange={setAddOpen} onAdd={api.addHabit} />
+            <ShortcutsSheet
+                open={shortcutsOpen}
+                onOpenChange={setShortcutsOpen}
+                shortcuts={shortcuts}
+            />
         </div>
     )
 }
 
-export { SURFACE }

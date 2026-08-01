@@ -5,9 +5,9 @@ import { Flame } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { HabitIcon } from '@/lib/second-brain/icons'
 import { AnimatedNumber } from './animated-number'
-import type { Habit } from '@/lib/second-brain/types'
+import type { Habit } from '@/lib/second-brain/domain/types'
 import { todayKey, weekdayOf, dayOfMonth } from '@/lib/second-brain/date'
-import { isScheduled, completionFor, currentStreak } from '@/lib/second-brain/stats'
+import { isScheduledOn, habitCompletion, habitStreak } from '@/lib/second-brain/domain/selectors'
 import { SURFACE, HAIRLINE, LABEL, NUM, FOCUS, intensityClass } from '@/lib/second-brain/ui'
 
 interface MonthViewProps {
@@ -43,7 +43,7 @@ function HabitRow({
     return (
         <div className="flex" style={{ gap: GAP }}>
             {days.map(day => {
-                const scheduled = isScheduled(habit, day)
+                const scheduled = isScheduledOn(habit, day)
                 const done = isDone(habit.id, day)
                 const isToday = day === today
                 const future = day > today
@@ -59,7 +59,7 @@ function HabitRow({
                         title={`${habit.name} · ${day}${scheduled ? (done ? ' · done' : '') : ' · not scheduled'}`}
                         style={{ width: CELL, height: CELL }}
                         className={cn(
-                            'shrink-0 rounded-[3px] transition-all duration-150',
+                            'shrink-0 rounded-[4px] transition-all duration-150',
                             FOCUS,
                             intensityClass(done, scheduled),
                             scheduled && 'hover:scale-[1.25] hover:brightness-110',
@@ -81,8 +81,8 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
         () =>
             habits.map(habit => ({
                 habit,
-                completion: completionFor(habit, isDone, days),
-                streak: currentStreak(habit, isDone),
+                completion: habitCompletion(habit, isDone, days),
+                streak: habitStreak(habit, isDone),
             })),
         [habits, isDone, days]
     )
@@ -91,10 +91,10 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
 
     return (
         <div className="flex flex-col gap-3">
-            <div className={cn('overflow-x-auto rounded-[14px] px-5 py-5', SURFACE)}>
+            <div className={cn('overflow-x-auto rounded-[12px] px-5 py-5', SURFACE)}>
                 <div className="flex min-w-max flex-col gap-3">
                     {/* Date ruler — without it 31 identical squares are unreadable. */}
-                    <div className="flex items-end gap-3.5">
+                    <div className="flex items-end gap-3">
                         <div style={{ width: LABEL_W }} className="shrink-0" />
                         <div className="flex" style={{ gap: GAP }}>
                             {days.map(day => {
@@ -107,7 +107,7 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
                                         key={day}
                                         style={{ width: CELL }}
                                         className={cn(
-                                            'shrink-0 text-center text-[9px] leading-none',
+                                            'shrink-0 text-center text-[10px] leading-none',
                                             NUM,
                                             isToday
                                                 ? 'font-bold text-primary'
@@ -123,7 +123,7 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
                     </div>
 
                     {rows.map(({ habit, completion, streak }) => (
-                        <div key={habit.id} className="flex items-center gap-3.5">
+                        <div key={habit.id} className="flex items-center gap-3">
                             <div
                                 style={{ width: LABEL_W }}
                                 className="flex shrink-0 items-center gap-2"
@@ -133,7 +133,7 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
                                     className="h-[15px] w-[15px] shrink-0 text-foreground/60"
                                 />
                                 <span
-                                    className="flex-1 truncate text-[12.5px] text-foreground/85"
+                                    className="flex-1 truncate text-[13px] text-foreground/85"
                                     title={habit.name}
                                 >
                                     {habit.name}
@@ -141,7 +141,7 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
                                 {streak > 0 && (
                                     <span
                                         className={cn(
-                                            'flex shrink-0 items-center gap-0.5 text-[10px] font-semibold text-muted-foreground',
+                                            'flex shrink-0 items-center gap-0.5 text-[11px] font-semibold text-muted-foreground',
                                             NUM
                                         )}
                                         title={`${streak} day streak`}
@@ -163,17 +163,17 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
                             <span
                                 style={{ width: RATE_W }}
                                 className={cn(
-                                    'shrink-0 text-right text-[11.5px] font-semibold',
+                                    'shrink-0 text-right text-[11px] font-semibold',
                                     NUM,
-                                    completion.scheduled === 0
+                                    completion.expected === 0
                                         ? 'text-muted-foreground/40'
                                         : completion.percent === 100
                                             ? 'text-emerald-600 dark:text-emerald-400'
                                             : 'text-muted-foreground'
                                 )}
-                                title={`${completion.done} of ${completion.scheduled} scheduled days`}
+                                title={`${completion.done} of ${completion.expected} scheduled days`}
                             >
-                                {completion.scheduled === 0 ? (
+                                {completion.expected === 0 ? (
                                     '—'
                                 ) : (
                                     <AnimatedNumber value={completion.percent} suffix="%" />
@@ -191,7 +191,7 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
                     { cls: intensityClass(false, false), text: 'Not scheduled' },
                 ].map(({ cls, text }) => (
                     <span key={text} className="flex items-center gap-1.5">
-                        <span className={cn('h-[10px] w-[10px] rounded-[3px]', cls)} />
+                        <span className={cn('h-[10px] w-[10px] rounded-[4px]', cls)} />
                         <span className="text-[11px] text-muted-foreground">{text}</span>
                     </span>
                 ))}

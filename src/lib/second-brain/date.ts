@@ -100,3 +100,18 @@ export const isPast = (key: string) => key < todayKey()
 
 /** True when the key is a future day. Lexical comparison is safe for `YYYY-MM-DD`. */
 export const isFuture = (key: string) => key > todayKey()
+
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December']
+
+/** Every day key in the month containing `date`. */
+export function monthDays(date: Date): string[] {
+    const year = date.getFullYear()
+    const month = date.getMonth()
+    const count = new Date(year, month + 1, 0).getDate()
+
+    return Array.from({ length: count }, (_, i) => toDateKey(new Date(year, month, i + 1)))
+}
+
+/** "July 2026" */
+export const monthLabel = (date: Date) => `${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`
