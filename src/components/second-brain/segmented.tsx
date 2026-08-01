@@ -35,7 +35,7 @@ export function Segmented<T extends string>({
         <div
             role="tablist"
             aria-label={ariaLabel}
-            className="relative inline-flex items-center gap-0.5 rounded-[10px] bg-black/[0.04] p-[3px] dark:bg-white/[0.05]"
+            className="relative inline-flex items-center gap-0.5 rounded-[8px] bg-black/[0.04] p-[3px] dark:bg-white/[0.05]"
         >
             {options.map(({ id, label, icon: Icon }) => {
                 const selected = value === id
