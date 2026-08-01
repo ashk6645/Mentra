@@ -5,9 +5,9 @@ import { Flame } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { HabitIcon } from '@/lib/second-brain/icons'
 import { AnimatedNumber } from './animated-number'
-import type { Habit } from '@/lib/second-brain/types'
+import type { Habit } from '@/lib/second-brain/domain/types'
 import { todayKey, weekdayOf, dayOfMonth } from '@/lib/second-brain/date'
-import { isScheduled, completionFor, currentStreak } from '@/lib/second-brain/stats'
+import { isScheduledOn, habitCompletion, habitStreak } from '@/lib/second-brain/domain/selectors'
 import { SURFACE, HAIRLINE, LABEL, NUM, FOCUS, intensityClass } from '@/lib/second-brain/ui'
 
 interface MonthViewProps {
@@ -43,7 +43,7 @@ function HabitRow({
     return (
         <div className="flex" style={{ gap: GAP }}>
             {days.map(day => {
-                const scheduled = isScheduled(habit, day)
+                const scheduled = isScheduledOn(habit, day)
                 const done = isDone(habit.id, day)
                 const isToday = day === today
                 const future = day > today
@@ -81,8 +81,8 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
         () =>
             habits.map(habit => ({
                 habit,
-                completion: completionFor(habit, isDone, days),
-                streak: currentStreak(habit, isDone),
+                completion: habitCompletion(habit, isDone, days),
+                streak: habitStreak(habit, isDone),
             })),
         [habits, isDone, days]
     )
@@ -165,15 +165,15 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
                                 className={cn(
                                     'shrink-0 text-right text-[11px] font-semibold',
                                     NUM,
-                                    completion.scheduled === 0
+                                    completion.expected === 0
                                         ? 'text-muted-foreground/40'
                                         : completion.percent === 100
                                             ? 'text-emerald-600 dark:text-emerald-400'
                                             : 'text-muted-foreground'
                                 )}
-                                title={`${completion.done} of ${completion.scheduled} scheduled days`}
+                                title={`${completion.done} of ${completion.expected} scheduled days`}
                             >
-                                {completion.scheduled === 0 ? (
+                                {completion.expected === 0 ? (
                                     '—'
                                 ) : (
                                     <AnimatedNumber value={completion.percent} suffix="%" />
