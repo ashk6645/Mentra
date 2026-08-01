@@ -13,10 +13,10 @@ import { SURFACE, HAIRLINE, FOCUS } from '@/lib/second-brain/ui'
  */
 export function EmptyState({ onAdd }: { onAdd: () => void }) {
     return (
-        <div className={cn('flex flex-col items-center rounded-[14px] px-6 py-16 text-center', SURFACE)}>
+        <div className={cn('flex flex-col items-center rounded-[12px] px-6 py-16 text-center', SURFACE)}>
             <span
                 className={cn(
-                    'mb-5 flex h-11 w-11 items-center justify-center rounded-[13px] border',
+                    'mb-5 flex h-11 w-11 items-center justify-center rounded-[12px] border',
                     HAIRLINE,
                     'bg-foreground/[0.03]'
                 )}
@@ -36,7 +36,7 @@ export function EmptyState({ onAdd }: { onAdd: () => void }) {
                 type="button"
                 onClick={onAdd}
                 className={cn(
-                    'mt-6 flex items-center gap-1.5 rounded-[9px] bg-foreground px-3.5 py-2',
+                    'mt-6 flex items-center gap-1.5 rounded-[8px] bg-foreground px-3.5 py-2',
                     'text-[13px] font-medium text-background transition-opacity hover:opacity-90',
                     FOCUS
                 )}
