@@ -4,9 +4,9 @@ import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Flame } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { Habit } from '@/lib/second-brain/types'
+import type { Habit } from '@/lib/second-brain/domain/types'
 import { todayKey } from '@/lib/second-brain/date'
-import { isScheduled, completionFor, currentStreak } from '@/lib/second-brain/stats'
+import { isScheduledOn, habitCompletion, habitStreak } from '@/lib/second-brain/domain/selectors'
 import { SURFACE, HAIRLINE, LABEL, NUM, BAR_SPRING } from '@/lib/second-brain/ui'
 
 interface SummaryBarProps {
@@ -92,18 +92,18 @@ export function SummaryBar({ days, habits, isDone, rangeLabel }: SummaryBarProps
     const stats = useMemo(() => {
         const today = todayKey()
 
-        const todayHabits = habits.filter(h => isScheduled(h, today))
+        const todayHabits = habits.filter(h => isScheduledOn(h, today))
         const todayDone = todayHabits.filter(h => isDone(h.id, today)).length
 
         let done = 0
         let scheduled = 0
         for (const habit of habits) {
-            const c = completionFor(habit, isDone, days)
+            const c = habitCompletion(habit, isDone, days)
             done += c.done
-            scheduled += c.scheduled
+            scheduled += c.expected
         }
 
-        const streaks = habits.map(h => currentStreak(h, isDone))
+        const streaks = habits.map(h => habitStreak(h, isDone))
         const best = streaks.length > 0 ? Math.max(...streaks) : 0
         const bestHabit = habits[streaks.indexOf(best)]
 
