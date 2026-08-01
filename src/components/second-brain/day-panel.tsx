@@ -56,7 +56,7 @@ function InlineAdd({
                 type="button"
                 onClick={() => setOpen(true)}
                 className={cn(
-                    'flex w-full items-center gap-2.5 rounded-[10px] px-2 py-2 text-[13px] text-muted-foreground/70',
+                    'flex w-full items-center gap-2 rounded-[8px] px-2 py-2 text-[13px] text-muted-foreground/70',
                     'transition-colors duration-150 hover:text-foreground',
                     HOVER,
                     FOCUS
@@ -85,7 +85,7 @@ function InlineAdd({
             onBlur={submit}
             placeholder="What needs doing?"
             className={cn(
-                'w-full rounded-[10px] border bg-transparent px-3 py-2 text-[13.5px]',
+                'w-full rounded-[8px] border bg-transparent px-3 py-2 text-[13px]',
                 HAIRLINE,
                 'placeholder:text-muted-foreground/60',
                 'outline-none transition-colors focus:border-primary/40'
@@ -133,18 +133,18 @@ export function DayPanel({ date, api }: DayPanelProps) {
         <section className="flex flex-col gap-6">
             <header className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                    <div className="flex items-baseline gap-2.5">
+                    <div className="flex items-baseline gap-2">
                         <h2 className="text-[15px] font-semibold tracking-[-0.01em] text-foreground">
                             {today ? 'Today' : longDateLabel(date)}
                         </h2>
                         {today && (
-                            <span className="text-[12.5px] text-muted-foreground">
+                            <span className="text-[13px] text-muted-foreground">
                                 {longDateLabel(date)}
                             </span>
                         )}
                     </div>
 
-                    <span className={cn('text-[12.5px] text-muted-foreground', NUM)}>
+                    <span className={cn('text-[13px] text-muted-foreground', NUM)}>
                         {progress.total === 0
                             ? 'Nothing scheduled'
                             : `${progress.done} of ${progress.total} done`}
@@ -164,7 +164,7 @@ export function DayPanel({ date, api }: DayPanelProps) {
                 </div>
 
                 {(isPast(date) || isFuture(date)) && (
-                    <p className="text-[11.5px] text-muted-foreground/80">
+                    <p className="text-[11px] text-muted-foreground/80">
                         {isPast(date)
                             ? 'Viewing a past day — you can still tick things off.'
                             : 'Viewing an upcoming day.'}
@@ -178,12 +178,12 @@ export function DayPanel({ date, api }: DayPanelProps) {
 
                     return (
                         <div key={slot} className="flex flex-col gap-0.5">
-                            <div className="mb-1.5 flex items-center gap-2 px-2">
+                            <div className="mb-2 flex items-center gap-2 px-2">
                                 <h3 className={LABEL}>{TIME_OF_DAY_LABEL[slot]}</h3>
                                 {count > 0 && (
                                     <span
                                         className={cn(
-                                            'text-[10px] font-medium text-muted-foreground/50',
+                                            'text-[11px] font-medium text-muted-foreground/50',
                                             NUM
                                         )}
                                     >
