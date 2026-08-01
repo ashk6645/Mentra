@@ -10,7 +10,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
-import { TIME_OF_DAY_ORDER, TIME_OF_DAY_LABEL, type TimeOfDay } from '@/lib/second-brain/types'
+import { TIME_OF_DAY_ORDER, TIME_OF_DAY_LABEL, type TimeOfDay } from '@/lib/second-brain/domain/types'
 import { LABEL, HAIRLINE, FOCUS } from '@/lib/second-brain/ui'
 import { HABIT_ICONS, DEFAULT_ICON_ID, HabitIcon } from '@/lib/second-brain/icons'
 
