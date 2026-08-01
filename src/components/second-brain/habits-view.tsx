@@ -15,9 +15,9 @@ import { EmptyState } from './empty-state'
 import { ShortcutsSheet } from './shortcuts-sheet'
 import { Kbd } from './kbd'
 import { useShortcuts, type Shortcut } from '@/lib/second-brain/use-shortcuts'
-import { useSecondBrain } from '@/lib/second-brain/use-second-brain'
+import { useHabitsView } from '@/lib/second-brain/use-habits-view'
 import { weekDays, todayKey, weekRangeLabel } from '@/lib/second-brain/date'
-import { monthDays, monthLabel } from '@/lib/second-brain/stats'
+import { monthDays, monthLabel } from '@/lib/second-brain/date'
 import { HAIRLINE, FOCUS, QUICK, R, T, INK } from '@/lib/second-brain/ui'
 
 type ViewMode = 'day' | 'week' | 'month'
@@ -63,8 +63,8 @@ function NavButton({
     )
 }
 
-export function SecondBrainView() {
-    const api = useSecondBrain()
+export function HabitsView() {
+    const api = useHabitsView()
 
     const [view, setView] = useState<ViewMode>('week')
     // Anchored to a date inside the visible range rather than an index, so month
@@ -182,6 +182,9 @@ export function SecondBrainView() {
                     <button
                         type="button"
                         onClick={() => setAddOpen(true)}
+                        // The label collapses below `sm`, which would otherwise leave a
+                        // button announced as just "button". Named explicitly instead.
+                        aria-label="New habit"
                         className={cn(
                             'group flex items-center gap-1.5 border px-2.5 py-1.5',
                             R.md, T.button, INK.strong, HAIRLINE,
