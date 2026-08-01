@@ -4,9 +4,9 @@ import { memo, useCallback, useMemo, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Flame } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { Habit } from '@/lib/second-brain/types'
+import type { Habit } from '@/lib/second-brain/domain/types'
 import { shortDayName, dayOfMonth, todayKey, isFuture } from '@/lib/second-brain/date'
-import { isScheduled, completionFor, dayCompletion, currentStreak } from '@/lib/second-brain/stats'
+import { isScheduledOn, habitCompletion, dayCompletion, habitStreak } from '@/lib/second-brain/domain/selectors'
 import { HabitIcon } from '@/lib/second-brain/icons'
 import { SBCheckbox } from './checkbox'
 import { AnimatedNumber } from './animated-number'
@@ -122,8 +122,8 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
         () =>
             habits.map(habit => ({
                 habit,
-                completion: completionFor(habit, isDone, days),
-                streak: currentStreak(habit, isDone),
+                completion: habitCompletion(habit, isDone, days),
+                streak: habitStreak(habit, isDone),
             })),
         [habits, isDone, days]
     )
@@ -297,7 +297,7 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
                                             habitId={habit.id}
                                             date={day}
                                             habitName={habit.name}
-                                            scheduled={isScheduled(habit, day)}
+                                            scheduled={isScheduledOn(habit, day)}
                                             done={isDone(habit.id, day)}
                                             future={future}
                                             row={rowIndex}
@@ -309,7 +309,7 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
                                     <td className="py-1 pl-3 pr-4">
                                         <RowProgress
                                             percent={progress.percent}
-                                            dim={progress.scheduled === 0}
+                                            dim={progress.expected === 0}
                                         />
                                     </td>
                                 </tr>
@@ -328,7 +328,7 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
 
                             {perHabit.map(({ habit, completion }) => (
                                 <td key={habit.id} className="px-1.5 py-3 text-center">
-                                    {completion.scheduled === 0 ? (
+                                    {completion.expected === 0 ? (
                                         <span className="text-[11px] font-semibold text-muted-foreground/40">
                                             —
                                         </span>
