@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
-import { ExternalLink, Lightbulb, Plus, Star } from 'lucide-react'
+import { ExternalLink, Lightbulb, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Segmented } from './segmented'
 import { Panel, SectionHeader, StatusBadge, ProgressBar } from './primitives'
@@ -19,40 +19,58 @@ const TABS = [
     { id: 'ideas' as const, label: 'Ideas' },
 ]
 
-const RESOURCE_STATUS: Record<ResourceStatus, { label: string; tone: 'neutral' | 'info' | 'success' }> = {
+/*
+ * Status is a category, not an alert.
+ *
+ * "Reading" in blue and "Promising" in amber colour-coded ordinary categories with
+ * alert semantics, which put four different hues in a four-row list and left the
+ * palette with nothing distinctive to say. Only the finished states keep the
+ * accent, so green continues to mean the one thing it means everywhere else.
+ */
+const RESOURCE_STATUS: Record<ResourceStatus, { label: string; tone: 'neutral' | 'success' }> = {
     inbox: { label: 'Inbox', tone: 'neutral' },
     to_consume: { label: 'To read', tone: 'neutral' },
-    consuming: { label: 'Reading', tone: 'info' },
+    consuming: { label: 'Reading', tone: 'neutral' },
     finished: { label: 'Finished', tone: 'success' },
     reference: { label: 'Reference', tone: 'neutral' },
 }
 
-const MEDIA_STATUS: Record<MediaStatus, { label: string; tone: 'neutral' | 'info' | 'success' }> = {
+const MEDIA_STATUS: Record<MediaStatus, { label: string; tone: 'neutral' | 'success' }> = {
     want: { label: 'Want', tone: 'neutral' },
-    in_progress: { label: 'Reading', tone: 'info' },
+    in_progress: { label: 'Reading', tone: 'neutral' },
     completed: { label: 'Finished', tone: 'success' },
     dropped: { label: 'Dropped', tone: 'neutral' },
 }
 
-const IDEA_STATUS: Record<IdeaStatus, { label: string; tone: 'neutral' | 'info' | 'warning' | 'success' }> = {
+const IDEA_STATUS: Record<IdeaStatus, { label: string; tone: 'neutral' | 'success' }> = {
     raw: { label: 'Raw', tone: 'neutral' },
-    exploring: { label: 'Exploring', tone: 'info' },
-    promising: { label: 'Promising', tone: 'warning' },
-    planned: { label: 'Planned', tone: 'success' },
+    exploring: { label: 'Exploring', tone: 'neutral' },
+    promising: { label: 'Promising', tone: 'neutral' },
+    planned: { label: 'Planned', tone: 'neutral' },
     converted: { label: 'Converted', tone: 'success' },
 }
 
-/** Filled/empty stars. Read-only — rating is set on the detail row. */
+/**
+ * A rating, shown as five ticks rather than five gold stars.
+ *
+ * Amber stars are an e-commerce review widget. They pull more attention than a
+ * subjective score deserves, and they were the loudest colour on a page whose
+ * whole job is to be quiet. Monochrome ticks carry the same five-point scale at a
+ * fraction of the visual cost, and let the one accent in the palette keep meaning
+ * "done" rather than competing with "I liked this".
+ */
 function Rating({ value }: { value: number | null }) {
     if (value === null) return null
 
     return (
-        <span className="flex items-center gap-0.5" aria-label={`Rated ${value} of 5`}>
+        <span className="flex items-center gap-[3px]" aria-label={`Rated ${value} of 5`}>
             {[1, 2, 3, 4, 5].map(n => (
-                <Star
+                <span
                     key={n}
-                    className={cn('h-3 w-3', n <= value ? 'fill-current text-amber-500' : 'text-foreground/15')}
-                    strokeWidth={1.5}
+                    className={cn(
+                        'h-[3px] w-[7px] rounded-full transition-colors',
+                        n <= value ? 'bg-foreground/50' : 'bg-foreground/[0.12]'
+                    )}
                 />
             ))}
         </span>
