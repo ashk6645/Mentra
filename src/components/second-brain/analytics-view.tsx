@@ -64,12 +64,18 @@ function TrendBars({
     const TRACK = 80
 
     return (
-        <div className="flex items-end gap-1.5" role="img" aria-label={label}>
+        /*
+         * Bars are capped and left-aligned rather than stretched to fill.
+         * Five buckets across a half-width panel gave each bar ~85px, which reads
+         * as a row of coloured blocks rather than a chart — the width carried no
+         * information, since only height is meaningful here.
+         */
+        <div className="flex items-end gap-2" role="img" aria-label={label}>
             {buckets.map(bucket => {
                 const percent = bucket.total === 0 ? 0 : Math.round((bucket.done / bucket.total) * 100)
 
                 return (
-                    <div key={bucket.label} className="flex flex-1 flex-col items-center gap-1.5">
+                    <div key={bucket.label} className="flex w-full max-w-[40px] flex-col items-center gap-1.5">
                         <div className="flex w-full items-end" style={{ height: TRACK }}>
                             <div
                                 className={cn(
