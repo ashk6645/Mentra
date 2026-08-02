@@ -4,6 +4,8 @@ import { useCallback, useMemo, useState } from 'react'
 import { RotateCcw, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Segmented } from './segmented'
+import { useConfirm } from './confirm-dialog'
+import { notifyWithUndo } from '@/lib/second-brain/feedback'
 import { Panel, SectionHeader } from './primitives'
 import { useSecondBrainData, useSecondBrainActions, useStoreReady } from '@/lib/second-brain/repo'
 import { longDateLabel, toDateKey } from '@/lib/second-brain/date'
@@ -44,6 +46,7 @@ export function ArchiveView() {
     const { update, replace } = useSecondBrainActions()
 
     const [filter, setFilter] = useState<'all' | CollectionName>('all')
+    const { confirm, dialog } = useConfirm()
 
     const archived = useMemo(() => {
         const records: ArchivedRecord[] = []
@@ -86,14 +89,31 @@ export function ArchiveView() {
 
     const restore = useCallback(
         (record: ArchivedRecord) => {
+            // Snapshot the whole collection rather than remembering "it was
+            // archived at T". Restoring the array puts the record back exactly as
+            // it was, in its original position, with no field left behind.
+            const snapshot = data[record.collection]
+
             update(record.collection, record.id, { archivedAt: null } as never)
+            notifyWithUndo(`${record.title} restored.`, () =>
+                replace(record.collection, snapshot as never)
+            )
         },
-        [update]
+        [data, update, replace]
     )
 
     const destroy = useCallback(
-        (record: ArchivedRecord) => {
-            if (!confirm(`Permanently delete "${record.title}"? This cannot be undone.`)) return
+        async (record: ArchivedRecord) => {
+            const confirmed = await confirm({
+                title: `Delete ${record.title}?`,
+                description:
+                    'This removes it and its history for good. You will have a few seconds to undo.',
+                confirmLabel: 'Delete',
+                destructive: true,
+            })
+            if (!confirmed) return
+
+            const snapshot = data[record.collection]
 
             replace(
                 record.collection,
@@ -101,8 +121,12 @@ export function ArchiveView() {
                     r => (r as { id?: string }).id !== record.id
                 ) as never
             )
+
+            notifyWithUndo(`${record.title} deleted.`, () =>
+                replace(record.collection, snapshot as never)
+            )
         },
-        [data, replace]
+        [data, replace, confirm]
     )
 
     if (!ready) {
@@ -128,6 +152,8 @@ export function ArchiveView() {
 
     return (
         <div className="flex flex-col gap-6">
+            {dialog}
+
             {options.length > 2 && (
                 <Segmented options={options} value={filter} onChange={setFilter} ariaLabel="Archive filter" />
             )}
