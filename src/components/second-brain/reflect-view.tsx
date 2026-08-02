@@ -199,7 +199,8 @@ export function ReflectView() {
                             </p>
                         </Panel>
                     ) : (
-                        <div className="flex flex-col gap-3">
+                        // No gap — each row carries its own rule and padding.
+                        <div className="flex flex-col">
                             {journal.map(entry => (
                                 <JournalRow key={entry.id} entry={entry} />
                             ))}
@@ -333,18 +334,24 @@ function JournalRow({ entry }: { entry: JournalEntry }) {
         entry.freeform && { label: '', text: entry.freeform },
     ].filter(Boolean) as { label: string; text: string }[]
 
+    /*
+     * A row separated by a hairline, not a card.
+     *
+     * Three two-line entries were three bordered boxes, which is the pattern §45
+     * warns against — chrome proportional to the container rather than to the
+     * content. A rule between entries does the same separating work and lets the
+     * dates, which are what you actually scan, carry the rhythm.
+     */
     return (
-        <Panel className="flex flex-col gap-2.5">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className={cn('flex flex-col gap-2 border-b py-4 last:border-b-0', HAIRLINE)}>
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <span className={cn(T.title, INK.strong)}>{longDateLabel(entry.date)}</span>
                 <div className={cn('flex items-center gap-3 text-[11px]', NUM, INK.muted)}>
                     {entry.mood !== null && <span>Mood {entry.mood}/5</span>}
                     {entry.energy !== null && <span>Energy {entry.energy}/5</span>}
-                    {entry.dayRating !== null && (
-                        <StatusBadge tone={entry.dayRating >= 7 ? 'success' : 'neutral'}>
-                            {entry.dayRating}/10
-                        </StatusBadge>
-                    )}
+                    {/* A day rating is a measurement, not an outcome — colouring
+                        7+ green implied a pass mark nobody asked for. */}
+                    {entry.dayRating !== null && <span>{entry.dayRating}/10</span>}
                 </div>
             </div>
 
@@ -360,6 +367,6 @@ function JournalRow({ entry }: { entry: JournalEntry }) {
                     ))}
                 </div>
             )}
-        </Panel>
+        </div>
     )
 }
