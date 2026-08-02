@@ -97,7 +97,20 @@ export function useSecondBrainActions() {
 
     const reset = useCallback(() => repository.reset(), [])
 
-    return { create, update, remove, replace, reset }
+    /**
+     * Empty every collection.
+     *
+     * Distinct from `reset`, which reseeds with demo data. Someone who has just
+     * been told the month of history in front of them is fabricated needs a way
+     * to get to a genuinely blank store, and reseeding is the opposite of that.
+     */
+    const clearAll = useCallback(() => {
+        for (const collection of Object.keys(emptyData()) as CollectionName[]) {
+            repository.replace(collection, [] as never)
+        }
+    }, [])
+
+    return { create, update, remove, replace, reset, clearAll }
 }
 
 export { createId }
