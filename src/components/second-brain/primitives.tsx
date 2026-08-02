@@ -4,7 +4,7 @@ import { memo } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { AnimatedNumber } from './animated-number'
-import { SURFACE, HAIRLINE, LABEL, NUM, T, INK, R, BAR_SPRING } from '@/lib/second-brain/ui'
+import { BAR_SPRING, HAIRLINE, INK, LABEL, NUM, R, SURFACE, T } from '@/lib/second-brain/ui'
 
 /**
  * Shared building blocks for Second Brain pages (spec §58).
@@ -157,10 +157,10 @@ export function Metric({
     leading?: React.ReactNode
 }) {
     return (
-        <div className="flex items-center gap-3 px-4 py-3">
+        <div className="flex items-center gap-3">
             {leading}
-            <div className="flex min-w-0 flex-col gap-1">
-                <span className={cn('text-[19px] font-semibold leading-none tracking-[-0.02em]', NUM, INK.strong)}>
+            <div className="flex min-w-0 flex-col gap-1.5">
+                <span className={cn('text-[26px] font-semibold leading-none tracking-[-0.03em]', NUM, INK.strong)}>
                     {typeof value === 'number' && animate ? (
                         <AnimatedNumber value={value} suffix={suffix ?? ''} />
                     ) : (
@@ -177,14 +177,20 @@ export function Metric({
 }
 
 /** A row of metrics sharing one bordered surface. */
+/**
+ * The figures at the top of a screen.
+ *
+ * Deliberately not a card. Boxing three numbers and ruling between them is the
+ * house style of every admin template ever shipped, and it spends four lines of
+ * chrome to separate things that whitespace already separates. The numbers carry
+ * themselves; the row just needs room and a rule to sit above the content below.
+ */
 export function MetricRow({ children }: { children: React.ReactNode }) {
     return (
         <div
             className={cn(
-                'grid grid-cols-1 overflow-hidden sm:grid-cols-3',
-                'divide-y sm:divide-x sm:divide-y-0',
-                R.lg, SURFACE,
-                `divide-black/[0.07] dark:divide-white/[0.07]`
+                'grid grid-cols-2 gap-x-8 gap-y-6 border-b pb-7 sm:grid-cols-3 sm:gap-x-12',
+                HAIRLINE
             )}
         >
             {children}
@@ -201,7 +207,10 @@ type Tone = 'neutral' | 'success' | 'warning' | 'danger' | 'info'
  * success = done, warning = at risk, danger = overdue, info = in flight.
  */
 const TONE: Record<Tone, string> = {
-    neutral: 'bg-foreground/[0.06] text-muted-foreground',
+    // Neutral carries no fill at all. A filled pill is a strong signal, and most
+    // badges are ordinary categories that only need to be legible — pilling every
+    // one of them turns a calm list into a field of chips.
+    neutral: 'text-muted-foreground',
     success: 'bg-emerald-500/[0.12] text-emerald-700 dark:text-emerald-400',
     warning: 'bg-amber-500/[0.14] text-amber-700 dark:text-amber-400',
     danger: 'bg-red-500/[0.12] text-red-700 dark:text-red-400',
