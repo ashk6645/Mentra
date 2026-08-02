@@ -33,7 +33,7 @@ function Scale({
     return (
         <div className="flex items-center justify-between gap-3">
             <span className={LABEL}>{label}</span>
-            <div className="flex gap-1">
+            <div className="flex gap-px overflow-hidden">
                 {Array.from({ length: max }, (_, i) => i + 1).map(n => (
                     <button
                         key={n}
@@ -43,12 +43,18 @@ function Scale({
                         onClick={() => onChange(value === n ? null : n)}
                         aria-label={`${label} ${n} of ${max}`}
                         aria-pressed={value === n}
+                        /*
+                         * No border on the unselected state. Outlining every cell
+                         * turned mood, energy and the ten-point day rating into
+                         * twenty separate boxes — a survey form rather than a
+                         * control. A shared fill reads as one track you fill up.
+                         */
                         className={cn(
-                            'h-6 w-6 text-[11px] font-medium tabular-nums transition-colors',
-                            R.sm, FOCUS,
+                            'h-6 w-[26px] text-[11px] font-medium tabular-nums transition-colors',
+                            'first:rounded-l-[6px] last:rounded-r-[6px]', FOCUS,
                             value !== null && n <= value
                                 ? 'bg-foreground text-background'
-                                : cn('border', HAIRLINE, INK.muted, 'hover:bg-foreground/[0.05]')
+                                : cn('bg-foreground/[0.05]', INK.subtle, 'hover:bg-foreground/[0.09]')
                         )}
                     >
                         {n}
@@ -90,7 +96,10 @@ function Field({
                 placeholder={placeholder}
                 onChange={e => onChange(e.target.value)}
                 className={cn(
-                    'w-full resize-none border bg-transparent px-2.5 py-2',
+                    // `overflow-hidden` because the field grows to fit its content —
+                    // without it the browser reserved a scrollbar track and drew a
+                    // pale bar down the inside edge of every box.
+                    'w-full resize-none overflow-hidden border bg-transparent px-2.5 py-2',
                     R.md, T.body, HAIRLINE,
                     'placeholder:text-muted-foreground/50',
                     'outline-none transition-colors focus:border-primary/40'
