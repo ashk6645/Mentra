@@ -4,6 +4,9 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import { Download, RotateCcw, Upload } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Panel, SectionHeader, StatusBadge } from './primitives'
+import { useConfirm } from './confirm-dialog'
+import { restoreIntro } from '@/lib/second-brain/repo/preferences'
+import { notify, notifyError, notifyWithUndo } from '@/lib/second-brain/feedback'
 import { useSecondBrainData, useSecondBrainActions, useStoreReady, repository } from '@/lib/second-brain/repo'
 import { emptyData, type CollectionName, type SecondBrainData } from '@/lib/second-brain/domain/types'
 import { R, T, INK, NUM, FOCUS, HAIRLINE, LABEL } from '@/lib/second-brain/ui'
@@ -38,6 +41,7 @@ export function SettingsView() {
 
     const fileInput = useRef<HTMLInputElement>(null)
     const [message, setMessage] = useState<{ tone: 'success' | 'danger'; text: string } | null>(null)
+    const { confirm, dialog } = useConfirm()
 
     const counts = useMemo(() => {
         const entries = (Object.keys(emptyData()) as CollectionName[])
@@ -68,6 +72,7 @@ export function SettingsView() {
 
         URL.revokeObjectURL(url)
         setMessage({ tone: 'success', text: 'Exported.' })
+        notify('Exported.')
     }, [data])
 
     const importData = useCallback(async (file: File) => {
@@ -81,6 +86,7 @@ export function SettingsView() {
 
             if (usable.length === 0) {
                 setMessage({ tone: 'danger', text: 'That file does not look like a Second Brain export.' })
+                notifyError('That file does not look like a Second Brain export.')
                 return
             }
 
@@ -89,8 +95,10 @@ export function SettingsView() {
             }
 
             setMessage({ tone: 'success', text: `Imported ${usable.length} collections.` })
+            notify(`Imported ${usable.length} collections.`)
         } catch {
             setMessage({ tone: 'danger', text: 'Could not read that file.' })
+            notifyError('Could not read that file.')
         }
     }, [])
 
@@ -100,6 +108,8 @@ export function SettingsView() {
 
     return (
         <div className="flex flex-col gap-8">
+            {dialog}
+
             {/* Where the data lives — stated plainly rather than left to be discovered. */}
             <section>
                 <SectionHeader title="Storage" />
@@ -158,10 +168,27 @@ export function SettingsView() {
 
                         <button
                             type="button"
-                            onClick={() => {
-                                if (!confirm('Replace everything with the demo data? Your entries will be lost.')) return
+                            onClick={async () => {
+                                const confirmed = await confirm({
+                                    title: 'Reset to the demo data?',
+                                    description:
+                                        'Everything you have recorded is replaced. Export first if you want to keep it.',
+                                    confirmLabel: 'Reset',
+                                    destructive: true,
+                                })
+                                if (!confirmed) return
+
+                                // Snapshot before resetting so undo is real rather
+                                // than a button that apologises.
+                                const previous = data
+
                                 reset()
                                 setMessage({ tone: 'success', text: 'Reset to the demo data.' })
+                                notifyWithUndo('Reset to the demo data.', () => {
+                                    for (const key of Object.keys(emptyData()) as CollectionName[]) {
+                                        repository.replace(key, previous[key] as never)
+                                    }
+                                })
                             }}
                             className={cn('ml-auto flex items-center gap-1.5 px-3 py-2', R.md, T.button, INK.muted,
                                 'transition-colors hover:bg-foreground/[0.06] hover:text-foreground', FOCUS)}
@@ -180,6 +207,18 @@ export function SettingsView() {
                     <p className={cn('text-[11px]', INK.subtle)}>
                         Import replaces everything. Export first if you are not sure.
                     </p>
+
+                    <button
+                        type="button"
+                        onClick={() => {
+                            restoreIntro()
+                            notify('The introduction will show on the home screen again.')
+                        }}
+                        className={cn('self-start text-[11px] underline underline-offset-2', INK.subtle,
+                            'transition-colors hover:text-foreground', FOCUS)}
+                    >
+                        Show the introduction again
+                    </button>
                 </Panel>
             </section>
 

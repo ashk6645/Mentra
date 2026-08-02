@@ -5,6 +5,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Plus, RotateCcw, CalendarDays, LayoutGrid, Rows3 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Segmented, type SegmentOption } from './segmented'
+import { useConfirm } from './confirm-dialog'
+import { notify } from '@/lib/second-brain/feedback'
 import { WeekStrip } from './week-strip'
 import { DayPanel } from './day-panel'
 import { HabitGrid } from './habit-grid'
@@ -72,6 +74,7 @@ export function HabitsView() {
     const [anchor, setAnchor] = useState(() => new Date())
     const [selectedDate, setSelectedDate] = useState(() => todayKey())
     const [addOpen, setAddOpen] = useState(false)
+    const { confirm, dialog } = useConfirm()
     const [shortcutsOpen, setShortcutsOpen] = useState(false)
 
     const days = useMemo(
@@ -154,6 +157,8 @@ export function HabitsView() {
 
     return (
         <div className="flex flex-col gap-6">
+            {dialog}
+
             {/* Toolbar */}
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <Segmented options={VIEWS} value={view} onChange={setView} ariaLabel="View" />
@@ -311,11 +316,19 @@ export function HabitsView() {
                         </div>
                         <button
                             type="button"
-                            onClick={() => {
-                                if (confirm('Reset the demo back to its starting habits?')) {
-                                    api.reset()
-                                    jumpToToday()
-                                }
+                            onClick={async () => {
+                                const confirmed = await confirm({
+                                    title: 'Reset the demo?',
+                                    description:
+                                        'Your habits and their history are replaced with the starting demo data.',
+                                    confirmLabel: 'Reset',
+                                    destructive: true,
+                                })
+                                if (!confirmed) return
+
+                                api.reset()
+                                jumpToToday()
+                                notify('Reset to the demo data.')
                             }}
                             className={cn(
                                 'flex items-center gap-1.5 px-2 py-1', R.sm, T.label, INK.muted,

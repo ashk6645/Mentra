@@ -5,6 +5,7 @@ import { ExternalLink, Lightbulb, Plus, Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Segmented } from './segmented'
 import { Panel, SectionHeader, StatusBadge, ProgressBar } from './primitives'
+import { notifyWithUndo } from '@/lib/second-brain/feedback'
 import { useSecondBrainData, useSecondBrainActions, useStoreReady, createId } from '@/lib/second-brain/repo'
 import { todayKey } from '@/lib/second-brain/date'
 import type { ResourceStatus, MediaStatus, IdeaStatus } from '@/lib/second-brain/domain/types'
@@ -69,7 +70,7 @@ function Rating({ value }: { value: number | null }) {
 export function LibraryView() {
     const data = useSecondBrainData()
     const ready = useStoreReady()
-    const { create, update } = useSecondBrainActions()
+    const { create, update, replace } = useSecondBrainActions()
 
     const [tab, setTab] = useState<Tab>('resources')
     const [query, setQuery] = useState('')
@@ -159,9 +160,14 @@ export function LibraryView() {
 
     const archive = useCallback(
         (collection: 'resources' | 'mediaItems' | 'ideas', id: string) => {
+            const snapshot = data[collection]
+            const title = (snapshot as { id: string; title: string }[])
+                .find(r => r.id === id)?.title ?? 'Item'
+
             update(collection, id, { archivedAt: new Date().toISOString() })
+            notifyWithUndo(`${title} archived.`, () => replace(collection, snapshot as never))
         },
-        [update]
+        [data, update, replace]
     )
 
     if (!ready) {

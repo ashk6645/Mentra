@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { ThemeProvider } from 'next-themes'
 import { makeQueryClient } from './react-query'
+import { Toaster as SonnerToaster } from '@/components/ui/sonner'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
     const [queryClient] = useState(() => makeQueryClient())
@@ -39,6 +40,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                 ]}
             >
                 {children}
+                {/* Inside ThemeProvider so it can read the active theme —
+                    mounted as a sibling it always fell back to light. */}
+                <SonnerToaster />
             </ThemeProvider>
             {process.env.NODE_ENV === 'development' && (
                 <ReactQueryDevtools initialIsOpen={false} />
