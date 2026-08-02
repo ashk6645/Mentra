@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Metric, MetricRow, Panel, SectionHeader, ProgressBar } from './primitives'
+import { notifyWithUndo } from '@/lib/second-brain/feedback'
 import { useSecondBrainData, useSecondBrainActions, useStoreReady, createId } from '@/lib/second-brain/repo'
 import { todayKey, longDateLabel, monthLabel } from '@/lib/second-brain/date'
 import { monthRange } from '@/lib/second-brain/domain/selectors'
@@ -110,7 +111,13 @@ export function FinanceView() {
     )
 
     const remove = useCallback(
-        (id: string) => replace('transactions', data.transactions.filter(t => t.id !== id)),
+        (id: string) => {
+            const snapshot = data.transactions
+            const description = snapshot.find(t => t.id === id)?.description ?? 'Transaction'
+
+            replace('transactions', snapshot.filter(t => t.id !== id))
+            notifyWithUndo(`${description} deleted.`, () => replace('transactions', snapshot))
+        },
         [data.transactions, replace]
     )
 
