@@ -25,7 +25,7 @@ Built with Next.js 16 (App Router), Supabase, Prisma and Postgres.
 - **Inbox** — anything unscheduled
 - **Completed** — grouped by completion date
 - **Calendar** — month view
-- **Kanban** — drag tasks between columns
+- **Kanban** — drag cards between columns (demo; not saved)
 - **Projects** — projects with sections, each with its own progress
 
 ### Recurring tasks
