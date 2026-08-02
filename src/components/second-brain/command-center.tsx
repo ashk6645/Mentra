@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { HabitIcon } from '@/lib/second-brain/icons'
 import { SBCheckbox } from './checkbox'
 import { AddHabitDialog } from './add-habit-dialog'
+import { IntroBanner } from './intro-banner'
 import {
     PageHeader, SectionHeader, Metric, MetricRow, Ring, ProgressBar,
     StatusBadge, Panel, Divider,
@@ -140,6 +141,8 @@ export function CommandCenter({ server }: { server: ServerSnapshot }) {
 
     return (
         <div className="flex flex-col gap-8">
+            <IntroBanner />
+
             <PageHeader
                 title={`${greeting()}.`}
                 description={longDateLabel(today)}
