@@ -4,6 +4,8 @@ import { useCallback, useMemo, useState } from 'react'
 import { Dumbbell, Play, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ActiveWorkout } from './active-workout'
+import { useConfirm } from './confirm-dialog'
+import { notify, notifyWithUndo } from '@/lib/second-brain/feedback'
 import { Metric, MetricRow, SectionHeader, StatusBadge, Ring } from './primitives'
 import { useSecondBrainData, useSecondBrainActions, useStoreReady, createId } from '@/lib/second-brain/repo'
 import { todayKey, toDateKey, longDateLabel } from '@/lib/second-brain/date'
@@ -98,6 +100,7 @@ export function FitnessView() {
     const { create, update, replace } = useSecondBrainActions()
 
     const [expandedExercise, setExpandedExercise] = useState<string | null>(null)
+    const { confirm, dialog } = useConfirm()
 
     const today = todayKey()
     const open = useMemo(() => activeWorkout(data.workouts), [data.workouts])
@@ -206,13 +209,28 @@ export function FitnessView() {
         update('workouts', open.id, { finishedAt: new Date().toISOString() })
     }, [open, data.workoutSets, replace, update])
 
-    const discardWorkout = useCallback(() => {
+    const discardWorkout = useCallback(async () => {
         if (!open) return
-        if (!confirm('Discard this workout? Everything logged in it will be lost.')) return
 
-        replace('workoutSets', data.workoutSets.filter(s => s.workoutId !== open.id))
-        replace('workouts', data.workouts.filter(w => w.id !== open.id))
-    }, [open, data.workouts, data.workoutSets, replace])
+        const confirmed = await confirm({
+            title: 'Discard this workout?',
+            description: 'Every set logged in it goes with it.',
+            confirmLabel: 'Discard',
+            destructive: true,
+        })
+        if (!confirmed) return
+
+        const sets = data.workoutSets
+        const workouts = data.workouts
+
+        replace('workoutSets', sets.filter(s => s.workoutId !== open.id))
+        replace('workouts', workouts.filter(w => w.id !== open.id))
+
+        notifyWithUndo('Workout discarded.', () => {
+            replace('workoutSets', sets)
+            replace('workouts', workouts)
+        })
+    }, [open, data.workouts, data.workoutSets, replace, confirm])
 
     if (!ready) {
         return (
@@ -226,7 +244,15 @@ export function FitnessView() {
     // A session in progress takes over the page — anything else is a distraction
     // while you're standing at a rack.
     if (open) {
-        return <ActiveWorkout workout={open} onFinish={finishWorkout} onDiscard={discardWorkout} />
+        // The dialog has to mount in this branch too — discarding is only
+        // reachable from here, and a dialog rendered in the other return would
+        // never be in the tree when it is asked to open.
+        return (
+            <>
+                {dialog}
+                <ActiveWorkout workout={open} onFinish={finishWorkout} onDiscard={discardWorkout} />
+            </>
+        )
     }
 
     return (
