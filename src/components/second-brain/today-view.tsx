@@ -123,47 +123,50 @@ export function TodayView() {
 
     return (
         <div className="flex flex-col gap-8">
-            {/* Day navigation */}
-            <header className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-1">
+            {/*
+              * Day navigation.
+              *
+              * Carries the date and nothing else. It previously repeated the page
+              * title — "Today" as an h1 above, "Today" again here — and then
+              * pinned the actual date to the opposite edge of a 1024px row, so
+              * the screen opened with the same word twice and a void between
+              * them. One line, one statement of where you are.
+              */}
+            <header className="flex flex-wrap items-center gap-1">
+                <button
+                    type="button"
+                    onClick={() => step(-1)}
+                    aria-label="Previous day"
+                    className={cn('flex h-7 w-7 items-center justify-center', R.md, INK.muted,
+                        'transition-colors hover:bg-foreground/[0.06] hover:text-foreground', FOCUS)}
+                >
+                    <ChevronLeft className="h-4 w-4" />
+                </button>
+
+                {/* Not an h1 — the page header above already owns that. */}
+                <span className={cn('px-2', T.button, INK.strong)}>
+                    {longDateLabel(date)}
+                </span>
+
+                <button
+                    type="button"
+                    onClick={() => step(1)}
+                    aria-label="Next day"
+                    className={cn('flex h-7 w-7 items-center justify-center', R.md, INK.muted,
+                        'transition-colors hover:bg-foreground/[0.06] hover:text-foreground', FOCUS)}
+                >
+                    <ChevronRight className="h-4 w-4" />
+                </button>
+
+                {!isToday && (
                     <button
                         type="button"
-                        onClick={() => step(-1)}
-                        aria-label="Previous day"
-                        className={cn('flex h-7 w-7 items-center justify-center', R.md, INK.muted,
+                        onClick={() => setDate(today)}
+                        className={cn('ml-1 px-2 py-1', R.sm, T.label, INK.muted,
                             'transition-colors hover:bg-foreground/[0.06] hover:text-foreground', FOCUS)}
                     >
-                        <ChevronLeft className="h-4 w-4" />
+                        Today
                     </button>
-
-                    <h1 className={cn('px-2', T.title, 'text-[17px]', INK.strong)}>
-                        {isToday ? 'Today' : longDateLabel(date)}
-                    </h1>
-
-                    <button
-                        type="button"
-                        onClick={() => step(1)}
-                        aria-label="Next day"
-                        className={cn('flex h-7 w-7 items-center justify-center', R.md, INK.muted,
-                            'transition-colors hover:bg-foreground/[0.06] hover:text-foreground', FOCUS)}
-                    >
-                        <ChevronRight className="h-4 w-4" />
-                    </button>
-
-                    {!isToday && (
-                        <button
-                            type="button"
-                            onClick={() => setDate(today)}
-                            className={cn('ml-1 px-2 py-1', R.sm, T.label, INK.muted,
-                                'transition-colors hover:bg-foreground/[0.06] hover:text-foreground', FOCUS)}
-                        >
-                            Today
-                        </button>
-                    )}
-                </div>
-
-                {isToday && (
-                    <span className={cn(T.label, INK.subtle)}>{longDateLabel(date)}</span>
                 )}
             </header>
 
