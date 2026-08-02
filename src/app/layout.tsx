@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "@/lib/providers";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as SonnerToaster } from "sonner";
 import { GlobalErrorBoundary } from "@/components/shared/global-error-boundary";
 
 const geistSans = Geist({
@@ -71,13 +70,6 @@ export default function RootLayout({
         <GlobalErrorBoundary>
           <Providers>{children}</Providers>
           <Toaster />
-          <SonnerToaster
-            position="bottom-right"
-            expand={false}
-            richColors
-            closeButton
-            duration={3000}
-          />
         </GlobalErrorBoundary>
       </body>
     </html>
