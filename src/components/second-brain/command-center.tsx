@@ -8,10 +8,7 @@ import { HabitIcon } from '@/lib/second-brain/icons'
 import { SBCheckbox } from './checkbox'
 import { AddHabitDialog } from './add-habit-dialog'
 import { IntroBanner } from './intro-banner'
-import {
-    PageHeader, SectionHeader, Metric, MetricRow, Ring, ProgressBar,
-    StatusBadge, Panel, Divider,
-} from './primitives'
+import { PageHeader, SectionHeader, Metric, MetricRow, Ring, ProgressBar, StatusBadge, Divider } from './primitives'
 import { useSecondBrainData, useSecondBrainActions, useStoreReady } from '@/lib/second-brain/repo'
 import { todayKey, longDateLabel, weekDays } from '@/lib/second-brain/date'
 import {
@@ -294,10 +291,21 @@ export function CommandCenter({ server }: { server: ServerSnapshot }) {
                     {routinesToday.length > 0 && (
                         <section>
                             <SectionHeader title="Routines" />
-                            <div className="flex flex-col gap-3">
+                            {/* Wider than it was: with the card borders gone, this gap
+                                is the only thing separating one routine from the next. */}
+                            <div className="flex flex-col gap-7">
                                 {routinesToday.map(({ routine, steps, progress }) => (
-                                    <Panel key={routine.id} padded={false}>
-                                        <div className="flex items-center justify-between gap-3 px-4 py-3">
+                                    /*
+                                     * A routine is a heading with its steps under it,
+                                     * not a card. Once the rest of the screen stopped
+                                     * being boxed this was the only bordered rectangle
+                                     * left on the page, which made it read as the most
+                                     * important thing there — it isn't more important
+                                     * than the habits directly above it. The name and
+                                     * progress bar do the grouping the border was doing.
+                                     */
+                                    <div key={routine.id} className="flex flex-col">
+                                        <div className="flex items-center justify-between gap-3 py-1.5">
                                             <div className="flex items-center gap-2.5">
                                                 <HabitIcon icon={routine.icon} className="h-[15px] w-[15px] text-foreground/60" />
                                                 <span className={cn(T.title, INK.strong)}>{routine.name}</span>
@@ -307,9 +315,9 @@ export function CommandCenter({ server }: { server: ServerSnapshot }) {
                                             </span>
                                         </div>
 
-                                        <ProgressBar percent={progress.percent} className="mx-4" />
+                                        <ProgressBar percent={progress.percent} />
 
-                                        <div className="flex flex-col px-2 py-2">
+                                        <div className="flex flex-col pt-1.5">
                                             {steps.map(step => {
                                                 const done = data.routineStepEntries.some(
                                                     e => e.stepId === step.id && e.date === today
@@ -343,7 +351,7 @@ export function CommandCenter({ server }: { server: ServerSnapshot }) {
                                                 )
                                             })}
                                         </div>
-                                    </Panel>
+                                    </div>
                                 ))}
                             </div>
                         </section>
