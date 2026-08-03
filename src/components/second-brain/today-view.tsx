@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Flame } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { HabitIcon } from '@/lib/second-brain/icons'
 import { SBCheckbox } from './checkbox'
-import { SectionHeader, Metric, MetricRow, Ring, ProgressBar, Panel } from './primitives'
+import { SectionHeader, Metric, MetricRow, Ring, ProgressBar } from './primitives'
 import { JournalPanel } from './journal-panel'
 import { useSecondBrainData, useSecondBrainActions, useStoreReady } from '@/lib/second-brain/repo'
 import { todayKey, longDateLabel, toDateKey, fromDateKey, weekDays, isFuture } from '@/lib/second-brain/date'
@@ -286,10 +286,21 @@ export function TodayView() {
                     {routines.length > 0 && (
                         <section>
                             <SectionHeader title="Routines" />
-                            <div className="flex flex-col gap-3">
+                            {/* Wider than it was: with the card borders gone, this gap
+                                is the only thing separating one routine from the next. */}
+                            <div className="flex flex-col gap-7">
                                 {routines.map(({ routine, steps, progress }) => (
-                                    <Panel key={routine.id} padded={false}>
-                                        <div className="flex items-center justify-between gap-3 px-4 py-3">
+                                    /*
+                                     * A routine is a heading with its steps under it,
+                                     * not a card. Once the rest of the screen stopped
+                                     * being boxed this was the only bordered rectangle
+                                     * left on the page, which made it read as the most
+                                     * important thing there — it isn't more important
+                                     * than the habits directly above it. The name and
+                                     * progress bar do the grouping the border was doing.
+                                     */
+                                    <div key={routine.id} className="flex flex-col">
+                                        <div className="flex items-center justify-between gap-3 py-1.5">
                                             <div className="flex items-center gap-2.5">
                                                 <HabitIcon icon={routine.icon} className="h-[15px] w-[15px] text-foreground/60" />
                                                 <span className={cn(T.title, INK.strong)}>{routine.name}</span>
@@ -299,9 +310,9 @@ export function TodayView() {
                                             </span>
                                         </div>
 
-                                        <ProgressBar percent={progress.percent} className="mx-4" />
+                                        <ProgressBar percent={progress.percent} />
 
-                                        <div className="flex flex-col px-2 py-2">
+                                        <div className="flex flex-col pt-1.5">
                                             {steps.map(s => {
                                                 const done = data.routineStepEntries.some(
                                                     e => e.stepId === s.id && e.date === date
@@ -329,7 +340,7 @@ export function TodayView() {
                                                 )
                                             })}
                                         </div>
-                                    </Panel>
+                                    </div>
                                 ))}
                             </div>
                         </section>
