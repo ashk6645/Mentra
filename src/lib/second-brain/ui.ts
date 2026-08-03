@@ -63,8 +63,15 @@ export const R = {
 // that makes headings read "engineered" rather than merely large.
 
 export const T = {
-    /** Page title. */
-    display: 'text-[28px] font-semibold leading-[1.2] tracking-[-0.02em]',
+    /**
+     * Page title.
+     *
+     * 22px, not 28px. A page title is orientation — you read it once on arrival
+     * and then never look at it again — so at 28px it was the loudest thing on a
+     * screen whose actual content is the list underneath. This is the size dense
+     * working tools settle on for the same reason.
+     */
+    display: 'text-[22px] font-semibold leading-[1.25] tracking-[-0.02em]',
     /** Section heading inside a panel. */
     title: 'text-[15px] font-semibold leading-[1.3] tracking-[-0.01em]',
     /** Default reading size. */
