@@ -50,8 +50,17 @@ export function IntroBanner() {
         <>
             {dialog}
 
+            {/*
+              * A note, not an alert.
+              *
+              * As a filled, bordered card this was ~190px of permanent-looking
+              * chrome above the greeting, outweighing the greeting and the day's
+              * figures combined — for a message shown once and then dismissed
+              * forever. A rule underneath separates it just as well and lets the
+              * screen open on the thing you came for.
+              */}
             <aside
-                className={cn('relative border px-4 py-3.5 sm:px-5', R.lg, HAIRLINE, 'bg-foreground/[0.02]')}
+                className={cn('relative border-b pb-5', HAIRLINE)}
                 aria-labelledby="sb-intro-title"
             >
                 <button
@@ -59,7 +68,7 @@ export function IntroBanner() {
                     onClick={dismissIntro}
                     aria-label="Dismiss the introduction"
                     className={cn(
-                        'absolute right-2 top-2 flex h-7 w-7 items-center justify-center',
+                        'absolute right-0 top-0 flex h-7 w-7 items-center justify-center',
                         R.sm, INK.subtle, 'transition-colors hover:text-foreground', FOCUS
                     )}
                 >
@@ -70,14 +79,12 @@ export function IntroBanner() {
                     This is demo data
                 </h2>
 
-                <p className={cn('mt-1.5 max-w-[62ch]', T.body, INK.muted)}>
-                    The habits, workouts and entries below are made up, so there is something to
-                    look at. Everything here is saved in this browser only — it never reaches a
-                    server, does not sync to your phone, and clearing site data removes it.
-                    Your tasks, projects and notes are unaffected and live where they always have.
+                <p className={cn('mt-1 max-w-[68ch]', T.body, INK.muted)}>
+                    Everything below is made up, saved in this browser only, and gone if you clear
+                    site data. Your tasks, projects and notes are untouched.
                 </p>
 
-                <div className="mt-3 flex flex-wrap items-center gap-2">
+                <div className="mt-2.5 flex flex-wrap items-center gap-2">
                     <button
                         type="button"
                         onClick={startFresh}
