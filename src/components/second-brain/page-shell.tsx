@@ -25,7 +25,8 @@ export function SecondBrainPage({
     return (
         <div className="mx-auto max-w-5xl px-5 pb-20 pt-8 sm:px-8 sm:pt-10">
             {title && (
-                <div className="mb-8">
+                // Tighter than it was: the title shrank, so the gap under it should too.
+                <div className="mb-7">
                     <PageHeader title={title} description={description} />
                 </div>
             )}
