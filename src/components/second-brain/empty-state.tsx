@@ -2,7 +2,7 @@
 
 import { Plus, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { SURFACE, HAIRLINE, FOCUS } from '@/lib/second-brain/ui'
+import { FOCUS, HAIRLINE, ICON, SURFACE } from '@/lib/second-brain/ui'
 
 /**
  * Shown when there are no habits at all.
@@ -21,7 +21,7 @@ export function EmptyState({ onAdd }: { onAdd: () => void }) {
                     'bg-foreground/[0.03]'
                 )}
             >
-                <Sparkles className="h-[18px] w-[18px] text-foreground/50" strokeWidth={1.75} />
+                <Sparkles className={cn(ICON.lg, "text-foreground/50")} strokeWidth={1.75} />
             </span>
 
             <h3 className="text-[15px] font-semibold tracking-[-0.01em] text-foreground">
