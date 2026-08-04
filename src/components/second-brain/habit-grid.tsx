@@ -10,7 +10,7 @@ import { isScheduledOn, habitCompletion, dayCompletion, habitStreak } from '@/li
 import { HabitIcon } from '@/lib/second-brain/icons'
 import { SBCheckbox } from './checkbox'
 import { AnimatedNumber } from './animated-number'
-import { SURFACE, SURFACE_SOLID, HAIRLINE, LABEL, NUM, FOCUS, BAR_SPRING } from '@/lib/second-brain/ui'
+import { BAR_SPRING, FOCUS, HAIRLINE, ICON, LABEL, NUM, SURFACE, SURFACE_SOLID } from '@/lib/second-brain/ui'
 
 interface HabitGridProps {
     days: string[]
@@ -197,7 +197,7 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
                                     <div className="mx-auto flex w-[92px] flex-col items-center gap-2">
                                         <HabitIcon
                                             icon={habit.icon}
-                                            className="h-[17px] w-[17px] text-foreground/65"
+                                            className={cn(ICON.lg, "text-foreground/65")}
                                         />
                                         <span
                                             className="line-clamp-2 text-center text-[11px] font-medium leading-[1.3] text-foreground/80"
@@ -215,7 +215,7 @@ export function HabitGrid({ days, habits, isDone, onToggle, onSelectDay }: Habit
                                             )}
                                             title={streak > 0 ? `${streak} day streak` : undefined}
                                         >
-                                            <Flame className="h-[11px] w-[11px]" strokeWidth={2} />
+                                            <Flame className={ICON.sm} strokeWidth={2} />
                                             {streak > 0 ? streak : ''}
                                         </span>
                                     </div>
