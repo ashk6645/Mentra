@@ -58,6 +58,56 @@ export const R = {
     full: 'rounded-full',
 } as const
 
+// ─── Icon sizes ──────────────────────────────────────────────────────────────
+
+/**
+ * A closed set, for the same reason the type and radius ladders are closed.
+ *
+ * This feature had accumulated nine icon sizes — 10, 11, 12, 14, 15, 16, 17, 18px
+ * and a 2.5 — most of them one-off bracket values chosen per component. Nobody
+ * decided on nine; they arrived one edit at a time. Linear ships two, and the
+ * evenness of its rows is a direct consequence.
+ *
+ * Three here rather than two, because a 12px inline mark and a 16px control
+ * genuinely read differently, and the middle size is what most rows want.
+ */
+export const ICON = {
+    /** Inline with small text: streak flames, meta glyphs, chevrons in a row. */
+    sm: 'h-3 w-3',
+    /** The default — leading icons in list rows and buttons. */
+    md: 'h-3.5 w-3.5',
+    /** Primary actions and anything that heads a section. */
+    lg: 'h-4 w-4',
+} as const
+
+// ─── Hit targets ─────────────────────────────────────────────────────────────
+
+/**
+ * Square control boxes. Distinct from ICON: this is the tappable area, the icon
+ * inside it is smaller. `sm` is the floor — 24px is the smallest target that is
+ * comfortably hittable on a phone.
+ */
+export const CONTROL = {
+    sm: 'h-6 w-6',
+    md: 'h-7 w-7',
+    lg: 'h-8 w-8',
+} as const
+
+/**
+ * Right-hand metadata column widths.
+ *
+ * Fixed, and right-aligned, so the numbers rule up vertically from row to row.
+ * Left to `shrink-0` they ended wherever their content happened to end, giving a
+ * ragged edge down the side of every list — the clearest single difference
+ * between these lists and Linear's.
+ */
+export const META = {
+    /** A short figure: a count, a percentage, a streak. */
+    narrow: 'w-12 shrink-0 text-right',
+    /** A phrase: "4/5 this week", a status word. */
+    wide: 'w-24 shrink-0 text-right',
+} as const
+
 // ─── Type scale ──────────────────────────────────────────────────────────────
 // Tracking goes negative as size grows and positive on small caps — the thing
 // that makes headings read "engineered" rather than merely large.
