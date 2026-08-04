@@ -10,7 +10,7 @@ import { useSecondBrainData, useSecondBrainActions, useStoreReady, createId } fr
 import { todayKey, longDateLabel, weekDays, weekRangeLabel, monthLabel } from '@/lib/second-brain/date'
 import { periodSummary, monthRange } from '@/lib/second-brain/domain/selectors'
 import type { Review, ReviewKind, JournalEntry } from '@/lib/second-brain/domain/types'
-import { R, T, INK, NUM, FOCUS, HAIRLINE, LABEL } from '@/lib/second-brain/ui'
+import { FOCUS, HAIRLINE, ICON, INK, LABEL, NUM, R, T } from '@/lib/second-brain/ui'
 
 type Tab = 'journal' | 'weekly' | 'monthly'
 
@@ -239,7 +239,7 @@ export function ReflectView() {
                                 <div className="flex flex-col gap-2.5">
                                     {summary.habits.map(habit => (
                                         <div key={habit.habitId} className="flex items-center gap-3">
-                                            <HabitIcon icon={habit.icon} className="h-[14px] w-[14px] shrink-0 text-foreground/55" />
+                                            <HabitIcon icon={habit.icon} className={cn(ICON.md, "shrink-0 text-foreground/55")} />
                                             <span className={cn('w-24 shrink-0 truncate', T.body, INK.default)}>
                                                 {habit.name}
                                             </span>
