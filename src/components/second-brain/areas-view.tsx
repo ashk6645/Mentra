@@ -10,7 +10,7 @@ import { todayKey, weekDays } from '@/lib/second-brain/date'
 import {
     buildEntryIndex, lookupFrom, habitCompletion, goalProgress, goalPace,
 } from '@/lib/second-brain/domain/selectors'
-import { R, T, INK, NUM, FOCUS, HOVER, HAIRLINE, LABEL } from '@/lib/second-brain/ui'
+import { FOCUS, HAIRLINE, HOVER, ICON, INK, LABEL, NUM, R, T } from '@/lib/second-brain/ui'
 
 /**
  * Areas of responsibility (PARA).
@@ -136,7 +136,7 @@ export function AreasView() {
                                                 className={cn('h-3.5 w-3.5 shrink-0 transition-transform',
                                                     INK.subtle, isOpen && 'rotate-90')}
                                             />
-                                            <HabitIcon icon={area.icon} className="h-[15px] w-[15px] shrink-0 text-foreground/60" />
+                                            <HabitIcon icon={area.icon} className={cn(ICON.md, "shrink-0 text-foreground/60")} />
                                             <span className={cn('truncate', T.title, INK.strong)}>{area.name}</span>
                                         </div>
 
@@ -200,7 +200,7 @@ export function AreasView() {
                                                     const c = habitCompletion(habit, isDone, week, today)
                                                     return (
                                                         <div key={habit.id} className="flex items-center gap-3 px-1">
-                                                            <HabitIcon icon={habit.icon} className="h-[14px] w-[14px] shrink-0 text-foreground/55" />
+                                                            <HabitIcon icon={habit.icon} className={cn(ICON.md, "shrink-0 text-foreground/55")} />
                                                             <span className={cn('flex-1 truncate', T.body, INK.default)}>
                                                                 {habit.name}
                                                             </span>
