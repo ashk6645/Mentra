@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { TIME_OF_DAY_ORDER, TIME_OF_DAY_LABEL, type TimeOfDay } from '@/lib/second-brain/domain/types'
-import { LABEL, HAIRLINE, FOCUS } from '@/lib/second-brain/ui'
+import { FOCUS, HAIRLINE, ICON, LABEL } from '@/lib/second-brain/ui'
 import { HABIT_ICONS, DEFAULT_ICON_ID, HabitIcon } from '@/lib/second-brain/icons'
 
 /** Sunday-first, matching the JS weekday numbering we store. */
@@ -109,7 +109,7 @@ export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProp
                                 'focus-within:border-primary/40'
                             )}
                         >
-                            <HabitIcon icon={icon} className="h-[16px] w-[16px] shrink-0 text-foreground/70" />
+                            <HabitIcon icon={icon} className={cn(ICON.lg, "shrink-0 text-foreground/70")} />
                             <input
                                 id="habit-name"
                                 value={name}
@@ -141,7 +141,7 @@ export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProp
                                             : `${HAIRLINE} text-foreground/60 hover:bg-foreground/[0.04] hover:text-foreground`
                                     )}
                                 >
-                                    <Icon className="h-[15px] w-[15px]" strokeWidth={1.75} />
+                                    <Icon className={ICON.md} strokeWidth={1.75} />
                                 </button>
                             ))}
                         </div>
