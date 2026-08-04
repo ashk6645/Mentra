@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import type { Habit } from '@/lib/second-brain/domain/types'
 import { todayKey } from '@/lib/second-brain/date'
 import { isScheduledOn, habitCompletion, habitStreak } from '@/lib/second-brain/domain/selectors'
-import { SURFACE, HAIRLINE, LABEL, NUM, BAR_SPRING } from '@/lib/second-brain/ui'
+import { BAR_SPRING, HAIRLINE, ICON, LABEL, NUM } from '@/lib/second-brain/ui'
 
 interface SummaryBarProps {
     days: string[]
@@ -62,12 +62,12 @@ function Stat({
     children?: React.ReactNode
 }) {
     return (
-        <div className="flex items-center gap-3 px-4 py-3">
+        <div className="flex items-center gap-3">
             {children}
             <div className="flex min-w-0 flex-col gap-0.5">
                 <span
                     className={cn(
-                        'text-[20px] font-semibold leading-none tracking-[-0.02em] text-foreground',
+                        'text-[26px] font-semibold leading-none tracking-[-0.03em] text-foreground',
                         NUM
                     )}
                 >
@@ -119,14 +119,15 @@ export function SummaryBar({ days, habits, isDone, rangeLabel }: SummaryBarProps
     }, [days, habits, isDone])
 
     return (
-        <div
-            className={cn(
-                'grid grid-cols-1 overflow-hidden rounded-[12px] sm:grid-cols-3',
-                'divide-y sm:divide-x sm:divide-y-0',
-                SURFACE,
-                `divide-black/[0.07] dark:divide-white/[0.07] ${HAIRLINE}`
-            )}
-        >
+        /*
+         * Matches MetricRow, deliberately.
+         *
+         * This is the same idea rendered by a different component, and when the
+         * shared one stopped being a bordered, ruled card this one didn't — so the
+         * Habits page ended up the only screen still showing the old dashboard
+         * treatment. Two components, one appearance.
+         */
+        <div className={cn('grid grid-cols-2 gap-x-8 gap-y-6 border-b pb-7 sm:grid-cols-3 sm:gap-x-12', HAIRLINE)}>
             <Stat
                 value={stats.todayTotal === 0 ? '—' : `${stats.todayDone}/${stats.todayTotal}`}
                 label="Done today"
@@ -153,7 +154,7 @@ export function SummaryBar({ days, habits, isDone, rangeLabel }: SummaryBarProps
                 >
                     <Flame
                         className={cn(
-                            'h-[15px] w-[15px]',
+                            ICON.md,
                             stats.best > 0 ? 'text-foreground/70' : 'text-foreground/40'
                         )}
                         strokeWidth={1.75}
