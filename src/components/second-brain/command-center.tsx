@@ -16,7 +16,7 @@ import {
     habitStreak, dailyScore, goalProgress, goalPace, isRoutineScheduledOn,
     routineProgress,
 } from '@/lib/second-brain/domain/selectors'
-import { R, T, INK, NUM, FOCUS, HAIRLINE, HOVER } from '@/lib/second-brain/ui'
+import { FOCUS, HAIRLINE, HOVER, ICON, INK, META, NUM, R, T } from '@/lib/second-brain/ui'
 
 /** Tasks and counts come from Mentra's database, not the local store. */
 export interface ServerSnapshot {
@@ -243,7 +243,7 @@ export function CommandCenter({ server }: { server: ServerSnapshot }) {
                                             <SBCheckbox checked={done} />
                                             <HabitIcon
                                                 icon={habit.icon}
-                                                className={cn('h-[15px] w-[15px] shrink-0', done ? 'text-muted-foreground/60' : 'text-foreground/60')}
+                                                className={cn(ICON.md, 'shrink-0', done ? 'text-muted-foreground/60' : 'text-foreground/60')}
                                             />
                                             <span className={cn('flex-1', T.body)}>
                                                 {/* Only the name is struck through. Striking the
@@ -265,21 +265,28 @@ export function CommandCenter({ server }: { server: ServerSnapshot }) {
                                                 )}
                                             </span>
 
-                                            {weekHits !== null && (
-                                                <span className={cn('shrink-0 text-[11px]', NUM, INK.muted)}>
-                                                    {weekHits}/{target} this week
-                                                </span>
-                                            )}
+                                            {/*
+                                              * Both columns are always rendered, even when empty.
+                                              * Conditionally omitting them let each row end wherever
+                                              * its own content happened to end, so the figures down
+                                              * the side of the list never lined up. Fixed widths only
+                                              * rule up if the column is always there.
+                                              */}
+                                            <span className={cn(META.wide, 'text-[11px]', NUM, INK.muted)}>
+                                                {weekHits !== null && `${weekHits}/${target} this week`}
+                                            </span>
 
-                                            {streak > 0 && (
-                                                <span
-                                                    className={cn('flex shrink-0 items-center gap-1 text-[11px] font-medium', NUM, INK.muted)}
-                                                    title={`${streak} ${isWeeklyCount(habit) ? 'week' : 'day'} streak`}
-                                                >
-                                                    <Flame className="h-3 w-3" strokeWidth={2} />
-                                                    {streak}
-                                                </span>
-                                            )}
+                                            <span
+                                                className={cn(META.narrow, 'text-[11px] font-medium', NUM, INK.muted)}
+                                                title={streak > 0 ? `${streak} ${isWeeklyCount(habit) ? 'week' : 'day'} streak` : undefined}
+                                            >
+                                                {streak > 0 && (
+                                                    <span className="inline-flex items-center gap-1">
+                                                        <Flame className={ICON.sm} strokeWidth={2} />
+                                                        {streak}
+                                                    </span>
+                                                )}
+                                            </span>
                                         </button>
                                     )
                                 })}
@@ -307,7 +314,7 @@ export function CommandCenter({ server }: { server: ServerSnapshot }) {
                                     <div key={routine.id} className="flex flex-col">
                                         <div className="flex items-center justify-between gap-3 py-1.5">
                                             <div className="flex items-center gap-2.5">
-                                                <HabitIcon icon={routine.icon} className="h-[15px] w-[15px] text-foreground/60" />
+                                                <HabitIcon icon={routine.icon} className={cn(ICON.md, "text-foreground/60")} />
                                                 <span className={cn(T.title, INK.strong)}>{routine.name}</span>
                                             </div>
                                             <span className={cn('text-[11px]', NUM, INK.muted)}>
