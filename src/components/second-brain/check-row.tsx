@@ -5,7 +5,7 @@ import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { SBCheckbox } from './checkbox'
 import { HabitIcon } from '@/lib/second-brain/icons'
-import { FOCUS, HOVER } from '@/lib/second-brain/ui'
+import { FOCUS, HOVER, ICON } from '@/lib/second-brain/ui'
 
 interface CheckRowProps {
     id: string
@@ -55,7 +55,7 @@ export const CheckRow = memo(function CheckRow({
                     <HabitIcon
                         icon={icon}
                         className={cn(
-                            'h-[15px] w-[15px] shrink-0 transition-colors',
+                            ICON.md, 'shrink-0 transition-colors',
                             completed ? 'text-muted-foreground/60' : 'text-foreground/60'
                         )}
                     />
