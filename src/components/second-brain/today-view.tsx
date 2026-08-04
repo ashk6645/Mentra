@@ -14,7 +14,7 @@ import {
     habitStreak, dailyScore, isRoutineScheduledOn, routineProgress,
 } from '@/lib/second-brain/domain/selectors'
 import { TIME_OF_DAY_ORDER, TIME_OF_DAY_LABEL } from '@/lib/second-brain/domain/types'
-import { R, T, INK, NUM, FOCUS, HOVER, LABEL } from '@/lib/second-brain/ui'
+import { FOCUS, HOVER, ICON, INK, LABEL, META, NUM, R, T } from '@/lib/second-brain/ui'
 
 /**
  * The daily workspace.
@@ -242,7 +242,7 @@ export function TodayView() {
                                                 <SBCheckbox checked={done} />
                                                 <HabitIcon
                                                     icon={habit.icon}
-                                                    className={cn('h-[15px] w-[15px] shrink-0',
+                                                    className={cn(ICON.md, 'shrink-0',
                                                         done ? 'text-muted-foreground/60' : 'text-foreground/60')}
                                                 />
 
@@ -259,21 +259,23 @@ export function TodayView() {
                                                     )}
                                                 </span>
 
-                                                {weekHits !== null && (
-                                                    <span className={cn('shrink-0 text-[11px]', NUM, INK.muted)}>
-                                                        {weekHits}/{target} this week
-                                                    </span>
-                                                )}
+                                                {/* Always rendered, so the columns rule up
+                                                    from row to row. See the same pair on Home. */}
+                                                <span className={cn(META.wide, 'text-[11px]', NUM, INK.muted)}>
+                                                    {weekHits !== null && `${weekHits}/${target} this week`}
+                                                </span>
 
-                                                {streak > 0 && (
-                                                    <span
-                                                        className={cn('flex shrink-0 items-center gap-1 text-[11px] font-medium', NUM, INK.muted)}
-                                                        title={`${streak} ${isWeeklyCount(habit) ? 'week' : 'day'} streak`}
-                                                    >
-                                                        <Flame className="h-3 w-3" strokeWidth={2} />
-                                                        {streak}
-                                                    </span>
-                                                )}
+                                                <span
+                                                    className={cn(META.narrow, 'text-[11px] font-medium', NUM, INK.muted)}
+                                                    title={streak > 0 ? `${streak} ${isWeeklyCount(habit) ? 'week' : 'day'} streak` : undefined}
+                                                >
+                                                    {streak > 0 && (
+                                                        <span className="inline-flex items-center gap-1">
+                                                            <Flame className={ICON.sm} strokeWidth={2} />
+                                                            {streak}
+                                                        </span>
+                                                    )}
+                                                </span>
                                             </button>
                                         )
                                     })}
@@ -302,7 +304,7 @@ export function TodayView() {
                                     <div key={routine.id} className="flex flex-col">
                                         <div className="flex items-center justify-between gap-3 py-1.5">
                                             <div className="flex items-center gap-2.5">
-                                                <HabitIcon icon={routine.icon} className="h-[15px] w-[15px] text-foreground/60" />
+                                                <HabitIcon icon={routine.icon} className={cn(ICON.md, "text-foreground/60")} />
                                                 <span className={cn(T.title, INK.strong)}>{routine.name}</span>
                                             </div>
                                             <span className={cn('text-[11px]', NUM, INK.muted)}>
