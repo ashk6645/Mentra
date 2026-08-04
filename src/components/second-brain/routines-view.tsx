@@ -11,7 +11,7 @@ import { useSecondBrainData, useSecondBrainActions, useStoreReady, createId } fr
 import { todayKey } from '@/lib/second-brain/date'
 import { isRoutineScheduledOn, routineProgress, routineMinutes } from '@/lib/second-brain/domain/selectors'
 import { TIME_OF_DAY_LABEL, type Routine, type RoutineStep } from '@/lib/second-brain/domain/types'
-import { R, T, INK, NUM, FOCUS, HOVER, HAIRLINE, LABEL } from '@/lib/second-brain/ui'
+import { FOCUS, HAIRLINE, HOVER, ICON, INK, LABEL, NUM, R, T } from '@/lib/second-brain/ui'
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -202,7 +202,7 @@ export function RoutinesView() {
                     <Panel key={routine.id} padded={false}>
                         <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
                             <div className="flex min-w-0 items-center gap-2.5">
-                                <HabitIcon icon={routine.icon} className="h-[15px] w-[15px] shrink-0 text-foreground/60" />
+                                <HabitIcon icon={routine.icon} className={cn(ICON.md, "shrink-0 text-foreground/60")} />
                                 <input
                                     value={routine.name}
                                     onChange={e => update('routines', routine.id, { name: e.target.value })}
