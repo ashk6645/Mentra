@@ -11,7 +11,7 @@ import {
     periodSummary, buildEntryIndex, lookupFrom, habitCompletion, isScheduledOn,
     isWeeklyCount,
 } from '@/lib/second-brain/domain/selectors'
-import { R, T, INK, NUM, HAIRLINE } from '@/lib/second-brain/ui'
+import { HAIRLINE, ICON, INK, NUM, R, T } from '@/lib/second-brain/ui'
 
 type Range = '7' | '30' | '90'
 
@@ -244,7 +244,7 @@ export function AnalyticsView() {
                         ) : (
                             struggling.map(({ habit, completion }) => (
                                 <div key={habit.id} className="flex items-center gap-3">
-                                    <HabitIcon icon={habit.icon} className="h-[14px] w-[14px] shrink-0 text-foreground/55" />
+                                    <HabitIcon icon={habit.icon} className={cn(ICON.md, "shrink-0 text-foreground/55")} />
                                     <span className={cn('w-24 shrink-0 truncate', T.body, INK.default)}>
                                         {habit.name}
                                     </span>
