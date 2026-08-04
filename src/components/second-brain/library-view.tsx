@@ -9,7 +9,7 @@ import { notifyWithUndo } from '@/lib/second-brain/feedback'
 import { useSecondBrainData, useSecondBrainActions, useStoreReady, createId } from '@/lib/second-brain/repo'
 import { todayKey } from '@/lib/second-brain/date'
 import type { ResourceStatus, MediaStatus, IdeaStatus } from '@/lib/second-brain/domain/types'
-import { R, T, INK, NUM, FOCUS, HOVER, HAIRLINE } from '@/lib/second-brain/ui'
+import { CONTROL, FOCUS, HAIRLINE, HOVER, ICON, INK, META, NUM, R, T } from '@/lib/second-brain/ui'
 
 type Tab = 'resources' | 'media' | 'ideas'
 
@@ -253,22 +253,36 @@ export function LibraryView() {
                                         R.sm, '-mx-1 px-1 focus:bg-foreground/[0.04]')}
                                 />
 
-                                <span className={cn('shrink-0 text-[11px] capitalize', INK.subtle)}>{resource.type}</span>
-                                <Rating value={resource.rating} />
-                                <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
+                                {/*
+                                  * Fixed columns, always rendered. Type, rating and
+                                  * status vary in width and the link is optional, so
+                                  * left to themselves every row ended somewhere
+                                  * different and the list had a ragged right edge.
+                                  */}
+                                <span className={cn('w-20 shrink-0 text-right text-[11px] capitalize', INK.subtle)}>
+                                    {resource.type}
+                                </span>
+                                <span className="flex w-11 shrink-0 justify-end">
+                                    <Rating value={resource.rating} />
+                                </span>
+                                <span className={cn(META.wide, 'shrink-0')}>
+                                    <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
+                                </span>
 
-                                {resource.url && (
-                                    <a
-                                        href={resource.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        aria-label={`Open ${resource.title}`}
-                                        className={cn('flex h-7 w-7 shrink-0 items-center justify-center', R.sm, INK.muted,
-                                            'hover:bg-foreground/[0.06] hover:text-foreground', FOCUS)}
-                                    >
-                                        <ExternalLink className="h-3.5 w-3.5" />
-                                    </a>
-                                )}
+                                <span className={cn('flex shrink-0 justify-end', CONTROL.md)}>
+                                    {resource.url && (
+                                        <a
+                                            href={resource.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            aria-label={`Open ${resource.title}`}
+                                            className={cn('flex items-center justify-center', CONTROL.md, R.sm, INK.muted,
+                                                'hover:bg-foreground/[0.06] hover:text-foreground', FOCUS)}
+                                        >
+                                            <ExternalLink className={ICON.md} />
+                                        </a>
+                                    )}
+                                </span>
 
                                 <button
                                     type="button"
