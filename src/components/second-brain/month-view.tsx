@@ -8,7 +8,7 @@ import { AnimatedNumber } from './animated-number'
 import type { Habit } from '@/lib/second-brain/domain/types'
 import { todayKey, weekdayOf, dayOfMonth } from '@/lib/second-brain/date'
 import { isScheduledOn, habitCompletion, habitStreak } from '@/lib/second-brain/domain/selectors'
-import { SURFACE, HAIRLINE, LABEL, NUM, FOCUS, intensityClass } from '@/lib/second-brain/ui'
+import { FOCUS, HAIRLINE, ICON, LABEL, NUM, SURFACE, intensityClass } from '@/lib/second-brain/ui'
 
 interface MonthViewProps {
     days: string[]
@@ -130,7 +130,7 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
                             >
                                 <HabitIcon
                                     icon={habit.icon}
-                                    className="h-[15px] w-[15px] shrink-0 text-foreground/60"
+                                    className={cn(ICON.md, "shrink-0 text-foreground/60")}
                                 />
                                 <span
                                     className="flex-1 truncate text-[13px] text-foreground/85"
@@ -146,7 +146,7 @@ export function MonthView({ days, habits, isDone, onToggle }: MonthViewProps) {
                                         )}
                                         title={`${streak} day streak`}
                                     >
-                                        <Flame className="h-[10px] w-[10px]" strokeWidth={2} />
+                                        <Flame className={ICON.sm} strokeWidth={2} />
                                         {streak}
                                     </span>
                                 )}
