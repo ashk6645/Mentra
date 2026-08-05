@@ -14,7 +14,7 @@ import {
     habitStreak, dailyScore, isRoutineScheduledOn, routineProgress,
 } from '@/lib/second-brain/domain/selectors'
 import { TIME_OF_DAY_ORDER, TIME_OF_DAY_LABEL } from '@/lib/second-brain/domain/types'
-import { FOCUS, HOVER, ICON, INK, LABEL, META, NUM, R, T } from '@/lib/second-brain/ui'
+import { FOCUS, HOVER, ICON, INK, LABEL, META, NUM, R, ROW, T } from '@/lib/second-brain/ui'
 
 /**
  * The daily workspace.
@@ -235,8 +235,7 @@ export function TodayView() {
                                                 onClick={() => toggleHabit(habit.id)}
                                                 aria-pressed={done}
                                                 className={cn(
-                                                    'flex items-center gap-3 px-2 py-2.5 text-left',
-                                                    R.md, HOVER, FOCUS, 'transition-colors'
+                                                    ROW, FOCUS, 'text-left'
                                                 )}
                                             >
                                                 <SBCheckbox checked={done} />
@@ -290,7 +289,7 @@ export function TodayView() {
                             <SectionHeader title="Routines" />
                             {/* Wider than it was: with the card borders gone, this gap
                                 is the only thing separating one routine from the next. */}
-                            <div className="flex flex-col gap-7">
+                            <div className="flex flex-col gap-8">
                                 {routines.map(({ routine, steps, progress }) => (
                                     /*
                                      * A routine is a heading with its steps under it,
@@ -303,7 +302,7 @@ export function TodayView() {
                                      */
                                     <div key={routine.id} className="flex flex-col">
                                         <div className="flex items-center justify-between gap-3 py-1.5">
-                                            <div className="flex items-center gap-2.5">
+                                            <div className="flex items-center gap-3">
                                                 <HabitIcon icon={routine.icon} className={cn(ICON.md, "text-foreground/60")} />
                                                 <span className={cn(T.title, INK.strong)}>{routine.name}</span>
                                             </div>
@@ -325,8 +324,7 @@ export function TodayView() {
                                                         type="button"
                                                         onClick={() => toggleStep(s.id)}
                                                         aria-pressed={done}
-                                                        className={cn('flex items-center gap-3 px-2 py-2 text-left',
-                                                            R.md, HOVER, FOCUS, 'transition-colors')}
+                                                        className={cn(ROW, FOCUS, 'text-left')}
                                                     >
                                                         <SBCheckbox checked={done} size="sm" />
                                                         <span className={cn('flex-1', T.body,
