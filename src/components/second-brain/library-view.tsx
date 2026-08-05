@@ -9,7 +9,7 @@ import { notifyWithUndo } from '@/lib/second-brain/feedback'
 import { useSecondBrainData, useSecondBrainActions, useStoreReady, createId } from '@/lib/second-brain/repo'
 import { todayKey } from '@/lib/second-brain/date'
 import type { ResourceStatus, MediaStatus, IdeaStatus } from '@/lib/second-brain/domain/types'
-import { CONTROL, FOCUS, HAIRLINE, HOVER, ICON, INK, META, NUM, R, T } from '@/lib/second-brain/ui'
+import { CONTROL, FOCUS, HAIRLINE, HOVER, ICON, INK, META, NUM, R, ROW, T } from '@/lib/second-brain/ui'
 
 type Tab = 'resources' | 'media' | 'ideas'
 
@@ -244,7 +244,7 @@ export function LibraryView() {
                     {resources.map(resource => {
                         const status = RESOURCE_STATUS[resource.status]
                         return (
-                            <div key={resource.id} className={cn('group flex flex-wrap items-center gap-3 px-2 py-2.5', R.md, HOVER)}>
+                            <div key={resource.id} className={cn(ROW, 'group flex-wrap')}>
                                 <input
                                     value={resource.title}
                                     onChange={e => update('resources', resource.id, { title: e.target.value })}
@@ -310,7 +310,7 @@ export function LibraryView() {
                         const showsProgress = item.type === 'book' && item.progress !== null
 
                         return (
-                            <Panel key={item.id} className="flex flex-col gap-2.5">
+                            <Panel key={item.id} className="flex flex-col gap-3">
                                 <div className="flex items-start justify-between gap-2">
                                     <input
                                         value={item.title}
@@ -352,7 +352,7 @@ export function LibraryView() {
                     {ideas.map(idea => {
                         const status = IDEA_STATUS[idea.status]
                         return (
-                            <Panel key={idea.id} className="flex flex-col gap-2.5">
+                            <Panel key={idea.id} className="flex flex-col gap-3">
                                 <div className="flex flex-wrap items-start justify-between gap-2">
                                     <div className="flex min-w-0 flex-1 items-center gap-2">
                                         <Lightbulb className="h-3.5 w-3.5 shrink-0 text-foreground/45" strokeWidth={1.75} />
