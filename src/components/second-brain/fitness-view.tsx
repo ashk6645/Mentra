@@ -14,7 +14,7 @@ import {
     exerciseProgression, bestOneRepMax, previousPerformance,
 } from '@/lib/second-brain/domain/selectors'
 import type { Workout } from '@/lib/second-brain/domain/types'
-import { R, T, INK, NUM, FOCUS, HOVER, HAIRLINE } from '@/lib/second-brain/ui'
+import { FOCUS, HAIRLINE, HOVER, INK, NUM, R, ROW, T } from '@/lib/second-brain/ui'
 
 /**
  * Progression sparkline.
@@ -77,7 +77,7 @@ function WorkoutRow({
     const minutes = workoutDurationMinutes(workout)
 
     return (
-        <div className={cn('flex flex-wrap items-center justify-between gap-3 px-2 py-2.5', R.md, HOVER)}>
+        <div className={cn(ROW, 'flex-wrap justify-between')}>
             <div className="flex min-w-0 flex-col gap-0.5">
                 <span className={cn('truncate', T.body, INK.strong)}>{workout.name}</span>
                 <span className={cn('text-[11px]', INK.subtle)}>
@@ -341,8 +341,7 @@ export function FitnessView() {
                                         type="button"
                                         onClick={() => setExpandedExercise(isOpen ? null : exercise.id)}
                                         aria-expanded={isOpen}
-                                        className={cn('flex w-full items-center gap-3 px-2 py-2.5 text-left',
-                                            R.md, HOVER, FOCUS, 'transition-colors')}
+                                        className={cn(ROW, FOCUS, 'w-full text-left')}
                                     >
                                         <span className={cn('flex-1 truncate', T.body,
                                             progression.length > 0 ? INK.strong : INK.subtle)}>
