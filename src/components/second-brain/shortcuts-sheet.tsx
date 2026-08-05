@@ -42,7 +42,7 @@ export function ShortcutsSheet({ open, onOpenChange, shortcuts }: ShortcutsSheet
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="flex flex-col gap-5 py-1">
+                <div className="flex flex-col gap-6 py-1">
                     {groups.map(([group, items], index) => (
                         <div key={group} className="flex flex-col gap-1">
                             <span className={cn(LABEL, 'mb-1.5')}>{group}</span>
