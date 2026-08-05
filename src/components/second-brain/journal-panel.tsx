@@ -155,7 +155,7 @@ export function JournalPanel({ date, entry, onCreate, onUpdate }: JournalPanelPr
     }
 
     return (
-        <Panel className="flex flex-col gap-5">
+        <Panel className="flex flex-col gap-6">
             <div className="flex flex-col gap-3">
                 <Scale label="Mood" value={current.mood ?? null} onChange={v => write('mood', v)} />
                 <Scale label="Energy" value={current.energy ?? null} onChange={v => write('energy', v)} />
