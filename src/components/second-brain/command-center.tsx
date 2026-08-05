@@ -16,7 +16,7 @@ import {
     habitStreak, dailyScore, goalProgress, goalPace, isRoutineScheduledOn,
     routineProgress,
 } from '@/lib/second-brain/domain/selectors'
-import { FOCUS, HAIRLINE, HOVER, ICON, INK, META, NUM, R, T } from '@/lib/second-brain/ui'
+import { FOCUS, HAIRLINE, HOVER, ICON, INK, META, NUM, R, ROW, T } from '@/lib/second-brain/ui'
 
 /** Tasks and counts come from Mentra's database, not the local store. */
 export interface ServerSnapshot {
@@ -236,8 +236,7 @@ export function CommandCenter({ server }: { server: ServerSnapshot }) {
                                             onClick={() => toggleHabit(habit.id)}
                                             aria-pressed={done}
                                             className={cn(
-                                                'flex items-center gap-3 px-2 py-2.5 text-left',
-                                                R.md, HOVER, FOCUS, 'transition-colors'
+                                                ROW, FOCUS, 'text-left'
                                             )}
                                         >
                                             <SBCheckbox checked={done} />
@@ -300,7 +299,7 @@ export function CommandCenter({ server }: { server: ServerSnapshot }) {
                             <SectionHeader title="Routines" />
                             {/* Wider than it was: with the card borders gone, this gap
                                 is the only thing separating one routine from the next. */}
-                            <div className="flex flex-col gap-7">
+                            <div className="flex flex-col gap-8">
                                 {routinesToday.map(({ routine, steps, progress }) => (
                                     /*
                                      * A routine is a heading with its steps under it,
@@ -313,7 +312,7 @@ export function CommandCenter({ server }: { server: ServerSnapshot }) {
                                      */
                                     <div key={routine.id} className="flex flex-col">
                                         <div className="flex items-center justify-between gap-3 py-1.5">
-                                            <div className="flex items-center gap-2.5">
+                                            <div className="flex items-center gap-3">
                                                 <HabitIcon icon={routine.icon} className={cn(ICON.md, "text-foreground/60")} />
                                                 <span className={cn(T.title, INK.strong)}>{routine.name}</span>
                                             </div>
@@ -336,8 +335,7 @@ export function CommandCenter({ server }: { server: ServerSnapshot }) {
                                                         onClick={() => toggleStep(step.id)}
                                                         aria-pressed={done}
                                                         className={cn(
-                                                            'flex items-center gap-3 px-2 py-2 text-left',
-                                                            R.md, HOVER, FOCUS, 'transition-colors'
+                                                            ROW, FOCUS, 'text-left'
                                                         )}
                                                     >
                                                         <SBCheckbox checked={done} size="sm" />
@@ -418,8 +416,7 @@ export function CommandCenter({ server }: { server: ServerSnapshot }) {
                                         key={project.id}
                                         href={`/projects/${project.id}`}
                                         className={cn(
-                                            'flex items-center gap-2.5 px-2 py-2', R.md, HOVER, FOCUS,
-                                            'transition-colors'
+                                            ROW, FOCUS
                                         )}
                                     >
                                         <span
