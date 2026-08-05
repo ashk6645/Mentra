@@ -5,7 +5,7 @@ import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { SBCheckbox } from './checkbox'
 import { HabitIcon } from '@/lib/second-brain/icons'
-import { FOCUS, HOVER, ICON } from '@/lib/second-brain/ui'
+import { FOCUS, HOVER, ICON, ROW } from '@/lib/second-brain/ui'
 
 interface CheckRowProps {
     id: string
@@ -43,7 +43,7 @@ export const CheckRow = memo(function CheckRow({
                 onClick={() => onToggle(id)}
                 aria-pressed={completed}
                 className={cn(
-                    'flex flex-1 items-center gap-3 rounded-[8px] px-2 py-2 text-left',
+                    ROW, 'flex-1 text-left',
                     'transition-colors duration-150',
                     HOVER,
                     FOCUS
