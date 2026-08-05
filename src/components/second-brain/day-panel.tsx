@@ -104,7 +104,7 @@ export function DayPanel({ date, api }: DayPanelProps) {
                 )}
             </header>
 
-            <div className="flex flex-col gap-7">
+            <div className="flex flex-col gap-8">
                 {sections.map(({ slot, habits: slotHabits }) => {
                     const count = slotHabits.length
 
