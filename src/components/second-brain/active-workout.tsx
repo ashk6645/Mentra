@@ -10,7 +10,7 @@ import {
     previousPerformance, workoutVolume, estimatedOneRepMax, bestOneRepMax,
 } from '@/lib/second-brain/domain/selectors'
 import type { Workout, WorkoutSet, Exercise } from '@/lib/second-brain/domain/types'
-import { R, T, INK, NUM, FOCUS, HOVER, HAIRLINE, LABEL } from '@/lib/second-brain/ui'
+import { FOCUS, HAIRLINE, HOVER, INK, LABEL, NUM, R, ROW, T } from '@/lib/second-brain/ui'
 
 /** mm:ss, or h:mm:ss past an hour. */
 function formatElapsed(ms: number): string {
@@ -228,7 +228,7 @@ export function ActiveWorkout({ workout, onFinish, onDiscard }: ActiveWorkoutPro
     )
 
     return (
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-6">
             {/* Session header — sticky so the clock and Finish stay reachable
                 while scrolling a long session on a phone. */}
             <div className={cn('sticky top-0 z-20 -mx-1 flex flex-wrap items-center justify-between gap-3 bg-background/95 px-1 py-3 backdrop-blur')}>
@@ -349,8 +349,7 @@ export function ActiveWorkout({ workout, onFinish, onDiscard }: ActiveWorkoutPro
                                 key={exercise.id}
                                 type="button"
                                 onClick={() => addExercise(exercise.id)}
-                                className={cn('flex w-full items-center justify-between gap-3 px-2 py-2 text-left',
-                                    R.md, HOVER, FOCUS, 'transition-colors')}
+                                className={cn(ROW, FOCUS, 'w-full justify-between text-left')}
                             >
                                 <span className={cn(T.body, INK.default)}>{exercise.name}</span>
                                 <span className={cn('shrink-0 text-[11px] capitalize', INK.subtle)}>
