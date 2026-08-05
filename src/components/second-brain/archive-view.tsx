@@ -10,7 +10,7 @@ import { Panel, SectionHeader } from './primitives'
 import { useSecondBrainData, useSecondBrainActions, useStoreReady } from '@/lib/second-brain/repo'
 import { longDateLabel, toDateKey } from '@/lib/second-brain/date'
 import type { CollectionName } from '@/lib/second-brain/domain/types'
-import { R, T, INK, FOCUS, HOVER } from '@/lib/second-brain/ui'
+import { FOCUS, HOVER, INK, R, ROW, T } from '@/lib/second-brain/ui'
 
 /** Collections that support archiving, and what to call their contents. */
 const ARCHIVABLE: { collection: CollectionName; label: string; singular: string }[] = [
@@ -164,7 +164,7 @@ export function ArchiveView() {
                 {visible.map(record => (
                     <div
                         key={`${record.collection}:${record.id}`}
-                        className={cn('group flex flex-wrap items-center gap-3 px-2 py-2.5', R.md, HOVER)}
+                        className={cn(ROW, 'group flex-wrap')}
                     >
                         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                             <span className={cn('truncate', T.body, INK.default)}>{record.title}</span>
