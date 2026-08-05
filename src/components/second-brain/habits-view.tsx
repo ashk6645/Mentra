@@ -278,7 +278,7 @@ export function HabitsView() {
                             )}
 
                             {view === 'day' && (
-                                <div className="flex flex-col gap-7">
+                                <div className="flex flex-col gap-8">
                                     <WeekStrip
                                         days={weekDays(anchor)}
                                         selectedDate={selectedDate}
