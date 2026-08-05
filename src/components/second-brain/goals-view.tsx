@@ -10,7 +10,7 @@ import { useSecondBrainData, useSecondBrainActions, useStoreReady, createId } fr
 import { todayKey, longDateLabel, fromDateKey } from '@/lib/second-brain/date'
 import { goalProgress, goalPace } from '@/lib/second-brain/domain/selectors'
 import type { Goal, GoalStatus } from '@/lib/second-brain/domain/types'
-import { R, T, INK, NUM, FOCUS, HOVER, HAIRLINE, LABEL } from '@/lib/second-brain/ui'
+import { FOCUS, HAIRLINE, HOVER, ICON, INK, LABEL, META, NUM, R, ROW, T } from '@/lib/second-brain/ui'
 
 const STATUS_LABEL: Record<GoalStatus, string> = {
     not_started: 'Not started',
@@ -21,9 +21,17 @@ const STATUS_LABEL: Record<GoalStatus, string> = {
     abandoned: 'Abandoned',
 }
 
-const STATUS_TONE: Record<GoalStatus, 'neutral' | 'info' | 'warning' | 'success'> = {
+/*
+ * Same rule as the library: colour marks the exceptions, not the norm.
+ *
+ * "Active" is the state most goals are in most of the time — colouring it blue
+ * put a filled pill on nearly every row and left nothing for the states that
+ * actually want attention. At risk and achieved keep their tone because they are
+ * genuinely worth interrupting for.
+ */
+const STATUS_TONE: Record<GoalStatus, 'neutral' | 'warning' | 'success'> = {
     not_started: 'neutral',
-    active: 'info',
+    active: 'neutral',
     at_risk: 'warning',
     achieved: 'success',
     paused: 'neutral',
@@ -225,7 +233,7 @@ export function GoalsView() {
                                             R.lg, HOVER, FOCUS, 'transition-colors')}
                                     >
                                         <div className="flex flex-wrap items-start justify-between gap-3">
-                                            <div className="flex min-w-0 items-center gap-2.5">
+                                            <div className="flex min-w-0 items-center gap-3">
                                                 <ChevronRight
                                                     className={cn('h-3.5 w-3.5 shrink-0 transition-transform',
                                                         INK.subtle, isOpen && 'rotate-90')}
@@ -233,16 +241,26 @@ export function GoalsView() {
                                                 <span className={cn('truncate', T.title, INK.strong)}>{goal.title}</span>
                                             </div>
 
-                                            <div className="flex shrink-0 items-center gap-2">
-                                                {pace.behind && goal.status !== 'achieved' && (
-                                                    <StatusBadge tone="warning">
-                                                        <TrendingDown className="h-2.5 w-2.5" />
-                                                        Behind
+                                            {/*
+                                              * The "Behind" slot is reserved whether or not it is
+                                              * filled, so the status badge sits at the same x on
+                                              * every goal. Rendered conditionally it shunted the
+                                              * status left on exactly the rows drawing the eye.
+                                              */}
+                                            <div className="flex shrink-0 items-center justify-end gap-2">
+                                                <span className="flex w-[74px] justify-end">
+                                                    {pace.behind && goal.status !== 'achieved' && (
+                                                        <StatusBadge tone="warning">
+                                                            <TrendingDown className={ICON.sm} />
+                                                            Behind
+                                                        </StatusBadge>
+                                                    )}
+                                                </span>
+                                                <span className={cn(META.wide, 'flex justify-end')}>
+                                                    <StatusBadge tone={STATUS_TONE[goal.status]}>
+                                                        {STATUS_LABEL[goal.status]}
                                                     </StatusBadge>
-                                                )}
-                                                <StatusBadge tone={STATUS_TONE[goal.status]}>
-                                                    {STATUS_LABEL[goal.status]}
-                                                </StatusBadge>
+                                                </span>
                                             </div>
                                         </div>
 
@@ -311,8 +329,7 @@ export function GoalsView() {
                                                             type="button"
                                                             onClick={() => toggleMilestone(milestone.id, done)}
                                                             aria-pressed={done}
-                                                            className={cn('flex items-center gap-3 px-2 py-2 text-left',
-                                                                R.md, HOVER, FOCUS, 'transition-colors')}
+                                                            className={cn(ROW, FOCUS, 'text-left')}
                                                         >
                                                             <SBCheckbox checked={done} size="sm" />
                                                             <span className={cn('flex-1', T.body,
