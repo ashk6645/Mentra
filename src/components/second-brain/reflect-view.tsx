@@ -233,10 +233,10 @@ export function ReflectView() {
 
                     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_1.2fr]">
                         {/* Evidence */}
-                        <section className="flex flex-col gap-5">
+                        <section className="flex flex-col gap-6">
                             <div>
                                 <SectionHeader title="Habits this period" />
-                                <div className="flex flex-col gap-2.5">
+                                <div className="flex flex-col gap-3">
                                     {summary.habits.map(habit => (
                                         <div key={habit.habitId} className="flex items-center gap-3">
                                             <HabitIcon icon={habit.icon} className={cn(ICON.md, "shrink-0 text-foreground/55")} />
