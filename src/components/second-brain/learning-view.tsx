@@ -20,10 +20,11 @@ const STATUS_LABEL: Record<LearningStatus, string> = {
     mastered: 'Mastered',
 }
 
-const STATUS_TONE: Record<LearningStatus, 'neutral' | 'info' | 'warning' | 'success'> = {
+/* Same rule as goals and the library — colour marks exceptions, not the norm. */
+const STATUS_TONE: Record<LearningStatus, 'neutral' | 'warning' | 'success'> = {
     not_started: 'neutral',
-    learning: 'info',
-    practicing: 'info',
+    learning: 'neutral',
+    practicing: 'neutral',
     reviewing: 'warning',
     mastered: 'success',
 }
@@ -222,21 +223,31 @@ export function LearningView() {
                                     </span>
                                 </div>
 
-                                <div className="flex shrink-0 items-center gap-1.5">
-                                    <span className={cn(LABEL, 'mr-1')}>How solid?</span>
+                                <div className="flex shrink-0 items-center gap-2">
+                                    <span className={LABEL}>How solid?</span>
+                                    {/*
+                                      * A joined track, matching the mood and day-rating
+                                      * scales on Today. Outlining each of the five cells
+                                      * made this read as a form to fill in rather than a
+                                      * control to set, and put five more boxes on a page
+                                      * that had just had its boxes removed.
+                                      */}
+                                    <span className="flex gap-px">
                                     {[1, 2, 3, 4, 5].map(n => (
                                         <button
                                             key={n}
                                             type="button"
                                             onClick={() => review(item.id, n, item.reviewCount)}
                                             aria-label={`Rate ${item.title} ${n} of 5`}
-                                            className={cn('h-7 w-7 text-[11px] font-medium', R.sm, NUM, FOCUS,
-                                                'border', HAIRLINE, INK.muted,
-                                                'transition-colors hover:bg-foreground/[0.06] hover:text-foreground')}
+                                            className={cn('h-7 w-[26px] text-[11px] font-medium', NUM, FOCUS,
+                                                'first:rounded-l-[6px] last:rounded-r-[6px]',
+                                                'bg-foreground/[0.05]', INK.subtle,
+                                                'transition-colors hover:bg-foreground/[0.09] hover:text-foreground')}
                                         >
                                             {n}
                                         </button>
                                     ))}
+                                    </span>
                                 </div>
                             </Panel>
                         ))}
@@ -281,11 +292,11 @@ export function LearningView() {
                                             type="button"
                                             onClick={() => setExpanded(isOpen ? null : item.id)}
                                             aria-expanded={isOpen}
-                                            className={cn('flex w-full flex-col gap-2.5 px-4 py-3.5 text-left',
+                                            className={cn('flex w-full flex-col gap-3 px-4 py-3.5 text-left',
                                                 R.lg, HOVER, FOCUS, 'transition-colors')}
                                         >
                                             <div className="flex flex-wrap items-center justify-between gap-2">
-                                                <div className="flex min-w-0 items-center gap-2.5">
+                                                <div className="flex min-w-0 items-center gap-3">
                                                     <ChevronRight className={cn('h-3.5 w-3.5 shrink-0 transition-transform',
                                                         INK.subtle, isOpen && 'rotate-90')} />
                                                     <span className={cn('truncate', T.title, INK.strong)}>{item.title}</span>
@@ -309,7 +320,7 @@ export function LearningView() {
                                         </button>
 
                                         {isOpen && (
-                                            <div className={cn('flex flex-col gap-5 border-t px-4 py-4', HAIRLINE)}>
+                                            <div className={cn('flex flex-col gap-6 border-t px-4 py-4', HAIRLINE)}>
                                                 <div className="flex flex-wrap items-center gap-3">
                                                     <span className={LABEL}>Status</span>
                                                     <div className="flex flex-wrap gap-1">
