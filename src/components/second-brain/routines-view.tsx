@@ -11,7 +11,7 @@ import { useSecondBrainData, useSecondBrainActions, useStoreReady, createId } fr
 import { todayKey } from '@/lib/second-brain/date'
 import { isRoutineScheduledOn, routineProgress, routineMinutes } from '@/lib/second-brain/domain/selectors'
 import { TIME_OF_DAY_LABEL, type Routine, type RoutineStep } from '@/lib/second-brain/domain/types'
-import { FOCUS, HAIRLINE, HOVER, ICON, INK, LABEL, NUM, R, T } from '@/lib/second-brain/ui'
+import { FOCUS, HAIRLINE, HOVER, ICON, INK, LABEL, NUM, R, ROW, T } from '@/lib/second-brain/ui'
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -201,7 +201,7 @@ export function RoutinesView() {
                 {routines.map(({ routine, steps, progress, minutes, scheduledToday }) => (
                     <Panel key={routine.id} padded={false}>
                         <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-                            <div className="flex min-w-0 items-center gap-2.5">
+                            <div className="flex min-w-0 items-center gap-3">
                                 <HabitIcon icon={routine.icon} className={cn(ICON.md, "shrink-0 text-foreground/60")} />
                                 <input
                                     value={routine.name}
@@ -215,7 +215,8 @@ export function RoutinesView() {
                             </div>
 
                             <div className="flex shrink-0 items-center gap-2">
-                                <StatusBadge tone={scheduledToday ? 'info' : 'neutral'}>
+                                {/* Scheduled today is the ordinary case — no tone. */}
+                                <StatusBadge tone="neutral">
                                     {TIME_OF_DAY_LABEL[routine.timeOfDay]} · {scheduleLabel(routine.days)}
                                 </StatusBadge>
 
@@ -256,8 +257,7 @@ export function RoutinesView() {
                                             type="button"
                                             onClick={() => toggleStep(step.id)}
                                             aria-pressed={done}
-                                            className={cn('flex flex-1 items-center gap-3 px-2 py-2 text-left',
-                                                R.md, HOVER, FOCUS, 'transition-colors')}
+                                            className={cn(ROW, FOCUS, 'flex-1 text-left')}
                                         >
                                             <SBCheckbox checked={done} size="sm" />
                                             <span className={cn('flex-1', T.body,
@@ -346,7 +346,7 @@ export function RoutinesView() {
                                             setAddingTo(routine.id)
                                             setDraftStep('')
                                         }}
-                                        className={cn('flex w-full items-center gap-2.5 px-2 py-2',
+                                        className={cn(ROW, 'w-full',
                                             R.md, T.body, INK.subtle, HOVER, FOCUS,
                                             'transition-colors hover:text-foreground')}
                                     >
