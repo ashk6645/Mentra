@@ -131,7 +131,7 @@ export function AreasView() {
                                         R.lg, HOVER, FOCUS, 'transition-colors')}
                                 >
                                     <div className="flex flex-wrap items-center justify-between gap-3">
-                                        <div className="flex min-w-0 items-center gap-2.5">
+                                        <div className="flex min-w-0 items-center gap-3">
                                             <ChevronRight
                                                 className={cn('h-3.5 w-3.5 shrink-0 transition-transform',
                                                     INK.subtle, isOpen && 'rotate-90')}
@@ -166,7 +166,7 @@ export function AreasView() {
                                 </button>
 
                                 {isOpen && (
-                                    <div className={cn('flex flex-col gap-5 border-t px-4 py-4', HAIRLINE)}>
+                                    <div className={cn('flex flex-col gap-6 border-t px-4 py-4', HAIRLINE)}>
                                         <label className="flex flex-col gap-1.5">
                                             <span className={LABEL}>Description</span>
                                             <textarea
