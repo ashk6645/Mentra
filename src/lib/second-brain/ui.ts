@@ -58,6 +58,57 @@ export const R = {
     full: 'rounded-full',
 } as const
 
+// ─── Spacing ─────────────────────────────────────────────────────────────────
+
+/**
+ * The spacing ladder, closed like the others.
+ *
+ * Eleven gap values were in use — including 2.5, 5 and 7, which sit between the
+ * steps and belong to no rhythm. Tailwind's scale is 4px-based, so the ladder is
+ * 2 / 4 / 8 / 12 / 16 / 24 / 32. The two sub-4px steps earn their place: an icon
+ * beside its label wants 6px, not 8, and forcing them up made inline pairs read
+ * as separate things.
+ *
+ * These are documentation as much as tokens — the values are ordinary Tailwind
+ * classes, and the point is that a component reaching for something not on this
+ * list means the ladder is wrong, not the component.
+ */
+export const SPACE = {
+    /** Hairline pairings — a glyph and its number. */
+    hair: 'gap-0.5',
+    /** An icon and its label. */
+    tight: 'gap-1.5',
+    /** Inside a control. */
+    snug: 'gap-2',
+    /** The default: between items in a row. */
+    base: 'gap-3',
+    /** Between stacked blocks inside a section. */
+    loose: 'gap-4',
+    /** Between distinct groups. */
+    section: 'gap-6',
+    /** Between major regions of a page. */
+    page: 'gap-8',
+} as const
+
+// ─── Rows ────────────────────────────────────────────────────────────────────
+
+/**
+ * One list row, everywhere.
+ *
+ * Height, padding, gap, hover and radius were restated per component, and drifted:
+ * ten list surfaces had settled on two different heights (py-2 and py-2.5) and two
+ * different gaps (gap-3 and gap-2.5). Individually invisible; collectively it is
+ * why scrolling the feature felt like several screens by the same author rather
+ * than one surface.
+ *
+ * Deliberately excludes FOCUS. Plenty of rows are plain `div`s that never take
+ * focus, and baking a focus ring into all of them would promise an affordance
+ * most of them don't have. Interactive rows add it themselves.
+ *
+ * Compose with layout modifiers: cn(ROW, 'w-full text-left').
+ */
+export const ROW = `flex items-center gap-3 px-2 py-2 ${R.md} ${HOVER} transition-colors`
+
 // ─── Icon sizes ──────────────────────────────────────────────────────────────
 
 /**
