@@ -200,11 +200,17 @@ export function MetricRow({ children }: { children: React.ReactNode }) {
 
 // ─── Badges ──────────────────────────────────────────────────────────────────
 
-type Tone = 'neutral' | 'success' | 'warning' | 'danger' | 'info'
+type Tone = 'neutral' | 'success' | 'warning' | 'danger'
 
 /**
- * Colour is semantic, never decorative (spec §46). Five tones, fixed meanings:
- * success = done, warning = at risk, danger = overdue, info = in flight.
+ * Colour is semantic, never decorative (spec §46). Four tones, fixed meanings:
+ * success = done, warning = at risk, danger = destroyed or failed, neutral =
+ * everything else.
+ *
+ * `info` was removed once nothing used it. It had been carrying "in flight" —
+ * Reading, Active, Learning, scheduled-today — which are the *ordinary* states,
+ * so it put a coloured pill on nearly every row and left the genuinely notable
+ * states nothing to stand out against.
  */
 const TONE: Record<Tone, string> = {
     // Neutral carries no fill at all. A filled pill is a strong signal, and most
@@ -214,7 +220,6 @@ const TONE: Record<Tone, string> = {
     success: 'bg-emerald-500/[0.12] text-emerald-700 dark:text-emerald-400',
     warning: 'bg-amber-500/[0.14] text-amber-700 dark:text-amber-400',
     danger: 'bg-red-500/[0.12] text-red-700 dark:text-red-400',
-    info: 'bg-primary/[0.12] text-primary',
 }
 
 export function StatusBadge({ children, tone = 'neutral' }: { children: React.ReactNode; tone?: Tone }) {
