@@ -9,7 +9,7 @@ import { useSecondBrainData, useSecondBrainActions, useStoreReady, createId } fr
 import { todayKey, longDateLabel, monthLabel } from '@/lib/second-brain/date'
 import { monthRange } from '@/lib/second-brain/domain/selectors'
 import type { TransactionCategory, TransactionKind } from '@/lib/second-brain/domain/types'
-import { R, T, INK, NUM, FOCUS, HOVER, HAIRLINE } from '@/lib/second-brain/ui'
+import { FOCUS, HAIRLINE, HOVER, INK, NUM, R, ROW, T } from '@/lib/second-brain/ui'
 
 const CATEGORIES: TransactionCategory[] = [
     'housing', 'food', 'transport', 'shopping', 'technology',
@@ -201,7 +201,7 @@ export function FinanceView() {
                 <section className="flex flex-col gap-4">
                     <SectionHeader title="Transactions" count={transactions.length} />
 
-                    <Panel className="flex flex-col gap-2.5">
+                    <Panel className="flex flex-col gap-3">
                         <div className="flex gap-2">
                             <input
                                 value={draft.description}
@@ -266,7 +266,7 @@ export function FinanceView() {
                             <p className={cn('px-2 py-6', T.body, INK.subtle)}>Nothing recorded this month.</p>
                         ) : (
                             transactions.map(txn => (
-                                <div key={txn.id} className={cn('group flex items-center gap-3 px-2 py-2', R.md, HOVER)}>
+                                <div key={txn.id} className={cn(ROW, 'group')}>
                                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                                         <span className={cn('truncate', T.body, INK.default)}>{txn.description}</span>
                                         <span className={cn('text-[11px]', INK.subtle)}>
