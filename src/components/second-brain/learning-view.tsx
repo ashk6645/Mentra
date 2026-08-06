@@ -10,7 +10,7 @@ import {
     dueForReview, studyMinutesInRange, studyMinutesFor, nextReviewInterval, studyByDay,
 } from '@/lib/second-brain/domain/selectors'
 import type { LearningStatus } from '@/lib/second-brain/domain/types'
-import { R, T, INK, NUM, FOCUS, HOVER, HAIRLINE, LABEL } from '@/lib/second-brain/ui'
+import { FOCUS, HAIRLINE, HOVER, INK, LABEL, META, NUM, R, T } from '@/lib/second-brain/ui'
 
 const STATUS_LABEL: Record<LearningStatus, string> = {
     not_started: 'Not started',
@@ -282,18 +282,20 @@ export function LearningView() {
                             </p>
                         </Panel>
                     ) : (
-                        <div className="flex flex-col gap-3">
+                        // No gap — each topic carries its own rule, matching Goals.
+                        <div className="flex flex-col">
                             {items.map(({ item, minutes, sessions, goal }) => {
                                 const isOpen = expanded === item.id
 
                                 return (
-                                    <Panel key={item.id} padded={false}>
+                                    /* A ruled row, not a card — see the same change in Goals. */
+                                    <div key={item.id} className={cn('border-b last:border-b-0', HAIRLINE)}>
                                         <button
                                             type="button"
                                             onClick={() => setExpanded(isOpen ? null : item.id)}
                                             aria-expanded={isOpen}
-                                            className={cn('flex w-full flex-col gap-3 px-4 py-3.5 text-left',
-                                                R.lg, HOVER, FOCUS, 'transition-colors')}
+                                            className={cn('flex w-full flex-col gap-3 px-2 py-3.5 text-left',
+                                                R.md, HOVER, FOCUS, 'transition-colors')}
                                         >
                                             <div className="flex flex-wrap items-center justify-between gap-2">
                                                 <div className="flex min-w-0 items-center gap-3">
@@ -301,9 +303,14 @@ export function LearningView() {
                                                         INK.subtle, isOpen && 'rotate-90')} />
                                                     <span className={cn('truncate', T.title, INK.strong)}>{item.title}</span>
                                                 </div>
-                                                <StatusBadge tone={STATUS_TONE[item.status]}>
-                                                    {STATUS_LABEL[item.status]}
-                                                </StatusBadge>
+                                                {/* Fixed column: the tinted badge is wider than
+                                                    plain text, so without it the statuses ended
+                                                    a few pixels apart down the list. */}
+                                                <span className={cn(META.wide, 'flex justify-end')}>
+                                                    <StatusBadge tone={STATUS_TONE[item.status]}>
+                                                        {STATUS_LABEL[item.status]}
+                                                    </StatusBadge>
+                                                </span>
                                             </div>
 
                                             <ProgressBar percent={item.progress} complete={item.status === 'mastered'} />
@@ -320,7 +327,7 @@ export function LearningView() {
                                         </button>
 
                                         {isOpen && (
-                                            <div className={cn('flex flex-col gap-6 border-t px-4 py-4', HAIRLINE)}>
+                                            <div className="flex flex-col gap-6 px-2 pb-4">
                                                 <div className="flex flex-wrap items-center gap-3">
                                                     <span className={LABEL}>Status</span>
                                                     <div className="flex flex-wrap gap-1">
@@ -411,7 +418,7 @@ export function LearningView() {
                                                 )}
                                             </div>
                                         )}
-                                    </Panel>
+                                    </div>
                                 )
                             })}
                         </div>
