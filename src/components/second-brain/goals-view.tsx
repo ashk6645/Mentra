@@ -224,12 +224,20 @@ export function GoalsView() {
                             const doneCount = milestones.filter(m => m.completedAt !== null).length
 
                             return (
-                                <Panel key={goal.id} padded={false}>
+                                /*
+                                 * A ruled row, not a card.
+                                 *
+                                 * Goals and Learning were the last two screens still
+                                 * boxing their items, which made them read as a
+                                 * different kind of thing from every other list. The
+                                 * expand affordance is the chevron, not the border.
+                                 */
+                                <div key={goal.id} className={cn('border-b last:border-b-0', HAIRLINE)}>
                                     <button
                                         type="button"
                                         onClick={() => setExpanded(isOpen ? null : goal.id)}
                                         aria-expanded={isOpen}
-                                        className={cn('flex w-full flex-col gap-3 px-4 py-3.5 text-left',
+                                        className={cn('flex w-full flex-col gap-3 px-2 py-3.5 text-left',
                                             R.lg, HOVER, FOCUS, 'transition-colors')}
                                     >
                                         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -284,7 +292,7 @@ export function GoalsView() {
                                     </button>
 
                                     {isOpen && (
-                                        <div className={cn('border-t px-4 py-4', HAIRLINE)}>
+                                        <div className="px-2 pb-4">
                                             {/* Why — the field that stops a goal being decorative. */}
                                             <div className="mb-5 flex flex-col gap-1.5">
                                                 <span className={LABEL}>Why this matters</span>
@@ -360,7 +368,7 @@ export function GoalsView() {
                                             </div>
                                         </div>
                                     )}
-                                </Panel>
+                                </div>
                             )
                         })}
                     </div>
