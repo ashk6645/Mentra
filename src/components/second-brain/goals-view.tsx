@@ -257,7 +257,16 @@ export function GoalsView() {
                                               */}
                                             <div className="flex shrink-0 items-center justify-end gap-2">
                                                 <span className="flex w-[74px] justify-end">
-                                                    {pace.behind && goal.status !== 'achieved' && (
+                                                    {/*
+                                                      * Suppressed when the status already says it.
+                                                      * "Behind" is derived from pace and "At risk"
+                                                      * is set by hand, so a goal that is both put
+                                                      * two amber badges side by side telling you
+                                                      * the same thing twice.
+                                                      */}
+                                                    {pace.behind
+                                                        && goal.status !== 'achieved'
+                                                        && goal.status !== 'at_risk' && (
                                                         <StatusBadge tone="warning">
                                                             <TrendingDown className={ICON.sm} />
                                                             Behind
