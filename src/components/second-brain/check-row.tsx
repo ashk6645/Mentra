@@ -5,7 +5,7 @@ import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { SBCheckbox } from './checkbox'
 import { HabitIcon } from '@/lib/second-brain/icons'
-import { FOCUS, HOVER, ICON, ROW } from '@/lib/second-brain/ui'
+import { FOCUS, HOVER, ICON, META, ROW } from '@/lib/second-brain/ui'
 
 interface CheckRowProps {
     id: string
@@ -44,7 +44,7 @@ export const CheckRow = memo(function CheckRow({
                 aria-pressed={completed}
                 className={cn(
                     ROW, 'flex-1 text-left',
-                    'transition-colors duration-150',
+                    'transition-colors duration-200',
                     HOVER,
                     FOCUS
                 )}
@@ -73,7 +73,7 @@ export const CheckRow = memo(function CheckRow({
                 </span>
 
                 {hint && (
-                    <span className="hidden shrink-0 text-[11px] text-muted-foreground/80 sm:block">
+                    <span className={cn(META.wide, 'hidden text-[11px] text-muted-foreground/80 sm:block')}>
                         {hint}
                     </span>
                 )}
@@ -91,7 +91,7 @@ export const CheckRow = memo(function CheckRow({
                         aria-label={`${deleteLabel}: ${label}`}
                         className={cn(
                             'flex h-7 w-7 items-center justify-center rounded-[8px] text-muted-foreground/70',
-                            'opacity-0 transition-all duration-150',
+                            'opacity-0 transition-all duration-200',
                             'group-hover:opacity-100 focus-visible:opacity-100',
                             'hover:bg-black/[0.05] hover:text-foreground dark:hover:bg-white/[0.07]',
                             FOCUS
