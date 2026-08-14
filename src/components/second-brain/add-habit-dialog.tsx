@@ -45,7 +45,7 @@ interface AddHabitDialogProps {
 /** Shared chip styling for the icon, slot, preset and weekday pickers. */
 function chip(selected: boolean) {
     return cn(
-        'rounded-[8px] border text-[13px] font-medium transition-colors duration-150',
+        'rounded-[8px] border text-[13px] font-medium transition-colors duration-200',
         FOCUS,
         selected
             ? 'border-transparent bg-foreground text-background'
@@ -134,7 +134,7 @@ export function AddHabitDialog({ open, onOpenChange, onAdd }: AddHabitDialogProp
                                     title={label}
                                     aria-pressed={icon === id}
                                     className={cn(
-                                        'flex h-8 items-center justify-center rounded-[8px] border transition-colors duration-150',
+                                        'flex h-8 items-center justify-center rounded-[8px] border transition-colors duration-200',
                                         FOCUS,
                                         icon === id
                                             ? 'border-transparent bg-foreground text-background'
