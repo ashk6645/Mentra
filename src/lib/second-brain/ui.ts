@@ -220,8 +220,25 @@ export const POP = {
     ease: [0.34, 1.4, 0.64, 1] as const,
 }
 
+/**
+ * Two speeds, and a closed set.
+ *
+ * There were eight durations in play — 0.08, 0.1, 0.18, 0.2, 0.26, 0.4 in Framer
+ * and 150ms/200ms in CSS — which is not a motion system, it is eight independent
+ * guesses. Fast is for state that should feel instantaneous (a tick, a hover);
+ * base is for anything that moves or resizes and needs to be followed.
+ *
+ * `MS` mirrors them for Tailwind's `duration-*`, so a CSS transition and a Framer
+ * animation on the same element agree.
+ */
 export const SNAPPY = { duration: 0.1, ease: [0.25, 0.1, 0.25, 1] as const }
 export const QUICK = { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] as const }
+
+/** The same two speeds as Tailwind classes. */
+export const MS = {
+    fast: 'duration-100',
+    base: 'duration-200',
+} as const
 
 /** Width/height animations read better critically damped — no overshoot on a bar. */
 export const BAR_SPRING = { type: 'spring' as const, stiffness: 260, damping: 34 }
