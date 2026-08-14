@@ -42,7 +42,7 @@ export const SBCheckbox = memo(function SBCheckbox({
             animate={{ scale: checked ? [1, 1.14, 1] : 1 }}
             transition={POP}
             className={cn(
-                'relative flex shrink-0 items-center justify-center rounded-[6px] border transition-colors duration-150',
+                'relative flex shrink-0 items-center justify-center rounded-[6px] border transition-colors duration-200',
                 box,
                 checked
                     ? 'border-emerald-500 bg-emerald-500'
@@ -64,8 +64,8 @@ export const SBCheckbox = memo(function SBCheckbox({
                     initial={false}
                     animate={{ pathLength: checked ? 1 : 0, opacity: checked ? 1 : 0 }}
                     transition={{
-                        pathLength: { duration: 0.18, ease: [0.65, 0, 0.35, 1] },
-                        opacity: { duration: 0.08 },
+                        pathLength: { duration: 0.2, ease: [0.65, 0, 0.35, 1] },
+                        opacity: { duration: 0.1 },
                     }}
                 />
             </svg>
