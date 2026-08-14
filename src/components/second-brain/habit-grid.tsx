@@ -68,7 +68,7 @@ const Cell = memo(function Cell({
                 aria-pressed={done}
                 className={cn(
                     'inline-flex h-8 w-8 items-center justify-center rounded-[8px]',
-                    'transition-colors duration-150 hover:bg-foreground/[0.06]',
+                    'transition-colors duration-200 hover:bg-foreground/[0.06]',
                     FOCUS,
                     future && !done && 'opacity-40'
                 )}
