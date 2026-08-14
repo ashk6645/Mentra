@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
+import { EmptyState } from './empty-state'
 import { ExternalLink, Lightbulb, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Segmented } from './segmented'
@@ -231,11 +232,7 @@ export function LibraryView() {
             <SectionHeader title={TABS.find(t => t.id === tab)!.label} count={count} />
 
             {count === 0 && (
-                <Panel className="py-12 text-center">
-                    <p className={cn(T.body, INK.muted)}>
-                        {query ? 'Nothing matches that search.' : 'Nothing here yet.'}
-                    </p>
-                </Panel>
+                <EmptyState title={query ? 'Nothing matches that search' : 'Nothing here yet'} />
             )}
 
             {/* Resources */}
