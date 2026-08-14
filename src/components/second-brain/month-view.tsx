@@ -59,7 +59,7 @@ function HabitRow({
                         title={`${habit.name} · ${day}${scheduled ? (done ? ' · done' : '') : ' · not scheduled'}`}
                         style={{ width: CELL, height: CELL }}
                         className={cn(
-                            'shrink-0 rounded-[4px] transition-all duration-150',
+                            'shrink-0 rounded-[4px] transition-all duration-200',
                             FOCUS,
                             intensityClass(done, scheduled),
                             scheduled && 'hover:scale-[1.25] hover:brightness-110',
