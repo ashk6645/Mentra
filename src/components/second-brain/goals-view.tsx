@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
+import { EmptyState } from './empty-state'
 import { ChevronRight, Plus, TrendingDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { HabitIcon } from '@/lib/second-brain/icons'
@@ -209,14 +210,10 @@ export function GoalsView() {
                 />
 
                 {goals.length === 0 ? (
-                    <Panel className="py-12 text-center">
-                        <p className={cn(T.body, INK.muted)}>
-                            {showAll ? 'No goals yet.' : 'No open goals.'}
-                        </p>
-                        <p className={cn('mt-1.5', T.label, INK.subtle)}>
-                            Goals turn an area you care about into something with a finish line.
-                        </p>
-                    </Panel>
+                    <EmptyState
+                        title={showAll ? 'No goals yet' : 'No open goals'}
+                        description="Goals turn an area you care about into something with a finish line."
+                    />
                 ) : (
                     <div className="flex flex-col gap-3">
                         {goals.map(({ goal, area, milestones, progress, pace }) => {
