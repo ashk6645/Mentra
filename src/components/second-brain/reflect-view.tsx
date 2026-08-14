@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
+import { EmptyState } from './empty-state'
 import { ChevronLeft, ChevronRight, Flame } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Segmented } from './segmented'
@@ -192,12 +193,10 @@ export function ReflectView() {
                     <SectionHeader title="Entries" count={journal.length} />
 
                     {journal.length === 0 ? (
-                        <Panel className="py-12 text-center">
-                            <p className={cn(T.body, INK.muted)}>No entries yet.</p>
-                            <p className={cn('mt-1.5', T.label, INK.subtle)}>
-                                Reflection is written on the Today page — this is where it accumulates.
-                            </p>
-                        </Panel>
+                        <EmptyState
+                            title="No entries yet"
+                            description="Reflection is written on the Today page — this is where it accumulates."
+                        />
                     ) : (
                         // No gap — each row carries its own rule and padding.
                         <div className="flex flex-col">
