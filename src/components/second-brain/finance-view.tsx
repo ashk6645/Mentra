@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
+import { EmptyState } from './empty-state'
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Metric, MetricRow, Panel, SectionHeader, ProgressBar } from './primitives'
@@ -174,9 +175,7 @@ export function FinanceView() {
                     <SectionHeader title="Where it went" count={totals.categories.length} />
 
                     {totals.categories.length === 0 ? (
-                        <Panel className="py-10 text-center">
-                            <p className={cn(T.body, INK.subtle)}>No spending this month.</p>
-                        </Panel>
+                        <EmptyState title="No spending this month" />
                     ) : (
                         <Panel className="flex flex-col gap-3">
                             {totals.categories.map(([category, amount]) => (
