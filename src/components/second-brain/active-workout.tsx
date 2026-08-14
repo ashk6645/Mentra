@@ -10,7 +10,7 @@ import {
     previousPerformance, workoutVolume, estimatedOneRepMax, bestOneRepMax,
 } from '@/lib/second-brain/domain/selectors'
 import type { Workout, WorkoutSet, Exercise } from '@/lib/second-brain/domain/types'
-import { FOCUS, HAIRLINE, HOVER, INK, LABEL, NUM, R, ROW, T } from '@/lib/second-brain/ui'
+import { FOCUS, HAIRLINE, HOVER, INK, LABEL, META, NUM, R, ROW, T } from '@/lib/second-brain/ui'
 
 /** mm:ss, or h:mm:ss past an hour. */
 function formatElapsed(ms: number): string {
@@ -280,7 +280,7 @@ export function ActiveWorkout({ workout, onFinish, onDiscard }: ActiveWorkoutPro
                                 <span className={cn('truncate', T.title, INK.strong)}>{exercise.name}</span>
                                 {isPR && <StatusBadge tone="success">PR</StatusBadge>}
                             </div>
-                            <span className={cn('shrink-0 text-[11px]', NUM, INK.subtle)}>
+                            <span className={cn(META.wide, 'text-[11px]', NUM, INK.subtle)}>
                                 {previous
                                     ? `Last: ${previous.weight}kg × ${previous.reps}`
                                     : 'First time'}
@@ -352,7 +352,7 @@ export function ActiveWorkout({ workout, onFinish, onDiscard }: ActiveWorkoutPro
                                 className={cn(ROW, FOCUS, 'w-full justify-between text-left')}
                             >
                                 <span className={cn(T.body, INK.default)}>{exercise.name}</span>
-                                <span className={cn('shrink-0 text-[11px] capitalize', INK.subtle)}>
+                                <span className={cn(META.wide, 'text-[11px] capitalize', INK.subtle)}>
                                     {exercise.muscleGroup.replace('_', ' ')}
                                 </span>
                             </button>
