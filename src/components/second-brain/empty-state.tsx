@@ -1,49 +1,56 @@
 'use client'
 
-import { Plus, Sparkles } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { FOCUS, HAIRLINE, ICON, SURFACE } from '@/lib/second-brain/ui'
+import { FOCUS, ICON, INK, R, T } from '@/lib/second-brain/ui'
 
 /**
- * Shown when there are no habits at all.
+ * The empty state, for every list in Second Brain.
  *
- * A single line of grey text in a dashed box is the default every side project
- * ships. An empty state is the first thing a new user sees, so it gets a mark, a
- * sentence that explains what the thing is for, and the action that resolves it.
+ * There were twenty-three of these, hand-rolled per screen, with five different
+ * vertical paddings and three different ways of writing the same sentence. An
+ * empty state is often the first thing someone sees on a screen, so having it
+ * drawn differently everywhere is the most visible kind of drift there is.
+ *
+ * No border. Everything else in the feature stopped being a card, and a lone
+ * bordered box announcing "nothing here" gave the absence of content more chrome
+ * than the content itself gets.
+ *
+ * `title` states what is missing. `description` — optional — says what the thing
+ * is for, because an empty list is the one moment the reader genuinely might not
+ * know. `action` resolves it, when there is a single obvious way to.
  */
-export function EmptyState({ onAdd }: { onAdd: () => void }) {
+export function EmptyState({
+    title,
+    description,
+    action,
+}: {
+    title: string
+    description?: string
+    action?: { label: string; onClick: () => void }
+}) {
     return (
-        <div className={cn('flex flex-col items-center rounded-[12px] px-6 py-16 text-center', SURFACE)}>
-            <span
-                className={cn(
-                    'mb-5 flex h-11 w-11 items-center justify-center rounded-[12px] border',
-                    HAIRLINE,
-                    'bg-foreground/[0.03]'
-                )}
-            >
-                <Sparkles className={cn(ICON.lg, "text-foreground/50")} strokeWidth={1.75} />
-            </span>
+        <div className="flex flex-col items-center px-6 py-14 text-center">
+            <p className={cn(T.body, INK.muted)}>{title}</p>
 
-            <h3 className="text-[15px] font-semibold tracking-[-0.01em] text-foreground">
-                Nothing to track yet
-            </h3>
-            <p className="mt-1.5 max-w-[280px] text-[13px] leading-[1.5] text-muted-foreground">
-                Add the things you want to repeat — gym, reading, a nightly review — and
-                tick them off as the week goes.
-            </p>
+            {description && (
+                <p className={cn('mt-1.5 max-w-[340px]', T.label, INK.subtle)}>{description}</p>
+            )}
 
-            <button
-                type="button"
-                onClick={onAdd}
-                className={cn(
-                    'mt-6 flex items-center gap-1.5 rounded-[8px] bg-foreground px-3.5 py-2',
-                    'text-[13px] font-medium text-background transition-opacity hover:opacity-90',
-                    FOCUS
-                )}
-            >
-                <Plus className="h-3.5 w-3.5" />
-                Add your first habit
-            </button>
+            {action && (
+                <button
+                    type="button"
+                    onClick={action.onClick}
+                    className={cn(
+                        'mt-5 flex items-center gap-1.5 px-3 py-2', R.md, T.button,
+                        'bg-foreground text-background transition-opacity hover:opacity-90',
+                        FOCUS
+                    )}
+                >
+                    <Plus className={ICON.md} />
+                    {action.label}
+                </button>
+            )}
         </div>
     )
 }
