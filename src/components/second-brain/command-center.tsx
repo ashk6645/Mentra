@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { EmptyState } from './empty-state'
 import Link from 'next/link'
 import { ArrowRight, Flame, ListChecks, Plus, TrendingDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -216,9 +217,7 @@ export function CommandCenter({ server }: { server: ServerSnapshot }) {
                         />
 
                         {todayHabits.length === 0 ? (
-                            <p className={cn('px-2 py-6 text-center', T.body, INK.subtle)}>
-                                Nothing due today.
-                            </p>
+                            <EmptyState title="Nothing due today" />
                         ) : (
                             <div className="flex flex-col">
                                 {todayHabits.map(habit => {
