@@ -175,7 +175,11 @@ export function RoutinesView() {
 
     if (routines.length === 0) {
         return (
-            <EmptyState onAdd={addRoutine} />
+            <EmptyState
+                title="No routines yet"
+                description="A routine is a sequence you run without deciding — a morning start, a shutdown at the end of the day."
+                action={{ label: 'Add your first routine', onClick: addRoutine }}
+            />
         )
     }
 
