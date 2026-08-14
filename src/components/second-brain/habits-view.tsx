@@ -56,7 +56,7 @@ function NavButton({
             aria-label={label}
             className={cn(
                 'flex h-7 w-7 items-center justify-center', R.md, INK.muted,
-                'transition-colors duration-150 hover:bg-foreground/[0.06] hover:text-foreground',
+                'transition-colors duration-200 hover:bg-foreground/[0.06] hover:text-foreground',
                 FOCUS
             )}
         >
@@ -255,7 +255,11 @@ export function HabitsView() {
                         transition={QUICK}
                     >
                             {api.habits.length === 0 ? (
-                                <EmptyState onAdd={() => setAddOpen(true)} />
+                                <EmptyState
+                                    title="Nothing to track yet"
+                                    description="Add the things you want to repeat — gym, reading, a nightly review — and tick them off as the week goes."
+                                    action={{ label: 'Add your first habit', onClick: () => setAddOpen(true) }}
+                                />
                             ) : (
                               <>
                             {view === 'week' && (
