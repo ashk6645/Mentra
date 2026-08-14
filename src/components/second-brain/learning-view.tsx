@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
+import { EmptyState } from './empty-state'
 import { ChevronRight, Clock, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Metric, MetricRow, Panel, SectionHeader, StatusBadge, ProgressBar, Ring } from './primitives'
@@ -275,12 +276,10 @@ export function LearningView() {
                     />
 
                     {items.length === 0 ? (
-                        <Panel className="py-12 text-center">
-                            <p className={cn(T.body, INK.muted)}>Nothing being learned yet.</p>
-                            <p className={cn('mt-1.5', T.label, INK.subtle)}>
-                                A topic is something you are deliberately getting better at.
-                            </p>
-                        </Panel>
+                        <EmptyState
+                            title="Nothing being learned yet"
+                            description="A topic is something you are deliberately getting better at."
+                        />
                     ) : (
                         // No gap — each topic carries its own rule, matching Goals.
                         <div className="flex flex-col">
