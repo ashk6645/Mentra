@@ -52,7 +52,7 @@ export const WeekStrip = memo(function WeekStrip({
                         onClick={() => onSelect(day)}
                         className={cn(
                             'group relative flex flex-col items-center gap-2 rounded-[12px] border px-1 py-3',
-                            'transition-colors duration-150',
+                            'transition-colors duration-200',
                             FOCUS,
                             isSelected
                                 ? `bg-black/[0.035] dark:bg-white/[0.06] ${HAIRLINE}`
