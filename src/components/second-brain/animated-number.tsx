@@ -38,7 +38,7 @@ export function AnimatedNumber({ value, suffix = '', className }: AnimatedNumber
         }
 
         const controls = animate(motionValue, value, {
-            duration: 0.4,
+            duration: 0.2,
             ease: [0.25, 0.1, 0.25, 1],
             onUpdate: latest => {
                 node.textContent = `${Math.round(latest)}${suffix}`
