@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
+import { EmptyState } from './empty-state'
 import { RotateCcw, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Segmented } from './segmented'
@@ -140,13 +141,10 @@ export function ArchiveView() {
 
     if (archived.length === 0) {
         return (
-            <Panel className="py-14 text-center">
-                <p className={cn(T.body, INK.muted)}>Nothing archived.</p>
-                <p className={cn('mx-auto mt-1.5 max-w-[340px]', T.label, INK.subtle)}>
-                    Archiving takes something out of your active lists without destroying its
-                    history — a habit you stopped still explains the gap in its own heatmap.
-                </p>
-            </Panel>
+            <EmptyState
+                title="Nothing archived"
+                description="Archiving takes something out of your active lists without destroying its history — a habit you stopped still explains the gap in its own heatmap."
+            />
         )
     }
 
