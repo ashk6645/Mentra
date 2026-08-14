@@ -48,7 +48,7 @@ export function Segmented<T extends string>({
                         onClick={() => onChange(id)}
                         className={cn(
                             'relative flex items-center gap-1.5 rounded-[8px] px-2.5 py-[5px]',
-                            'text-[13px] font-medium transition-colors duration-150',
+                            'text-[13px] font-medium transition-colors duration-200',
                             FOCUS,
                             selected ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                         )}
