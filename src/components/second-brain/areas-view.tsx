@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
+import { EmptyState } from './empty-state'
 import { ChevronRight, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { HabitIcon } from '@/lib/second-brain/icons'
@@ -10,7 +11,7 @@ import { todayKey, weekDays } from '@/lib/second-brain/date'
 import {
     buildEntryIndex, lookupFrom, habitCompletion, goalProgress, goalPace,
 } from '@/lib/second-brain/domain/selectors'
-import { FOCUS, HAIRLINE, HOVER, ICON, INK, LABEL, NUM, R, T } from '@/lib/second-brain/ui'
+import { FOCUS, HAIRLINE, HOVER, ICON, INK, LABEL, META, NUM, R, T } from '@/lib/second-brain/ui'
 
 /**
  * Areas of responsibility (PARA).
@@ -109,13 +110,10 @@ export function AreasView() {
             />
 
             {areas.length === 0 ? (
-                <Panel className="py-12 text-center">
-                    <p className={cn(T.body, INK.muted)}>No areas yet.</p>
-                    <p className={cn('mt-1.5', T.label, INK.subtle)}>
-                        Areas are the parts of life you maintain — health, career, finance.
-                        They never finish, which is what separates them from goals.
-                    </p>
-                </Panel>
+                <EmptyState
+                    title="No areas yet"
+                    description="Areas are the parts of life you maintain — health, career, finance. They never finish, which is what separates them from goals."
+                />
             ) : (
                 <div className="flex flex-col gap-3">
                     {areas.map(({ area, habits, goals, health, behind }) => {
@@ -204,7 +202,7 @@ export function AreasView() {
                                                             <span className={cn('flex-1 truncate', T.body, INK.default)}>
                                                                 {habit.name}
                                                             </span>
-                                                            <span className={cn('shrink-0 text-[11px]', NUM, INK.muted)}>
+                                                            <span className={cn(META.narrow, 'text-[11px]', NUM, INK.muted)}>
                                                                 {c.expected === 0 ? '—' : `${c.percent}%`}
                                                             </span>
                                                         </div>
