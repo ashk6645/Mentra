@@ -46,8 +46,8 @@ const getServerSnapshot = () => EMPTY_SNAPSHOT
 /**
  * False during SSR and the hydration pass, true afterwards.
  *
- * Screens use this to render a skeleton rather than flashing an empty store as
- * though it were real data (spec §38).
+ * Screens hold their content back until this flips, then reveal it, rather than
+ * flashing an empty store as though it were real data.
  */
 export function useStoreReady(): boolean {
     return useSyncExternalStore(
@@ -95,14 +95,11 @@ export function useSecondBrainActions() {
         []
     )
 
-    const reset = useCallback(() => repository.reset(), [])
-
     /**
      * Empty every collection.
      *
-     * Distinct from `reset`, which reseeds with demo data. Someone who has just
-     * been told the month of history in front of them is fabricated needs a way
-     * to get to a genuinely blank store, and reseeding is the opposite of that.
+     * Someone who has just been told the history in front of them is sample data
+     * needs a way to get to a genuinely blank store.
      */
     const clearAll = useCallback(() => {
         for (const collection of Object.keys(emptyData()) as CollectionName[]) {
@@ -110,7 +107,7 @@ export function useSecondBrainActions() {
         }
     }, [])
 
-    return { create, update, remove, replace, reset, clearAll }
+    return { create, update, remove, replace, clearAll }
 }
 
 export { createId }
