@@ -2,9 +2,9 @@
 
 import { useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Brain, Lightbulb, Search } from 'lucide-react'
+import { Brain, Search } from 'lucide-react'
 import { CommandGroup, CommandItem, CommandSeparator } from '@/components/ui/command'
-import { useSecondBrainData, useSecondBrainActions, useStoreReady, createId } from '@/lib/second-brain/repo'
+import { useSecondBrainData, useStoreReady } from '@/lib/second-brain/repo'
 import { searchSecondBrain } from '@/lib/second-brain/domain/selectors'
 
 /**
@@ -22,19 +22,9 @@ import { searchSecondBrain } from '@/lib/second-brain/domain/selectors'
 
 export const SECOND_BRAIN_SECTIONS = [
     { label: 'Second Brain', href: '/second-brain' },
-    { label: 'Today', href: '/second-brain/today' },
     { label: 'Habits', href: '/second-brain/habits' },
     { label: 'Routines', href: '/second-brain/routines' },
-    { label: 'Fitness', href: '/second-brain/fitness' },
-    { label: 'Learning', href: '/second-brain/learning' },
-    { label: 'Library', href: '/second-brain/library' },
     { label: 'Goals', href: '/second-brain/goals' },
-    { label: 'Areas', href: '/second-brain/areas' },
-    { label: 'Reflect', href: '/second-brain/reflect' },
-    { label: 'Analytics', href: '/second-brain/analytics' },
-    { label: 'Finance', href: '/second-brain/finance' },
-    { label: 'Archive', href: '/second-brain/archive' },
-    { label: 'Second Brain settings', href: '/second-brain/settings' },
 ]
 
 export function SecondBrainCommands({
@@ -48,7 +38,6 @@ export function SecondBrainCommands({
     const router = useRouter()
     const data = useSecondBrainData()
     const ready = useStoreReady()
-    const { create } = useSecondBrainActions()
 
     const needle = query.trim().toLowerCase()
 
@@ -62,34 +51,7 @@ export function SecondBrainCommands({
 
     const hits = useMemo(() => (ready ? searchSecondBrain(data, query) : []), [ready, data, query])
 
-    /*
-     * Quick capture (spec §8), folded into the palette rather than given its own
-     * modal. The whole point of capture is that it costs nothing — ⌘K, type the
-     * thought, Enter is about as close to nothing as an interface gets.
-     *
-     * It is offered only once the query is long enough to be a real thought, and
-     * never when something already matches, so it can't shadow a search result.
-     */
-    const canCapture = query.trim().length >= 3 && hits.length === 0
-
-    const captureIdea = () => {
-        const stamp = new Date().toISOString()
-        create('ideas', {
-            id: createId('idea'),
-            createdAt: stamp,
-            updatedAt: stamp,
-            archivedAt: null,
-            title: query.trim(),
-            description: '',
-            areaId: null,
-            status: 'raw',
-            potential: 3,
-            effort: 3,
-        })
-        router.push('/second-brain/library')
-    }
-
-    if (sections.length === 0 && hits.length === 0 && !canCapture) return null
+    if (sections.length === 0 && hits.length === 0) return null
 
     return (
         <>
@@ -105,9 +67,7 @@ export function SecondBrainCommands({
                         >
                             <Search className="mr-2 h-4 w-4 shrink-0 opacity-60" />
                             <span className="truncate flex-1">{hit.title}</span>
-                            <span className="ml-2 shrink-0 text-xs text-muted-foreground">
-                                {hit.detail ? `${hit.kind} · ${hit.detail}` : hit.kind}
-                            </span>
+                            <span className="ml-2 shrink-0 text-xs text-muted-foreground">{hit.kind}</span>
                         </CommandItem>
                     ))}
                 </CommandGroup>
@@ -125,17 +85,6 @@ export function SecondBrainCommands({
                             <span>{section.label}</span>
                         </CommandItem>
                     ))}
-                </CommandGroup>
-            )}
-
-            {canCapture && (
-                <CommandGroup heading="Capture">
-                    <CommandItem value="sb-capture" onSelect={() => run(captureIdea)}>
-                        <Lightbulb className="mr-2 h-4 w-4 shrink-0 opacity-60" />
-                        <span className="truncate">
-                            Save &ldquo;{query.trim()}&rdquo; as an idea
-                        </span>
-                    </CommandItem>
                 </CommandGroup>
             )}
         </>
