@@ -1,91 +1,97 @@
 'use client'
 
 import { useEffect } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useTaskDetailStore } from '@/stores/use-task-detail-store'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { TaskDetailHeader } from './task-detail-header'
+import { TaskDetailHeader, TaskTitle } from './task-detail-header'
 import { TaskMetadataRow } from './task-metadata-row'
 import { TaskDescription } from './task-description'
 import { TaskSubtasks } from './task-subtasks'
 import { TaskAIAssist } from './task-ai-assist'
 import { TaskDetailFooter } from './task-detail-footer'
 import { cn } from '@/lib/utils'
+import { FLOAT, MOTION, R } from '@/lib/second-brain/ui'
 
-interface TaskDetailPanelProps {
-  className?: string
+/**
+ * Is an Escape press meant for something layered on top of the panel?
+ * A popover, a menu, or a field being edited should take it first.
+ */
+function escapeBelongsElsewhere(event: KeyboardEvent): boolean {
+    const target = event.target as HTMLElement | null
+    if (target?.closest('input, textarea, [contenteditable="true"]')) return true
+    return document.querySelector('[data-radix-popper-content-wrapper], [role="dialog"], [role="alertdialog"]') !== null
 }
 
-export function TaskDetailPanel({ className }: TaskDetailPanelProps) {
-  const { selectedTask, selectedTaskId, isOpen, isReadOnly, closePanel } = useTaskDetailStore()
-  const prefersReducedMotion = useReducedMotion()
+/**
+ * The task detail panel.
+ *
+ * A floating card docked to the right edge, drawn the same way as Second Brain's
+ * goal panel. Unlike that one it has no backdrop: the task list stays live
+ * behind it, so clicking another task simply swaps what the panel shows.
+ *
+ * It slides only 24px, on the shared curve — the eye should notice something
+ * arrived, not watch it travel.
+ */
+export function TaskDetailPanel({ className }: { className?: string }) {
+    const { selectedTask, selectedTaskId, isOpen, isReadOnly, closePanel } = useTaskDetailStore()
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        closePanel()
-      }
-    }
+    useEffect(() => {
+        if (!isOpen) return
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, closePanel])
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key !== 'Escape' || escapeBelongsElsewhere(event)) return
+            closePanel()
+        }
 
+        // Capture phase, so this looks before Radix does: Radix closes an open
+        // popover on the same key press, and by the bubble phase it would be gone —
+        // one Escape would then close the popover and the panel together.
+        window.addEventListener('keydown', onKeyDown, { capture: true })
+        return () => window.removeEventListener('keydown', onKeyDown, { capture: true })
+    }, [isOpen, closePanel])
 
+    return (
+        <AnimatePresence>
+            {isOpen && selectedTask && (
+                <motion.aside
+                    aria-label="Task details"
+                    initial={{ opacity: 0, x: 24 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 16 }}
+                    transition={MOTION.slow}
+                    className={cn(
+                        'fixed inset-y-2 right-2 z-50 flex w-[calc(100%-16px)] max-w-[520px] flex-col overflow-hidden',
+                        R.xl, FLOAT,
+                        className
+                    )}
+                >
+                    {/* Keyed by task, so switching tasks cross-fades and every
+                        section starts from the new task's values. */}
+                    <motion.div
+                        key={selectedTaskId}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={MOTION.base}
+                        className="flex min-h-0 flex-1 flex-col"
+                    >
+                        <TaskDetailHeader task={selectedTask} onClose={closePanel} />
 
-  const slideTransition = prefersReducedMotion
-    ? { duration: 0.01 }
-    : {
-        type: 'tween' as const,
-        duration: 0.38,
-        ease: [0.22, 0.61, 0.36, 1] as [number, number, number, number],
-      }
+                        <div className="min-h-0 flex-1 overflow-y-auto">
+                            <div className="flex flex-col gap-7 px-5 py-6 sm:px-6">
+                                <div className="flex flex-col gap-1.5">
+                                    <TaskTitle task={selectedTask} />
+                                    <TaskDescription task={selectedTask} isReadOnly={isReadOnly} />
+                                </div>
+                                <TaskMetadataRow task={selectedTask} isReadOnly={isReadOnly} />
+                                <TaskSubtasks task={selectedTask} isReadOnly={isReadOnly} />
+                                {!isReadOnly && <TaskAIAssist task={selectedTask} />}
+                            </div>
+                        </div>
 
-  return (
-    <AnimatePresence mode="sync">
-      {isOpen && selectedTask && (
-        <motion.aside
-          initial={{ x: '100%' }}
-          animate={{ x: 0 }}
-          exit={{ x: '100%' }}
-          transition={slideTransition}
-          className={cn(
-            'fixed top-0 right-0 h-screen w-full md:w-[520px] z-50',
-            'bg-background/92 backdrop-blur-xl backdrop-saturate-150',
-            'border-l border-border/40',
-            'flex flex-col overflow-hidden will-change-transform',
-            className
-          )}
-        >
-          <div
-            key={selectedTaskId}
-            className="flex-1 flex flex-col overflow-hidden"
-          >
-            {/* Sticky Header */}
-            <TaskDetailHeader task={selectedTask} onClose={closePanel} isReadOnly={isReadOnly} />
-
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
-              <div className="px-5 sm:px-7 py-6 sm:py-8 space-y-8">
-                {/* Metadata Pills */}
-                <TaskMetadataRow task={selectedTask} isReadOnly={isReadOnly} />
-
-                {/* Description */}
-                <TaskDescription task={selectedTask} isReadOnly={isReadOnly} />
-
-                {/* Subtasks */}
-                <TaskSubtasks task={selectedTask} isReadOnly={isReadOnly} />
-
-                {/* AI Assist */}
-                <TaskAIAssist task={selectedTask} />
-              </div>
-            </div>
-
-            {/* Footer */}
-            <TaskDetailFooter task={selectedTask} />
-          </div>
-        </motion.aside>
-      )}
-    </AnimatePresence>
-  )
+                        <TaskDetailFooter task={selectedTask} />
+                    </motion.div>
+                </motion.aside>
+            )}
+        </AnimatePresence>
+    )
 }
