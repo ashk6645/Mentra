@@ -3,15 +3,12 @@ import { SecondBrainPage } from '@/components/second-brain/page-shell'
 
 export const metadata = {
     title: 'Habits – Second Brain',
-    description: 'Track habits by day, week and month.',
+    description: 'Track what you repeat, by week and by month.',
 }
 
 export default function HabitsPage() {
     return (
-        <SecondBrainPage
-            title="Habits"
-            description="Day, week and month views of everything you repeat."
-        >
+        <SecondBrainPage>
             <HabitsView />
         </SecondBrainPage>
     )
