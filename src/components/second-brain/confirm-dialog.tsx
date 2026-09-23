@@ -1,94 +1,75 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { cn } from '@/lib/utils'
+import { Modal } from './overlay'
+import { Button } from './primitives'
 
 interface ConfirmOptions {
     title: string
     description: string
-    /** Verb for the confirming button — "Delete", "Discard". Not "OK". */
+    /** Verb for the confirming button — "Delete", "Clear". Never "OK". */
     confirmLabel: string
     /** Styles the action red. Use for anything that destroys data. */
     destructive?: boolean
 }
 
 /**
- * A styled replacement for `window.confirm`.
+ * A styled, promise-returning replacement for `window.confirm`.
  *
- * The native dialog was wrong on three counts: it blocks the main thread, it
- * cannot be styled so it looks like it belongs to the browser rather than the
- * app, and its buttons say "OK" and "Cancel" — the least informative pair of
- * words available at the moment the user most needs to know what they are about
- * to do. Spec §40 asks for real modals; §68 asks that destructive actions be
- * hard to trigger by accident.
- *
- * Returns a promise so call sites keep reading top to bottom:
+ * Reserved for the one action that can't be undone. Everything else deletes
+ * immediately and offers Undo, which is kinder than asking first.
  *
  *     if (!(await confirm({ ... }))) return
  *
- * Usage: destructure both, call `confirm`, and render `dialog` somewhere in the
- * component's tree.
+ * Destructure both, call `confirm`, and render `dialog` somewhere in the tree.
  */
 export function useConfirm() {
     const [request, setRequest] = useState<ConfirmOptions | null>(null)
+    // Separate from `request` so the text stays put while the dialog animates out.
+    const [open, setOpen] = useState(false)
 
-    // Holds the pending promise's resolver between opening the dialog and the
-    // user answering. A ref rather than state because changing it must not
-    // trigger a render, and it is only ever touched from event handlers.
+    // The pending promise's resolver. A ref because changing it must not render,
+    // and it is only touched from event handlers.
     const resolver = useRef<((confirmed: boolean) => void) | null>(null)
 
     const confirm = useCallback((options: ConfirmOptions) => {
         setRequest(options)
+        setOpen(true)
         return new Promise<boolean>(resolve => {
             resolver.current = resolve
         })
     }, [])
 
     const settle = useCallback((confirmed: boolean) => {
-        // Resolve before clearing, and null the ref either way — a dismissal
-        // that never resolves would leave the caller awaiting forever.
+        // Resolve on every path out, Escape and backdrop included — a dismissal
+        // that never resolves leaves the caller awaiting forever.
         resolver.current?.(confirmed)
         resolver.current = null
-        setRequest(null)
+        setOpen(false)
     }, [])
 
     const dialog = (
-        <AlertDialog
-            open={request !== null}
-            // Covers Escape and overlay clicks as well as the Cancel button.
-            onOpenChange={open => {
-                if (!open) settle(false)
+        <Modal
+            open={open}
+            onOpenChange={next => {
+                if (!next) settle(false)
             }}
-        >
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>{request?.title}</AlertDialogTitle>
-                    <AlertDialogDescription>{request?.description}</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => settle(false)}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
+            title={request?.title ?? ''}
+            description={request?.description}
+            width={400}
+            footer={
+                <div className="flex w-full justify-end gap-2">
+                    <Button variant="ghost" onClick={() => settle(false)}>Cancel</Button>
+                    <Button
+                        variant="primary"
                         onClick={() => settle(true)}
-                        className={cn(
-                            request?.destructive &&
-                                'bg-red-600 text-white hover:bg-red-600/90 dark:bg-red-600 dark:text-white'
-                        )}
+                        className={request?.destructive ? 'bg-red-600 text-white hover:bg-red-600/90 dark:bg-red-600 dark:text-white' : undefined}
                     >
                         {request?.confirmLabel}
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+                    </Button>
+                </div>
+            }
+        />
     )
 
     return { confirm, dialog }
