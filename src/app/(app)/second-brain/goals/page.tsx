@@ -1,18 +1,20 @@
+import { Suspense } from 'react'
 import { GoalsView } from '@/components/second-brain/goals-view'
 import { SecondBrainPage } from '@/components/second-brain/page-shell'
 
 export const metadata = {
     title: 'Goals – Second Brain',
-    description: 'Outcomes with a finish line, measured against pace.',
+    description: 'Outcomes worth working toward, measured against the time they have left.',
 }
 
 export default function GoalsPage() {
     return (
-        <SecondBrainPage
-            title="Goals"
-            description="Outcomes, not activities — each one measured against the time it has left."
-        >
-            <GoalsView />
+        <SecondBrainPage>
+            {/* The view reads `?goal=` to open one directly, which needs a Suspense
+                boundary so the rest of the page can still render on the server. */}
+            <Suspense>
+                <GoalsView />
+            </Suspense>
         </SecondBrainPage>
     )
 }
