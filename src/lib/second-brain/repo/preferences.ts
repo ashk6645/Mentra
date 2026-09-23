@@ -5,17 +5,9 @@ import { useSyncExternalStore } from 'react'
 /**
  * A tiny store for UI preferences that are not user data.
  *
- * Kept separate from the main store deliberately. That one is twenty-one arrays
- * of records, and "has this person seen the intro" is neither a record nor a
- * collection — bolting a scalar onto it would break the shape that `emptyData`,
- * the import validator and the export file all rely on.
- *
- * It lives in the repo layer rather than in a component because that is the only
- * layer allowed to know storage exists (spec §55).
- *
- * Preferences are intentionally *not* included in export/import: they describe
- * this browser, not the user's data, and restoring a backup should not replay
- * someone else's dismissed banners.
+ * Kept apart from the main store: that one is collections of records, and "has
+ * this person seen the intro" is neither. It lives in the repo layer because
+ * that is the only layer allowed to know storage exists.
  */
 const STORAGE_KEY = 'mentra.second-brain.prefs.v1'
 
@@ -94,9 +86,4 @@ export function useShowIntro(): boolean {
 
 export function dismissIntro(): void {
     write({ introDismissedAt: new Date().toISOString() })
-}
-
-/** Exposed so "show me that again" is possible from Settings. */
-export function restoreIntro(): void {
-    write({ introDismissedAt: null })
 }
