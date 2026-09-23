@@ -1,851 +1,530 @@
 'use client'
 
+import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-
-import { useState, useTransition, useEffect } from 'react'
-import { Calendar, Clock, Flag, Tag, Loader2, Check, X, Plus, FolderKanban, Layers } from 'lucide-react'
-import { RecurrenceSelector, type RecurrenceValue } from '@/components/tasks/recurrence-selector'
-import { format, isToday, isTomorrow } from 'date-fns'
-import { Button } from '@/components/ui/button'
+import { addDays, format, isToday, isTomorrow, nextMonday, startOfDay } from 'date-fns'
+import { Calendar, Check, Clock, Flag, FolderKanban, Inbox, Layers, Loader2, Plus, Tag, X } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Calendar as CalendarComponent } from '@/components/ui/calendar'
-import { Input } from '@/components/ui/input'
+import { Calendar as CalendarPicker } from '@/components/ui/calendar'
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
+import { RecurrenceSelector, type RecurrenceValue } from '@/components/tasks/recurrence-selector'
 import { cn } from '@/lib/utils'
-import { updateTask, UpdateTaskInput } from '@/lib/actions/tasks'
-import { getTags } from '@/lib/actions/tags'
+import { updateTask, type UpdateTaskInput } from '@/lib/actions/tasks'
+import { createTag, getTags } from '@/lib/actions/tags'
 import { getProjects } from '@/lib/actions/projects'
 import { getSections } from '@/lib/actions/sections'
-import { useTaskDetailStore } from '@/stores/use-task-detail-store'
-import { useToast } from '@/components/ui/use-toast'
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command'
-import { Badge } from '@/components/ui/badge'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu'
+import { OptionRow, POPOVER, Property, Section, ValueButton, saveFailed, useApplyTaskUpdate } from './parts'
+import { FIELD_FOCUS, HAIRLINE, ICON, INK, R, T, TRANSITION } from '@/lib/second-brain/ui'
 
-const priorities = [
-  { value: 'low', label: 'Low', color: 'text-slate-500', fill: 'fill-slate-500' },
-  { value: 'medium', label: 'Medium', color: 'text-blue-500', fill: 'fill-blue-500' },
-  { value: 'high', label: 'High', color: 'text-orange-500', fill: 'fill-orange-500' },
-  { value: 'urgent', label: 'Urgent', color: 'text-red-600', fill: 'fill-red-600' },
-] as const
+type Priority = 'urgent' | 'high' | 'medium' | 'low'
 
-/** Linear / Notion–style property control */
-const propertyChipBase =
-  'h-8 gap-1.5 rounded-md text-[13px] font-medium shadow-none transition-colors border bg-transparent hover:bg-muted/35 focus-visible:ring-2 focus-visible:ring-ring/25'
-
-function priorityChipBorder(priority: string) {
-  switch (priority.toLowerCase()) {
-    case 'urgent':
-      return 'border-destructive/25 text-destructive'
-    case 'high':
-      return 'border-orange-500/25 text-orange-600 dark:text-orange-400'
-    case 'medium':
-      return 'border-primary/20 text-primary'
-    case 'low':
-      return 'border-border/55 text-muted-foreground'
-    default:
-      return ''
-  }
-}
+/** Colour is kept for priority alone: it is the one property you scan a list for. */
+const PRIORITIES: { value: Priority; label: string; color: string }[] = [
+    { value: 'urgent', label: 'Urgent', color: 'text-red-500' },
+    { value: 'high', label: 'High', color: 'text-orange-500' },
+    { value: 'medium', label: 'Medium', color: 'text-blue-500' },
+    { value: 'low', label: 'Low', color: 'text-muted-foreground' },
+]
 
 interface TaskTag {
-  tag?: { id: string; name: string; color?: string | null };
-  id?: string;
+    tag?: { id: string; name: string; color?: string | null }
+    id?: string
 }
 
-interface Task {
-  id: string
-  dueDate?: Date | string | null
-  priority?: string | null
-  tags?: TaskTag[]
-  scheduledStart?: Date | string | null
-  scheduledEnd?: Date | string | null
-  durationMinutes?: number | null
-  isRecurring?: boolean
-  recurrenceInterval?: 'daily' | 'weekly' | 'monthly' | 'yearly' | null
-  recurrenceStep?: number | null
-  recurrenceDays?: number[] | null
-  projectId?: string | null
-  sectionId?: string | null
-  project?: { id: string; name: string; icon: string | null; color: string } | null
-  section?: { id: string; name: string } | null
+interface PropertiesTask {
+    id: string
+    dueDate?: Date | string | null
+    priority?: string | null
+    tags?: TaskTag[]
+    scheduledStart?: Date | string | null
+    durationMinutes?: number | null
+    isRecurring?: boolean
+    recurrenceInterval?: 'daily' | 'weekly' | 'monthly' | 'yearly' | null
+    recurrenceStep?: number | null
+    recurrenceDays?: number[] | null
+    projectId?: string | null
+    sectionId?: string | null
+    project?: { id: string; name: string; icon: string | null; color: string } | null
+    section?: { id: string; name: string } | null
 }
 
-interface TaskMetadataRowProps {
-  task: Task
-  isReadOnly?: boolean
+interface NamedItem {
+    id: string
+    name: string
 }
 
-export function TaskMetadataRow({ task, isReadOnly = false }: TaskMetadataRowProps) {
-  // Normalize dates - handle both Date objects and ISO strings
-  const normalizeDueDate = (date: Date | string | null | undefined): Date | null => {
-    if (!date) return null
-    return date instanceof Date ? date : new Date(date)
-  }
+const toDate = (value: Date | string | null | undefined) => (value ? new Date(value) : null)
 
-  const [dueDate, setDueDate] = useState<Date | null>(normalizeDueDate(task.dueDate))
-  const [priority, setPriority] = useState(task.priority || 'none')
-  const [time, setTime] = useState<string>(
-    task.scheduledStart ? format(new Date(task.scheduledStart), 'HH:mm') : ''
-  )
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
-  const [availableTags, setAvailableTags] = useState<{ id: string, name: string, color?: string | null }[]>([])
-  const [availableProjects, setAvailableProjects] = useState<{ id: string; name: string; icon: string | null; color: string }[]>([])
-  const [availableSections, setAvailableSections] = useState<{ id: string; name: string }[]>([])
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(task.projectId || null)
-  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(task.sectionId || null)
+/** "HH:mm" from a task's scheduled start, or from a due date that carries a time. */
+function timeOf(task: PropertiesTask): string {
+    if (task.scheduledStart) return format(new Date(task.scheduledStart), 'HH:mm')
+    const due = toDate(task.dueDate)
+    return due && (due.getHours() !== 0 || due.getMinutes() !== 0) ? format(due, 'HH:mm') : ''
+}
 
-  const [showTagInput, setShowTagInput] = useState(false)
-  const [searchValue, setSearchValue] = useState('')
-  const [isCreatingTag, setIsCreatingTag] = useState(false)
-  const [isPending, startTransition] = useTransition()
-  const { selectTask } = useTaskDetailStore()
-  const { toast } = useToast()
-  const router = useRouter() // Add router
+function dateLabel(date: Date | null, time: string): string {
+    if (!date) return 'No date'
+    const day = isToday(date) ? 'Today' : isTomorrow(date) ? 'Tomorrow' : format(date, 'EEE, d MMM')
+    if (!time) return day
+    const [h, m] = time.split(':').map(Number)
+    return `${day}, ${format(new Date(2000, 0, 1, h, m), 'h:mm a')}`
+}
 
-  // Sync local state when task prop changes
-  useEffect(() => {
-    const normalizedDate = normalizeDueDate(task.dueDate)
-    setDueDate(normalizedDate)
-    setPriority(task.priority || 'none')
+/**
+ * Due date, priority, repeat, project, section and labels — one row each.
+ *
+ * Every change is written as it's made, and succeeds silently: the new value on
+ * screen is the confirmation. Only a failure says anything.
+ */
+export function TaskMetadataRow({ task, isReadOnly = false }: { task: PropertiesTask; isReadOnly?: boolean }) {
+    const router = useRouter()
+    const apply = useApplyTaskUpdate(task)
+    const [isPending, startTransition] = useTransition()
 
-    // Extract time from scheduledStart, or fallback to dueDate if available
-    let timeStr = ''
-    if (task.scheduledStart) {
-      timeStr = format(new Date(task.scheduledStart), 'HH:mm')
-    } else if (task.dueDate) {
-      // If dueDate has time component (non-zero), use it
-      const date = new Date(task.dueDate)
-      if (date.getHours() !== 0 || date.getMinutes() !== 0) {
-        timeStr = format(date, 'HH:mm')
-      }
+    const [dueDate, setDueDate] = useState<Date | null>(() => toDate(task.dueDate))
+    const [time, setTime] = useState(() => timeOf(task))
+    const [priority, setPriority] = useState<string>(task.priority || 'none')
+    const [projectId, setProjectId] = useState<string | null>(task.projectId ?? null)
+    const [sectionId, setSectionId] = useState<string | null>(task.sectionId ?? null)
+    const [tagIds, setTagIds] = useState<string[]>(
+        () => (task.tags?.map(t => t.tag?.id || t.id).filter(Boolean) as string[]) ?? []
+    )
+
+    // Follow changes made elsewhere (AI suggestions, the store settling after a
+    // save) by adjusting during render, as React recommends over a syncing effect.
+    const [seen, setSeen] = useState(task)
+    if (seen !== task) {
+        setSeen(task)
+        setDueDate(toDate(task.dueDate))
+        setTime(timeOf(task))
+        setPriority(task.priority || 'none')
+        setProjectId(task.projectId ?? null)
+        setSectionId(task.sectionId ?? null)
+        setTagIds((task.tags?.map(t => t.tag?.id || t.id).filter(Boolean) as string[]) ?? [])
     }
-    setTime(timeStr)
 
-    // Extract tag IDs from task.tags which might be TaskTagWithTag[] or similar
-    // We assume backend returns tags structure as requested
-    const tags = task.tags?.map((t) => t.tag?.id || t.id).filter(Boolean) as string[] || []
-    setSelectedTagIds(tags)
-  }, [task.id, task.dueDate, task.priority, task.scheduledStart, task.tags])
+    const [projects, setProjects] = useState<(NamedItem & { icon: string | null; color: string })[]>([])
+    const [sections, setSections] = useState<NamedItem[]>([])
+    const [tags, setTags] = useState<(NamedItem & { color?: string | null })[]>([])
 
-  // Fetch available tags
-  useEffect(() => {
-    const loadTags = async () => {
-      const tags = await getTags()
-      setAvailableTags(tags)
-    }
-    loadTags()
-  }, [])
+    const [dateOpen, setDateOpen] = useState(false)
+    const [labelsOpen, setLabelsOpen] = useState(false)
+    const [labelQuery, setLabelQuery] = useState('')
 
-  // Fetch available projects
-  useEffect(() => {
-    const loadProjects = async () => {
-      const result = await getProjects()
-      if (result.success && result.data) {
-        setAvailableProjects(result.data)
-      }
-    }
-    loadProjects()
-  }, [])
-
-  // Fetch sections when project changes
-  useEffect(() => {
-    if (selectedProjectId) {
-      const loadSections = async () => {
-        const result = await getSections(selectedProjectId)
-        if (result.success && result.data) {
-          setAvailableSections(result.data)
+    useEffect(() => {
+        let live = true
+        getTags().then(result => live && setTags(result))
+        getProjects().then(result => live && result.success && result.data && setProjects(result.data))
+        return () => {
+            live = false
         }
-      }
-      loadSections()
-    } else {
-      setAvailableSections([])
-      setSelectedSectionId(null)
-    }
-  }, [selectedProjectId])
+    }, [])
 
-  const formatDueDate = (date: Date | null) => {
-    if (!date) return 'Unscheduled'
-
-    let dateStr = ''
-    if (isToday(date)) dateStr = 'Today'
-    else if (isTomorrow(date)) dateStr = 'Tomorrow'
-    else dateStr = format(date, 'MMM d')
-
-    if (time) {
-      return `${dateStr}, ${time}`
-    }
-
-    return dateStr
-  }
-
-  const handleDateChange = async (date: Date | undefined) => {
-    const newDate = date || null
-    setDueDate(newDate)
-
-    // Calculate new scheduledStart if exists to keep time on the new date
-    let newScheduledStart: Date | null | undefined = undefined
-    if (time && newDate) {
-      // If we have a time set, apply it to the new date
-      const [hours, minutes] = time.split(':').map(Number)
-      newScheduledStart = new Date(newDate)
-      newScheduledStart.setHours(hours, minutes, 0, 0)
-    } else if (task.scheduledStart && newDate) {
-      // Fallback to existing task time if local state is empty but task has time
-      const oldStart = new Date(task.scheduledStart)
-      newScheduledStart = new Date(newDate)
-      newScheduledStart.setHours(oldStart.getHours(), oldStart.getMinutes(), 0, 0)
-    } else if (!newDate) {
-      // If due date is cleared, also clear scheduled time
-      newScheduledStart = null
-    }
-
-    startTransition(async () => {
-      const payload: UpdateTaskInput = {
-        id: task.id,
-        dueDate: newDate ? newDate.toISOString() : null,
-      }
-
-      if (newScheduledStart !== undefined) {
-        payload.scheduledStart = newScheduledStart ? newScheduledStart.toISOString() : null
-
-        // If we're setting a scheduled start, also update scheduled end based on duration
-        if (newScheduledStart) {
-          const duration = task.durationMinutes || 30
-          const endDate = new Date(newScheduledStart.getTime() + duration * 60000)
-          payload.scheduledEnd = endDate.toISOString()
-
-          // Also update the due date to include the time component for consistency
-          if (newDate) {
-            const dateWithTime = new Date(newScheduledStart)
-            payload.dueDate = dateWithTime.toISOString()
-          }
-        } else {
-          payload.scheduledEnd = null
+    useEffect(() => {
+        if (!projectId) return
+        let live = true
+        getSections(projectId).then(result => live && result.success && result.data && setSections(result.data))
+        return () => {
+            live = false
         }
-      }
+    }, [projectId])
 
-      const result = await updateTask(payload)
-
-      if (result.success && result.data) {
-        // Update the store with the new task data
-        selectTask(task.id, result.data)
-        router.refresh() // Refresh server components
-        toast({
-          title: 'Date updated',
-          description: newDate ? `Due date set to ${format(newDate, 'MMM d, yyyy')}` : 'Due date cleared',
+    /** Save a patch; on failure, run `revert` and say so. */
+    const save = (what: string, patch: Omit<UpdateTaskInput, 'id'>, revert: () => void, extra: object = {}) => {
+        startTransition(async () => {
+            const result = await updateTask({ id: task.id, ...patch })
+            if (!result.success) {
+                revert()
+                saveFailed(what, result.error)
+                return
+            }
+            apply(result.data, extra)
+            router.refresh()
         })
-      } else {
-        setDueDate(normalizeDueDate(task.dueDate))
-        toast({
-          title: 'Failed to update date',
-          description: result.error || 'Please try again',
-          variant: 'destructive',
-        })
-      }
-    })
-  }
-
-  const handlePriorityChange = async (newPriority: string) => {
-    const oldPriority = priority
-    setPriority(newPriority)
-
-    startTransition(async () => {
-      const result = await updateTask({
-        id: task.id,
-        priority: newPriority === 'none' ? null : (newPriority as any // eslint-disable-line @typescript-eslint/no-explicit-any
-        ),
-      })
-
-      if (result.success && result.data) {
-        selectTask(task.id, result.data)
-        router.refresh() // Refresh server components
-        toast({
-          title: 'Priority updated',
-          description: `Priority set to ${newPriority === 'none' ? 'none' : newPriority}`,
-        })
-      } else {
-        setPriority(oldPriority)
-        toast({
-          title: 'Failed to update priority',
-          description: result.error || 'Please try again',
-          variant: 'destructive',
-        })
-      }
-    })
-  }
-
-  const saveTime = async (timeValue: string) => {
-    if (!dueDate || !timeValue) return
-
-    const [hours, minutes] = timeValue.split(':').map(Number)
-    const baseDate = dueDate || new Date()
-
-    // Create new start date with the selected time
-    const scheduledStart = new Date(baseDate)
-    scheduledStart.setHours(hours, minutes, 0, 0)
-
-    // Also update dueDate to include the time component (same as EditTaskDialog logic)
-    const newDueDate = new Date(scheduledStart)
-
-    const duration = task.durationMinutes || 30
-    const scheduledEnd = new Date(scheduledStart.getTime() + duration * 60000)
-
-    startTransition(async () => {
-      const updatePayload: UpdateTaskInput = {
-        id: task.id,
-        scheduledStart: scheduledStart.toISOString(),
-        dueDate: newDueDate.toISOString(), // Sync due date time
-        scheduledEnd: scheduledEnd.toISOString(),
-      }
-
-      if (!dueDate) {
-        setDueDate(scheduledStart)
-      }
-
-      const result = await updateTask(updatePayload)
-
-      if (result.success && result.data) {
-        selectTask(task.id, result.data)
-        router.refresh() // Refresh server components
-        toast({
-          title: 'Time updated',
-          description: `Scheduled for ${format(scheduledStart, 'h:mm a')}`,
-        })
-      } else {
-        setTime(task.scheduledStart ? format(new Date(task.scheduledStart), 'HH:mm') : '')
-        toast({
-          title: 'Failed to update time',
-          description: result.error || 'Please try again',
-          variant: 'destructive',
-        })
-      }
-    })
-  }
-
-  const handleTimeChange = (timeValue: string) => {
-    setTime(timeValue)
-  }
-
-  const handleTagToggle = async (tagId: string) => {
-    const newTags = selectedTagIds.includes(tagId)
-      ? selectedTagIds.filter(id => id !== tagId)
-      : [...selectedTagIds, tagId]
-
-    setSelectedTagIds(newTags)
-
-    startTransition(async () => {
-      const result = await updateTask({
-        id: task.id,
-        tagIds: newTags
-      })
-
-      if (result.success && result.data) {
-        selectTask(task.id, result.data)
-        router.refresh() // Refresh server components
-      } else {
-        // Revert on failure
-        setSelectedTagIds(selectedTagIds)
-        toast({
-          title: 'Failed to update tags',
-          variant: 'destructive'
-        })
-      }
-    })
-  }
-
-  const handleCreateTag = async () => {
-    if (!searchValue.trim()) return
-
-    setIsCreatingTag(true)
-    startTransition(async () => {
-      // Dynamic import to avoid circular dependency issues if any
-      const { createTag } = await import('@/lib/actions/tags')
-
-      const result = await createTag({
-        name: searchValue.trim(),
-        color: 'bg-slate-500' // Default color
-      })
-
-      if (result.success && result.data) {
-        setAvailableTags(prev => [...prev, result.data!])
-        handleTagToggle(result.data.id)
-        setSearchValue('')
-        toast({
-          title: 'Label created',
-          description: `Created label "${result.data.name}"`
-        })
-      } else {
-        toast({
-          title: 'Failed to create label',
-          description: 'Please try again',
-          variant: 'destructive'
-        })
-      }
-      setIsCreatingTag(false)
-    })
-  }
-
-  const handleProjectChange = async (projectId: string | null) => {
-    const oldProjectId = selectedProjectId
-    const oldSectionId = selectedSectionId
-    setSelectedProjectId(projectId)
-
-    // Clear section if changing project
-    if (projectId !== oldProjectId) {
-      setSelectedSectionId(null)
     }
 
-    startTransition(async () => {
-      const result = await updateTask({
-        id: task.id,
-        projectId: projectId,
-        sectionId: projectId !== oldProjectId ? null : selectedSectionId,
-      })
+    // ─── Date and time ───────────────────────────────────────────────────────
 
-      if (result.success && result.data) {
-        selectTask(task.id, result.data)
-        router.refresh()
-        toast({
-          title: projectId ? 'Project assigned' : 'Project removed',
-          description: projectId
-            ? `Task moved to ${availableProjects.find(p => p.id === projectId)?.name}`
-            : 'Task removed from project',
+    const setDate = (next: Date | null) => {
+        const previous = { dueDate, time }
+        setDueDate(next)
+        setDateOpen(false)
+
+        const patch: Omit<UpdateTaskInput, 'id'> = { dueDate: next ? next.toISOString() : null }
+
+        if (!next) {
+            // No date means no time either.
+            setTime('')
+            patch.scheduledStart = null
+            patch.scheduledEnd = null
+        } else if (time) {
+            // Keep the time of day when moving to another date.
+            const [h, m] = time.split(':').map(Number)
+            const start = new Date(next)
+            start.setHours(h, m, 0, 0)
+            patch.dueDate = start.toISOString()
+            patch.scheduledStart = start.toISOString()
+            patch.scheduledEnd = new Date(start.getTime() + (task.durationMinutes || 30) * 60_000).toISOString()
+        }
+
+        save('the date', patch, () => {
+            setDueDate(previous.dueDate)
+            setTime(previous.time)
         })
-      } else {
-        setSelectedProjectId(oldProjectId)
-        setSelectedSectionId(oldSectionId)
-        toast({
-          title: 'Failed to update project',
-          description: result.error || 'Please try again',
-          variant: 'destructive',
+    }
+
+    const saveTime = (value: string) => {
+        if (!dueDate || value === timeOf(task)) return
+
+        if (!value) {
+            const day = startOfDay(dueDate)
+            save('the time', { dueDate: day.toISOString(), scheduledStart: null, scheduledEnd: null }, () => setTime(timeOf(task)))
+            return
+        }
+
+        const [h, m] = value.split(':').map(Number)
+        const start = new Date(dueDate)
+        start.setHours(h, m, 0, 0)
+        save(
+            'the time',
+            {
+                dueDate: start.toISOString(),
+                scheduledStart: start.toISOString(),
+                scheduledEnd: new Date(start.getTime() + (task.durationMinutes || 30) * 60_000).toISOString(),
+            },
+            () => setTime(timeOf(task))
+        )
+    }
+
+    // ─── Everything else ─────────────────────────────────────────────────────
+
+    const choosePriority = (next: string) => {
+        const previous = priority
+        setPriority(next)
+        save('the priority', { priority: next === 'none' ? null : (next as Priority) }, () => setPriority(previous))
+    }
+
+    const chooseProject = (next: string | null) => {
+        if (next === projectId) return
+        const previous = { projectId, sectionId }
+        setProjectId(next)
+        setSectionId(null)
+        setSections([])
+        const project = projects.find(p => p.id === next) ?? null
+        save(
+            'the project',
+            { projectId: next, sectionId: null },
+            () => {
+                setProjectId(previous.projectId)
+                setSectionId(previous.sectionId)
+            },
+            { projectId: next, project, sectionId: null, section: null }
+        )
+    }
+
+    const chooseSection = (next: string | null) => {
+        if (next === sectionId) return
+        const previous = sectionId
+        setSectionId(next)
+        save('the section', { sectionId: next }, () => setSectionId(previous), {
+            sectionId: next,
+            section: sections.find(s => s.id === next) ?? null,
         })
-      }
-    })
-  }
+    }
 
-  const handleSectionChange = async (sectionId: string | null) => {
-    const oldSectionId = selectedSectionId
-    setSelectedSectionId(sectionId)
+    const toggleTag = (tagId: string) => {
+        const previous = tagIds
+        const next = tagIds.includes(tagId) ? tagIds.filter(id => id !== tagId) : [...tagIds, tagId]
+        setTagIds(next)
+        save('labels', { tagIds: next }, () => setTagIds(previous))
+    }
 
-    startTransition(async () => {
-      const result = await updateTask({
-        id: task.id,
-        sectionId: sectionId,
-      })
-
-      if (result.success && result.data) {
-        selectTask(task.id, result.data)
-        router.refresh()
-        toast({
-          title: sectionId ? 'Section assigned' : 'Section removed',
-          description: sectionId
-            ? `Task moved to ${availableSections.find(s => s.id === sectionId)?.name}`
-            : 'Task removed from section',
+    const addLabel = () => {
+        const name = labelQuery.trim()
+        if (!name) return
+        startTransition(async () => {
+            const result = await createTag({ name, color: 'bg-slate-500' })
+            if (!result.success || !result.data) {
+                saveFailed('labels', 'The label couldn’t be created.')
+                return
+            }
+            const created = result.data
+            setTags(prev => [...prev, created])
+            setLabelQuery('')
+            toggleTag(created.id)
         })
-      } else {
-        setSelectedSectionId(oldSectionId)
-        toast({
-          title: 'Failed to update section',
-          description: result.error || 'Please try again',
-          variant: 'destructive',
-        })
-      }
-    })
-  }
+    }
 
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      <Popover>
-        <PopoverTrigger asChild disabled={isReadOnly}>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={isReadOnly}
-            className={cn(
-              propertyChipBase,
-              'px-2.5 font-normal',
-              dueDate
-                ? 'border-border/60 text-foreground'
-                : 'border-dashed border-border/45 text-muted-foreground hover:border-border/65',
-              isReadOnly && 'opacity-70 cursor-default pointer-events-none'
-            )}
-          >
-            <Calendar className="h-3.5 w-3.5 shrink-0 opacity-70 stroke-[1.5]" />
-            {formatDueDate(dueDate)}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 rounded-xl overflow-hidden shadow-xl border border-border/40" align="start">
-          <CalendarComponent
-            mode="single"
-            selected={dueDate || undefined}
-            onSelect={handleDateChange}
-            initialFocus
-            className="rounded-b-none border-b-0 shadow-none pb-2"
-          />
-          <div className="p-3 border-t border-border/40 bg-muted/10">
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase ml-1">Time</label>
-              <div className="flex items-center gap-2 group">
-                <Clock className="w-3.5 h-3.5 text-muted-foreground ml-1 group-focus-within:text-foreground transition-colors" />
-                <Input
-                  type="time"
-                  value={time}
-                  onChange={(e) => handleTimeChange(e.target.value)}
-                  onBlur={(e) => saveTime(e.target.value)}
-                  className="h-7 text-[13px] bg-transparent border-transparent hover:border-border hover:bg-muted/50 focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-ring transition-all w-full rounded-md px-2 shadow-none"
-                />
-              </div>
-            </div>
-            {dueDate && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleDateChange(undefined)}
-                className="w-full text-xs h-7 mt-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-              >
-                Clear date & time
-              </Button>
-            )}
-          </div>
-        </PopoverContent>
-      </Popover>
+    const setRepeat = (value?: RecurrenceValue) => {
+        save('the repeat', {
+            isRecurring: !!value,
+            recurrenceInterval: value?.interval,
+            recurrenceStep: value?.step,
+            recurrenceDays: value?.days,
+        }, () => {})
+    }
 
-      {/* Priority */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild disabled={isReadOnly}>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={isReadOnly}
-            className={cn(
-              propertyChipBase,
-              'px-2.5 font-normal',
-              priority === 'none'
-                ? 'border-dashed border-border/45 text-muted-foreground hover:border-border/65'
-                : cn('border-solid', priorityChipBorder(priority)),
-              isReadOnly && 'opacity-70 cursor-default pointer-events-none'
-            )}
-          >
-            <Flag
-              className={cn(
-                'h-3.5 w-3.5 shrink-0 stroke-[1.5]',
-                priorities.find((p) => p.value === priority)?.color || 'text-muted-foreground'
-              )}
-              fill={priority !== 'none' ? 'currentColor' : 'none'}
-            />
-            {priority === 'none' ? 'Priority' : priorities.find((p) => p.value === priority)?.label}
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-48" align="start">
-          {priorities.map((p) => (
-            <DropdownMenuItem
-              key={p.value}
-              onClick={() => handlePriorityChange(p.value)}
-              className="gap-2"
-            >
-              <Flag className={cn("h-4 w-4", p.color)} fill="currentColor" />
-              <span>{p.label}</span>
-              {priority === p.value && <Check className="ml-auto h-4 w-4" />}
-            </DropdownMenuItem>
-          ))}
-          {priority !== 'none' && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handlePriorityChange('none')}>
-                Clear Priority
-              </DropdownMenuItem>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-      {/* Recurring Config */}
-      {!isReadOnly && (
-        <RecurrenceSelector
-          className={cn(
-            propertyChipBase,
-            'px-2.5 font-normal',
-            task.isRecurring
-              ? 'border-border/60 text-foreground'
-              : 'border-dashed border-border/45 text-muted-foreground hover:border-border/65'
-          )}
-          value={
-            task.isRecurring && task.recurrenceInterval
-              ? ({
-                  interval: task.recurrenceInterval,
-                  step: task.recurrenceStep || 1,
-                  days: task.recurrenceDays ?? [],
-                } satisfies RecurrenceValue)
-              : undefined
-          }
-          onChange={(val) => {
-            startTransition(async () => {
-              const result = await updateTask({
-                id: task.id,
-                isRecurring: !!val,
-                recurrenceInterval: val?.interval,
-                recurrenceStep: val?.step,
-                recurrenceDays: val?.days,
-              })
+    const selectedPriority = PRIORITIES.find(p => p.value === priority)
+    const project = projects.find(p => p.id === projectId) ?? (task.project?.id === projectId ? task.project : null)
+    const section = sections.find(s => s.id === sectionId) ?? (task.section?.id === sectionId ? task.section : null)
+    const selectedTags = tagIds
+        .map(id => tags.find(t => t.id === id) ?? task.tags?.find(t => (t.tag?.id || t.id) === id)?.tag)
+        .filter((t): t is NamedItem => !!t)
 
-              if (result.success && result.data) {
-                selectTask(task.id, result.data)
-                router.refresh()
-                toast({
-                  title: val ? 'Recurrence set' : 'Recurrence removed',
-                  description: val ? 'Task will repeat' : 'Task will not repeat',
-                })
-              } else {
-                toast({
-                  title: 'Failed to update recurrence',
-                  description: result.error || 'Please try again',
-                  variant: 'destructive',
-                })
-              }
-            })
-          }}
-        />
-      )}
+    const today = startOfDay(new Date())
+    const quickDates = [
+        { label: 'Today', date: today },
+        { label: 'Tomorrow', date: addDays(today, 1) },
+        { label: 'Next week', date: nextMonday(today) },
+    ]
 
-      {/* Project */}
-      <Popover>
-        <PopoverTrigger asChild disabled={isReadOnly}>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={isReadOnly}
-            className={cn(
-              propertyChipBase,
-              'px-2.5 font-normal',
-              selectedProjectId
-                ? 'border-border/60 text-foreground'
-                : 'border-dashed border-border/45 text-muted-foreground hover:border-border/65',
-              isReadOnly && 'opacity-70 cursor-default pointer-events-none'
-            )}
-          >
-            <FolderKanban className="h-3.5 w-3.5 shrink-0 opacity-70 stroke-[1.5]" />
-            {selectedProjectId
-              ? `${task.project?.icon || '📁'} ${task.project?.name || 'Project'}`
-              : 'Project'}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-52 p-2" align="start">
-          <div className="space-y-1 max-h-64 overflow-y-auto">
-            {selectedProjectId && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleProjectChange(null)}
-                className="w-full justify-start text-muted-foreground hover:text-destructive"
-              >
-                <X className="mr-2 h-3.5 w-3.5" />
-                Remove from project
-              </Button>
-            )}
-            {availableProjects.map((project) => (
-              <Button
-                key={project.id}
-                variant="ghost"
-                size="sm"
-                onClick={() => handleProjectChange(project.id)}
-                className={cn(
-                  'w-full justify-start',
-                  selectedProjectId === project.id && 'bg-accent'
+    return (
+        <Section
+            title="Properties"
+            meta={isPending ? <Loader2 className={cn(ICON.sm, 'animate-spin', INK.subtle)} aria-label="Saving" /> : null}
+        >
+            <div className="flex flex-col gap-0.5">
+                {/* Due date */}
+                <Property label="Due date">
+                    <Popover open={dateOpen} onOpenChange={setDateOpen}>
+                        <PopoverTrigger asChild disabled={isReadOnly}>
+                            <ValueButton icon={Calendar} empty={!dueDate} disabled={isReadOnly}>
+                                {dateLabel(dueDate, time)}
+                            </ValueButton>
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className={cn(POPOVER, 'w-auto p-0')}>
+                            <div className={cn('grid grid-cols-3 gap-1 border-b p-2', HAIRLINE)}>
+                                {quickDates.map(q => (
+                                    <button
+                                        key={q.label}
+                                        type="button"
+                                        onClick={() => setDate(q.date)}
+                                        className={cn(
+                                            'h-7 px-2', R.md, T.meta, 'font-medium', INK.default, TRANSITION.fast,
+                                            'bg-black/[0.035] hover:bg-black/[0.07] dark:bg-white/[0.05] dark:hover:bg-white/[0.09]'
+                                        )}
+                                    >
+                                        {q.label}
+                                    </button>
+                                ))}
+                            </div>
+                            <CalendarPicker
+                                mode="single"
+                                selected={dueDate ?? undefined}
+                                onSelect={date => setDate(date ?? null)}
+                                initialFocus
+                            />
+                            <div className={cn('flex items-center gap-2 border-t p-2', HAIRLINE)}>
+                                <Clock className={cn(ICON.md, 'ml-1 shrink-0', INK.muted)} strokeWidth={1.75} />
+                                <input
+                                    type="time"
+                                    value={time}
+                                    disabled={!dueDate}
+                                    onChange={e => setTime(e.target.value)}
+                                    onBlur={e => saveTime(e.target.value)}
+                                    aria-label="Time"
+                                    className={cn(
+                                        'h-8 flex-1 border bg-transparent px-2 tabular-nums', R.md, HAIRLINE, T.body, INK.strong,
+                                        '[color-scheme:light] dark:[color-scheme:dark] disabled:opacity-40', TRANSITION.fast, FIELD_FOCUS
+                                    )}
+                                />
+                                {dueDate && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setDate(null)}
+                                        className={cn('h-8 px-2.5', R.md, T.meta, 'font-medium', INK.muted, TRANSITION.fast,
+                                            'hover:bg-black/[0.04] hover:text-foreground dark:hover:bg-white/[0.06]')}
+                                    >
+                                        Clear
+                                    </button>
+                                )}
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+                </Property>
+
+                {/* Priority */}
+                <Property label="Priority">
+                    <Popover>
+                        <PopoverTrigger asChild disabled={isReadOnly}>
+                            <ValueButton
+                                icon={Flag}
+                                empty={!selectedPriority}
+                                disabled={isReadOnly}
+                                iconClassName={cn(selectedPriority?.color, selectedPriority && 'fill-current opacity-100')}
+                            >
+                                {selectedPriority?.label ?? 'None'}
+                            </ValueButton>
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className={cn(POPOVER, 'w-44')}>
+                            {PRIORITIES.map(p => (
+                                <OptionRow key={p.value} selected={priority === p.value} onSelect={() => choosePriority(p.value)}>
+                                    <Flag className={cn(ICON.md, p.color, 'fill-current')} strokeWidth={1.75} />
+                                    <span className="flex-1">{p.label}</span>
+                                    {priority === p.value && <Check className={cn(ICON.md, INK.muted)} />}
+                                </OptionRow>
+                            ))}
+                            <div className={cn('my-1 border-t', HAIRLINE)} />
+                            <OptionRow selected={priority === 'none'} onSelect={() => choosePriority('none')}>
+                                <Flag className={cn(ICON.md, INK.subtle)} strokeWidth={1.75} />
+                                <span className={cn('flex-1', INK.muted)}>None</span>
+                                {priority === 'none' && <Check className={cn(ICON.md, INK.muted)} />}
+                            </OptionRow>
+                        </PopoverContent>
+                    </Popover>
+                </Property>
+
+                {/* Repeat */}
+                <Property label="Repeat">
+                    {isReadOnly ? (
+                        <ValueButton disabled empty={!task.isRecurring}>{task.isRecurring ? 'Repeats' : 'Doesn’t repeat'}</ValueButton>
+                    ) : (
+                        <RecurrenceSelector
+                            // Restyled to match the other values; the component's own
+                            // outlined-chip look would be the only box on the panel.
+                            className={cn(
+                                '-ml-2 h-8 gap-2 border-transparent bg-transparent px-2 font-normal shadow-none', T.body,
+                                'hover:border-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.06]',
+                                task.isRecurring ? INK.strong : INK.subtle
+                            )}
+                            value={
+                                task.isRecurring && task.recurrenceInterval
+                                    ? { interval: task.recurrenceInterval, step: task.recurrenceStep || 1, days: task.recurrenceDays ?? [] }
+                                    : undefined
+                            }
+                            onChange={setRepeat}
+                        />
+                    )}
+                </Property>
+
+                {/* Project */}
+                <Property label="Project">
+                    <Popover>
+                        <PopoverTrigger asChild disabled={isReadOnly}>
+                            <ValueButton icon={project ? undefined : Inbox} empty={!project} disabled={isReadOnly}>
+                                {project ? `${project.icon || '📁'}  ${project.name}` : 'Inbox'}
+                            </ValueButton>
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className={cn(POPOVER, 'max-h-72 w-56 overflow-y-auto')}>
+                            <OptionRow selected={!projectId} onSelect={() => chooseProject(null)}>
+                                <Inbox className={cn(ICON.md, INK.muted)} strokeWidth={1.75} />
+                                <span className="flex-1">Inbox</span>
+                                {!projectId && <Check className={cn(ICON.md, INK.muted)} />}
+                            </OptionRow>
+                            {projects.length > 0 && <div className={cn('my-1 border-t', HAIRLINE)} />}
+                            {projects.map(p => (
+                                <OptionRow key={p.id} selected={projectId === p.id} onSelect={() => chooseProject(p.id)}>
+                                    <span aria-hidden className="w-3.5 text-center">{p.icon || '📁'}</span>
+                                    <span className="flex-1 truncate">{p.name}</span>
+                                    {projectId === p.id && <Check className={cn(ICON.md, INK.muted)} />}
+                                </OptionRow>
+                            ))}
+                        </PopoverContent>
+                    </Popover>
+                </Property>
+
+                {/* Section — only meaningful inside a project */}
+                {projectId && (
+                    <Property label="Section">
+                        <Popover>
+                            <PopoverTrigger asChild disabled={isReadOnly}>
+                                <ValueButton icon={Layers} empty={!section} disabled={isReadOnly}>
+                                    {section?.name ?? 'No section'}
+                                </ValueButton>
+                            </PopoverTrigger>
+                            <PopoverContent align="start" className={cn(POPOVER, 'max-h-72 w-56 overflow-y-auto')}>
+                                <OptionRow selected={!sectionId} onSelect={() => chooseSection(null)}>
+                                    <FolderKanban className={cn(ICON.md, INK.muted)} strokeWidth={1.75} />
+                                    <span className={cn('flex-1', INK.muted)}>No section</span>
+                                    {!sectionId && <Check className={cn(ICON.md, INK.muted)} />}
+                                </OptionRow>
+                                {sections.length > 0 && <div className={cn('my-1 border-t', HAIRLINE)} />}
+                                {sections.map(s => (
+                                    <OptionRow key={s.id} selected={sectionId === s.id} onSelect={() => chooseSection(s.id)}>
+                                        <Layers className={cn(ICON.md, INK.muted)} strokeWidth={1.75} />
+                                        <span className="flex-1 truncate">{s.name}</span>
+                                        {sectionId === s.id && <Check className={cn(ICON.md, INK.muted)} />}
+                                    </OptionRow>
+                                ))}
+                            </PopoverContent>
+                        </Popover>
+                    </Property>
                 )}
-              >
-                <span className="mr-2">{project.icon || '📁'}</span>
-                {project.name}
-              </Button>
-            ))}
-          </div>
-        </PopoverContent>
-      </Popover>
 
-      {/* Section (only show if project is selected) */}
-      {selectedProjectId && (
-        <Popover>
-            <PopoverTrigger asChild disabled={isReadOnly}>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={isReadOnly}
-                className={cn(
-                  propertyChipBase,
-                  'px-2.5 font-normal',
-                  selectedSectionId
-                    ? 'border-border/60 text-foreground'
-                    : 'border-dashed border-border/45 text-muted-foreground hover:border-border/65',
-                  isReadOnly && 'opacity-70 cursor-default pointer-events-none'
-                )}
-              >
-                <Layers className="h-3.5 w-3.5 shrink-0 opacity-70 stroke-[1.5]" />
-                {selectedSectionId
-                  ? task.section?.name || 'Section'
-                  : 'Section'}
-              </Button>
-            </PopoverTrigger>
-          <PopoverContent className="w-52 p-2" align="start">
-            <div className="space-y-1 max-h-64 overflow-y-auto">
-              {selectedSectionId && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleSectionChange(null)}
-                  className="w-full justify-start text-muted-foreground hover:text-destructive"
-                >
-                  <X className="mr-2 h-3.5 w-3.5" />
-                  Remove from section
-                </Button>
-              )}
-              {availableSections.length === 0 && !selectedSectionId && (
-                <div className="px-2 py-4 text-xs text-center text-muted-foreground">
-                  No sections in this project
-                </div>
-              )}
-              {availableSections.map((section) => (
-                <Button
-                  key={section.id}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleSectionChange(section.id)}
-                  className={cn(
-                    'w-full justify-start',
-                    selectedSectionId === section.id && 'bg-accent'
-                  )}
-                >
-                  {section.name}
-                </Button>
-              ))}
+                {/* Labels */}
+                <Property label="Labels">
+                    {selectedTags.map(tag => (
+                        <span
+                            key={tag.id}
+                            className={cn(
+                                'inline-flex h-6 items-center gap-1 border pl-2', isReadOnly ? 'pr-2' : 'pr-1', R.sm, HAIRLINE,
+                                T.meta, INK.default
+                            )}
+                        >
+                            {tag.name}
+                            {!isReadOnly && (
+                                <button
+                                    type="button"
+                                    onClick={() => toggleTag(tag.id)}
+                                    aria-label={`Remove ${tag.name}`}
+                                    className={cn('flex h-4 w-4 items-center justify-center rounded-[4px]', INK.subtle, TRANSITION.fast,
+                                        'hover:bg-black/[0.06] hover:text-foreground dark:hover:bg-white/[0.08]')}
+                                >
+                                    <X className="h-2.5 w-2.5" strokeWidth={2.5} />
+                                </button>
+                            )}
+                        </span>
+                    ))}
+
+                    {!isReadOnly && (
+                        <Popover open={labelsOpen} onOpenChange={open => {
+                            setLabelsOpen(open)
+                            if (!open) setLabelQuery('')
+                        }}>
+                            <PopoverTrigger asChild>
+                                <ValueButton
+                                    icon={selectedTags.length === 0 ? Tag : Plus}
+                                    empty
+                                    className={selectedTags.length > 0 ? 'ml-0 h-6 px-1.5' : undefined}
+                                    aria-label="Add label"
+                                >
+                                    {selectedTags.length === 0 ? 'Add label' : null}
+                                </ValueButton>
+                            </PopoverTrigger>
+                            <PopoverContent align="start" className={cn(POPOVER, 'w-56 p-0')}>
+                                <Command>
+                                    <CommandInput placeholder="Find or create…" value={labelQuery} onValueChange={setLabelQuery} />
+                                    <CommandList>
+                                        <CommandEmpty className="p-1">
+                                            {labelQuery.trim() ? (
+                                                <OptionRow onSelect={addLabel}>
+                                                    <Plus className={cn(ICON.md, INK.muted)} />
+                                                    <span className="truncate">Create “{labelQuery.trim()}”</span>
+                                                </OptionRow>
+                                            ) : (
+                                                <p className={cn('px-2 py-3 text-center', T.meta, INK.subtle)}>No labels yet</p>
+                                            )}
+                                        </CommandEmpty>
+                                        <CommandGroup>
+                                            {tags.map(tag => (
+                                                <CommandItem key={tag.id} onSelect={() => toggleTag(tag.id)} className="gap-2.5">
+                                                    <Tag className={cn(ICON.md, INK.muted)} strokeWidth={1.75} />
+                                                    <span className="flex-1 truncate">{tag.name}</span>
+                                                    {tagIds.includes(tag.id) && <Check className={cn(ICON.md, INK.muted)} />}
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
+                    )}
+
+                    {isReadOnly && selectedTags.length === 0 && (
+                        <span className={cn(T.body, INK.subtle)}>None</span>
+                    )}
+                </Property>
             </div>
-          </PopoverContent>
-        </Popover>
-      )}
-
-      {/* Tags */}
-      <Popover open={showTagInput} onOpenChange={(open) => {
-        setShowTagInput(open)
-        if (!open) setSearchValue('')
-      }}>
-        <PopoverTrigger asChild disabled={isReadOnly}>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={isPending || isReadOnly}
-            className={cn(
-              propertyChipBase,
-              'px-2.5 font-normal',
-              selectedTagIds.length > 0
-                ? 'border-border/60 text-foreground'
-                : 'border-dashed border-border/45 text-muted-foreground hover:border-border/65',
-              isReadOnly && 'opacity-70 cursor-default pointer-events-none'
-            )}
-          >
-            {isPending ? (
-              <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin opacity-70" />
-            ) : (
-              <Tag className="h-3.5 w-3.5 shrink-0 opacity-70 stroke-[1.5]" />
-            )}
-            {selectedTagIds.length === 0 ? "Label" :
-              selectedTagIds.length === 1 ?
-                (availableTags.find(t => t.id === selectedTagIds[0])?.name ||
-                  task.tags?.find(t => (t.tag?.id || t.id) === selectedTagIds[0])?.tag?.name ||
-                  "Label")
-                : `${selectedTagIds.length} labels`}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-52 p-0" align="start">
-          <Command>
-            <CommandInput
-              placeholder="Search labels..."
-              value={searchValue}
-              onValueChange={setSearchValue}
-            />
-            <CommandList>
-              <CommandEmpty className="py-2 px-2 text-sm">
-                <div className="flex flex-col gap-2">
-                  <span className="text-muted-foreground text-xs text-center">No labels found.</span>
-                  {searchValue.trim() && (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="w-full text-xs h-7"
-                      onClick={handleCreateTag}
-                      disabled={isCreatingTag}
-                    >
-                      {isCreatingTag ? (
-                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                      ) : (
-                        <Plus className="mr-2 h-3 w-3" />
-                      )}
-                      Create &ldquo;{searchValue}&rdquo;
-                    </Button>
-                  )}
-                </div>
-              </CommandEmpty>
-              <CommandGroup>
-                {availableTags.map((tag) => (
-                  <CommandItem
-                    key={tag.id}
-                    onSelect={() => handleTagToggle(tag.id)}
-                    className="cursor-pointer"
-                  >
-                    <div className="mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary">
-                      <Check
-                        className={cn(
-                          "h-3 w-3",
-                          selectedTagIds.includes(tag.id) ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                    </div>
-                    <span>{tag.name}</span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-
-      {/* Selected Tag Badges */}
-      {selectedTagIds.length > 0 && (
-        <div className="flex gap-1.5 flex-wrap">
-          {selectedTagIds.map(tagId => {
-            const tag = availableTags.find(t => t.id === tagId) || task.tags?.find((t) => (t.tag?.id || t.id) === tagId)?.tag
-            if (!tag) return null
-            return (
-              <Badge
-                key={tagId}
-                variant="secondary"
-                className="h-6 px-2 text-[11px] font-medium gap-1 border border-border/40 bg-muted/15 text-foreground/90 hover:bg-muted/25"
-              >
-                {tag.name}
-                <div
-                  role="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleTagToggle(tagId)
-                  }}
-                  className="cursor-pointer hover:text-destructive"
-                >
-                  <X className="h-2.5 w-2.5" />
-                </div>
-              </Badge>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
+        </Section>
+    )
 }
