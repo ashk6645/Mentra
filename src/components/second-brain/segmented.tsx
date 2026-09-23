@@ -1,75 +1,83 @@
 'use client'
 
+import { useId } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { FOCUS } from '@/lib/second-brain/ui'
+import { FOCUS, GLIDE, INK, NUM, T, TRANSITION } from '@/lib/second-brain/ui'
 
 export interface SegmentOption<T extends string> {
     id: T
     label: string
-    icon?: React.ComponentType<{ className?: string }>
-}
-
-interface SegmentedProps<T extends string> {
-    options: SegmentOption<T>[]
-    value: T
-    onChange: (value: T) => void
-    ariaLabel: string
+    /** A quiet count after the label. */
+    count?: number
 }
 
 /**
- * Segmented control with a single indicator that slides between options.
+ * Segmented control with one indicator that glides between options.
  *
- * The sliding pill is one shared element positioned by Framer's `layoutId`, not a
- * per-option background that fades. That distinction is the whole effect: the
- * selection travels, which is what makes an Apple/Linear segmented control feel
- * physical rather than like three buttons taking turns being highlighted.
+ * The pill is a single shared element positioned by Framer's `layoutId`, not a
+ * background per option that fades — the selection travels, which is what makes
+ * it feel like a physical switch rather than buttons taking turns.
+ *
+ * The `layoutId` is unique per instance. Shared across instances, two controls on
+ * one screen would fling a single pill from one to the other.
  */
 export function Segmented<T extends string>({
     options,
     value,
     onChange,
     ariaLabel,
-}: SegmentedProps<T>) {
+    fill,
+}: {
+    options: SegmentOption<T>[]
+    value: T
+    onChange: (value: T) => void
+    ariaLabel: string
+    /** Stretch to the container, options sharing the width equally. */
+    fill?: boolean
+}) {
+    const indicator = useId()
+
     return (
         <div
-            role="tablist"
+            role="radiogroup"
             aria-label={ariaLabel}
-            className="relative inline-flex items-center gap-0.5 rounded-[8px] bg-black/[0.04] p-[3px] dark:bg-white/[0.05]"
+            className={cn(
+                'relative items-center gap-0.5 rounded-[9px] bg-black/[0.045] p-[3px] dark:bg-white/[0.06]',
+                fill ? 'flex w-full' : 'inline-flex'
+            )}
         >
-            {options.map(({ id, label, icon: Icon }) => {
-                const selected = value === id
+            {options.map(option => {
+                const selected = value === option.id
 
                 return (
                     <button
-                        key={id}
-                        role="tab"
-                        aria-selected={selected}
-                        onClick={() => onChange(id)}
+                        key={option.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        onClick={() => onChange(option.id)}
                         className={cn(
-                            'relative flex items-center gap-1.5 rounded-[8px] px-2.5 py-[5px]',
-                            'text-[13px] font-medium transition-colors duration-200',
-                            FOCUS,
-                            selected ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                            'relative flex h-[26px] items-center justify-center gap-1.5 rounded-[6px] px-2.5',
+                            T.button, 'text-[12.5px]', TRANSITION.fast, FOCUS,
+                            fill && 'flex-1',
+                            selected ? INK.strong : cn(INK.muted, 'hover:text-foreground')
                         )}
                     >
                         {selected && (
                             <motion.span
-                                layoutId="sb-segment-indicator"
-                                transition={{ type: 'spring', stiffness: 480, damping: 38, mass: 0.6 }}
+                                layoutId={indicator}
+                                transition={GLIDE}
                                 className={cn(
-                                    'absolute inset-0 rounded-[8px] bg-white dark:bg-white/[0.10]',
-                                    'shadow-[0_1px_2px_rgba(0,0,0,0.06),0_0_0_0.5px_rgba(0,0,0,0.04)]',
-                                    'dark:shadow-none'
+                                    'absolute inset-0 rounded-[6px] bg-white dark:bg-white/[0.12]',
+                                    'shadow-[0_1px_2px_rgba(0,0,0,0.08),0_0_0_0.5px_rgba(0,0,0,0.05)] dark:shadow-none'
                                 )}
                             />
                         )}
-
-                        {/* Above the indicator, which is absolutely positioned behind. */}
-                        <span className="relative z-10 flex items-center gap-1.5">
-                            {Icon && <Icon className="h-3.5 w-3.5" />}
-                            {label}
-                        </span>
+                        <span className="relative z-10">{option.label}</span>
+                        {option.count !== undefined && (
+                            <span className={cn('relative z-10', NUM, INK.subtle)}>{option.count}</span>
+                        )}
                     </button>
                 )
             })}
