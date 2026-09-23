@@ -1,108 +1,66 @@
 'use client'
 
-import { X } from 'lucide-react'
+import { Sparkles, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useConfirm } from './confirm-dialog'
+import { Button, Card, IconButton, Reveal } from './primitives'
 import { useSecondBrainActions, useStoreReady } from '@/lib/second-brain/repo'
 import { useShowIntro, dismissIntro } from '@/lib/second-brain/repo/preferences'
 import { notify } from '@/lib/second-brain/feedback'
-import { R, T, INK, FOCUS, HAIRLINE } from '@/lib/second-brain/ui'
+import { INK, T } from '@/lib/second-brain/ui'
 
 /**
- * First run (spec §61).
+ * First run.
  *
- * The problem this solves is specific: a new arrival lands on a month of habit
- * history, logged workouts and journal entries that they did not write, with
- * nothing saying so. Either they assume the app invented data about them, or —
- * worse — they start using it and never notice their real entries are mixed in
- * with fiction.
- *
- * So this says three true things and offers the two actions that follow from
- * them. It is a banner rather than a modal because nothing here needs to block
- * the door; §37 and §60 both favour explaining in place over interrupting.
+ * A new arrival lands on a month of history they didn't write. Without a word
+ * about it they either assume the app invented data about them, or start using
+ * it and never notice their real entries are mixed in with sample ones. So this
+ * says so plainly, once, and offers the two things that follow from it.
  */
-export function IntroBanner() {
+export function IntroBanner({ index }: { index: number }) {
     const ready = useStoreReady()
     const show = useShowIntro()
     const { clearAll } = useSecondBrainActions()
     const { confirm, dialog } = useConfirm()
 
-    // `useShowIntro` is false until hydration, so this also prevents the banner
-    // flashing in before the store is readable.
-    if (!ready || !show) return null
+    // `useShowIntro` is false until hydration, so the banner can't flash in early.
+    if (!ready || !show) return dialog
 
     const startFresh = async () => {
         const confirmed = await confirm({
-            title: 'Clear the demo data?',
-            description:
-                'Every habit, workout, note and transaction currently here is removed, leaving an empty Second Brain. You can bring the demo back from Settings.',
-            confirmLabel: 'Clear it',
+            title: 'Clear the sample data?',
+            description: 'Every sample habit, routine and goal is removed, leaving Second Brain empty and ready for yours.',
+            confirmLabel: 'Clear everything',
             destructive: true,
         })
         if (!confirmed) return
 
         clearAll()
         dismissIntro()
-        notify('Cleared. This is yours now.')
+        notify('Cleared. It’s all yours now.')
     }
 
     return (
         <>
             {dialog}
-
-            {/*
-              * A note, not an alert.
-              *
-              * As a filled, bordered card this was ~190px of permanent-looking
-              * chrome above the greeting, outweighing the greeting and the day's
-              * figures combined — for a message shown once and then dismissed
-              * forever. A rule underneath separates it just as well and lets the
-              * screen open on the thing you came for.
-              */}
-            <aside
-                className={cn('relative border-b pb-5', HAIRLINE)}
-                aria-labelledby="sb-intro-title"
-            >
-                <button
-                    type="button"
-                    onClick={dismissIntro}
-                    aria-label="Dismiss the introduction"
-                    className={cn(
-                        'absolute right-0 top-0 flex h-7 w-7 items-center justify-center',
-                        R.sm, INK.subtle, 'transition-colors hover:text-foreground', FOCUS
-                    )}
-                >
-                    <X className="h-3.5 w-3.5" />
-                </button>
-
-                <h2 id="sb-intro-title" className={cn('pr-8', T.button, INK.strong)}>
-                    This is demo data
-                </h2>
-
-                <p className={cn('mt-1 max-w-[68ch]', T.body, INK.muted)}>
-                    Everything below is made up, saved in this browser only, and gone if you clear
-                    site data. Your tasks, projects and notes are untouched.
-                </p>
-
-                <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={startFresh}
-                        className={cn('px-3 py-1.5', R.md, T.button,
-                            'bg-foreground text-background transition-opacity hover:opacity-90', FOCUS)}
-                    >
-                        Clear it and start fresh
-                    </button>
-                    <button
-                        type="button"
-                        onClick={dismissIntro}
-                        className={cn('border px-3 py-1.5', R.md, T.button, INK.default, HAIRLINE,
-                            'transition-colors hover:bg-foreground/[0.04]', FOCUS)}
-                    >
-                        Keep exploring
-                    </button>
-                </div>
-            </aside>
+            <Reveal index={index}>
+                <Card className="flex flex-col gap-3 py-3.5 pl-4 pr-3 sm:flex-row sm:items-center sm:gap-4">
+                    <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-[9px] bg-black/[0.04] sm:flex dark:bg-white/[0.06]">
+                        <Sparkles className={cn('h-4 w-4', INK.default)} strokeWidth={1.75} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                        <p className={cn(T.body, 'font-medium', INK.strong)}>You’re looking at sample data</p>
+                        <p className={cn(T.meta, INK.muted)}>
+                            It lives only in this browser. Your tasks and projects aren’t touched.
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <Button size="sm" onClick={startFresh}>Start fresh</Button>
+                        <Button size="sm" variant="ghost" onClick={dismissIntro} className="sm:hidden">Keep it</Button>
+                        <IconButton icon={X} label="Keep the sample data" onClick={dismissIntro} className="hidden sm:inline-flex" />
+                    </div>
+                </Card>
+            </Reveal>
         </>
     )
 }
