@@ -1,277 +1,183 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Sparkles, ChevronDown, ChevronUp, ListTree, Wand2, Clock, Flag, Loader2 } from 'lucide-react'
-import { useToast } from '@/components/ui/use-toast'
-import { generateSubtasks, rewriteTaskTitle, estimateTaskDuration, getTaskSuggestions } from '@/lib/actions/ai'
+import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ChevronRight, Clock, Flag, ListTree, Loader2, Sparkles, Wand2, type LucideIcon } from 'lucide-react'
+import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
+import { estimateTaskDuration, generateSubtasks, getTaskSuggestions, rewriteTaskTitle } from '@/lib/actions/ai'
 import { createSubtask } from '@/lib/actions/subtasks'
 import { updateTask, type UpdateTaskInput } from '@/lib/actions/tasks'
 import { getTags } from '@/lib/actions/tags'
 import { useTaskDetailStore } from '@/stores/use-task-detail-store'
-import { useRouter } from 'next/navigation'
+import { saveFailed, useApplyTaskUpdate } from './parts'
+import { FOCUS, HAIRLINE, HOVER, ICON, INK, MOTION, R, T, TRANSITION } from '@/lib/second-brain/ui'
 
 const VALID_PRIORITIES = ['low', 'medium', 'high', 'urgent'] as const
 
 function normalizeAiPriority(raw: string): (typeof VALID_PRIORITIES)[number] | undefined {
-  const p = raw.trim().toLowerCase()
-  return (VALID_PRIORITIES as readonly string[]).includes(p)
-    ? (p as (typeof VALID_PRIORITIES)[number])
-    : undefined
+    const p = raw.trim().toLowerCase()
+    return (VALID_PRIORITIES as readonly string[]).includes(p) ? (p as (typeof VALID_PRIORITIES)[number]) : undefined
 }
 
-interface TaskTag {
-  tag?: { id: string; name: string };
-  id?: string;
+interface AssistTask {
+    id: string
+    title: string
+    description?: string | null
+    scheduledStart?: Date | string | null
+    tags?: { tag?: { id: string; name: string }; id?: string }[]
 }
 
-interface Task {
-  id: string
-  title: string
-  description?: string | null
-  scheduledStart?: Date | string | null
-  tags?: TaskTag[]
-}
+type ActionId = 'subtasks' | 'rewrite' | 'estimate' | 'priority'
 
-interface TaskAIAssistProps {
-  task: Task
-}
+const ACTIONS: { id: ActionId; label: string; hint: string; icon: LucideIcon }[] = [
+    { id: 'subtasks', label: 'Break into subtasks', hint: 'Suggests the steps to get it done', icon: ListTree },
+    { id: 'rewrite', label: 'Rewrite the title', hint: 'Makes it clear and actionable', icon: Wand2 },
+    { id: 'estimate', label: 'Estimate time', hint: 'Suggests how long it will take', icon: Clock },
+    { id: 'priority', label: 'Suggest priority and labels', hint: 'From the title and details', icon: Flag },
+]
 
-export function TaskAIAssist({ task }: TaskAIAssistProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [isLoading, setIsLoading] = useState<string | null>(null) // Store loading action name
-  const { toast } = useToast()
-  const { selectTask } = useTaskDetailStore()
-  const router = useRouter()
+/**
+ * AI assist — closed by default, and nothing runs until asked.
+ *
+ * Unlike the property edits, these do confirm with a toast: the result was
+ * decided by the model rather than the person, so it's worth saying what changed.
+ */
+export function TaskAIAssist({ task }: { task: AssistTask }) {
+    const router = useRouter()
+    const apply = useApplyTaskUpdate(task)
+    const [open, setOpen] = useState(false)
+    const [running, setRunning] = useState<ActionId | null>(null)
 
-  const handleBreakIntoSubtasks = async () => {
-    setIsLoading('break-into-subtasks')
-    try {
-      const subtasks = await generateSubtasks(task.title, task.description || undefined)
+    const run = async (id: ActionId) => {
+        setRunning(id)
+        try {
+            if (id === 'subtasks') {
+                const steps = await generateSubtasks(task.title, task.description || undefined)
+                if (steps.length === 0) {
+                    toast('No steps suggested', { description: 'Try adding a few details to the task first.' })
+                    return
+                }
+                const created = []
+                for (const step of steps) {
+                    const result = await createSubtask(task.id, step.title)
+                    if (result.success && result.data) created.push(result.data)
+                }
+                const existing = (useTaskDetailStore.getState().selectedTask?.subtasks ?? []) as object[]
+                apply(undefined, { subtasks: [...existing, ...created] })
+                toast(`Added ${created.length} subtask${created.length === 1 ? '' : 's'}`)
+            }
 
-      if (subtasks.length === 0) {
-        toast({ title: 'No subtasks generated', description: 'Try adding more details to the task.' })
-        return
-      }
+            if (id === 'rewrite') {
+                const title = await rewriteTaskTitle(task.title)
+                if (!title) return
+                const result = await updateTask({ id: task.id, title })
+                if (!result.success) return saveFailed('the title', result.error)
+                apply(result.data)
+                toast('Title rewritten', { description: title })
+            }
 
-      let createdCount = 0
-      for (const sub of subtasks) {
-        const result = await createSubtask(task.id, sub.title)
-        if (result.success) createdCount++
-      }
+            if (id === 'estimate') {
+                const minutes = await estimateTaskDuration(task.title, task.description || undefined)
+                if (!minutes) return
+                const patch: UpdateTaskInput = { id: task.id, durationMinutes: minutes }
+                if (task.scheduledStart) {
+                    patch.scheduledEnd = new Date(new Date(task.scheduledStart).getTime() + minutes * 60_000).toISOString()
+                }
+                const result = await updateTask(patch)
+                if (!result.success) return saveFailed('the estimate', result.error)
+                apply(result.data)
+                toast(`Estimated at ${minutes} minutes`)
+            }
 
-      if (createdCount > 0) {
-        toast({ title: 'Subtasks created', description: `Added ${createdCount} subtasks.` })
-        router.refresh()
-      }
-    } catch (error) {
-      console.error(error)
-      toast({ title: 'Failed to generate subtasks', variant: 'destructive' })
-    } finally {
-      setIsLoading(null)
+            if (id === 'priority') {
+                const available = await getTags()
+                const suggestion = await getTaskSuggestions(
+                    task.title,
+                    task.description || undefined,
+                    available.map(t => ({ id: t.id, name: t.name }))
+                )
+                const patch: UpdateTaskInput = { id: task.id }
+                const priority = suggestion.priority ? normalizeAiPriority(suggestion.priority) : undefined
+                if (priority) patch.priority = priority
+                if (suggestion.tagIds?.length) {
+                    const current = (task.tags?.map(t => t.tag?.id || t.id).filter(Boolean) as string[]) ?? []
+                    patch.tagIds = Array.from(new Set([...current, ...suggestion.tagIds]))
+                }
+                if (!patch.priority && !patch.tagIds) {
+                    toast('Nothing to suggest', { description: 'The task already looks well described.' })
+                    return
+                }
+                const result = await updateTask(patch)
+                if (!result.success) return saveFailed('the task', result.error)
+                apply(result.data)
+                toast('Suggestions applied')
+            }
+
+            router.refresh()
+        } catch {
+            toast.error('AI assist couldn’t finish', { description: 'Please try again in a moment.' })
+        } finally {
+            setRunning(null)
+        }
     }
-  }
 
-  const handleRewriteClearly = async () => {
-    setIsLoading('rewrite-clearly')
-    try {
-      const newTitle = await rewriteTaskTitle(task.title)
-      if (newTitle) {
-        const result = await updateTask({ id: task.id, title: newTitle })
-        if (result.success && result.data) {
-          selectTask(task.id, result.data)
-          router.refresh()
-          toast({ title: 'Task renamed', description: 'Title updated for clarity.' })
-        }
-      }
-    } catch (error) {
-      console.error(error)
-      toast({ title: 'Failed to rewrite title', variant: 'destructive' })
-    } finally {
-      setIsLoading(null)
-    }
-  }
+    return (
+        <section className={cn('border-t pt-4', HAIRLINE)}>
+            <button
+                type="button"
+                onClick={() => setOpen(o => !o)}
+                aria-expanded={open}
+                className={cn('-mx-2 flex h-9 w-[calc(100%+1rem)] items-center gap-2.5 px-2', R.md, HOVER, TRANSITION.fast, FOCUS)}
+            >
+                <Sparkles className={cn(ICON.md, INK.muted)} strokeWidth={1.75} />
+                <span className={cn('flex-1 text-left', T.title, 'text-[13px]', INK.strong)}>AI assist</span>
+                <ChevronRight
+                    className={cn(ICON.md, INK.subtle, 'transition-transform duration-200', open && 'rotate-90')}
+                    strokeWidth={2}
+                />
+            </button>
 
-  const handleEstimateTime = async () => {
-    setIsLoading('estimate-time')
-    try {
-      const minutes = await estimateTaskDuration(task.title, task.description || undefined)
-      if (minutes) {
-        const updateData: UpdateTaskInput = { id: task.id, durationMinutes: minutes }
-
-        if (task.scheduledStart) {
-          const start = new Date(task.scheduledStart)
-          const end = new Date(start.getTime() + minutes * 60000)
-          updateData.scheduledEnd = end.toISOString()
-        }
-
-        const result = await updateTask(updateData)
-        if (result.success && result.data) {
-          selectTask(task.id, result.data)
-          router.refresh()
-          toast({ title: 'Duration estimated', description: `Set to ${minutes} minutes.` })
-        }
-      }
-    } catch (error) {
-      console.error(error)
-      toast({ title: 'Failed to estimate time', variant: 'destructive' })
-    } finally {
-      setIsLoading(null)
-    }
-  }
-
-  const handleSuggestPriority = async () => {
-    setIsLoading('suggest-priority')
-    try {
-      const availableTags = await getTags()
-      const suggestions = await getTaskSuggestions(
-        task.title,
-        task.description || undefined,
-        availableTags.map(t => ({ id: t.id, name: t.name }))
-      )
-
-      const updateData: UpdateTaskInput = { id: task.id }
-      let updated = false
-
-      if (suggestions.priority) {
-        const priority = normalizeAiPriority(suggestions.priority)
-        if (priority) {
-          updateData.priority = priority
-          updated = true
-        }
-      }
-
-      if (suggestions.tagIds && suggestions.tagIds.length > 0) {
-        // Merge with existing tags
-        const currentTagIds = task.tags?.map(t => t.tag?.id || t.id).filter(Boolean) as string[] || []
-        const newTagIds = Array.from(new Set([...currentTagIds, ...suggestions.tagIds]))
-        updateData.tagIds = newTagIds
-        updated = true
-      }
-
-      if (updated) {
-        const result = await updateTask(updateData)
-        if (result.success && result.data) {
-          selectTask(task.id, result.data)
-          router.refresh()
-          toast({
-            title: 'Task updated',
-            description: `Applied ${suggestions.priority ? 'priority' : ''} ${suggestions.tagIds?.length ? '& tags' : ''}`
-          })
-        }
-      } else {
-        toast({ title: 'No suggestions found', description: 'AI could not find better metadata.' })
-      }
-
-    } catch (error) {
-      console.error(error)
-      toast({ title: 'Failed to suggest metadata', variant: 'destructive' })
-    } finally {
-      setIsLoading(null)
-    }
-  }
-
-  return (
-    <section className="border-t border-border/30 pt-7">
-      <button
-        type="button"
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center justify-between w-full rounded-lg border border-border/45 bg-muted/[0.04] px-3 py-2.5 text-left transition-colors hover:bg-muted/20 hover:border-border/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25"
-      >
-        <div className="flex items-center gap-2.5 min-w-0">
-          <Sparkles className="h-4 w-4 shrink-0 text-foreground/55 stroke-[1.5]" />
-          <span className="text-[13px] font-medium text-foreground/90 truncate">AI Assist</span>
-        </div>
-        {isExpanded ? (
-          <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground stroke-[1.5]" />
-        ) : (
-          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground stroke-[1.5]" />
-        )}
-      </button>
-
-      {isExpanded && (
-        <div className="mt-2 space-y-0.5 pl-1 border-l border-border/35 ml-1.5">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBreakIntoSubtasks}
-            disabled={!!isLoading}
-            className="w-full justify-start h-auto py-2.5 px-2.5 rounded-md text-left font-normal hover:bg-muted/25"
-          >
-            {isLoading === 'break-into-subtasks' ? (
-              <Loader2 className="mr-3 h-4 w-4 shrink-0 animate-spin text-muted-foreground stroke-[1.5]" />
-            ) : (
-              <ListTree className="mr-3 h-4 w-4 shrink-0 text-muted-foreground stroke-[1.5]" />
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="text-[13px] font-medium text-foreground/90">Break into subtasks</div>
-              <div className="text-[11px] text-muted-foreground/80 leading-snug mt-0.5">
-                AI suggests logical steps
-              </div>
-            </div>
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRewriteClearly}
-            disabled={!!isLoading}
-            className="w-full justify-start h-auto py-2.5 px-2.5 rounded-md text-left font-normal hover:bg-muted/25"
-          >
-            {isLoading === 'rewrite-clearly' ? (
-              <Loader2 className="mr-3 h-4 w-4 shrink-0 animate-spin text-muted-foreground stroke-[1.5]" />
-            ) : (
-              <Wand2 className="mr-3 h-4 w-4 shrink-0 text-muted-foreground stroke-[1.5]" />
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="text-[13px] font-medium text-foreground/90">Rewrite clearly</div>
-              <div className="text-[11px] text-muted-foreground/80 leading-snug mt-0.5">
-                More actionable title
-              </div>
-            </div>
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleEstimateTime}
-            disabled={!!isLoading}
-            className="w-full justify-start h-auto py-2.5 px-2.5 rounded-md text-left font-normal hover:bg-muted/25"
-          >
-            {isLoading === 'estimate-time' ? (
-              <Loader2 className="mr-3 h-4 w-4 shrink-0 animate-spin text-muted-foreground stroke-[1.5]" />
-            ) : (
-              <Clock className="mr-3 h-4 w-4 shrink-0 text-muted-foreground stroke-[1.5]" />
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="text-[13px] font-medium text-foreground/90">Estimate time</div>
-              <div className="text-[11px] text-muted-foreground/80 leading-snug mt-0.5">
-                Suggested duration
-              </div>
-            </div>
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleSuggestPriority}
-            disabled={!!isLoading}
-            className="w-full justify-start h-auto py-2.5 px-2.5 rounded-md text-left font-normal hover:bg-muted/25"
-          >
-            {isLoading === 'suggest-priority' ? (
-              <Loader2 className="mr-3 h-4 w-4 shrink-0 animate-spin text-muted-foreground stroke-[1.5]" />
-            ) : (
-              <Flag className="mr-3 h-4 w-4 shrink-0 text-muted-foreground stroke-[1.5]" />
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="text-[13px] font-medium text-foreground/90">Suggest priority</div>
-              <div className="text-[11px] text-muted-foreground/80 leading-snug mt-0.5">
-                From title and context
-              </div>
-            </div>
-          </Button>
-        </div>
-      )}
-    </section>
-  )
+            <AnimatePresence initial={false}>
+                {open && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={MOTION.base}
+                        className="overflow-hidden"
+                    >
+                        <div className="-mx-2 flex flex-col pt-1">
+                            {ACTIONS.map(action => (
+                                <button
+                                    key={action.id}
+                                    type="button"
+                                    onClick={() => run(action.id)}
+                                    disabled={running !== null}
+                                    className={cn(
+                                        'flex items-center gap-3 px-2 py-2 text-left', R.md, HOVER, TRANSITION.fast, FOCUS,
+                                        'disabled:cursor-default',
+                                        running !== null && running !== action.id && 'opacity-50'
+                                    )}
+                                >
+                                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] bg-black/[0.04] dark:bg-white/[0.06]">
+                                        {running === action.id ? (
+                                            <Loader2 className={cn(ICON.md, 'animate-spin', INK.muted)} />
+                                        ) : (
+                                            <action.icon className={cn(ICON.md, INK.default)} strokeWidth={1.75} />
+                                        )}
+                                    </span>
+                                    <span className="min-w-0">
+                                        <span className={cn('block', T.body, 'font-medium', INK.strong)}>{action.label}</span>
+                                        <span className={cn('block', T.meta, INK.subtle)}>{action.hint}</span>
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </section>
+    )
 }
