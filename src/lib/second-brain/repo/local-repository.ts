@@ -4,6 +4,7 @@ import {
     type CollectionName,
 } from '../domain/types'
 import { type SecondBrainRepository, hasId } from './repository'
+import { normalize } from './migrate'
 
 /**
  * localStorage-backed implementation.
@@ -14,8 +15,10 @@ import { type SecondBrainRepository, hasId } from './repository'
  *
  * Notes on the deliberate choices here:
  *
- * - One key, one JSON blob. Twenty-one separate keys would mean twenty-one
- *   partial-write failure modes; a single blob is atomic per save.
+ * - One key, one JSON blob. A key per collection would mean a partial-write
+ *   failure mode per collection; a single blob is atomic per save.
+ * - Every load goes through `normalize`, so a blob written by an older build
+ *   comes back in today's shape instead of being thrown away.
  * - The in-memory `cache` is the source of truth during a session. Reading from
  *   localStorage on every access would parse the whole store on every render.
  * - Mutations update memory and notify subscribers synchronously; only the write
@@ -58,9 +61,7 @@ export class LocalRepository implements SecondBrainRepository {
                 return seeded
             }
 
-            // Merge over an empty store so a blob written by an older build that
-            // lacks a newer collection still yields a complete shape.
-            return { ...emptyData(), ...(JSON.parse(raw) as Partial<SecondBrainData>) }
+            return normalize(JSON.parse(raw))
         } catch {
             // Corrupt JSON, quota, or storage disabled (private mode). Degrade to
             // an in-memory session rather than breaking the route.
@@ -113,12 +114,6 @@ export class LocalRepository implements SecondBrainRepository {
         this.commit({ ...this.read(), [collection]: records })
     }
 
-    reset(): SecondBrainData {
-        const seeded = this.seedFactory()
-        this.commit(seeded)
-        return seeded
-    }
-
     // ─── Plumbing ────────────────────────────────────────────────────────────
 
     private commit(data: SecondBrainData): void {
@@ -132,9 +127,8 @@ export class LocalRepository implements SecondBrainRepository {
     /**
      * Coalesce writes to storage.
      *
-     * Persisting inside `commit` meant every keystroke in the journal serialised
-     * the entire store — all twenty-one collections — and wrote it synchronously
-     * on the main thread. That is fine at seed size and quietly becomes jank once
+     * Persisting inside `commit` meant every keystroke in a title serialised the
+     * entire store and wrote it synchronously on the main thread. That is fine at seed size and quietly becomes jank once
      * a year of habit entries has accumulated behind it.
      *
      * Delay is deliberately short: long enough that a burst of typing collapses
