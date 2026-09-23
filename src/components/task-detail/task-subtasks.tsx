@@ -2,378 +2,306 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Plus, Check, Trash2, GripVertical } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { createSubtask, updateSubtask, deleteSubtask, reorderSubtasks } from '@/lib/actions/subtasks'
+import { GripVertical, Plus, X } from 'lucide-react'
 import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    type DragEndEvent,
 } from '@dnd-kit/core'
 import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  useSortable,
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    useSortable,
+    verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { cn } from '@/lib/utils'
+import { Checkbox } from '@/components/second-brain/checkbox'
+import { IconButton, ProgressBar } from '@/components/second-brain/primitives'
+import { createSubtask, deleteSubtask, reorderSubtasks, updateSubtask } from '@/lib/actions/subtasks'
+import { useTaskDetailStore } from '@/stores/use-task-detail-store'
+import { Section, saveFailed, useApplyTaskUpdate } from './parts'
+import { FOCUS, HOVER, ICON, INK, NUM, T, TRANSITION } from '@/lib/second-brain/ui'
 
 interface Subtask {
-  id: string
-  title: string
-  completed: boolean
-  sortOrder: number
+    id: string
+    title: string
+    completed: boolean
+    sortOrder: number
 }
 
-interface Task {
-  id: string
-  subtasks?: Subtask[]
+interface SubtaskRowProps {
+    subtask: Subtask
+    isReadOnly: boolean
+    onToggle: (subtask: Subtask) => void
+    onRename: (subtask: Subtask, title: string) => void
+    onDelete: (subtask: Subtask) => void
 }
 
-interface TaskSubtasksProps {
-  task: Task
-  isReadOnly?: boolean
-}
-
-function SortableSubtaskItem({
-  subtask,
-  isReadOnly,
-  onToggle,
-  onDelete,
-  isEditing,
-  editValue,
-  onEditChange,
-  onStartEdit,
-  onSaveEdit,
-  onCancelEdit,
-}: {
-  subtask: Subtask
-  isReadOnly: boolean
-  onToggle: (id: string, completed: boolean) => void
-  onDelete: (id: string) => void
-  isEditing: boolean
-  editValue: string
-  onEditChange: (value: string) => void
-  onStartEdit: (id: string, title: string) => void
-  onSaveEdit: () => void
-  onCancelEdit: () => void
-}) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: subtask.id, disabled: isReadOnly })
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    ...(isDragging ? { zIndex: 10, position: 'relative' as const } : {}),
-  }
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={cn(
-        "flex items-center gap-3 px-3 py-2.5 group transition-colors relative",
-        isDragging ? 'bg-muted/50 shadow-sm opacity-95' : 'hover:bg-muted/[0.07]'
-      )}
-    >
-      {!isReadOnly && (
-        <button
-          className="absolute -left-6 top-1/2 -translate-y-1/2 h-5 w-5 flex items-center justify-center text-muted-foreground/40 hover:text-foreground cursor-grab active:cursor-grabbing shrink-0 transition-colors opacity-0 group-hover:opacity-100"
-          {...attributes}
-          {...listeners}
-        >
-          <GripVertical className="h-4 w-4" />
-        </button>
-      )}
-
-      <button
-        type="button"
-        className={cn(
-          'h-4 w-4 rounded border-2 flex items-center justify-center transition-all shrink-0',
-          subtask.completed
-            ? 'bg-primary border-primary scale-100'
-            : 'border-muted-foreground/40 hover:border-primary hover:scale-110',
-          isReadOnly ? 'cursor-default' : 'cursor-pointer'
-        )}
-        onClick={() => onToggle(subtask.id, !subtask.completed)}
-        disabled={isReadOnly}
-      >
-        {subtask.completed && (
-          <Check className="h-2.5 w-2.5 text-primary-foreground" strokeWidth={3} />
-        )}
-      </button>
-      {isEditing && !isReadOnly ? (
-        <Input
-          value={editValue}
-          onChange={(e) => onEditChange(e.target.value)}
-          onBlur={onSaveEdit}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              onSaveEdit()
-            } else if (e.key === 'Escape') {
-              e.preventDefault()
-              onCancelEdit()
-            }
-          }}
-          autoFocus
-          className="h-8 py-1.5 flex-1 bg-background border border-border/50 focus-visible:ring-1 focus-visible:ring-primary/50 px-2 text-sm shadow-none"
-        />
-      ) : (
-        <span
-          onClick={() => {
-            if (!isReadOnly && !subtask.completed) {
-              onStartEdit(subtask.id, subtask.title)
-            }
-          }}
-          className={cn(
-            'text-sm flex-1 transition-all',
-            subtask.completed && 'line-through text-muted-foreground/70',
-            !isReadOnly && !subtask.completed && 'cursor-text hover:bg-muted/30 px-1 -mx-1 rounded'
-          )}
-        >
-          {subtask.title}
-        </span>
-      )}
-      {!isReadOnly && !isEditing && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-          onClick={() => onDelete(subtask.id)}
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
-      )}
-    </div>
-  )
-}
-
-export function TaskSubtasks({ task, isReadOnly = false }: TaskSubtasksProps) {
-  const router = useRouter()
-  // Sort initial subtasks by sortOrder
-  const initialSubtasks = [...(task.subtasks || [])].sort((a, b) => a.sortOrder - b.sortOrder)
-  const [subtasks, setSubtasks] = useState<Subtask[]>(initialSubtasks)
-  const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
-  const [editingSubtaskId, setEditingSubtaskId] = useState<string | null>(null)
-  const [editValue, setEditValue] = useState('')
-
-  const handleStartEdit = (subtaskId: string, title: string) => {
-    setEditingSubtaskId(subtaskId)
-    setEditValue(title)
-  }
-
-  const handleCancelEdit = () => {
-    setEditingSubtaskId(null)
-    setEditValue('')
-  }
-
-  const handleSaveEdit = async () => {
-    if (!editingSubtaskId) return
-
-    const subtaskToUpdate = subtasks.find(st => st.id === editingSubtaskId)
-    if (!subtaskToUpdate) {
-      handleCancelEdit()
-      return
-    }
-
-    const newTitle = editValue.trim()
-    if (!newTitle || newTitle === subtaskToUpdate.title) {
-      handleCancelEdit()
-      return // No changes or empty string
-    }
-
-    const currentId = editingSubtaskId
-    const oldTitle = subtaskToUpdate.title
-
-    // Optimistic Update
-    setSubtasks((prev) =>
-      prev.map((st) => (st.id === currentId ? { ...st, title: newTitle } : st))
-    )
-    handleCancelEdit()
-
-    // Persist
-    const res = await updateSubtask(currentId, { title: newTitle })
-    if (res.success) {
-      router.refresh()
-    } else {
-      // Revert on failure
-      setSubtasks((prev) =>
-        prev.map((st) => (st.id === currentId ? { ...st, title: oldTitle } : st))
-      )
-    }
-  }
-
-  const handleToggleSubtask = async (subtaskId: string, completed: boolean) => {
-    if (isReadOnly) return
-
-    setSubtasks((prev) =>
-      prev.map((st) =>
-        st.id === subtaskId ? { ...st, completed } : st
-      )
-    )
-
-    await updateSubtask(subtaskId, { completed })
-    router.refresh()
-  }
-
-  const handleAddSubtask = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newSubtaskTitle.trim() || isReadOnly) return
-
-    const tempId = `temp-${Date.now()}`
-    const optimisticSubtask: Subtask = {
-      id: tempId,
-      title: newSubtaskTitle,
-      completed: false,
-      sortOrder: subtasks.length,
-    }
-
-    setSubtasks((prev) => [...prev, optimisticSubtask])
-    setNewSubtaskTitle('')
-
-    const res = await createSubtask(task.id, newSubtaskTitle)
-    if (res.success && res.data) {
-      setSubtasks((prev) =>
-        prev.map((st) => (st.id === tempId ? res.data : st))
-      )
-      router.refresh()
-    } else {
-      setSubtasks((prev) => prev.filter((st) => st.id !== tempId))
-    }
-  }
-
-  const handleDeleteSubtask = async (subtaskId: string) => {
-    if (isReadOnly) return
-
-    setSubtasks((prev) => prev.filter((st) => st.id !== subtaskId))
-    await deleteSubtask(subtaskId)
-    router.refresh()
-  }
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
+/**
+ * One subtask: a checkbox and a title you can edit in place, like a goal's
+ * milestone. The drag handle and remove button only appear on hover, so a
+ * list you're working through stays a list, not a toolbar.
+ */
+function SubtaskRow({ subtask, isReadOnly, onToggle, onRename, onDelete }: SubtaskRowProps) {
+    const [title, setTitle] = useState(subtask.title)
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+        id: subtask.id,
+        disabled: isReadOnly,
     })
-  )
 
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event
+    return (
+        <div
+            ref={setNodeRef}
+            style={{ transform: CSS.Transform.toString(transform), transition }}
+            className={cn(
+                'group relative flex h-10 items-center gap-3 rounded-[8px] px-2', TRANSITION.fast,
+                isDragging ? 'z-10 bg-card shadow-[0_8px_24px_-8px_rgba(0,0,0,0.2)]' : HOVER
+            )}
+        >
+            {/* The handle sits in the margin, so the checklist lines up with the
+                heading above it — the same edge as a goal's milestones. */}
+            {!isReadOnly && (
+                <button
+                    type="button"
+                    aria-label={`Reorder “${subtask.title}”`}
+                    className={cn(
+                        'absolute -left-3.5 top-1/2 flex h-6 w-4 -translate-y-1/2 cursor-grab touch-none items-center justify-center rounded-[4px] active:cursor-grabbing',
+                        INK.subtle, 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-60', TRANSITION.fast, FOCUS
+                    )}
+                    {...attributes}
+                    {...listeners}
+                >
+                    <GripVertical className={ICON.md} strokeWidth={2} />
+                </button>
+            )}
 
-    if (over && active.id !== over.id) {
-      const oldIndex = subtasks.findIndex((t) => t.id === active.id)
-      const newIndex = subtasks.findIndex((t) => t.id === over.id)
-
-      const reorderedSubtasks = arrayMove(subtasks, oldIndex, newIndex)
-
-      // Optimistically update
-      setSubtasks(reorderedSubtasks)
-
-      // Persist changes
-      const orderedIds = reorderedSubtasks.map((st) => st.id)
-      const res = await reorderSubtasks(task.id, orderedIds)
-
-      if (!res.success) {
-        // Revert on error
-        setSubtasks(subtasks)
-      }
-    }
-  }
-
-  const completedCount = subtasks.filter((st) => st.completed).length
-  const totalCount = subtasks.length
-  const progressPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0
-
-  return (
-    <section className="space-y-3 border-t border-border/30 pt-7">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground/75">
-          Subtasks
-        </h2>
-        <div className="flex items-center gap-2.5">
-          <div className="h-0.5 w-16 bg-muted/80 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-foreground/20 transition-[width] duration-300 ease-out rounded-full"
-              style={{ width: `${progressPercentage}%` }}
-            />
-          </div>
-          <span className="text-[11px] font-medium text-muted-foreground tabular-nums tracking-tight">
-            {completedCount}/{totalCount}
-          </span>
-        </div>
-      </div>
-
-      <div className="rounded-lg border border-border/40 bg-muted/[0.04] divide-y divide-border/35 overflow-hidden">
-        {subtasks.length > 0 && (
-          <div className="divide-y relative">
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
+            <button
+                type="button"
+                onClick={() => onToggle(subtask)}
+                disabled={isReadOnly}
+                aria-pressed={subtask.completed}
+                aria-label={subtask.completed ? `Mark “${subtask.title}” not done` : `Mark “${subtask.title}” done`}
+                className={cn('group flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] disabled:cursor-default', FOCUS)}
             >
-              <SortableContext
-                items={subtasks.map((st) => st.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                {subtasks.map((subtask) => (
-                  <SortableSubtaskItem
-                    key={subtask.id}
-                    subtask={subtask}
-                    isReadOnly={isReadOnly}
-                    onToggle={handleToggleSubtask}
-                    onDelete={handleDeleteSubtask}
-                    isEditing={editingSubtaskId === subtask.id}
-                    editValue={editValue}
-                    onEditChange={setEditValue}
-                    onStartEdit={handleStartEdit}
-                    onSaveEdit={handleSaveEdit}
-                    onCancelEdit={handleCancelEdit}
-                  />
-                ))}
-              </SortableContext>
-            </DndContext>
-          </div>
-        )}
+                <Checkbox checked={subtask.completed} size="sm" />
+            </button>
 
-        {!isReadOnly && (
-          <div className="flex items-center gap-3 px-3 py-2.5">
-            <div className="h-4 w-4 flex items-center justify-center shrink-0">
-              <Plus className="h-3.5 w-3.5 text-muted-foreground/60" />
-            </div>
-            <Input
-              placeholder="Add a subtask..."
-              value={newSubtaskTitle}
-              onChange={(e) => setNewSubtaskTitle(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  handleAddSubtask(e)
-                }
-              }}
-              className="h-9 py-2 flex-1 bg-transparent border-0 focus-visible:ring-0 px-0 text-sm placeholder:text-muted-foreground/60 shadow-none"
+            <input
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                onBlur={() => {
+                    const clean = title.trim()
+                    if (!clean) setTitle(subtask.title)
+                    else if (clean !== subtask.title) onRename(subtask, clean)
+                }}
+                onKeyDown={e => {
+                    if (e.key === 'Enter') e.currentTarget.blur()
+                    if (e.key === 'Escape') {
+                        setTitle(subtask.title)
+                        e.currentTarget.blur()
+                    }
+                }}
+                readOnly={isReadOnly}
+                maxLength={200}
+                aria-label="Subtask"
+                className={cn(
+                    'min-w-0 flex-1 bg-transparent outline-none', T.body, 'transition-colors duration-200',
+                    subtask.completed ? cn(INK.subtle, 'line-through decoration-foreground/30') : INK.strong
+                )}
             />
-          </div>
-        )}
-      </div>
-    </section>
-  )
+
+            {!isReadOnly && (
+                <IconButton
+                    icon={X}
+                    label={`Remove “${subtask.title}”`}
+                    size="sm"
+                    onClick={() => onDelete(subtask)}
+                    className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-60"
+                />
+            )}
+        </div>
+    )
+}
+
+export function TaskSubtasks({
+    task,
+    isReadOnly = false,
+}: {
+    task: { id: string; subtasks?: Subtask[] }
+    isReadOnly?: boolean
+}) {
+    const router = useRouter()
+    const apply = useApplyTaskUpdate(task)
+    const [subtasks, setSubtasks] = useState<Subtask[]>(
+        () => [...(task.subtasks ?? [])].sort((a, b) => a.sortOrder - b.sortOrder)
+    )
+    const [draft, setDraft] = useState('')
+
+    // Follow the panel's copy when it changes from outside — AI assist adding
+    // steps — adjusting during render rather than in an effect.
+    const [seen, setSeen] = useState(task.subtasks)
+    if (seen !== task.subtasks) {
+        setSeen(task.subtasks)
+        setSubtasks([...(task.subtasks ?? [])].sort((a, b) => a.sortOrder - b.sortOrder))
+    }
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    )
+
+    /** Still being created — there is no server record to change yet. */
+    const pending = (subtask: Subtask) => subtask.id.startsWith('temp-')
+
+    /** Keep the panel's copy of the task in step, so reopening it isn't stale. */
+    const commit = (next: Subtask[]) => {
+        setSubtasks(next)
+        apply(undefined, { subtasks: next })
+    }
+
+    const toggle = async (subtask: Subtask) => {
+        if (pending(subtask)) return
+        const previous = subtasks
+        commit(subtasks.map(s => (s.id === subtask.id ? { ...s, completed: !s.completed } : s)))
+        const result = await updateSubtask(subtask.id, { completed: !subtask.completed })
+        if (!result.success) {
+            commit(previous)
+            saveFailed('the subtask', result.error)
+            return
+        }
+        router.refresh()
+    }
+
+    const rename = async (subtask: Subtask, title: string) => {
+        if (pending(subtask)) return
+        const previous = subtasks
+        commit(subtasks.map(s => (s.id === subtask.id ? { ...s, title } : s)))
+        const result = await updateSubtask(subtask.id, { title })
+        if (!result.success) {
+            commit(previous)
+            saveFailed('the subtask', result.error)
+            return
+        }
+        router.refresh()
+    }
+
+    const remove = async (subtask: Subtask) => {
+        if (pending(subtask)) return
+        const previous = subtasks
+        commit(subtasks.filter(s => s.id !== subtask.id))
+        const result = await deleteSubtask(subtask.id)
+        if (!result.success) {
+            commit(previous)
+            saveFailed('the subtask', result.error)
+            return
+        }
+        router.refresh()
+    }
+
+    const add = async () => {
+        const title = draft.trim()
+        if (!title) return
+        setDraft('')
+
+        const tempId = `temp-${crypto.randomUUID()}`
+        commit([...subtasks, { id: tempId, title, completed: false, sortOrder: subtasks.length }])
+
+        // Other edits may land while this is in flight, so the swap is applied to
+        // whatever the list is by then — both the local copy and the panel's.
+        const settle = (change: (list: Subtask[]) => Subtask[]) => {
+            setSubtasks(change)
+            const stored = useTaskDetailStore.getState().selectedTask?.subtasks as Subtask[] | undefined
+            if (stored) apply(undefined, { subtasks: change(stored) })
+        }
+
+        const result = await createSubtask(task.id, title)
+        if (!result.success || !result.data) {
+            settle(list => list.filter(s => s.id !== tempId))
+            saveFailed('subtasks', result.success ? undefined : result.error)
+            return
+        }
+        const created = result.data
+        settle(list => list.map(s => (s.id === tempId ? created : s)))
+        router.refresh()
+    }
+
+    const onDragEnd = async ({ active, over }: DragEndEvent) => {
+        if (!over || active.id === over.id) return
+        const previous = subtasks
+        const next = arrayMove(
+            subtasks,
+            subtasks.findIndex(s => s.id === active.id),
+            subtasks.findIndex(s => s.id === over.id)
+        )
+        commit(next)
+        const result = await reorderSubtasks(task.id, next.map(s => s.id))
+        if (!result.success) {
+            commit(previous)
+            saveFailed('the order', result.error)
+        }
+    }
+
+    const done = subtasks.filter(s => s.completed).length
+
+    if (isReadOnly && subtasks.length === 0) return null
+
+    return (
+        <Section
+            title="Subtasks"
+            meta={
+                subtasks.length > 0 ? (
+                    <div className="flex items-center gap-2.5">
+                        <ProgressBar percent={(done / subtasks.length) * 100} className="w-16" label="Subtasks done" />
+                        <span className={cn(T.meta, NUM, INK.subtle)}>{done} of {subtasks.length}</span>
+                    </div>
+                ) : null
+            }
+        >
+            <div className="-mx-2 flex flex-col">
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+                    <SortableContext items={subtasks.map(s => s.id)} strategy={verticalListSortingStrategy}>
+                        {subtasks.map(subtask => (
+                            <SubtaskRow
+                                key={subtask.id}
+                                subtask={subtask}
+                                isReadOnly={isReadOnly}
+                                onToggle={toggle}
+                                onRename={rename}
+                                onDelete={remove}
+                            />
+                        ))}
+                    </SortableContext>
+                </DndContext>
+
+                {!isReadOnly && (
+                    <div className="flex h-10 items-center gap-3 px-2">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+                            <Plus className={cn(ICON.md, INK.subtle)} strokeWidth={2} />
+                        </span>
+                        <input
+                            value={draft}
+                            onChange={e => setDraft(e.target.value)}
+                            onKeyDown={e => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault()
+                                    add()
+                                }
+                            }}
+                            onBlur={add}
+                            placeholder="Add a subtask"
+                            aria-label="New subtask"
+                            maxLength={200}
+                            className={cn('min-w-0 flex-1 bg-transparent outline-none', T.body, INK.strong, 'placeholder:text-muted-foreground/55')}
+                        />
+                    </div>
+                )}
+            </div>
+        </Section>
+    )
 }
