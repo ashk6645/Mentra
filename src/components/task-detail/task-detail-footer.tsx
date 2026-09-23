@@ -1,40 +1,29 @@
 'use client'
 
-import { isValid, formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow, isValid } from 'date-fns'
+import { cn } from '@/lib/utils'
+import { HAIRLINE, INK, NUM, T } from '@/lib/second-brain/ui'
 
-interface Task {
-  id: string
-  createdAt?: Date | string | null
-  updatedAt?: Date | string | null
-  user?: {
-    displayName: string | null
-    email: string
-    avatarUrl: string | null
-  } | null
+function ago(value: Date | string | null | undefined): string | null {
+    if (!value) return null
+    const date = new Date(value)
+    return isValid(date) ? formatDistanceToNow(date, { addSuffix: true }) : null
 }
 
-interface TaskDetailFooterProps {
-  task: Task
-}
+/** When the task was made and last touched — quiet, at the bottom, out of the way. */
+export function TaskDetailFooter({
+    task,
+}: {
+    task: { createdAt?: Date | string | null; updatedAt?: Date | string | null }
+}) {
+    const created = ago(task.createdAt)
+    const updated = ago(task.updatedAt)
+    if (!created && !updated) return null
 
-export function TaskDetailFooter({ task }: TaskDetailFooterProps) {
-  const formatDate = (date: Date | string | null | undefined) => {
-    if (!date) return 'Unknown'
-
-    try {
-      const dateObj = typeof date === 'string' ? new Date(date) : date
-      if (!isValid(dateObj)) return 'Unknown'
-      return formatDistanceToNow(dateObj, { addSuffix: true })
-    } catch {
-      return 'Unknown'
-    }
-  }
-
-  return (
-    <footer className="border-t border-border/30 px-5 sm:px-7 py-4 bg-transparent shrink-0">
-      <p className="text-center text-[11px] text-muted-foreground/70 tabular-nums tracking-wide">
-        Updated {formatDate(task.updatedAt)}
-      </p>
-    </footer>
-  )
+    return (
+        <footer className={cn('flex h-10 shrink-0 items-center justify-between gap-3 border-t px-5 sm:px-6', HAIRLINE, T.meta, NUM, INK.subtle)}>
+            <span>{created ? `Created ${created}` : ''}</span>
+            <span>{updated ? `Updated ${updated}` : ''}</span>
+        </footer>
+    )
 }
