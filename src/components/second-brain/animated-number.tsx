@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { animate, useMotionValue, useReducedMotion } from 'framer-motion'
+import { MOTION } from '@/lib/second-brain/ui'
 
 interface AnimatedNumberProps {
     value: number
@@ -16,9 +17,8 @@ interface AnimatedNumberProps {
  * makes an interface feel like a spreadsheet. Rolling the digits ties the number to
  * the action that changed it.
  *
- * Writes to the DOM node directly rather than through React state — this renders in
- * every grid row and footer cell, and re-rendering the tree ~30 times per second
- * per cell would cost far more than the effect is worth.
+ * Writes to the DOM node directly rather than through React state, so a rolling
+ * figure never re-renders the tree around it.
  */
 export function AnimatedNumber({ value, suffix = '', className }: AnimatedNumberProps) {
     const ref = useRef<HTMLSpanElement>(null)
@@ -38,8 +38,7 @@ export function AnimatedNumber({ value, suffix = '', className }: AnimatedNumber
         }
 
         const controls = animate(motionValue, value, {
-            duration: 0.2,
-            ease: [0.25, 0.1, 0.25, 1],
+            ...MOTION.slow,
             onUpdate: latest => {
                 node.textContent = `${Math.round(latest)}${suffix}`
             },
