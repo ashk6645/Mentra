@@ -10,16 +10,20 @@ import { SectionHeader } from '@/components/projects/section-header'
 import { AddSectionButton } from '@/components/projects/add-section-button'
 import { SectionList } from '@/components/projects/section-list'
 import { ProjectActions } from '@/components/projects/project-actions'
+import { ProjectViewSwitch, type ProjectView } from '@/components/projects/project-view-switch'
+import { TaskTable } from '@/components/task-table'
 
 
 interface ProjectPageProps {
     params: Promise<{
         id: string
     }>
+    searchParams: Promise<{ view?: string }>
 }
 
 export default async function ProjectPage(props: ProjectPageProps) {
-    const params = await props.params
+    const [params, search] = await Promise.all([props.params, props.searchParams])
+    const view: ProjectView = search.view === 'table' ? 'table' : 'list'
     const user = await getCurrentUser()
 
     if (!user) {
@@ -64,11 +68,14 @@ export default async function ProjectPage(props: ProjectPageProps) {
     const totalActiveTasks = tasks.filter(t => !t.completed).length
     const totalCompletedTasks = tasks.filter(t => t.completed).length
 
+    // A table needs room for its columns; the list reads best narrow.
+    const width = view === 'table' ? 'max-w-6xl' : 'max-w-4xl'
+
     return (
         <div className="h-full flex flex-col">
             {/* Header */}
             <div className="w-full">
-                <div className="max-w-4xl mx-auto px-6 pt-12 pb-6">
+                <div className={`${width} mx-auto px-6 pt-12 pb-6`}>
                     <div className="flex items-start justify-between">
                         {/* Left Column: Title & Description */}
                         <div className="flex flex-col gap-4">
@@ -93,7 +100,8 @@ export default async function ProjectPage(props: ProjectPageProps) {
                         {/* Right Column: Actions & Stats */}
                         <div className="flex flex-col items-end gap-4 self-start mt-1">
                             <div className="flex items-center gap-1">
-                                {tasks.length > 0 && <TaskSelectionToggle taskIds={tasks.map(t => t.id)} />}
+                                <ProjectViewSwitch view={view} />
+                                {view === 'list' && tasks.length > 0 && <TaskSelectionToggle taskIds={tasks.map(t => t.id)} />}
                                 {/* Actions Menu */}
                                 <ProjectActions project={project} />
                             </div>
@@ -114,6 +122,18 @@ export default async function ProjectPage(props: ProjectPageProps) {
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto">
+                {view === 'table' ? (
+                    <div className={`${width} mx-auto px-6 pb-16 pt-2`}>
+                        <TaskTable
+                            tasks={tasks}
+                            sections={sections.map(section => ({ id: section.id, name: section.name }))}
+                            projectId={params.id}
+                            project={{ id: project.id, name: project.name, icon: project.icon, color: project.color }}
+                            storageKey={`project:${params.id}`}
+                            ariaLabel={`${project.name} tasks`}
+                        />
+                    </div>
+                ) : (
                 <div className="max-w-4xl mx-auto px-6 py-2">
                     {/* Quick Add Task */}
                     <div className="mb-4">
@@ -178,6 +198,7 @@ export default async function ProjectPage(props: ProjectPageProps) {
                         </div>
                     )}
                 </div>
+                )}
             </div>
         </div >
     )
