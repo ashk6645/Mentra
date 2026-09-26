@@ -236,43 +236,27 @@ export function extractDateTime(
 
     // Find the first result that doesn't overlap with excluded ranges
     for (const result of results) {
+        if (!result.start) continue
         const matchedText = result.text
 
-        // Map the match back to the ORIGINAL input so returned indices are correct
-        const searchFrom = Math.max(0, result.index - 3)
-        let origStart = input.indexOf(matchedText, searchFrom)
-        if (origStart === -1) origStart = input.indexOf(matchedText)
-        // If text was mutated by preprocessing (e.g. "bytoday" → "today")
-        // fall back to the processed index; calling code will widen it later
-        if (origStart === -1) origStart = result.index
+        // Recover the match's span in the ORIGINAL input first, and test *that*
+        // for overlap. Preprocessing can lengthen the text — "friday 10am" becomes
+        // "friday at 10am" — so measuring the processed match against the original
+        // overshot by three characters and collided with whatever followed: in
+        // "Ship friday 10am p2" the date overlapped the "p2" and was thrown away.
+        const start = recoverOriginalStart(input, processed, result.index, matchedText)
+        const end = recoverOriginalEnd(input, processed, result.index, matchedText)
 
-        const origEnd = origStart + matchedText.length
+        const isOverlapping = excludeRanges.some(range => start < range.end && end > range.start)
+        if (isOverlapping) continue
 
-        const isOverlapping = excludeRanges.some(range =>
-            (origStart >= range.start && origStart < range.end) ||
-            (origEnd > range.start && origEnd <= range.end) ||
-            (origStart <= range.start && origEnd >= range.end)
-        )
-
-        if (!isOverlapping && result.start) {
-            // Recover the actual span in the original input.
-            // When preprocessing transforms "today by 8 pm" → "today at 8 pm", the
-            // matchedText won't appear verbatim in the original. We need to find the
-            // original span that corresponds to the preprocessed match.
-            const actualOrigStart = recoverOriginalStart(input, processed, result.index, matchedText)
-            const actualOrigEnd = recoverOriginalEnd(input, processed, result.index, matchedText)
-
-            const adjustedStart = actualOrigStart !== -1 ? actualOrigStart : origStart
-            const adjustedEnd = actualOrigEnd !== -1 ? actualOrigEnd : origEnd
-
-            return {
-                date: result.start.date(),
-                extracted: {
-                    value: matchedText,
-                    startIndex: adjustedStart,
-                    endIndex: adjustedEnd,
-                },
-            }
+        return {
+            date: result.start.date(),
+            extracted: {
+                value: matchedText,
+                startIndex: start,
+                endIndex: end,
+            },
         }
     }
 
