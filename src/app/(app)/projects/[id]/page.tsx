@@ -3,203 +3,91 @@ import { getCurrentUser } from '@/lib/user-session'
 import { getProject } from '@/lib/actions/projects'
 import { getSections } from '@/lib/actions/sections'
 import { getTasksByProject } from '@/lib/actions/tasks'
-import { SortableTaskList } from '@/components/tasks/sortable-task-list'
-import { CreateTaskInline } from '@/components/tasks/create-task-inline'
 import { TaskSelectionToggle } from '@/components/tasks/task-selection-toggle'
-import { SectionHeader } from '@/components/projects/section-header'
-import { AddSectionButton } from '@/components/projects/add-section-button'
-import { SectionList } from '@/components/projects/section-list'
 import { ProjectActions } from '@/components/projects/project-actions'
 import { ProjectViewSwitch, type ProjectView } from '@/components/projects/project-view-switch'
+import { TaskList } from '@/components/task-list'
 import { TaskTable } from '@/components/task-table'
 
-
 interface ProjectPageProps {
-    params: Promise<{
-        id: string
-    }>
+    params: Promise<{ id: string }>
     searchParams: Promise<{ view?: string }>
 }
 
+/**
+ * A project: its header, then its tasks as a list or a table.
+ *
+ * Both views are layouts over the same tasks and sections, and share one set of
+ * remembered choices (`storageKey`) — collapse a section or show completed work
+ * in one, and the other agrees.
+ */
 export default async function ProjectPage(props: ProjectPageProps) {
     const [params, search] = await Promise.all([props.params, props.searchParams])
     const view: ProjectView = search.view === 'table' ? 'table' : 'list'
+
     const user = await getCurrentUser()
+    if (!user) redirect('/login')
 
-    if (!user) {
-        redirect('/login')
-    }
-
-
-    // Fetch project details
     const projectResult = await getProject(params.id)
-
-    if (!projectResult.success || !projectResult.data) {
-        notFound()
-    }
-
+    if (!projectResult.success || !projectResult.data) notFound()
     const project = projectResult.data
 
-    // Fetch sections for this project
-    const sectionsResult = await getSections(params.id)
-    const sections = (sectionsResult.success && sectionsResult.data) ? sectionsResult.data : []
+    // Independent reads, so they run together rather than one after another.
+    const [sectionsResult, tasksResult] = await Promise.all([getSections(params.id), getTasksByProject(params.id)])
+    const sections = sectionsResult.success && sectionsResult.data
+        ? sectionsResult.data.map(section => ({ id: section.id, name: section.name }))
+        : []
+    const tasks = tasksResult.success && tasksResult.data ? tasksResult.data : []
 
-    // Fetch tasks for this project
-    const tasksResult = await getTasksByProject(params.id)
-    const tasks = (tasksResult.success && tasksResult.data) ? tasksResult.data : []
+    const open = tasks.filter(task => !task.completed).length
+    const done = tasks.length - open
 
-    // Group tasks by section
-    const tasksBySection = tasks.reduce((acc, task) => {
-        const sectionId = task.sectionId || 'no-section'
-        if (!acc[sectionId]) {
-            acc[sectionId] = []
-        }
-        acc[sectionId].push(task)
-        return acc
-    }, {} as Record<string, typeof tasks>)
-
-    // Separate active and completed tasks for each section
-    const getActiveTasks = (sectionId: string) =>
-        (tasksBySection[sectionId] || []).filter(t => !t.completed)
-
-    const getCompletedTasks = (sectionId: string) =>
-        (tasksBySection[sectionId] || []).filter(t => t.completed)
-
-    const totalActiveTasks = tasks.filter(t => !t.completed).length
-    const totalCompletedTasks = tasks.filter(t => t.completed).length
-
-    // A table needs room for its columns; the list reads best narrow.
-    const width = view === 'table' ? 'max-w-6xl' : 'max-w-4xl'
+    // A table needs room for its columns; a list reads best narrower.
+    const width = view === 'table' ? 'max-w-6xl' : 'max-w-3xl'
+    const shared = {
+        tasks,
+        sections,
+        projectId: params.id,
+        project: { id: project.id, name: project.name, icon: project.icon, color: project.color },
+        storageKey: `project:${params.id}`,
+        ariaLabel: `${project.name} tasks`,
+    }
 
     return (
-        <div className="h-full flex flex-col">
-            {/* Header */}
-            <div className="w-full">
-                <div className={`${width} mx-auto px-6 pt-12 pb-6`}>
-                    <div className="flex items-start justify-between">
-                        {/* Left Column: Title & Description */}
-                        <div className="flex flex-col gap-4">
-                            {/* Title Area */}
-                            <div className="flex items-center gap-4">
-                                <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 shadow-sm">
-                                    <span className="text-3xl">{project.icon || '📁'}</span>
-                                </div>
-                                <h1 className="text-3xl font-bold tracking-tight text-foreground">
-                                    {project.name}
-                                </h1>
-                            </div>
-
-                            {/* Description */}
-                            {project.description && (
-                                <p className="text-base text-muted-foreground/80 leading-relaxed max-w-2xl">
-                                    {project.description}
-                                </p>
-                            )}
+        <div className="flex h-full flex-col">
+            <header className={`${width} mx-auto w-full px-6 pb-6 pt-12`}>
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="flex min-w-0 items-center gap-3.5">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-black/[0.04] text-2xl dark:bg-white/[0.06]">
+                            {project.icon || '📁'}
                         </div>
-
-                        {/* Right Column: Actions & Stats */}
-                        <div className="flex flex-col items-end gap-4 self-start mt-1">
-                            <div className="flex items-center gap-1">
-                                <ProjectViewSwitch view={view} />
-                                {view === 'list' && tasks.length > 0 && <TaskSelectionToggle taskIds={tasks.map(t => t.id)} />}
-                                {/* Actions Menu */}
-                                <ProjectActions project={project} />
-                            </div>
-
-                            {/* Stats - Table Style */}
-                            <div className="flex items-center border border-border/40 rounded-lg bg-background/50 text-sm shadow-sm">
-                                <div className="px-4 py-1.5 border-r border-border/40 text-muted-foreground">
-                                    Active: <span className="font-medium text-foreground">{totalActiveTasks}</span>
-                                </div>
-                                <div className="px-4 py-1.5 text-muted-foreground">
-                                    Completed: <span className="font-medium text-foreground">{totalCompletedTasks}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto">
-                {view === 'table' ? (
-                    <div className={`${width} mx-auto px-6 pb-16 pt-2`}>
-                        <TaskTable
-                            tasks={tasks}
-                            sections={sections.map(section => ({ id: section.id, name: section.name }))}
-                            projectId={params.id}
-                            project={{ id: project.id, name: project.name, icon: project.icon, color: project.color }}
-                            storageKey={`project:${params.id}`}
-                            ariaLabel={`${project.name} tasks`}
-                        />
-                    </div>
-                ) : (
-                <div className="max-w-4xl mx-auto px-6 py-2">
-                    {/* Quick Add Task */}
-                    <div className="mb-4">
-                        <CreateTaskInline
-                            defaultProjectId={params.id}
-                            label="Add task"
-                        />
-                    </div>
-
-                    {/* Sections List */}
-                    <div className="mb-8">
-                        <SectionList
-                            initialSections={sections}
-                            tasksBySection={tasksBySection}
-                            projectId={params.id}
-                        />
-                    </div>
-
-                    {/* No Section Tasks */}
-                    {tasksBySection['no-section'] && tasksBySection['no-section'].length > 0 && (
-                        <div className="mb-8">
-                            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 py-3 px-1">
-                                No Section
-                                <span className="ml-2 text-xs">
-                                    {tasksBySection['no-section'].length}
-                                </span>
-                            </h3>
-
-                            {/* Active Tasks */}
-                            {getActiveTasks('no-section').length > 0 && (
-                                <div className="mb-4">
-                                    <SortableTaskList tasks={getActiveTasks('no-section')} />
-                                </div>
-                            )}
-
-                            {/* Completed Tasks */}
-                            {getCompletedTasks('no-section').length > 0 && (
-                                <div>
-                                    <div className="border-t border-border/20 my-6" />
-                                    <h4 className="text-sm font-medium text-muted-foreground/70 mb-3">
-                                        Completed
-                                    </h4>
-                                    <SortableTaskList tasks={getCompletedTasks('no-section')} />
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Add Section Button */}
-                    <div className="mb-6">
-                        <AddSectionButton projectId={params.id} />
-                    </div>
-
-                    {/* Empty State */}
-                    {tasks.length === 0 && (
-                        <div className="text-center py-12">
-                            <div className="text-6xl mb-4">{project.icon || '📁'}</div>
-                            <h3 className="text-lg font-semibold mb-2">No tasks yet</h3>
-                            <p className="text-sm text-muted-foreground mb-6">
-                                Add your first task to get started with this project
+                        <div className="min-w-0">
+                            <h1 className="truncate text-[26px] font-semibold leading-tight tracking-[-0.025em] text-foreground">
+                                {project.name}
+                            </h1>
+                            <p className="mt-0.5 text-[13px] tabular-nums text-muted-foreground">
+                                {open} open{done > 0 && <> · {done} done</>}
                             </p>
                         </div>
-                    )}
+                    </div>
+
+                    <div className="flex shrink-0 items-center gap-1.5">
+                        <ProjectViewSwitch view={view} />
+                        {view === 'list' && tasks.length > 0 && <TaskSelectionToggle taskIds={tasks.map(task => task.id)} />}
+                        <ProjectActions project={project} />
+                    </div>
                 </div>
+
+                {project.description && (
+                    <p className="mt-4 max-w-2xl text-[14px] leading-relaxed text-muted-foreground">{project.description}</p>
                 )}
+            </header>
+
+            <div className="flex-1 overflow-y-auto">
+                <div className={`${width} mx-auto px-6 pb-24 pt-1`}>
+                    {view === 'table' ? <TaskTable {...shared} /> : <TaskList {...shared} />}
+                </div>
             </div>
-        </div >
+        </div>
     )
 }
