@@ -45,4 +45,6 @@ export interface TaskTablePrefs {
     hidden: TaskColumnId[]
     showCompleted: boolean
     groupBy: GroupBy
+    /** Section groups folded shut — shared by every view of the same place. */
+    collapsed: string[]
 }
