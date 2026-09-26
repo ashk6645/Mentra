@@ -1,20 +1,16 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { useCallback, useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
-import { toast } from 'sonner'
 import { DataTable, type ColumnDef, type RowGroup } from '@/components/data-table'
 import { cn } from '@/lib/utils'
-import { createTask, toggleTaskCompletion, updateTask } from '@/lib/actions/tasks'
-import { createTag as createTagAction, getTags } from '@/lib/actions/tags'
 import { useTaskDetailStore } from '@/stores/use-task-detail-store'
-import { TaskTableContext, isDraft, type TaskTableContextValue } from './context'
+import { TaskTableContext, isDraft } from './context'
 import { DEFAULT_HIDDEN, TASK_COLUMNS } from './columns'
 import { TaskTableToolbar } from './toolbar'
-import { useOptimisticTasks } from './use-optimistic-tasks'
 import { useTablePrefs } from './use-table-prefs'
-import type { GroupBy, TaskColumnId, TaskTablePrefs, TaskTableSection, TaskTableTag, TaskTableTask } from './types'
+import { useTaskActions } from './use-task-actions'
+import type { GroupBy, TaskColumnId, TaskTablePrefs, TaskTableSection, TaskTableTask } from './types'
 import { FOCUS, HOVER, ICON, INK, T, TRANSITION } from '@/lib/second-brain/ui'
 
 export interface TaskTableProps<T extends TaskTableTask> {
@@ -107,8 +103,6 @@ export function TaskTable<T extends TaskTableTask>({
     storageKey,
     ariaLabel = 'Tasks',
 }: TaskTableProps<T>) {
-    const router = useRouter()
-    const [, startTransition] = useTransition()
     const activeTaskId = useTaskDetailStore(state => state.selectedTaskId)
 
     const [prefs, setPrefs] = useTablePrefs(storageKey, {
@@ -116,102 +110,11 @@ export function TaskTable<T extends TaskTableTask>({
         hidden: DEFAULT_HIDDEN,
         showCompleted: false,
         groupBy: 'section',
+        collapsed: [],
     } satisfies TaskTablePrefs)
 
     const [query, setQuery] = useState('')
-    const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set())
-    const [tags, setTags] = useState<TaskTableTag[]>([])
-    const { rows, begin, settle, fail, addDraft, resolveDraft, dropDraft } = useOptimisticTasks(tasks)
-
-    useEffect(() => {
-        let live = true
-        getTags().then(result => {
-            if (live) setTags(result.map(tag => ({ id: tag.id, name: tag.name })))
-        })
-        return () => {
-            live = false
-        }
-    }, [])
-
-    // ─── Changing tasks ──────────────────────────────────────────────────────
-
-    /** Keep an open detail panel in step with edits made here. */
-    const syncPanel = useCallback((id: string, fields: object) => {
-        const { selectedTask, selectTask } = useTaskDetailStore.getState()
-        if (selectedTask?.id === id) selectTask(id, { ...selectedTask, ...fields })
-    }, [])
-
-    const update = useCallback<TaskTableContextValue['update']>((task, fields, payload, what) => {
-        begin(task.id, fields as Partial<T>)
-        startTransition(async () => {
-            const result = await updateTask({ id: task.id, ...payload })
-            if (!result.success) {
-                fail(task.id)
-                toast.error(`Couldn’t update ${what}`, { description: result.error })
-                return
-            }
-            settle(task.id)
-            syncPanel(task.id, fields)
-            router.refresh()
-        })
-    }, [begin, fail, settle, syncPanel, router])
-
-    /** Completing goes through the same path as the list, so repeating tasks roll over. */
-    const toggle = useCallback<TaskTableContextValue['toggle']>(task => {
-        const completed = !task.completed
-        begin(task.id, { completed } as Partial<T>)
-        startTransition(async () => {
-            const result = await toggleTaskCompletion(task.id, completed)
-            if (!result.success) {
-                fail(task.id)
-                toast.error('Couldn’t update the task', { description: result.error })
-                return
-            }
-            settle(task.id)
-            syncPanel(task.id, { completed })
-            router.refresh()
-        })
-    }, [begin, fail, settle, syncPanel, router])
-
-    const createTag = useCallback<TaskTableContextValue['createTag']>(async name => {
-        const result = await createTagAction({ name, color: 'bg-slate-500' })
-        if (!result.success || !result.data) {
-            toast.error('Couldn’t create the label')
-            return null
-        }
-        const tag = { id: result.data.id, name: result.data.name }
-        setTags(previous => [...previous, tag])
-        return tag
-    }, [])
-
-    const add = useCallback((title: string, sectionId: string | null) => {
-        const tempId = `draft-${crypto.randomUUID()}`
-        addDraft(tempId, {
-            id: tempId, title, completed: false, priority: null, dueDate: null,
-            projectId, sectionId, sortOrder: Number.MAX_SAFE_INTEGER,
-            createdAt: new Date().toISOString(), tags: [], subtasks: [],
-        } as unknown as T)
-
-        startTransition(async () => {
-            const result = await createTask({ title, projectId, sectionId })
-            if (!result.success || !result.data) {
-                dropDraft(tempId)
-                toast.error('Couldn’t add the task', { description: result.success ? undefined : result.error })
-                return
-            }
-            resolveDraft(tempId, result.data.id)
-            router.refresh()
-        })
-    }, [addDraft, dropDraft, resolveDraft, projectId, router])
-
-    const openTask = useCallback((task: T) => {
-        if (isDraft(task)) return
-        useTaskDetailStore.getState().selectTask(task.id, {
-            ...task,
-            project: project ?? (task as { project?: unknown }).project ?? null,
-            section: sections.find(s => s.id === task.sectionId) ?? null,
-        })
-    }, [project, sections])
+    const { rows, context, add, openTask } = useTaskActions({ tasks, sections, projectId, project })
 
     // ─── What to show ────────────────────────────────────────────────────────
 
@@ -269,23 +172,15 @@ export function TaskTable<T extends TaskTableTask>({
             .map(group => ({
                 ...group,
                 rows: bySection.get(group.id) ?? [],
-                footer: <AddTaskRow onAdd={title => add(title, group.id === NO_SECTION ? null : group.id)} />,
+                footer: <AddTaskRow onAdd={title => add({ title, sectionId: group.id === NO_SECTION ? null : group.id })} />,
             }))
     }, [grouped, visible, sections, needle, add])
 
-    const context = useMemo<TaskTableContextValue>(
-        () => ({ sections, tags, update, toggle, createTag }),
-        [sections, tags, update, toggle, createTag]
+    const collapsed = useMemo(() => new Set(prefs.collapsed), [prefs.collapsed])
+    const toggleGroup = useCallback(
+        (id: string) => setPrefs({ collapsed: collapsed.has(id) ? prefs.collapsed.filter(c => c !== id) : [...prefs.collapsed, id] }),
+        [collapsed, prefs.collapsed, setPrefs]
     )
-
-    const toggleGroup = useCallback((id: string) => {
-        setCollapsed(previous => {
-            const next = new Set(previous)
-            if (next.has(id)) next.delete(id)
-            else next.add(id)
-            return next
-        })
-    }, [])
 
     return (
         <TaskTableContext.Provider value={context}>
@@ -324,7 +219,7 @@ export function TaskTable<T extends TaskTableTask>({
                             </p>
                         ) : undefined
                     }
-                    footer={groups ? undefined : <AddTaskRow onAdd={title => add(title, null)} />}
+                    footer={groups ? undefined : <AddTaskRow onAdd={title => add({ title, sectionId: null })} />}
                 />
             </div>
         </TaskTableContext.Provider>
