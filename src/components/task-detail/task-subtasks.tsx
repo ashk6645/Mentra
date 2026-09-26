@@ -234,17 +234,25 @@ export function TaskSubtasks({
     const onDragEnd = async ({ active, over }: DragEndEvent) => {
         if (!over || active.id === over.id) return
         const previous = subtasks
+        // Renumber as well as move. The panel re-sorts by `sortOrder` whenever its
+        // copy of the task changes, so a moved list still carrying its old numbers
+        // snapped straight back to the old order until the page was reloaded.
+        // Index-based numbering matches what `reorderSubtasks` writes.
         const next = arrayMove(
             subtasks,
             subtasks.findIndex(s => s.id === active.id),
             subtasks.findIndex(s => s.id === over.id)
-        )
+        ).map((subtask, index) => ({ ...subtask, sortOrder: index }))
         commit(next)
         const result = await reorderSubtasks(task.id, next.map(s => s.id))
         if (!result.success) {
             commit(previous)
             saveFailed('the order', result.error)
+            return
         }
+        // Like every other subtask change: refresh the task list's data, so
+        // reopening this task shows the new order too.
+        router.refresh()
     }
 
     const done = subtasks.filter(s => s.completed).length
