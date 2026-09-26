@@ -23,7 +23,8 @@ interface Draft<T> {
  * is held until fresh server data arrives *after* its save finished — only then
  * is the server's copy trusted to include it. Dropping it any earlier (when the
  * save resolves, say) makes the old value flash back for the moment before the
- * refreshed data lands. Tasks being created appear the same way, as drafts.
+ * refreshed data lands. Tasks being created appear the same way, as drafts, and
+ * deleted ones disappear at once and stay gone.
  *
  * `useOptimistic` was the obvious tool and the wrong one here: its value ends
  * with the transition, and `router.refresh()` can't be awaited, so the flash
@@ -32,6 +33,8 @@ interface Draft<T> {
 export function useOptimisticTasks<T extends TaskTableTask>(tasks: T[]) {
     const [patches, setPatches] = useState<Record<string, Patch<T>>>({})
     const [drafts, setDrafts] = useState<Draft<T>[]>([])
+    /** Deleted here, still in the server data until the refresh lands. */
+    const [removed, setRemoved] = useState<ReadonlySet<string>>(() => new Set())
 
     // New server data: forget patches whose saves have all finished, and drafts
     // the server now returns for real. Adjusted during render rather than in an
@@ -44,6 +47,10 @@ export function useOptimisticTasks<T extends TaskTableTask>(tasks: T[]) {
             return kept.length === Object.keys(previous).length ? previous : Object.fromEntries(kept)
         })
         const ids = new Set(tasks.map(task => task.id))
+        setRemoved(previous => {
+            const kept = [...previous].filter(id => ids.has(id))
+            return kept.length === previous.size ? previous : new Set(kept)
+        })
         setDrafts(previous => {
             const kept = previous.filter(draft => !(draft.createdId && ids.has(draft.createdId)))
             return kept.length === previous.length ? previous : kept
@@ -51,12 +58,14 @@ export function useOptimisticTasks<T extends TaskTableTask>(tasks: T[]) {
     }
 
     const rows = useMemo(() => {
-        const merged = tasks.map(task => {
-            const patch = patches[task.id]
-            return patch ? { ...task, ...patch.fields } : task
-        })
+        const merged = tasks
+            .filter(task => !removed.has(task.id))
+            .map(task => {
+                const patch = patches[task.id]
+                return patch ? { ...task, ...patch.fields } : task
+            })
         return drafts.length ? [...merged, ...drafts.map(draft => draft.task)] : merged
-    }, [tasks, patches, drafts])
+    }, [tasks, patches, drafts, removed])
 
     /** Show an edit now; call `settle` or `fail` when its save returns. */
     const begin = useCallback((id: string, fields: Partial<T>) => {
@@ -96,5 +105,19 @@ export function useOptimisticTasks<T extends TaskTableTask>(tasks: T[]) {
         setDrafts(previous => previous.filter(draft => draft.tempId !== tempId))
     }, [])
 
-    return { rows, begin, settle, fail, addDraft, resolveDraft, dropDraft }
+    /** Hide a task being deleted; `restore` brings it back if the delete fails. */
+    const hide = useCallback((id: string) => {
+        setRemoved(previous => new Set(previous).add(id))
+    }, [])
+
+    const restore = useCallback((id: string) => {
+        setRemoved(previous => {
+            if (!previous.has(id)) return previous
+            const next = new Set(previous)
+            next.delete(id)
+            return next
+        })
+    }, [])
+
+    return { rows, begin, settle, fail, addDraft, resolveDraft, dropDraft, hide, restore }
 }
