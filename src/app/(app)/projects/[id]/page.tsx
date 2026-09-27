@@ -1,4 +1,5 @@
 import { notFound, redirect } from 'next/navigation'
+import { ProjectIcon } from '@/components/projects/project-icon'
 import { getCurrentUser } from '@/lib/user-session'
 import { getProject } from '@/lib/actions/projects'
 import { getSections } from '@/lib/actions/sections'
@@ -59,7 +60,7 @@ export default async function ProjectPage(props: ProjectPageProps) {
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="flex min-w-0 items-center gap-3.5">
                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-black/[0.04] text-2xl dark:bg-white/[0.06]">
-                            {project.icon || '📁'}
+                            <ProjectIcon icon={project.icon} color={project.color} />
                         </div>
                         <div className="min-w-0">
                             <h1 className="truncate text-[26px] font-semibold leading-tight tracking-[-0.025em] text-foreground">
