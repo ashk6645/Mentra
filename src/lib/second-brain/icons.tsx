@@ -4,6 +4,8 @@ import {
     HeartPulse, Moon, PenLine, Phone, Salad, Sunrise, Target, Wallet,
     type LucideIcon,
 } from 'lucide-react'
+import { AppIcon } from '@/components/icons/app-icon'
+import { lucideName } from '@/lib/icons'
 
 /**
  * Habit and routine iconography.
@@ -12,6 +14,9 @@ import {
  * platform, carry their own colour, can't inherit `currentColor`, and sit off the
  * text baseline. One stroked set at one weight is the difference between an app
  * and a side project. Sixteen, so the picker is a clean 8 × 2.
+ *
+ * Beyond these, any icon from the full Lucide library can be chosen; it's
+ * stored as `lucide:<name>` (see `@/lib/icons`) and loaded when shown.
  */
 
 export interface IconDef {
@@ -49,6 +54,7 @@ export const DEFAULT_ICON = 'target'
  * text beside it. Unknown ids fall back rather than rendering nothing.
  */
 export function ItemIcon({ icon, className }: { icon: string; className?: string }) {
+    if (lucideName(icon)) return <AppIcon value={icon} className={className} strokeWidth={1.75} />
     // createElement rather than `const Icon = …; <Icon />` — assigning a component
     // to a local during render reads as defining one to the React Compiler's lint.
     return createElement(BY_ID.get(icon) ?? Target, {
