@@ -7,6 +7,7 @@ import { type Project, updateProject } from '@/lib/actions/projects'
 import { Archive, ArchiveRestore, FolderOpen, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { ProjectIcon } from '@/components/projects/project-icon'
 import { CreateProjectDialog } from './create-project-dialog'
 
 const COLOR_ACCENTS: Record<string, string> = {
@@ -68,7 +69,7 @@ function ProjectCard({ project, variant, onUnarchive, isUnarchiving }: ProjectCa
                         COLOR_BG[project.color] || 'bg-blue-500/10'
                     )}
                 >
-                    {project.icon || '📁'}
+                    <ProjectIcon icon={project.icon} color={project.color} />
                 </div>
                 <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-sm text-foreground truncate">
