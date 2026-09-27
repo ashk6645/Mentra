@@ -133,14 +133,8 @@ export function SectionHeading({
     )
 }
 
-/**
- * Where a new section goes.
- *
- * Between sections it is invisible until the pointer is over the gap, then a
- * line and a small "Add section" label appear — so it exists exactly where a
- * section could be added, without a button on the page for every gap.
- */
-export function AddSection({ onAdd, persistent = false }: { onAdd: (name: string) => void; persistent?: boolean }) {
+/** Adds a section at the end of the list: a quiet button that becomes a name field. */
+export function AddSection({ onAdd }: { onAdd: (name: string) => void }) {
     const [editing, setEditing] = useState(false)
     const [name, setName] = useState('')
 
@@ -176,39 +170,18 @@ export function AddSection({ onAdd, persistent = false }: { onAdd: (name: string
         )
     }
 
-    if (persistent) {
-        return (
-            <button
-                type="button"
-                onClick={() => setEditing(true)}
-                className={cn('mt-2 flex h-9 items-center gap-1 pl-1 pr-3', R.md, T.body, INK.subtle, TRANSITION.fast, FOCUS,
-                    'hover:bg-black/[0.03] hover:text-foreground dark:hover:bg-white/[0.04]')}
-            >
-                {/* Same 28px column as a heading's chevron, so the icons line up. */}
-                <span className="flex h-7 w-7 items-center justify-center">
-                    <Plus className={ICON.md} strokeWidth={2} />
-                </span>
-                Add section
-            </button>
-        )
-    }
-
     return (
-        <div className="group/gap relative flex h-5 items-center">
-            <button
-                type="button"
-                onClick={() => setEditing(true)}
-                className={cn(
-                    'relative flex w-full items-center justify-center opacity-0 group-hover/gap:opacity-100 focus-visible:opacity-100',
-                    TRANSITION.base, FOCUS, 'rounded-full'
-                )}
-            >
-                <span aria-hidden className="absolute inset-x-0 top-1/2 h-px bg-primary/40" />
-                <span className={cn('relative flex items-center gap-1 bg-background px-2', T.meta, 'font-medium text-primary')}>
-                    <Plus className={ICON.sm} strokeWidth={2.5} />
-                    Add section
-                </span>
-            </button>
-        </div>
+        <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className={cn('mt-2 flex h-9 items-center gap-1 pl-1 pr-3', R.md, T.body, INK.subtle, TRANSITION.fast, FOCUS,
+                'hover:bg-black/[0.03] hover:text-foreground dark:hover:bg-white/[0.04]')}
+        >
+            {/* Same 28px column as a heading's chevron, so the icons line up. */}
+            <span className="flex h-7 w-7 items-center justify-center">
+                <Plus className={ICON.md} strokeWidth={2} />
+            </span>
+            Add section
+        </button>
     )
 }
