@@ -7,7 +7,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { createProject, updateProject, type Project } from '@/lib/actions/projects'
-import { Loader2, Palette, Smile } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
+import { IconPicker } from '@/components/icons'
+import { ProjectIcon } from './project-icon'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -21,11 +23,6 @@ const PROJECT_COLORS = [
     { name: 'Purple', value: 'purple', bg: 'bg-purple-500', hover: 'hover:bg-purple-600', ring: 'ring-purple-500' },
     { name: 'Pink', value: 'pink', bg: 'bg-pink-500', hover: 'hover:bg-pink-600', ring: 'ring-pink-500' },
     { name: 'Gray', value: 'gray', bg: 'bg-gray-500', hover: 'hover:bg-gray-600', ring: 'ring-gray-500' },
-]
-
-const PROJECT_EMOJIS = [
-    '📁', '💼', '🏠', '🎯', '🚀', '💡', '📚', '🎨',
-    '⚙️', '🔧', '🌟', '📊', '🎵', '🏋️', '🍳', '🌿'
 ]
 
 interface CreateProjectDialogProps {
@@ -178,33 +175,18 @@ export function CreateProjectDialog({
                             {/* Icon Picker (Dropdown) */}
                             <div className="space-y-3">
                                 <Label className="text-[13px] font-semibold text-foreground/70 uppercase tracking-wider">Icon</Label>
-                                <Select value={icon} onValueChange={setIcon} disabled={isSubmitting}>
-                                    <SelectTrigger className="h-11 rounded-xl bg-muted/40 border-border/50 focus:ring-primary/20 focus:border-primary transition-all text-[15px] shadow-sm">
-                                        <SelectValue placeholder="Select an icon">
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-xl leading-none">{icon}</span>
-                                                <span className="text-muted-foreground text-sm">Select icon</span>
-                                            </div>
-                                        </SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent className="max-h-[280px] rounded-xl border-border/50 shadow-xl">
-                                        <div className="grid grid-cols-4 gap-1 p-2">
-                                            {PROJECT_EMOJIS.map((emoji) => (
-                                                <SelectItem
-                                                    key={emoji}
-                                                    value={emoji}
-                                                    hideIndicator
-                                                    className={cn(
-                                                        "flex justify-center items-center h-10 w-10 text-xl rounded-lg cursor-pointer transition-all duration-200",
-                                                        icon === emoji ? "bg-primary/10 text-primary" : "hover:bg-muted"
-                                                    )}
-                                                >
-                                                    {emoji}
-                                                </SelectItem>
-                                            ))}
-                                        </div>
-                                    </SelectContent>
-                                </Select>
+                                <IconPicker value={icon} onChange={setIcon}>
+                                    <button
+                                        type="button"
+                                        disabled={isSubmitting}
+                                        className="flex h-11 w-full items-center gap-3 rounded-xl border border-border/50 bg-muted/40 px-3 text-[15px] shadow-sm transition-all outline-none hover:bg-muted/60 focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-primary/20 disabled:opacity-50"
+                                    >
+                                        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-background text-lg shadow-sm">
+                                            <ProjectIcon icon={icon} color={color} />
+                                        </span>
+                                        <span className="text-sm text-muted-foreground">Choose icon</span>
+                                    </button>
+                                </IconPicker>
                             </div>
 
                             {/* Color Picker (Dropdown) */}
