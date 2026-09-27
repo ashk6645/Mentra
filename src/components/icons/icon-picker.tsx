@@ -32,14 +32,18 @@ export function IconPicker({
     onChange,
     children,
     align = 'start',
+    emoji = true,
 }: {
     value: string | null | undefined
     onChange: (value: string) => void
     children: ReactNode
     align?: 'start' | 'center' | 'end'
+    /** Offer emoji beside the icons. Off where only line icons belong. */
+    emoji?: boolean
 }) {
     const [open, setOpen] = useState(false)
-    const [tab, setTab] = useState<Tab>(() => (value && !lucideName(value) ? 'emoji' : 'icons'))
+    const [chosenTab, setTab] = useState<Tab>(() => (value && !lucideName(value) ? 'emoji' : 'icons'))
+    const tab = emoji ? chosenTab : 'icons'
 
     const pick = (next: string) => {
         onChange(next)
@@ -63,15 +67,17 @@ export function IconPicker({
                     content.querySelector<HTMLElement>('input, [role=option]')?.focus()
                 }}
             >
-                <div className="px-2 pb-2">
-                    <Segmented
-                        fill
-                        ariaLabel="Icon type"
-                        value={tab}
-                        onChange={setTab}
-                        options={[{ id: 'icons', label: 'Icons' }, { id: 'emoji', label: 'Emoji' }]}
-                    />
-                </div>
+                {emoji && (
+                    <div className="px-2 pb-2">
+                        <Segmented
+                            fill
+                            ariaLabel="Icon type"
+                            value={tab}
+                            onChange={setTab}
+                            options={[{ id: 'icons', label: 'Icons' }, { id: 'emoji', label: 'Emoji' }]}
+                        />
+                    </div>
+                )}
 
                 {tab === 'icons' ? (
                     <Suspense fallback={<div className="h-[328px]" aria-busy="true" />}>
