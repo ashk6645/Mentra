@@ -6,6 +6,7 @@ import { format } from 'date-fns'
 import { RecurrenceSelector, RecurrenceValue } from '@/components/tasks/recurrence-selector'
 
 import { cn } from '@/lib/utils'
+import { ProjectIcon } from '@/components/projects/project-icon'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -77,6 +78,7 @@ export function TaskEditor({
     const [projectId, setProjectId] = useState<string | undefined>(defaultProjectId)
     const [sectionId, setSectionId] = useState<string | undefined>(defaultSectionId)
     const [availableProjects, setAvailableProjects] = useState<{ id: string; name: string; icon: string | null; color: string }[]>([])
+    const selectedProject = availableProjects.find(p => p.id === projectId)
     const [availableSections, setAvailableSections] = useState<{ id: string; name: string }[]>([])
 
     // Clean title for submission (without tags/dates)
@@ -339,9 +341,12 @@ export function TaskEditor({
                                 )}
                             >
                                 <FolderKanban className="mr-1.5 h-3.5 w-3.5" />
-                                {projectId
-                                    ? `${availableProjects.find(p => p.id === projectId)?.icon || '📁'} ${availableProjects.find(p => p.id === projectId)?.name || 'Project'}`
-                                    : "Project"}
+                                {selectedProject ? (
+                                    <>
+                                        <ProjectIcon icon={selectedProject.icon} color={selectedProject.color} className="mr-1" />
+                                        {selectedProject.name}
+                                    </>
+                                ) : "Project"}
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="max-h-64 overflow-y-auto">
@@ -351,7 +356,7 @@ export function TaskEditor({
                                     onClick={() => setProjectId(project.id)}
                                     className="gap-2"
                                 >
-                                    <span>{project.icon || '📁'}</span>
+                                    <ProjectIcon icon={project.icon} color={project.color} />
                                     <span>{project.name}</span>
                                     {projectId === project.id && <Check className="ml-auto h-4 w-4" />}
                                 </DropdownMenuItem>
