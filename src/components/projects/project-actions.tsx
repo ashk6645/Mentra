@@ -23,7 +23,8 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { CreateProjectDialog } from './create-project-dialog'
-import { deleteProject, updateProject, type Project } from '@/lib/actions/projects'
+import { updateProject, type Project } from '@/lib/actions/projects'
+import { useDeleteProject } from './use-delete-project'
 
 interface ProjectActionsProps {
     project: Project
@@ -34,24 +35,13 @@ export function ProjectActions({ project }: ProjectActionsProps) {
     const [showEditDialog, setShowEditDialog] = useState(false)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
+    const deleteProject = useDeleteProject()
 
     const handleDelete = async () => {
         setIsDeleting(true)
-        try {
-            const result = await deleteProject(project.id)
-            if (result.success) {
-                toast.success('Project deleted')
-                router.push('/inbox') // Redirect to inbox or safe place
-                router.refresh()
-            } else {
-                toast.error('Failed to delete project')
-            }
-        } catch (error) {
-            toast.error('An unexpected error occurred')
-        } finally {
-            setIsDeleting(false)
-            setShowDeleteDialog(false)
-        }
+        await deleteProject(project.id)
+        setIsDeleting(false)
+        setShowDeleteDialog(false)
     }
 
     const handleArchive = async () => {
@@ -111,8 +101,8 @@ export function ProjectActions({ project }: ProjectActionsProps) {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete project?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently delete "{project.name}" and all its tasks.
-                            This action cannot be undone.
+                            This will permanently delete &quot;{project.name}&quot;. Its tasks aren&apos;t
+                            deleted — they move to your Inbox. This can&apos;t be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
