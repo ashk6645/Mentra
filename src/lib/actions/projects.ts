@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { getCurrentUser } from '@/lib/user-session'
 import prisma from '@/lib/prisma'
+import { isLucideIcon } from '@/lib/icons'
 
 // ============================================
 // TYPES
@@ -58,8 +59,8 @@ function validateProjectName(name: string): { valid: boolean; error?: string } {
 
 function validateIcon(icon?: string): { valid: boolean; error?: string } {
     if (!icon) return { valid: true }
-    if (!EMOJI_REGEX.test(icon)) {
-        return { valid: false, error: 'Icon must be a single emoji' }
+    if (!EMOJI_REGEX.test(icon) && !isLucideIcon(icon)) {
+        return { valid: false, error: 'Icon must be a single emoji or an icon from the library' }
     }
     return { valid: true }
 }
