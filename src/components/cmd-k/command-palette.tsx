@@ -32,6 +32,7 @@ import {
 import { searchTasks } from "@/lib/actions/tasks"
 import { getProjects } from "@/lib/actions/projects"
 import { cn } from "@/lib/utils"
+import { ProjectIcon } from "@/components/projects/project-icon"
 import { useTaskDetailStore } from "@/stores/use-task-detail-store"
 import { SecondBrainCommands, SECOND_BRAIN_SECTIONS } from "./second-brain-commands"
 
@@ -209,7 +210,7 @@ export function CommandPalette({ onOpenChange }: { onOpenChange?: (open: boolean
                                         onSelect={() => runCommand(() => router.push(`/projects/${project.id}`))}
                                     >
                                         <FolderKanban className="mr-2 h-4 w-4" />
-                                        <span className="mr-2">{project.icon || '📁'}</span>
+                                        <ProjectIcon icon={project.icon} color={project.color} className="mr-2" />
                                         <span className="truncate flex-1">{project.name}</span>
                                         {project.taskCount !== undefined && project.taskCount > 0 && (
                                             <span className="text-xs text-muted-foreground">
