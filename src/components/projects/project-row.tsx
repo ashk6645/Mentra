@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { type Project, deleteProject, updateProject } from '@/lib/actions/projects'
+import { type Project, deleteProject as archiveProject, updateProject } from '@/lib/actions/projects'
+import { useDeleteProject } from './use-delete-project'
 import { MoreHorizontal, Edit2, Archive, ArchiveRestore, Trash2 } from 'lucide-react'
 import {
     DropdownMenu,
@@ -14,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { ProjectIcon } from '@/components/projects/project-icon'
 import {
     AlertDialog,
     AlertDialogAction,
@@ -50,28 +52,17 @@ export function ProjectRow({ project, onEdit, variant = 'active' }: ProjectRowPr
     const isArchived = variant === 'archived'
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
+    const deleteProject = useDeleteProject()
 
     const handleDelete = async () => {
         setIsDeleting(true)
-        try {
-            const result = await deleteProject(project.id, 'hard')
-            if (result.success) {
-                toast.success('Project deleted')
-                setShowDeleteDialog(false)
-                router.refresh()
-            } else {
-                toast.error(result.error || 'Failed to delete project')
-            }
-        } catch (err) {
-            toast.error('An unexpected error occurred')
-        } finally {
-            setIsDeleting(false)
-        }
+        if (await deleteProject(project.id)) setShowDeleteDialog(false)
+        setIsDeleting(false)
     }
 
     const handleArchive = async () => {
         try {
-            const result = await deleteProject(project.id, 'soft')
+            const result = await archiveProject(project.id, 'soft')
             if (result.success) {
                 toast.success('Project archived')
                 router.refresh()
@@ -116,7 +107,7 @@ export function ProjectRow({ project, onEdit, variant = 'active' }: ProjectRowPr
                 >
                     {/* Icon */}
                     <span className="text-lg flex-shrink-0 flex items-center justify-center w-5 h-5">
-                        {project.icon || '📁'}
+                        <ProjectIcon icon={project.icon} color={project.color} />
                     </span>
 
                     {/* Name */}
