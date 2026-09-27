@@ -145,19 +145,19 @@ describe('sections', () => {
         expect(screen.getByRole('button', { name: 'Launch' })).toBeInTheDocument()
     })
 
-    it('adds a section between two others, then puts it in place', async () => {
+    it('adds a section at the end', async () => {
         ;(createSection as jest.Mock).mockResolvedValue({ success: true, data: { id: 's9' } })
-        ;(reorderSections as jest.Mock).mockResolvedValue({ success: true })
         renderList()
 
-        // The gap before "Product" is the second one.
-        fireEvent.click(screen.getAllByRole('button', { name: 'Add section' })[1])
+        fireEvent.click(screen.getByRole('button', { name: 'Add section' }))
         const input = screen.getByLabelText('New section name')
         fireEvent.change(input, { target: { value: 'Design' } })
         await act(async () => fireEvent.keyDown(input, { key: 'Enter' }))
 
         expect(createSection).toHaveBeenCalledWith('p1', 'Design')
-        expect(reorderSections).toHaveBeenCalledWith('p1', ['s1', 's9', 's2'])
+        expect(reorderSections).not.toHaveBeenCalled()
+        const names = Array.from(document.querySelectorAll('section[aria-label]')).map(el => el.getAttribute('aria-label'))
+        expect(names).toEqual(['Marketing', 'Product', 'Design'])
     })
 
     it('asks before deleting a section, and says its tasks stay', async () => {
