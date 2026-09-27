@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Inbox, Trash2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ProjectIcon } from '@/components/projects/project-icon'
 import { Checkbox } from '@/components/second-brain/checkbox'
 import { ActionMenu } from '@/components/second-brain/menu'
 import { IconButton } from '@/components/second-brain/primitives'
@@ -54,7 +55,7 @@ export function TaskDetailHeader({ task, onClose }: { task: HeaderTask; onClose:
             <div className={cn('flex min-w-0 items-center gap-1.5', T.meta, INK.muted)}>
                 {task.project ? (
                     <>
-                        <span aria-hidden className="shrink-0">{task.project.icon || '📁'}</span>
+                        <ProjectIcon icon={task.project.icon} />
                         <span className="truncate">{task.project.name}</span>
                         {task.section && (
                             <>
