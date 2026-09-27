@@ -9,6 +9,7 @@ import { Calendar as CalendarPicker } from '@/components/ui/calendar'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { RecurrenceSelector, type RecurrenceValue } from '@/components/tasks/recurrence-selector'
 import { cn } from '@/lib/utils'
+import { ProjectIcon } from '@/components/projects/project-icon'
 import { updateTask, type UpdateTaskInput } from '@/lib/actions/tasks'
 import { createTag, getTags } from '@/lib/actions/tags'
 import { getProjects } from '@/lib/actions/projects'
@@ -402,7 +403,12 @@ export function TaskMetadataRow({ task, isReadOnly = false }: { task: Properties
                     <Popover>
                         <PopoverTrigger asChild disabled={isReadOnly}>
                             <ValueButton icon={project ? undefined : Inbox} empty={!project} disabled={isReadOnly}>
-                                {project ? `${project.icon || '📁'}  ${project.name}` : 'Inbox'}
+                                {project ? (
+                                    <span className="flex min-w-0 items-center gap-1.5">
+                                        <ProjectIcon icon={project.icon} color={project.color} />
+                                        <span className="truncate">{project.name}</span>
+                                    </span>
+                                ) : 'Inbox'}
                             </ValueButton>
                         </PopoverTrigger>
                         <PopoverContent align="start" className={cn(POPOVER, 'max-h-72 w-56 overflow-y-auto')}>
@@ -414,7 +420,7 @@ export function TaskMetadataRow({ task, isReadOnly = false }: { task: Properties
                             {projects.length > 0 && <div className={cn('my-1 border-t', HAIRLINE)} />}
                             {projects.map(p => (
                                 <OptionRow key={p.id} selected={projectId === p.id} onSelect={() => chooseProject(p.id)}>
-                                    <span aria-hidden className="w-3.5 text-center">{p.icon || '📁'}</span>
+                                    <ProjectIcon icon={p.icon} color={p.color} className="w-3.5" />
                                     <span className="flex-1 truncate">{p.name}</span>
                                     {projectId === p.id && <Check className={cn(ICON.md, INK.muted)} />}
                                 </OptionRow>
