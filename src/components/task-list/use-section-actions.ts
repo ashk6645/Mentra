@@ -45,24 +45,13 @@ export function useSectionActions(projectId: string, sections: TaskTableSection[
         [sections, router]
     )
 
-    /** Add a section at `index` — the server appends, so a mid-list add is followed by a reorder. */
+    /** Add a section at the end of the list. */
     const create = useCallback(
-        (name: string, index: number) => {
+        (name: string) => {
             const clean = name.trim()
             if (!clean) return
-
-            const tempId = `draft-section-${crypto.randomUUID()}`
-            const next = [...local]
-            next.splice(index, 0, { id: tempId, name: clean })
-            setLocal(next)
-
-            save('add the section', async () => {
-                const result = await createSection(projectId, clean)
-                if (!result.success || !result.data) return { success: false, error: result.error }
-                if (index >= local.length) return { success: true }
-                const order = next.map(s => (s.id === tempId ? result.data!.id : s.id))
-                return reorderSections(projectId, order)
-            })
+            setLocal([...local, { id: `draft-section-${crypto.randomUUID()}`, name: clean }])
+            save('add the section', () => createSection(projectId, clean))
         },
         [local, projectId, save]
     )
