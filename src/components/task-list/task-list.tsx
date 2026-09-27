@@ -259,38 +259,35 @@ export function TaskList<T extends TaskTableTask>({
                         const isCollapsed = collapsed.has(section.id)
                         const ids = order[section.id] ?? []
                         return (
-                            <div key={section.id}>
-                                <AddSection onAdd={name => createSection(name, index)} />
-                                <section aria-label={section.name}>
-                                    <SectionHeading
-                                        id={section.id}
-                                        name={section.name}
-                                        count={ids.length}
-                                        collapsed={isCollapsed}
-                                        first={index === 0}
-                                        last={index === sections.length - 1}
-                                        onToggle={() => toggleCollapsed(section.id)}
-                                        onRename={name => rename(section.id, name)}
-                                        onMove={direction => move(section.id, direction)}
-                                        onDelete={() => askDeleteSection(section.id, section.name)}
-                                        onAddTask={() => {
-                                            if (isCollapsed) toggleCollapsed(section.id)
-                                            setAdding(section.id)
-                                        }}
-                                    />
-                                    {!isCollapsed && (
-                                        <div className="pt-1">
-                                            <Container id={section.id} ids={ids} footer={quickAdd(section.id)}>
-                                                {renderRows(ids, true)}
-                                            </Container>
-                                        </div>
-                                    )}
-                                </section>
-                            </div>
+                            <section key={section.id} aria-label={section.name} className="pt-5">
+                                <SectionHeading
+                                    id={section.id}
+                                    name={section.name}
+                                    count={ids.length}
+                                    collapsed={isCollapsed}
+                                    first={index === 0}
+                                    last={index === sections.length - 1}
+                                    onToggle={() => toggleCollapsed(section.id)}
+                                    onRename={name => rename(section.id, name)}
+                                    onMove={direction => move(section.id, direction)}
+                                    onDelete={() => askDeleteSection(section.id, section.name)}
+                                    onAddTask={() => {
+                                        if (isCollapsed) toggleCollapsed(section.id)
+                                        setAdding(section.id)
+                                    }}
+                                />
+                                {!isCollapsed && (
+                                    <div className="pt-1">
+                                        <Container id={section.id} ids={ids} footer={quickAdd(section.id)}>
+                                            {renderRows(ids, true)}
+                                        </Container>
+                                    </div>
+                                )}
+                            </section>
                         )
                     })}
 
-                    <AddSection persistent onAdd={name => createSection(name, sections.length)} />
+                    <AddSection onAdd={createSection} />
 
                     {/* Finished work, folded away until asked for. */}
                     {completed.length > 0 && (
