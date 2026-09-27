@@ -1,8 +1,10 @@
 'use client'
 
 import type { ComponentProps, ReactNode } from 'react'
-import { Minus, Plus } from 'lucide-react'
+import { ChevronRight, Minus, Plus, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { IconPicker as LibraryPicker } from '@/components/icons'
+import { lucideName } from '@/lib/icons'
 import { ICONS, ItemIcon } from '@/lib/second-brain/icons'
 import { WEEK_ORDER, longDayName } from '@/lib/second-brain/date'
 import { FIELD_FOCUS, FOCUS, HAIRLINE, ICON, INK, NUM, R, T, TRANSITION } from '@/lib/second-brain/ui'
@@ -158,32 +160,65 @@ export function DayPicker({
     )
 }
 
-/** The icon grid, 8 × 2. */
+/**
+ * The icon grid, 8 × 2 — the everyday picks — with the whole icon library one
+ * step away beneath it. A library icon, once chosen, takes that row.
+ */
 export function IconPicker({ value, onChange }: { value: string; onChange: (icon: string) => void }) {
+    const library = lucideName(value)
+
     return (
-        <div role="radiogroup" aria-label="Icon" className="grid grid-cols-8 gap-1.5">
-            {ICONS.map(({ id, label }) => {
-                const on = value === id
-                return (
-                    <button
-                        key={id}
-                        type="button"
-                        role="radio"
-                        aria-checked={on}
-                        aria-label={label}
-                        title={label}
-                        onClick={() => onChange(id)}
-                        className={cn(
-                            'flex h-9 items-center justify-center border', R.md, TRANSITION.fast, FOCUS,
-                            on
-                                ? 'border-foreground/25 bg-black/[0.05] text-foreground dark:border-white/30 dark:bg-white/[0.08]'
-                                : cn('border-transparent', INK.muted, 'hover:bg-black/[0.04] hover:text-foreground dark:hover:bg-white/[0.06]')
-                        )}
-                    >
-                        <ItemIcon icon={id} className={ICON.lg} />
-                    </button>
-                )
-            })}
+        <div className="flex flex-col gap-1.5">
+            <div role="radiogroup" aria-label="Icon" className="grid grid-cols-8 gap-1.5">
+                {ICONS.map(({ id, label }) => {
+                    const on = value === id
+                    return (
+                        <button
+                            key={id}
+                            type="button"
+                            role="radio"
+                            aria-checked={on}
+                            aria-label={label}
+                            title={label}
+                            onClick={() => onChange(id)}
+                            className={cn(
+                                'flex h-9 items-center justify-center border', R.md, TRANSITION.fast, FOCUS,
+                                on
+                                    ? 'border-foreground/25 bg-black/[0.05] text-foreground dark:border-white/30 dark:bg-white/[0.08]'
+                                    : cn('border-transparent', INK.muted, 'hover:bg-black/[0.04] hover:text-foreground dark:hover:bg-white/[0.06]')
+                            )}
+                        >
+                            <ItemIcon icon={id} className={ICON.lg} />
+                        </button>
+                    )
+                })}
+            </div>
+
+            <LibraryPicker value={value} onChange={onChange} emoji={false}>
+                <button
+                    type="button"
+                    className={cn(
+                        'flex h-9 w-full items-center gap-2.5 border px-2.5 text-left', R.md, T.body, TRANSITION.fast, FOCUS,
+                        library
+                            ? 'border-foreground/25 bg-black/[0.05] text-foreground dark:border-white/30 dark:bg-white/[0.08]'
+                            : cn('border-dashed', HAIRLINE, INK.muted, 'hover:bg-black/[0.03] hover:text-foreground dark:hover:bg-white/[0.05]')
+                    )}
+                >
+                    {library ? (
+                        <>
+                            <ItemIcon icon={value} className={ICON.lg} />
+                            <span className="flex-1 truncate">{library}</span>
+                            <span className={cn(T.meta, INK.subtle)}>Change</span>
+                        </>
+                    ) : (
+                        <>
+                            <Search className={ICON.md} strokeWidth={2} aria-hidden />
+                            <span className="flex-1">Browse all icons</span>
+                            <ChevronRight className={cn(ICON.md, INK.subtle)} strokeWidth={2} aria-hidden />
+                        </>
+                    )}
+                </button>
+            </LibraryPicker>
         </div>
     )
 }
