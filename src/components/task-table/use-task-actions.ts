@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { createTask, deleteTask, toggleTaskCompletion, updateTask, updateTaskOrder } from '@/lib/actions/tasks'
+import { createTask, toggleTaskCompletion, updateTask, updateTaskOrder } from '@/lib/actions/tasks'
 import { createTag as createTagAction, getTags } from '@/lib/actions/tags'
 import { useTaskDetailStore } from '@/stores/use-task-detail-store'
+import { deleteTaskWithUndo, useDeletedStore } from '@/stores/use-deleted-store'
 import { isDraft, type TaskTableContextValue } from './context'
 import { useOptimisticTasks } from './use-optimistic-tasks'
 import type { TaskPriority, TaskTableSection, TaskTableTag, TaskTableTask } from './types'
@@ -50,7 +51,9 @@ export function useTaskActions<T extends TaskTableTask>({
     const router = useRouter()
     const [, startTransition] = useTransition()
     const [tags, setTags] = useState<TaskTableTag[]>([])
-    const { rows, begin, settle, fail, addDraft, resolveDraft, dropDraft, hide, restore } = useOptimisticTasks(tasks)
+    const { rows: merged, begin, settle, fail, addDraft, resolveDraft, dropDraft } = useOptimisticTasks(tasks)
+    const deleted = useDeletedStore(state => state.ids)
+    const rows = useMemo(() => (deleted.size ? merged.filter(task => !deleted.has(task.id)) : merged), [merged, deleted])
 
     useEffect(() => {
         let live = true
@@ -152,22 +155,8 @@ export function useTaskActions<T extends TaskTableTask>({
         })
     }, [addDraft, dropDraft, resolveDraft, projectId, router])
 
-    /** Delete at once; put it back if the server refuses. */
-    const remove = useCallback((task: T) => {
-        hide(task.id)
-        const { selectedTaskId, closePanel } = useTaskDetailStore.getState()
-        if (selectedTaskId === task.id) closePanel()
-
-        startTransition(async () => {
-            const result = await deleteTask(task.id)
-            if (!result.success) {
-                restore(task.id)
-                toast.error('Couldn’t delete the task', { description: result.error })
-                return
-            }
-            router.refresh()
-        })
-    }, [hide, restore, router])
+    /** Gone at once, with a few seconds to undo before it's deleted for good. */
+    const remove = useCallback((task: T) => deleteTaskWithUndo(task, () => router.refresh()), [router])
 
     const duplicate = useCallback((task: T) => {
         add({
