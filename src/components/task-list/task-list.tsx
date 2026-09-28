@@ -15,7 +15,6 @@ import {
     type DragStartEvent,
 } from '@dnd-kit/core'
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useConfirm } from '@/components/second-brain/confirm-dialog'
 import { TaskTableContext } from '@/components/task-table/context'
@@ -28,7 +27,7 @@ import { QuickAdd } from './quick-add'
 import { AddSection, SectionHeading, containerId } from './section-heading'
 import { useSectionActions } from './use-section-actions'
 import { findContainer, moveAcross, settleDrop, type Order } from './order'
-import { FOCUS, ICON, INK, NUM, R, T, TRANSITION } from '@/lib/second-brain/ui'
+import { INK, T } from '@/lib/second-brain/ui'
 
 export interface TaskListProps<T extends TaskTableTask> {
     tasks: T[]
@@ -47,14 +46,30 @@ const NONE = '__none__'
 const byPosition = (a: TaskTableTask, b: TaskTableTask) =>
     a.sortOrder - b.sortOrder || String(a.createdAt).localeCompare(String(b.createdAt))
 
-/** A section's tasks: a sortable list that also accepts drops when empty. */
-function Container({ id, ids, children, footer }: { id: string; ids: string[]; children: ReactNode; footer?: ReactNode }) {
+/**
+ * A section's tasks: a sortable list of open tasks that also accepts drops when
+ * empty, then its finished tasks, which stay put at the bottom.
+ */
+function Container({
+    id,
+    ids,
+    children,
+    done,
+    footer,
+}: {
+    id: string
+    ids: string[]
+    children: ReactNode
+    done?: ReactNode
+    footer?: ReactNode
+}) {
     const { setNodeRef } = useDroppable({ id: containerId(id) })
     return (
         <div ref={setNodeRef}>
             <SortableContext id={id} items={ids} strategy={verticalListSortingStrategy}>
                 <ul className="flex flex-col">{children}</ul>
             </SortableContext>
+            {done}
             {footer}
         </div>
     )
@@ -63,10 +78,10 @@ function Container({ id, ids, children, footer }: { id: string; ids: string[]; c
 /**
  * A project's tasks as a list, grouped under its sections.
  *
- * The calm default view: tasks with no section at the top, each section a quiet
- * heading over its tasks, finished work folded away at the bottom. Tasks drag
- * within and between sections; sections are added in the gaps between them,
- * renamed in place and reordered from their menu. Reusable wherever a set of
+ * The calm default view: tasks with no section at the top, then each section a
+ * quiet heading over its tasks. Finished tasks stay in their section, below the
+ * open ones. Open tasks drag within and between sections; sections are added at
+ * the end, renamed in place and reordered from their menu. Reusable wherever a set of
  * tasks has sections — it needs only the tasks, the sections and where new
  * ones go.
  */
@@ -117,7 +132,16 @@ export function TaskList<T extends TaskTableTask>({
         return order
     }, [rows, sections])
 
-    const completed = useMemo(() => rows.filter(task => task.completed).sort(byPosition), [rows])
+    /** Finished tasks, by the section they're in. They sit below the open ones and don't drag. */
+    const doneOrder = useMemo<Order>(() => {
+        const known = new Set(sections.map(s => s.id))
+        const order: Order = {}
+        for (const task of rows.filter(t => t.completed).sort(byPosition)) {
+            const key = task.sectionId && known.has(task.sectionId) ? task.sectionId : NONE
+            ;(order[key] ??= []).push(task.id)
+        }
+        return order
+    }, [rows, sections])
     const order = drag?.order ?? openOrder
 
     // ─── Dragging ────────────────────────────────────────────────────────────
@@ -202,6 +226,9 @@ export function TaskList<T extends TaskTableTask>({
             return task ? <ListRow key={id} task={task} draggable={draggable} handlers={handlers} onKeyDown={onRowKeyDown} /> : null
         })
 
+    const renderDone = (key: string) =>
+        doneOrder[key]?.length ? <ul className="flex flex-col">{renderRows(doneOrder[key], false)}</ul> : null
+
     const quickAdd = (key: string) => (
         <QuickAdd
             sectionId={key === NONE ? null : key}
@@ -217,7 +244,7 @@ export function TaskList<T extends TaskTableTask>({
         setPrefs({ collapsed: collapsed.has(id) ? prefs.collapsed.filter(c => c !== id) : [...prefs.collapsed, id] })
 
     const askDeleteSection = async (id: string, name: string) => {
-        const count = order[id]?.length ?? 0
+        const count = (order[id]?.length ?? 0) + (doneOrder[id]?.length ?? 0)
         const ok = await confirm({
             title: `Delete “${name}”?`,
             description: count > 0
@@ -251,7 +278,7 @@ export function TaskList<T extends TaskTableTask>({
                     )}
 
                     {/* Tasks outside any section — first, with no heading. */}
-                    <Container id={NONE} ids={order[NONE]} footer={quickAdd(NONE)}>
+                    <Container id={NONE} ids={order[NONE]} done={renderDone(NONE)} footer={quickAdd(NONE)}>
                         {renderRows(order[NONE], true)}
                     </Container>
 
@@ -278,7 +305,7 @@ export function TaskList<T extends TaskTableTask>({
                                 />
                                 {!isCollapsed && (
                                     <div className="pt-1">
-                                        <Container id={section.id} ids={ids} footer={quickAdd(section.id)}>
+                                        <Container id={section.id} ids={ids} done={renderDone(section.id)} footer={quickAdd(section.id)}>
                                             {renderRows(ids, true)}
                                         </Container>
                                     </div>
@@ -288,30 +315,6 @@ export function TaskList<T extends TaskTableTask>({
                     })}
 
                     <AddSection onAdd={createSection} />
-
-                    {/* Finished work, folded away until asked for. */}
-                    {completed.length > 0 && (
-                        <div className="mt-6">
-                            <button
-                                type="button"
-                                onClick={() => setPrefs({ showCompleted: !prefs.showCompleted })}
-                                aria-expanded={prefs.showCompleted}
-                                className={cn('flex h-9 items-center gap-2 px-2', R.md, T.body, INK.muted, TRANSITION.fast, FOCUS,
-                                    'hover:bg-black/[0.03] hover:text-foreground dark:hover:bg-white/[0.04]')}
-                            >
-                                <ChevronRight className={cn(ICON.md, 'transition-transform duration-200', prefs.showCompleted && 'rotate-90')} strokeWidth={2.25} />
-                                Completed
-                                <span className={cn(NUM, INK.subtle)}>{completed.length}</span>
-                            </button>
-                            {prefs.showCompleted && (
-                                <ul className="flex flex-col pt-1">
-                                    {completed.map(task => (
-                                        <ListRow key={task.id} task={task} draggable={false} handlers={handlers} onKeyDown={onRowKeyDown} />
-                                    ))}
-                                </ul>
-                            )}
-                        </div>
-                    )}
                 </div>
 
                 <DragOverlay dropAnimation={{ duration: 200, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }}>
