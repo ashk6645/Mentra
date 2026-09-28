@@ -52,17 +52,20 @@ beforeEach(() => {
 })
 
 describe('rendering', () => {
-    it('groups open tasks by section, in the project’s order, hiding completed ones', async () => {
+    it('groups tasks by section, in the project’s order, finished ones last in their section', async () => {
         renderTable()
         expect(await screen.findByText('Marketing')).toBeInTheDocument()
-        expect(titles()).toEqual(['Write launch post', 'Record demo video', 'Book the venue'])
+        expect(titles()).toEqual(['Write launch post', 'Draft the headline', 'Record demo video', 'Book the venue'])
         expect(screen.getByText('No section')).toBeInTheDocument()
+        // Always shown — there's no switch to hide them.
+        expect(screen.queryByRole('button', { name: /Completed/ })).not.toBeInTheDocument()
     })
 
-    it('shows completed tasks when asked, after the open ones', () => {
-        renderTable()
-        fireEvent.click(screen.getByRole('button', { name: /Completed/ }))
-        expect(titles()).toEqual(['Write launch post', 'Draft the headline', 'Record demo video', 'Book the venue'])
+    it('keeps finished tasks last, whatever the sort', () => {
+        renderTable({ sections: [] })
+        fireEvent.click(screen.getByRole('button', { name: 'Priority' }))
+        // "Draft the headline" is high priority, but done.
+        expect(titles()).toEqual(['Record demo video', 'Write launch post', 'Book the venue', 'Draft the headline'])
     })
 
     it('hides the Section column while rows sit under their section heading', () => {
@@ -84,18 +87,18 @@ describe('sorting', () => {
     it('sorts by priority, highest first, with none last', () => {
         renderTable({ sections: [] })
         fireEvent.click(screen.getByRole('button', { name: 'Priority' }))
-        expect(titles()).toEqual(['Record demo video', 'Write launch post', 'Book the venue'])
+        expect(titles()).toEqual(['Record demo video', 'Write launch post', 'Book the venue', 'Draft the headline'])
     })
 
     it('sorts by due date, soonest first, undated last — then reverses, then stops', () => {
         renderTable({ sections: [] })
         const due = screen.getByRole('button', { name: 'Due' })
         fireEvent.click(due)
-        expect(titles()).toEqual(['Book the venue', 'Write launch post', 'Record demo video'])
+        expect(titles()).toEqual(['Book the venue', 'Write launch post', 'Record demo video', 'Draft the headline'])
         fireEvent.click(due)
-        expect(titles()).toEqual(['Write launch post', 'Book the venue', 'Record demo video'])
+        expect(titles()).toEqual(['Write launch post', 'Book the venue', 'Record demo video', 'Draft the headline'])
         fireEvent.click(due)
-        expect(titles()).toEqual(['Write launch post', 'Record demo video', 'Book the venue'])
+        expect(titles()).toEqual(['Write launch post', 'Record demo video', 'Book the venue', 'Draft the headline'])
     })
 })
 
@@ -119,8 +122,8 @@ describe('editing', () => {
 
         expect(toggleTaskCompletion).toHaveBeenCalledWith('t2', true)
         expect(refresh).toHaveBeenCalled()
-        // Completed tasks are hidden by default, so it leaves the list.
-        expect(titles()).not.toContain('Record demo video')
+        // It drops below the open tasks, beside the other finished one.
+        expect(titles().slice(-2)).toEqual(['Record demo video', 'Draft the headline'])
     })
 
     it('puts the old value back if a save fails', async () => {
@@ -141,12 +144,13 @@ describe('editing', () => {
 
         await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Priority Urgent' })))
         await act(async () => fireEvent.click(screen.getByRole('button', { name: 'High' })))
-        expect(screen.getByRole('button', { name: 'Priority High' })).toBeInTheDocument()
+        const demo = () => document.querySelector('[data-task-id="t2"]') as HTMLElement
+        expect(within(demo()).getByRole('button', { name: 'Priority High' })).toBeInTheDocument()
 
         // The refreshed server data now carries the change.
         const fresh = TASKS.map(t => (t.id === 't2' ? { ...t, priority: 'high' } : t))
         rerender(<TaskTable tasks={fresh} sections={[]} projectId="p1" storageKey="test-fresh" />)
-        expect(screen.getByRole('button', { name: 'Priority High' })).toBeInTheDocument()
+        expect(within(demo()).getByRole('button', { name: 'Priority High' })).toBeInTheDocument()
     })
 })
 
