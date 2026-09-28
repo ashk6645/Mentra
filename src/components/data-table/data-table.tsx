@@ -39,6 +39,8 @@ export interface DataTableProps<Row> {
     /** The row currently open elsewhere, e.g. in a detail panel. */
     activeRowId?: string | null
     isRowMuted?: (row: Row) => boolean
+    /** Rows that stay after the rest of their group whatever the sort — finished tasks, say. */
+    keepLast?: (row: Row) => boolean
     collapsedGroups?: ReadonlySet<string>
     onToggleGroup?: (groupId: string) => void
     /** Shown in place of rows when there are none. */
@@ -126,6 +128,7 @@ export function DataTable<Row>({
     getRowAttributes,
     activeRowId,
     isRowMuted,
+    keepLast,
     collapsedGroups,
     onToggleGroup,
     empty,
@@ -165,10 +168,13 @@ export function DataTable<Row>({
     const sortColumn = sort ? columns.find(column => column.id === sort.columnId) : undefined
 
     const sections = useMemo(() => {
-        const sortIn = (list: Row[]) => (sort ? sortRows(list, sortColumn, sort.direction) : list)
+        const sortIn = (list: Row[]) => {
+            const sorted = sort ? sortRows(list, sortColumn, sort.direction) : list
+            return keepLast ? [...sorted.filter(row => !keepLast(row)), ...sorted.filter(keepLast)] : sorted
+        }
         if (groups) return groups.map(group => ({ ...group, rows: sortIn(group.rows) }))
         return [{ id: '', label: null, rows: sortIn(rows ?? []), footer: undefined }]
-    }, [groups, rows, sort, sortColumn])
+    }, [groups, rows, sort, sortColumn, keepLast])
 
     const hasRows = sections.some(section => section.rows.length > 0)
     const grouped = groups !== undefined
