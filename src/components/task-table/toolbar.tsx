@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, CheckCircle2, Rows3, Search, SlidersHorizontal, X } from 'lucide-react'
+import { Check, Rows3, Search, SlidersHorizontal, X } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/second-brain/primitives'
 import { OptionRow, POPOVER } from '@/components/task-detail/parts'
@@ -12,9 +12,6 @@ import { FIELD_FOCUS, HAIRLINE, ICON, INK, NUM, R, T, TRANSITION } from '@/lib/s
 interface ToolbarProps {
     query: string
     onQueryChange: (query: string) => void
-    showCompleted: boolean
-    onShowCompletedChange: (show: boolean) => void
-    completedCount: number
     groupBy: GroupBy
     onGroupByChange: (groupBy: GroupBy) => void
     /** Grouping is only offered when there are sections to group by. */
@@ -28,15 +25,12 @@ interface ToolbarProps {
 const Divider = () => <div className={cn('my-1 border-t', HAIRLINE)} />
 
 /**
- * Filter, show completed, group, and choose columns — everything about how the
+ * Filter, group, and choose columns — everything about how the
  * table looks, nothing about what's in it.
  */
 export function TaskTableToolbar({
     query,
     onQueryChange,
-    showCompleted,
-    onShowCompletedChange,
-    completedCount,
     groupBy,
     onGroupByChange,
     canGroup,
@@ -85,18 +79,6 @@ export function TaskTableToolbar({
             </label>
 
             <div className="flex items-center gap-1">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    icon={CheckCircle2}
-                    aria-pressed={showCompleted}
-                    onClick={() => onShowCompletedChange(!showCompleted)}
-                    className={cn(showCompleted && 'bg-black/[0.05] text-foreground dark:bg-white/[0.07]')}
-                >
-                    Completed
-                    {completedCount > 0 && <span className={cn(NUM, INK.subtle)}>{completedCount}</span>}
-                </Button>
-
                 {canGroup && (
                     <Popover>
                         <PopoverTrigger asChild>
