@@ -1,10 +1,12 @@
 'use client'
 
-import { useCallback, useState, useTransition } from 'react'
+import { useCallback, useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { createSection, deleteSection, reorderSections, updateSection } from '@/lib/actions/sections'
 import type { TaskTableSection } from '@/components/task-table/types'
+import { withUndo } from '@/lib/undo'
+import { useDeletedStore } from '@/stores/use-deleted-store'
 
 /** A section still being created has no server id to act on yet. */
 export const isDraftSection = (id: string) => id.startsWith('draft-section-')
@@ -72,7 +74,10 @@ export function useSectionActions(projectId: string, sections: TaskTableSection[
         (id: string, direction: -1 | 1) => {
             if (isDraftSection(id)) return
             const from = local.findIndex(s => s.id === id)
-            const to = from + direction
+            // Step over a neighbour that's deleted but still undoable.
+            const deleted = useDeletedStore.getState().ids
+            let to = from + direction
+            while (to >= 0 && to < local.length && deleted.has(local[to].id)) to += direction
             if (from < 0 || to < 0 || to >= local.length) return
             const next = [...local]
             ;[next[from], next[to]] = [next[to], next[from]]
@@ -82,15 +87,34 @@ export function useSectionActions(projectId: string, sections: TaskTableSection[
         [local, projectId, save]
     )
 
-    /** Delete a section. Its tasks aren't deleted — the server moves them out of it. */
+    /**
+     * Delete a section, with a few seconds to undo. Its tasks aren't deleted —
+     * the server moves them out of it.
+     */
     const remove = useCallback(
         (id: string) => {
             if (isDraftSection(id)) return
-            setLocal(local.filter(s => s.id !== id))
-            save('delete the section', () => deleteSection(id))
+            const { hide, show } = useDeletedStore.getState()
+            hide(id)
+            withUndo({
+                message: 'Section deleted',
+                undo: () => show(id),
+                commit: async () => {
+                    const result = await deleteSection(id)
+                    if (!result.success) {
+                        show(id)
+                        toast.error('Couldn’t delete the section', { description: result.error })
+                        return
+                    }
+                    router.refresh()
+                },
+            })
         },
-        [local, save]
+        [router]
     )
 
-    return { sections: local, create, rename, move, remove }
+    const deleted = useDeletedStore(state => state.ids)
+    const visible = useMemo(() => (deleted.size ? local.filter(s => !deleted.has(s.id)) : local), [local, deleted])
+
+    return { sections: visible, create, rename, move, remove }
 }
