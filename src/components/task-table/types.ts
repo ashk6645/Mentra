@@ -43,7 +43,6 @@ export type GroupBy = 'section' | 'none'
 export interface TaskTablePrefs {
     sort: { columnId: string; direction: 'asc' | 'desc' } | null
     hidden: TaskColumnId[]
-    showCompleted: boolean
     groupBy: GroupBy
     /** Section groups folded shut — shared by every view of the same place. */
     collapsed: string[]
