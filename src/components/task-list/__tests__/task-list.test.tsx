@@ -5,6 +5,8 @@ import { createTask, deleteTask } from '@/lib/actions/tasks'
 import { createSection, deleteSection, reorderSections, updateSection } from '@/lib/actions/sections'
 import { useTaskDetailStore } from '@/stores/use-task-detail-store'
 import { useTaskSelectionStore } from '@/stores/use-task-selection-store'
+import { useDeletedStore } from '@/stores/use-deleted-store'
+import { toast } from 'sonner'
 import type { TaskTableTask } from '@/components/task-table/types'
 
 /**
@@ -37,7 +39,7 @@ jest.mock('@/lib/actions/tags', () => ({
     createTag: jest.fn(),
 }))
 
-jest.mock('sonner', () => ({ toast: Object.assign(jest.fn(), { error: jest.fn() }) }))
+jest.mock('sonner', () => ({ toast: Object.assign(jest.fn(), { error: jest.fn(), dismiss: jest.fn() }) }))
 
 const base = { projectId: 'p1', createdAt: '2026-09-01T00:00:00.000Z', tags: [], subtasks: [], priority: null, dueDate: null }
 
@@ -63,16 +65,23 @@ const openMenu = (trigger: HTMLElement) => {
     fireEvent.keyDown(trigger, { key: 'Enter' })
 }
 
-/** Confirm the open dialog with its action button. */
-const confirmDialog = async (label: string) => {
-    const dialog = await screen.findByRole('dialog')
-    await act(async () => fireEvent.click(within(dialog).getByRole('button', { name: label })))
+/** Press Undo on the latest toast. */
+const pressUndo = () => {
+    const [, options] = (toast as unknown as jest.Mock).mock.calls.at(-1)
+    act(() => options.action.onClick())
 }
 
 beforeEach(() => {
     jest.clearAllMocks()
     useTaskDetailStore.getState().closePanel()
     useTaskSelectionStore.getState().clearSelection()
+    useDeletedStore.setState({ ids: new Set() })
+})
+
+afterEach(() => {
+    // Let any undo window still open close before the next test.
+    act(() => jest.runOnlyPendingTimers())
+    jest.useRealTimers()
 })
 
 describe('layout', () => {
@@ -169,19 +178,22 @@ describe('sections', () => {
         expect(names).toEqual(['Marketing', 'Product', 'Design'])
     })
 
-    it('asks before deleting a section, and says its tasks stay', async () => {
-        ;(deleteSection as jest.Mock).mockResolvedValue({ success: true })
+    it('deletes a section at once, with Undo instead of a confirmation', async () => {
+        jest.useFakeTimers()
         renderList()
         openMenu(within(section('Marketing')).getByRole('button', { name: 'Actions for Marketing' }))
         fireEvent.click(await screen.findByRole('menuitem', { name: /Delete section/ }))
 
-        expect(await screen.findByText(/2 tasks stay in the project/)).toBeInTheDocument()
-        await confirmDialog('Delete section')
-        expect(deleteSection).toHaveBeenCalledWith('s1')
-        // Its tasks move to the top straight away.
-        // (Queried directly: role queries skip content behind the still-closing dialog.)
+        // Gone straight away, its tasks moved to the top — and nothing saved yet.
         expect(document.querySelector('section[aria-label="Marketing"]')).toBeNull()
         expect(screen.getByText('Write the post')).toBeInTheDocument()
+        expect(toast).toHaveBeenCalledWith('Section deleted', expect.objectContaining({ action: expect.objectContaining({ label: 'Undo' }) }))
+        expect(deleteSection).not.toHaveBeenCalled()
+
+        pressUndo()
+        expect(section('Marketing')).not.toBeNull()
+        await act(async () => jest.advanceTimersByTime(6000))
+        expect(deleteSection).not.toHaveBeenCalled()
     })
 })
 
@@ -194,15 +206,33 @@ describe('rows', () => {
         expect(selectedTask.section.name).toBe('Marketing')
     })
 
-    it('deletes from the row menu after confirming, hiding it at once', async () => {
+    it('deletes from the row menu at once, and for good once the undo window passes', async () => {
+        jest.useFakeTimers()
         ;(deleteTask as jest.Mock).mockResolvedValue({ success: true })
         renderList()
         openMenu(screen.getByRole('button', { name: 'Actions for “Loose task”' }))
         fireEvent.click(await screen.findByRole('menuitem', { name: /Delete/ }))
-        await confirmDialog('Delete task')
 
-        expect(deleteTask).toHaveBeenCalledWith('t1')
         expect(screen.queryByText('Loose task')).not.toBeInTheDocument()
+        expect(toast).toHaveBeenCalledWith('Task deleted', expect.anything())
+        expect(deleteTask).not.toHaveBeenCalled()
+
+        await act(async () => jest.advanceTimersByTime(5000))
+        expect(deleteTask).toHaveBeenCalledWith('t1')
+        expect(refresh).toHaveBeenCalled()
+        expect(screen.queryByText('Loose task')).not.toBeInTheDocument()
+    })
+
+    it('brings a deleted task back on Undo', async () => {
+        jest.useFakeTimers()
+        renderList()
+        openMenu(screen.getByRole('button', { name: 'Actions for “Loose task”' }))
+        fireEvent.click(await screen.findByRole('menuitem', { name: /Delete/ }))
+        pressUndo()
+
+        expect(screen.getByText('Loose task')).toBeInTheDocument()
+        await act(async () => jest.advanceTimersByTime(6000))
+        expect(deleteTask).not.toHaveBeenCalled()
     })
 
     it('selects instead of opening while in bulk-select mode', () => {
