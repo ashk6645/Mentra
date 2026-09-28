@@ -108,7 +108,6 @@ export function TaskTable<T extends TaskTableTask>({
     const [prefs, setPrefs] = useTablePrefs(storageKey, {
         sort: null,
         hidden: DEFAULT_HIDDEN,
-        showCompleted: false,
         groupBy: 'section',
         collapsed: [],
     } satisfies TaskTablePrefs)
@@ -140,15 +139,10 @@ export function TaskTable<T extends TaskTableTask>({
     }, [sections, prefs.hidden, unavailable])
 
     const needle = query.trim().toLowerCase()
-    const completedCount = rows.filter(task => task.completed).length
 
     const visible = useMemo(
-        () =>
-            rows
-                .filter(task => prefs.showCompleted || !task.completed)
-                .filter(task => !needle || task.title.toLowerCase().includes(needle))
-                .sort(byManualOrder),
-        [rows, prefs.showCompleted, needle]
+        () => rows.filter(task => !needle || task.title.toLowerCase().includes(needle)).sort(byManualOrder),
+        [rows, needle]
     )
 
     const groups = useMemo<RowGroup<T>[] | undefined>(() => {
@@ -188,9 +182,6 @@ export function TaskTable<T extends TaskTableTask>({
                 <TaskTableToolbar
                     query={query}
                     onQueryChange={setQuery}
-                    showCompleted={prefs.showCompleted}
-                    onShowCompletedChange={showCompleted => setPrefs({ showCompleted })}
-                    completedCount={completedCount}
                     groupBy={grouped}
                     onGroupByChange={groupBy => setPrefs({ groupBy })}
                     canGroup={sections.length > 0}
@@ -210,6 +201,7 @@ export function TaskTable<T extends TaskTableTask>({
                     onRowOpen={openTask}
                     getRowAttributes={taskRowAttributes}
                     activeRowId={activeTaskId}
+                    keepLast={isCompleted}
                     collapsedGroups={collapsed}
                     onToggleGroup={toggleGroup}
                     empty={
@@ -227,6 +219,9 @@ export function TaskTable<T extends TaskTableTask>({
 }
 
 const getTaskId = (task: TaskTableTask) => task.id
+
+/** Finished tasks stay at the bottom of their group, however the table is sorted. */
+const isCompleted = (task: TaskTableTask) => task.completed
 
 /**
  * `data-task-id` hooks the rows into the app-wide j/k/x/e shortcuts, which find
