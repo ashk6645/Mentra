@@ -16,7 +16,6 @@ import {
 } from '@dnd-kit/core'
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { cn } from '@/lib/utils'
-import { useConfirm } from '@/components/second-brain/confirm-dialog'
 import { TaskTableContext } from '@/components/task-table/context'
 import { useTablePrefs } from '@/components/task-table/use-table-prefs'
 import { useTaskActions } from '@/components/task-table/use-task-actions'
@@ -103,11 +102,9 @@ export function TaskList<T extends TaskTableTask>({
     const [prefs, setPrefs] = useTablePrefs(storageKey, {
         sort: null,
         hidden: DEFAULT_HIDDEN,
-        showCompleted: false,
         groupBy: 'section',
         collapsed: [],
     } satisfies TaskTablePrefs)
-    const { confirm, dialog } = useConfirm()
     const rootRef = useRef<HTMLDivElement>(null)
 
     /** Which container's add-task line is open. One at a time. */
@@ -184,26 +181,13 @@ export function TaskList<T extends TaskTableTask>({
 
     // ─── Rows ────────────────────────────────────────────────────────────────
 
-    const askDelete = useCallback(
-        async (task: TaskTableTask) => {
-            const ok = await confirm({
-                title: 'Delete this task?',
-                description: `“${task.title}” and its subtasks will be deleted. This can’t be undone.`,
-                confirmLabel: 'Delete task',
-                destructive: true,
-            })
-            if (ok) remove(task as T)
-        },
-        [confirm, remove]
-    )
-
     const handlers = useMemo<ListRowHandlers>(
         () => ({
             onOpen: task => openTask(task as T),
             onDuplicate: task => duplicate(task as T),
-            onDelete: askDelete,
+            onDelete: task => remove(task as T),
         }),
-        [openTask, duplicate, askDelete]
+        [openTask, duplicate, remove]
     )
 
     /** Enter opens a row; the arrows move between rows, across sections. */
@@ -243,25 +227,11 @@ export function TaskList<T extends TaskTableTask>({
     const toggleCollapsed = (id: string) =>
         setPrefs({ collapsed: collapsed.has(id) ? prefs.collapsed.filter(c => c !== id) : [...prefs.collapsed, id] })
 
-    const askDeleteSection = async (id: string, name: string) => {
-        const count = (order[id]?.length ?? 0) + (doneOrder[id]?.length ?? 0)
-        const ok = await confirm({
-            title: `Delete “${name}”?`,
-            description: count > 0
-                ? `Its ${count} ${count === 1 ? 'task stays' : 'tasks stay'} in the project, moved out of the section.`
-                : 'The section is empty, so nothing else changes.',
-            confirmLabel: 'Delete section',
-            destructive: true,
-        })
-        if (ok) removeSection(id)
-    }
-
     const activeTask = drag ? byId.get(drag.activeId) : undefined
     const empty = rows.length === 0 && sections.length === 0
 
     return (
         <TaskTableContext.Provider value={context}>
-            {dialog}
             <DndContext
                 sensors={sensors}
                 collisionDetection={closestCorners}
@@ -297,7 +267,7 @@ export function TaskList<T extends TaskTableTask>({
                                     onToggle={() => toggleCollapsed(section.id)}
                                     onRename={name => rename(section.id, name)}
                                     onMove={direction => move(section.id, direction)}
-                                    onDelete={() => askDeleteSection(section.id, section.name)}
+                                    onDelete={() => removeSection(section.id)}
                                     onAddTask={() => {
                                         if (isCollapsed) toggleCollapsed(section.id)
                                         setAdding(section.id)
