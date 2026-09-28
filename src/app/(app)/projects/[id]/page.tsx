@@ -19,8 +19,8 @@ interface ProjectPageProps {
  * A project: its header, then its tasks as a list or a table.
  *
  * Both views are layouts over the same tasks and sections, and share one set of
- * remembered choices (`storageKey`) — collapse a section or show completed work
- * in one, and the other agrees.
+ * remembered choices (`storageKey`) — collapse a section in one, and the other
+ * agrees.
  */
 export default async function ProjectPage(props: ProjectPageProps) {
     const [params, search] = await Promise.all([props.params, props.searchParams])
@@ -40,9 +40,6 @@ export default async function ProjectPage(props: ProjectPageProps) {
         : []
     const tasks = tasksResult.success && tasksResult.data ? tasksResult.data : []
 
-    const open = tasks.filter(task => !task.completed).length
-    const done = tasks.length - open
-
     // A table needs room for its columns; a list reads best narrower.
     const width = view === 'table' ? 'max-w-6xl' : 'max-w-3xl'
     const shared = {
@@ -57,19 +54,14 @@ export default async function ProjectPage(props: ProjectPageProps) {
     return (
         <div className="flex h-full flex-col">
             <header className={`${width} mx-auto w-full px-6 pb-6 pt-12`}>
-                <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex min-w-0 items-center gap-3.5">
                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-black/[0.04] text-2xl dark:bg-white/[0.06]">
                             <ProjectIcon icon={project.icon} color={project.color} />
                         </div>
-                        <div className="min-w-0">
-                            <h1 className="truncate text-[26px] font-semibold leading-tight tracking-[-0.025em] text-foreground">
-                                {project.name}
-                            </h1>
-                            <p className="mt-0.5 text-[13px] tabular-nums text-muted-foreground">
-                                {open} open{done > 0 && <> · {done} done</>}
-                            </p>
-                        </div>
+                        <h1 className="min-w-0 truncate text-[26px] font-semibold leading-tight tracking-[-0.025em] text-foreground">
+                            {project.name}
+                        </h1>
                     </div>
 
                     <div className="flex shrink-0 items-center gap-1.5">
