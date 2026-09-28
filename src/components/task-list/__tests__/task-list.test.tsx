@@ -80,16 +80,25 @@ describe('layout', () => {
         renderList()
         const region = screen.getByRole('region', { name: 'Tasks' })
         const ids = within(region).getAllByRole('listitem').map(li => li.getAttribute('data-task-id'))
-        expect(ids).toEqual(['t1', 't2', 't3', 't4'])
+        expect(ids).toEqual(['t1', 't2', 't3', 't4', 't5'])
         expect(titlesIn(section('Marketing'))).toEqual(['t2', 't3'])
         expect(within(section('Product')).getByText('1')).toBeInTheDocument()
     })
 
-    it('folds completed work away until asked for', () => {
-        renderList()
-        expect(screen.queryByText('Old finished thing')).not.toBeInTheDocument()
-        fireEvent.click(screen.getByRole('button', { name: /Completed/ }))
-        expect(screen.getByText('Old finished thing')).toBeInTheDocument()
+    it('keeps finished tasks in their section, below the open ones', () => {
+        const tasks: TaskTableTask[] = [
+            { ...base, id: 'd1', title: 'Shipped it', completed: true, sectionId: 's1', sortOrder: 0 },
+            ...TASKS,
+        ]
+        renderList(tasks)
+        expect(titlesIn(section('Marketing'))).toEqual(['t2', 't3', 'd1'])
+        expect(titlesIn(section('Product'))).toEqual(['t4', 't5'])
+        // No separate "Completed" group, and a section's count is its open tasks.
+        expect(screen.queryByRole('button', { name: /Completed/ })).not.toBeInTheDocument()
+        expect(within(section('Marketing')).getByText('2')).toBeInTheDocument()
+        // Finished tasks don't drag.
+        expect(screen.queryByRole('button', { name: 'Move “Shipped it”' })).not.toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Move “Write the post”' })).toBeInTheDocument()
     })
 
     it('collapses a section, remembering it for the other view too', () => {
