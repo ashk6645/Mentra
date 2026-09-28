@@ -8,8 +8,8 @@ import { ProjectIcon } from '@/components/projects/project-icon'
 import { Checkbox } from '@/components/second-brain/checkbox'
 import { ActionMenu } from '@/components/second-brain/menu'
 import { IconButton } from '@/components/second-brain/primitives'
-import { useConfirm } from '@/components/second-brain/confirm-dialog'
-import { deleteTask, toggleTaskCompletion, updateTask } from '@/lib/actions/tasks'
+import { toggleTaskCompletion, updateTask } from '@/lib/actions/tasks'
+import { deleteTaskWithUndo } from '@/stores/use-deleted-store'
 import { saveFailed, useApplyTaskUpdate } from './parts'
 import { FOCUS, HAIRLINE, INK, T } from '@/lib/second-brain/ui'
 
@@ -27,30 +27,15 @@ interface HeaderTask {
  */
 export function TaskDetailHeader({ task, onClose }: { task: HeaderTask; onClose: () => void }) {
     const router = useRouter()
-    const { confirm, dialog } = useConfirm()
 
-    const remove = async () => {
-        const confirmed = await confirm({
-            title: 'Delete this task?',
-            description: `“${task.title}” and its subtasks will be deleted. This can’t be undone.`,
-            confirmLabel: 'Delete task',
-            destructive: true,
-        })
-        if (!confirmed) return
-
-        const result = await deleteTask(task.id)
-        if (!result.success) {
-            saveFailed('the task', result.error)
-            return
-        }
+    /** Gone at once — the toast offers Undo for a few seconds. */
+    const remove = () => {
+        deleteTaskWithUndo(task, () => router.refresh())
         onClose()
-        router.refresh()
     }
 
     return (
         <header className={cn('flex h-12 shrink-0 items-center justify-between gap-3 border-b pl-5 pr-3', HAIRLINE)}>
-            {dialog}
-
             {/* Where it lives — the one piece of context the title can't give. */}
             <div className={cn('flex min-w-0 items-center gap-1.5', T.meta, INK.muted)}>
                 {task.project ? (
